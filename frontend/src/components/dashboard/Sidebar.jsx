@@ -1,48 +1,69 @@
-import { Link } from "react-router-dom";
+import React from "react";
+import { NavLink } from "react-router-dom"; // Menggunakan NavLink untuk deteksi link aktif otomatis
+import {
+    LayoutDashboard,
+    UserCheck,
+    Users,
+    Calendar,
+    Star,
+} from "lucide-react";
+import "./style.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Sidebar = () => {
-    return (
-        <aside style={styles.sidebar}>
-            <h2 style={styles.logo}>MyApps</h2>
-            <nav style={styles.nav}>
-                <Link to="/dashboard" style={styles.link}>
-                    📊 Overview
-                </Link>
-                <Link to="/dashboard/profile" style={styles.link}>
-                    👤 Profile
-                </Link>
-                <Link to="/dashboard/settings" style={styles.link}>
-                    ⚙️ Settings
-                </Link>
-            </nav>
-            <button style={styles.logoutBtn}>Logout</button>
-        </aside>
-    );
-};
+    // Tambahkan property 'path' untuk rute tujuan
+    const menuItems = [
+        {
+            name: "Dashboard",
+            icon: <LayoutDashboard size={20} />,
+            path: "/dashboard",
+        },
+        {
+            name: "Verifikasi Organizer",
+            icon: <UserCheck size={20} />,
+            path: "/test",
+        },
+        // { name: "Kelola Pengguna", icon: <Users size={20} />, path: "/users" },
+        // { name: "Pantau Acara", icon: <Calendar size={20} />, path: "/acara" },
+        // { name: "Kontrol Promosi", icon: <Star size={20} />, path: "/promosi" },
+    ];
 
-const styles = {
-    sidebar: {
-        width: "240px",
-        backgroundColor: "#1e293b",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        padding: "20px",
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-    },
-    logo: { marginBottom: "30px", textAlign: "center" },
-    nav: { display: "flex", flexDirection: "column", gap: "15px", flex: 1 },
-    link: { color: "#cbd5e1", textDecoration: "none", fontSize: "16px" },
-    logoutBtn: {
-        backgroundColor: "#ef4444",
-        color: "white",
-        border: "none",
-        padding: "10px",
-        borderRadius: "5px",
-        cursor: "pointer",
-    },
+    return (
+        <div className="sidebar-container border-end">
+            {/* Logo Section */}
+            <div className="sidebar-logo d-flex align-items-center justify-content-center">
+                <span className="logo-text">KAMPUS</span>
+                <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="#1a3a63"
+                    className="ms-2"
+                >
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+            </div>
+
+            {/* Navigation Menu */}
+            <nav className="nav flex-column px-3">
+                {menuItems.map((item) => (
+                    <NavLink
+                        key={item.name}
+                        to={item.path}
+                        // NavLink menyediakan callback 'isActive' untuk styling otomatis
+                        className={({ isActive }) =>
+                            `nav-link custom-menu-item d-flex align-items-center border-0 ${
+                                isActive ? "active" : ""
+                            }`
+                        }
+                    >
+                        <span className="menu-icon me-3">{item.icon}</span>
+                        <span className="menu-text">{item.name}</span>
+                    </NavLink>
+                ))}
+            </nav>
+        </div>
+    );
 };
 
 export default Sidebar;

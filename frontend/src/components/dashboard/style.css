@@ -1,0 +1,56 @@
+/* Sidebar.css */
+
+.sidebar-container {
+    width: 280  px;
+    height: 100vh;
+    background-color: #ffffff;
+    padding-top: 1.5rem;
+}
+
+.sidebar-logo {
+    margin-bottom: 1.5rem;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #1a3a63;
+    letter-spacing: -0.5px;
+}
+
+.custom-menu-item {
+    background: transparent;
+    color: #6c757d; /* Warna teks abu-abu standar */
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 0.25rem;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.custom-menu-item .menu-icon {
+    color: #adb5bd; /* Warna ikon saat tidak aktif */
+    display: flex;
+    align-items: center;
+}
+
+/* State: HOVER */
+.custom-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* State: ACTIVE (Sesuai Gambar Figma) */
+.custom-menu-item.active {
+    background-color: #f0f7ff !important; /* Biru muda sangat terang */
+    color: #1e5ca0 !important; /* Biru Kampus */
+    font-weight: 600;
+}
+
+.custom-menu-item.active .menu-icon {
+    color: #1e5ca0; /* Ikon ikut berubah biru */
+}
+
+.menu-text {
+    font-size: 15px;
+}
