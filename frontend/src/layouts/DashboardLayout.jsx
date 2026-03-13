@@ -1,7 +1,7 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link } from "react-router-dom";
-import Sidebar from "../components/dashboard/Sidebar.jsx"; // Komponen sidebar Anda
-import Navbar from "../components/dashboard/Navbar.jsx"; // Komponen header user
+import Sidebar from "../components/dashboard/sidebar/Sidebar.jsx"; // Komponen sidebar Anda
+import Navbar from "../components/dashboard/navbar/Navbar.jsx"; // Komponen header user
 
 const DashboardLayout = () => {
     return (
@@ -12,12 +12,11 @@ const DashboardLayout = () => {
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
                 {/* 2. Navbar yang nempel di atas */}
                 <Navbar />
-                hello
                 {/* 3. Area Konten Utama */}
                 <main
                     style={{
                         padding: "20px",
-                        backgroundColor: "#f4f4f4",
+                        backgroundColor: "#F7F8F9",
                         flex: 1,
                     }}
                 >

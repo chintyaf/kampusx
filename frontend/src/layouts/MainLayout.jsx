@@ -1,7 +1,7 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link } from "react-router-dom";
-import Sidebar from "../components/dashboard/Sidebar.jsx"; // Komponen sidebar Anda
-import Navbar from "../components/dashboard/Navbar.jsx"; // Komponen header user
+import Sidebar from "../components/dashboard/sidebar/Sidebar.jsx"; // Komponen sidebar Anda
+import Navbar from "../components/dashboard/navbar/Navbar.jsx"; // Komponen header user
 
 const VisitorLayout = () => {
     return (

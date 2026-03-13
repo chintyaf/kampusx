@@ -4,3 +4,74 @@ Font-family: Mengatur jenis tulisan untuk seluruh body.
 Background body: Warna latar belakang seluruh website.
 Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di banyak tempat. 
 */
+
+:root {
+    /* FONT */
+    --font-xs: 12px; /* Caption / Label */
+    --font-sm: 14px; /* Menu Sidebar teks */
+    --font-md: 16px; /* Body teks */
+    --font-lg: 20px; /* Heading Kecil */
+    --font-xl: 24px; /* Heading Besar */
+
+    --color-primary: #00699e;
+    --color-secondary: #64748b;
+    --color-bg: #f8fafc;
+    --color-border: #e2e8f0;
+    --color-text: #0f172a;
+
+    --color-white: #fff;
+
+    /* Bahama Blue Color Palette */
+    --bahama-blue-50: #f0f9ff;
+    --bahama-blue-100: #dff3ff;
+    --bahama-blue-200: #b9e7fe;
+    --bahama-blue-300: #7bd6fe;
+    --bahama-blue-400: #34c2fc;
+    --bahama-blue-500: #0aabed;
+    --bahama-blue-600: #0089cb;
+    --bahama-blue-700: #00699e; /* Primary / Locked */
+    --bahama-blue-800: #055c87;
+    --bahama-blue-900: #0a4c70;
+    --bahama-blue-950: #07304a;
+}
+
+p {
+    margin: 0px;
+}
+
+.btn {
+    /* border-radius: var(--border-radius) !important; */
+    font-family: var(--font-md);
+    /* transition: 0.2s; */
+}
+/* 
+.btn:hover {
+    transform: scale(1.1);
+    transition: 0.2s;
+} */
+
+.btn-primary {
+    background-color: var(--bahama-blue-600) !important;
+    border-color: var(--bahama-blue-600) !important;
+}
+
+.btn-primary:hover {
+    background-color: #0c5ea1 !important;
+    border-color: #007eb0 !important;
+}
+
+.btn-secondary {
+    background-color: white !important;
+    color: var(--bahama-blue-600);
+    border: 2px solid var(--bahama-blue-600);
+}
+
+.btn-secondary:hover {
+    background-color: #eff1fc !important;
+    color: var(--bahama-blue-600);
+    border: 2px solid var(--bahama-blue-600);
+}
+
+.btn-dark:hover {
+    background-color: #384657;
+}

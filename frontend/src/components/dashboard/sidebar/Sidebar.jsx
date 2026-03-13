@@ -7,11 +7,13 @@ import {
     Calendar,
     Star,
 } from "lucide-react";
-import "./style.css";
+
+import "./Sidebar.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Sidebar = () => {
     // Tambahkan property 'path' untuk rute tujuan
+
     const menuItems = [
         {
             name: "Dashboard",
@@ -23,9 +25,9 @@ const Sidebar = () => {
             icon: <UserCheck size={20} />,
             path: "/test",
         },
-        // { name: "Kelola Pengguna", icon: <Users size={20} />, path: "/users" },
-        // { name: "Pantau Acara", icon: <Calendar size={20} />, path: "/acara" },
-        // { name: "Kontrol Promosi", icon: <Star size={20} />, path: "/promosi" },
+        { name: "Kelola Pengguna", icon: <Users size={20} />, path: "/users" },
+        { name: "Pantau Acara", icon: <Calendar size={20} />, path: "/acara" },
+        { name: "Kontrol Promosi", icon: <Star size={20} />, path: "/promosi" },
     ];
 
     return (
@@ -50,9 +52,8 @@ const Sidebar = () => {
                     <NavLink
                         key={item.name}
                         to={item.path}
-                        // NavLink menyediakan callback 'isActive' untuk styling otomatis
                         className={({ isActive }) =>
-                            `nav-link custom-menu-item d-flex align-items-center border-0 ${
+                            `nav-link px-3 py-3 custom-menu-item d-flex align-items-center border-0 ${
                                 isActive ? "active" : ""
                             }`
                         }
