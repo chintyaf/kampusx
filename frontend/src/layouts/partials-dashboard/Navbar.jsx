@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
-import "./Navbar.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-
-import userImg from "../../../assets/images/user-placeholder.avif"; // Pastikan path ini benar
-import Button from "../../Button";
+import userImg from "../../assets/images/user-placeholder.avif";
+import Button from "../../components/Button";
 
 import {
     Bell,
@@ -27,7 +24,10 @@ const Navbar = () => {
 
     return (
         <nav className="navbar">
-            <div className="nav-content w-100 d-flex justify-content-end align-items-center p-3 gap-3">
+            <div
+                className="nav-content w-100 d-flex justify-content-end align-items-center gap-3"
+                style={{ padding: "16px 60px" }}
+            >
                 {/* Notifikasi */}
                 <BellDotIcon size={20} />
 

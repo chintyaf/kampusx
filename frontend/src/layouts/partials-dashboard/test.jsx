@@ -8,8 +8,6 @@ import {
     Star,
 } from "lucide-react";
 
-import "./Sidebar.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 const Sidebar = () => {
     // Tambahkan property 'path' untuk rute tujuan
@@ -31,6 +29,7 @@ const Sidebar = () => {
     ];
 
     return (
+        <>
         <div className="sidebar-container border-end">
             {/* Logo Section */}
             <div className="sidebar-logo d-flex align-items-center justify-content-center">
@@ -64,6 +63,8 @@ const Sidebar = () => {
                 ))}
             </nav>
         </div>
+        
+        </>
     );
 };
 

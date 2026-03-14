@@ -1,7 +1,11 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link } from "react-router-dom";
-import Sidebar from "../components/dashboard/sidebar/Sidebar.jsx"; // Komponen sidebar Anda
-import Navbar from "../components/dashboard/navbar/Navbar.jsx"; // Komponen header user
+import Sidebar from "./partials-dashboard/Sidebar.jsx";
+import Navbar from "./partials-dashboard/Navbar.jsx";
+
+import "../assets/css/dashboard.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const DashboardLayout = () => {
     return (
@@ -15,12 +19,11 @@ const DashboardLayout = () => {
                 {/* 3. Area Konten Utama */}
                 <main
                     style={{
-                        padding: "20px",
+                        padding: "30px 60px",
                         backgroundColor: "#F7F8F9",
                         flex: 1,
                     }}
                 >
-                    <p>Dashboard</p>
                     {/* Outlet inilah yang akan berubah jadi isi dari halaman 
               seperti Overview, Settings, atau Profile */}
                     <Outlet />

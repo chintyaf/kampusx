@@ -4,7 +4,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 // Import daftar rute
 import visitorRoutes from "./PublicRoutes";
-import dashboardRoutes from "./dashboardRoutes";
+import dashboardRoutes from "./DashboardRoutes";
 
 const AppRoutes = () => {
     return (
