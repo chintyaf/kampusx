@@ -1,0 +1,16 @@
+{
+    "admin": [
+        {
+            "id": "dashboard",
+            "name": "Admin Dashboard",
+            "icon": "LayoutDashboard",
+            "path": "admin/dashboard"
+        },
+        {
+            "id": "manage-users",
+            "name": "User Management",
+            "icon": "UserCheck",
+            "path": "admin/test"
+        }
+    ]
+}

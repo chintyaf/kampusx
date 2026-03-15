@@ -1,9 +1,15 @@
-/* Sidebar.css */
+/* 
+    SIDEBAR
+*/
 .sidebar-container {
-    min-width: 280px;
+    min-width: 250px;
     height: 100vh;
     background-color: #ffffff;
     padding-top: 1.5rem;
+}
+
+.sidebar-container .nav-link {
+    padding: 10px 15px;
 }
 
 .sidebar-logo {
@@ -38,12 +44,9 @@
     color: #333;
 }
 
-/* State: ACTIVE (Sesuai Gambar Figma) */
 .custom-menu-item.active {
-    background-color: var(
-        --bahama-blue-50
-    ) !important; /* Biru muda sangat terang */
-    color: var(--bahama-blue-700) !important; /* Biru Kampus */
+    background-color: var(--bahama-blue-50) !important;
+    color: var(--bahama-blue-700) !important;
     font-weight: 600;
 }
 
@@ -61,7 +64,28 @@
     color: var(--color-text);
 }
 
-/* Navbar Layout */
+/* Animasi Submenu */
+/* The wrapper for the submenu */
+.submenu-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.25s ease-out;
+    overflow: hidden;
+}
+
+/* When the "show" class is added, expand the grid row to 1fr */
+.submenu-collapse.show {
+    grid-template-rows: 1fr;
+}
+
+/* The inner container needs min-height: 0 to work with the grid trick */
+.submenu-inner {
+    min-height: 0;
+}
+
+/* 
+    NAVBAR
+*/
 .event-status {
     border: 1px #cd9703 solid;
     color: #a6784d;
@@ -83,4 +107,38 @@
 /* Component */
 .card {
     border-color: #e3e6ea;
+}
+
+/* We target the specific profile-dropdown class to avoid breaking other menus */
+.profile-dropdown {
+    /* Override Bootstrap's default hiding logic */
+    display: block !important;
+
+    /* Initial hidden state */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+
+    /* Animation settings */
+    transition:
+        opacity 0.1s ease-out,
+        transform 0.2s ease-out,
+        visibility 0.2s;
+    pointer-events: none;
+}
+
+/* State when the 'show' class is present */
+.profile-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Optional: Add a subtle shadow to make it pop */
+.profile-dropdown {
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }

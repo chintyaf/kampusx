@@ -1,0 +1,65 @@
+:root {
+    --color-focus: #c4ddff90;
+}
+form {
+    background-color: #ffffff;
+    padding: 25px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.form-title {
+    color: #484848;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.form-control::placeholder,
+.form-select::placeholder {
+    color: #a1a1a1 !important;
+}
+
+.form-control:focus,
+.form-select__control--is-focused {
+    border-color: var(--bahama-blue-700) !important;
+    box-shadow: 0 0 0 0.3rem var(--color-focus) !important;
+    background-color: #f4f7fc50;
+    outline: 0;
+    /* box-shadow: 0 0 0 0.25rem rgba(255, 0, 0, 0.25); */
+}
+
+/* Hide the ugly default file input button */
+.hidden-input {
+    display: none;
+}
+
+/* Style the label to look like the dashed box */
+.upload-box-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 150px;
+    border: 2px dashed var(--color-border); /* Bootstrap grey-400 */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    background-color: #fcfcfd;
+}
+
+/* Hover effect to make it feel interactive */
+.upload-box-label:hover {
+    border-color: var(--color-border); /* Bootstrap Primary blue */
+    background-color: #f9fafc;
+}
+
+.upload-box-label p {
+    font-size: 14px;
+}

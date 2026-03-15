@@ -22,6 +22,10 @@ const Navbar = () => {
         console.log("Logging out...");
     };
 
+    const isAdmin = location.pathname.startsWith("/admin");
+    const isOrganizer = location.pathname.startsWith("/organizer");
+    const isInsideEvent = location.pathname.startsWith("/organizer/event");
+
     return (
         <nav className="navbar">
             <div
@@ -32,7 +36,7 @@ const Navbar = () => {
                 <BellDotIcon size={20} />
 
                 {/* Status Event */}
-                {location.pathname === "/dashboard" && (
+                {isInsideEvent && (
                     <div
                         className="event-status d-flex gap-2 align-items-center px-2 py-2 rounded-3"
                         style={{ cursor: "pointer" }}
@@ -48,48 +52,53 @@ const Navbar = () => {
                 )}
 
                 {/* Buat Event */}
-                <Button variant="primary">Buat Event +</Button>
-
+                {isOrganizer && !isInsideEvent && (
+                    <NavLink
+                        to="/organizer/buat-acara"
+                        className="text-decoration-none"
+                    >
+                        <Button variant="primary">Buat Event +</Button>
+                    </NavLink>
+                )}
                 {/* Profile */}
                 <div className="position-relative">
                     <div
                         className="user-icon cursor-pointer"
                         onClick={toggleDropdown}
-                        style={{ cursor: "pointer" }}
                     >
                         <img
-                            className=" rounded-circle object-fit-cover"
+                            className="rounded-circle object-fit-cover"
                             src={userImg}
                             alt="User"
                             width="40px"
                             height="40px"
                         />
                     </div>
-                    {isOpen && (
-                        <>
-                            {/* Overlay untuk menutup dropdown saat klik di luar */}
-                            <div
-                                className="position-fixed top-0 start-0 w-100 h-100"
-                                onClick={() => setIsOpen(false)}
-                                style={{ zIndex: 998 }}
-                            />
 
-                            <ul
-                                className="dropdown-menu show position-absolute end-0 mt-2"
-                                style={{ zIndex: 999, minWidth: "150px" }}
-                            >
-                                <li>
-                                    <button
-                                        className="dropdown-item d-flex align-items-center gap-2 text-danger"
-                                        onClick={handleLogout}
-                                    >
-                                        <LogOut size={16} />
-                                        <span>Logout</span>
-                                    </button>
-                                </li>
-                            </ul>
-                        </>
+                    {/* The Overlay (Can stay conditional) */}
+                    {isOpen && (
+                        <div
+                            className="position-fixed top-0 start-0 w-100 h-100"
+                            onClick={() => setIsOpen(false)}
+                            style={{ zIndex: 998, background: "transparent" }}
+                        />
                     )}
+
+                    {/* The Menu (DO NOT wrap in {isOpen && ...}) */}
+                    <ul
+                        className={`dropdown-menu position-absolute end-0 mt-2 profile-dropdown ${isOpen ? "show" : ""}`}
+                        style={{ zIndex: 999, minWidth: "150px" }}
+                    >
+                        <li>
+                            <button
+                                className="dropdown-item d-flex align-items-center gap-2 text-danger"
+                                onClick={handleLogout}
+                            >
+                                <LogOut size={16} />
+                                <span>Logout</span>
+                            </button>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>

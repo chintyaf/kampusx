@@ -1,23 +1,119 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, UserCheck, ChevronDown } from "lucide-react";
+import {
+    LayoutDashboard,
+    UserCheck,
+    ChevronDown,
+    Plus,
+    UsersRound,
+    FolderOpen,
+    ChartColumn,
+    Star,
+    Form,
+} from "lucide-react";
 
 // --- Configuration Data ---
-const MENU_ITEMS = [
-    {
-        id: "dashboard",
-        name: "Dashboard",
-        icon: <LayoutDashboard size={20} className="me-2" />,
-        path: "/dashboard",
-    },
-    {
-        id: "test",
-        name: "Dashboard",
-        icon: <LayoutDashboard size={20} className="me-2" />,
-        path: "/dashboard",
-        submenu: [{ name: "Create Event", path: "/create-event" }],
-    },
-];
+const MENU_ITEMS = {
+    admin: [
+        {
+            id: "test",
+            name: "Events",
+            icon: <LayoutDashboard size={20} className="me-2" />,
+            path: "admin/dashboard",
+            submenu: [{ name: "Create Event", path: "organizer/create-event" }],
+        },
+        {
+            id: "1",
+            name: "Admin Dashboard",
+            icon: <LayoutDashboard size={20} className="me-2" />,
+            path: "admin/dashboard",
+        },
+        {
+            id: "2",
+            name: "Verifikasi Organizer",
+            icon: <UserCheck size={20} className="me-2" />,
+            path: "admin/verifikasi-organizer",
+        },
+        {
+            id: "3",
+            name: "Kelola Pengguna",
+            icon: <UserCheck size={20} className="me-2" />,
+            path: "admin/kelola-pengguna",
+        },
+        {
+            id: "4",
+            name: "Pantau Acara",
+            icon: <UserCheck size={20} className="me-2" />,
+            path: "admin/pantau-acara",
+        },
+        {
+            id: "5",
+            name: "Kontrol Promosi",
+            icon: <UserCheck size={20} className="me-2" />,
+            path: "admin/kontrol-promosi",
+        },
+    ],
+    organizer: [
+        {
+            id: "1",
+            name: "Dashboard",
+            icon: <LayoutDashboard size={20} className="me-2" />,
+            path: "organizer/dashboard",
+        },
+        {
+            id: "1",
+            name: "Daftar Acara",
+            icon: <LayoutDashboard size={20} className="me-2" />,
+            path: "organizer/daftar-acara",
+        },
+    ],
+    event_detail: [
+        {
+            id: "1",
+            name: "Dashboard",
+            icon: <LayoutDashboard size={20} className="me-2" />,
+            path: "organizer/event/dashboard",
+        },
+        {
+            id: "2",
+            name: "Detil Event",
+            icon: <Form size={20} className="me-2" />,
+            path: "organizer/event/detil-event",
+            submenu: [
+                { name: "Info Utama", path: "info-utama" },
+                { name: "Waktu & Lokasi", path: "lokasi-n-waktu" },
+                { name: "Daftar Pembicara", path: "daftar-pembicara" },
+                { name: "Jenis Tiket", path: "kelola-tiket" },
+                { name: "Formulir Registrasi", path: "formulir" },
+                { name: "Kelola Staff", path: "kelola-staff" },
+            ],
+        },
+        {
+            id: "3",
+            name: "Daftar Peserta",
+            icon: <UsersRound size={20} className="me-2" />,
+            path: "organizer/event/daftar-peserta",
+        },
+        {
+            id: "4",
+            name: "Distribusi Materi",
+            icon: <FolderOpen size={20} className="me-2" />,
+            path: "organizer/event/distribusi-materi",
+        },
+        {
+            id: "5",
+            name: "Statistik",
+            icon: <ChartColumn size={20} className="me-2" />,
+            path: "organizer/event/statistik",
+        },
+        {
+            id: "6",
+            name: "Promosi",
+            icon: <Star size={20} className="me-2" />,
+            path: "organizer/event/promosi",
+        },
+    ],
+};
 
 const ACCOUNT_ITEMS = {
     id: "account",
@@ -37,11 +133,17 @@ const ACCOUNT_ITEMS = {
 
 // --- Sub-component for individual items ---
 const SidebarItem = ({ item, isOpen, toggle }) => {
+    const location = useLocation();
     const hasSubmenu = !!item.submenu;
+
+    const isChildActive = item.submenu?.some((sub) => {
+        const fullPath = `${item.path}/${sub.path}`;
+        return location.pathname.startsWith(fullPath);
+    });
 
     // Shared NavLink style logic
     const navLinkClass = ({ isActive }) =>
-        `nav-link px-3 py-2 custom-menu-item d-flex align-items-center border-0 ${isActive ? "active" : ""}`;
+        `nav-link custom-menu-item d-flex align-items-center border-0 ${isActive || isChildActive ? "active" : ""}`;
 
     if (!hasSubmenu) {
         return (
@@ -55,7 +157,7 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
         <>
             <button
                 onClick={() => toggle(item.id)}
-                className={`px-3 btn btn-toggle d-flex align-items-center justify-content-between w-100 rounded border-0 ${isOpen ? "parent-menu" : "collapsed"}`}
+                className={`${navLinkClass({ isActive: false })} btn btn-toggle d-flex align-items-center justify-content-between w-100 rounded border-0 ${isOpen ? "" : "collapsed"}`}
             >
                 <div className="d-flex align-items-center sidebar-parent-menu">
                     {item.icon} {item.name}
@@ -69,26 +171,50 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
                 />
             </button>
 
-            <div className={`collapse ${isOpen ? "show" : ""}`}>
-                <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-4 ms-2 mt-1 border-start">
+            <div className={`submenu-collapse ${isOpen ? "show" : ""}`}>
+                <div className="submenu-inner">
+                <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-1 ms-4 mt-1 border-start">
                     {item.submenu.map((sub, idx) => (
                         <li key={idx}>
-                            <NavLink to={sub.path} className={navLinkClass}>
+                            <NavLink
+                                to={`${item.path}/${sub.path}`}
+                                className={navLinkClass}
+                            >
                                 {sub.name}
                             </NavLink>
                         </li>
                     ))}
                 </ul>
+                </div>
             </div>
         </>
     );
 };
 
 // --- Main Sidebar Component ---
-const Sidebar = () => {
+const Sidebar = (props) => {
     const [openMenu, setOpenMenu] = useState("dashboard");
+    const currentMenu = MENU_ITEMS[props.type] || [];
 
     const handleToggle = (id) => setOpenMenu(openMenu === id ? null : id);
+
+    const location = useLocation();
+    useEffect(() => {
+        const currentPath = location.pathname;
+
+        currentMenu.forEach((item) => {
+            if (item.submenu) {
+                const isActive = item.submenu.some((sub) => {
+                    const fullPath = `/${item.path}/${sub.path}`;
+                    return currentPath === fullPath;
+                });
+
+                if (isActive) {
+                    setOpenMenu(item.id);
+                }
+            }
+        });
+    }, [location.pathname, currentMenu]);
 
     return (
         <div
@@ -112,9 +238,9 @@ const Sidebar = () => {
                 </svg>
             </NavLink>
 
-            <ul className="list-unstyled ps-0">
-                {MENU_ITEMS.map((item) => (
-                    <li className="mb-1" key={item.id}>
+            <ul className="list-unstyled ps-0 ">
+                {currentMenu.map((item) => (
+                    <li className="mb-3" key={item.id}>
                         <SidebarItem
                             item={item}
                             isOpen={openMenu === item.id}
@@ -122,16 +248,6 @@ const Sidebar = () => {
                         />
                     </li>
                 ))}
-
-                <li className="border-top my-3"></li>
-
-                <li className="mb-1">
-                    <SidebarItem
-                        item={ACCOUNT_ITEMS}
-                        isOpen={openMenu === "account"}
-                        toggle={handleToggle}
-                    />
-                </li>
             </ul>
         </div>
     );
