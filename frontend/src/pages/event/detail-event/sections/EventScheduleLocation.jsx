@@ -4,20 +4,20 @@ import { Form, InputGroup } from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../EventLayout";
 
+import Step1_TypeSelection from "./schedule/Step1_TypeSelection"; // Level 1
+import Step2_DetailLocation from "./schedule/Step2_DetailLocation"; // Level 2
+import SchedulePlaceholder from "./schedule/SchedulePlaceholder";
+
 const EventScheduleLocation = () => {
+    const [selectedType, setSelectedType] = useState(null);
     return (
         <EventLayout title="Informasi Utama Event" nextPath="event/create/">
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label>Judul Event</Form.Label>
-                <Form.Control
-                    required
-                    type="text"
-                    placeholder="Contoh: KampusX Xtra Xplore Xperience"
-                />
-                <Form.Text className="text-muted">
-                    We'll never share your email with anyone else.
-                </Form.Text>
-            </Form.Group>
+            <Step1_TypeSelection onSelectType={setSelectedType} />
+            {selectedType ? (
+                <Step2_DetailLocation selectedType={selectedType} />
+            ) : (
+                <SchedulePlaceholder />
+            )}
         </EventLayout>
     );
 };

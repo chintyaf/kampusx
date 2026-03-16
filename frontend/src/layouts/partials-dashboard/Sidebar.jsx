@@ -76,7 +76,6 @@ const MENU_ITEMS = {
                 { name: "Info Utama", path: "info-utama" },
                 { name: "Waktu & Lokasi", path: "lokasi-n-waktu" },
                 { name: "Daftar Pembicara", path: "daftar-pembicara" },
-                { name: "Jenis Tiket", path: "kelola-tiket" },
                 { name: "Formulir Registrasi", path: "formulir" },
                 { name: "Kelola Staff", path: "kelola-staff" },
             ],
@@ -163,7 +162,7 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
                 <ChevronDown
                     size={16}
                     style={{
-                        transform: isOpen ? "rotate(0deg)" : "rotate(90deg)",
+                        transform: isOpen ? "rotate(-90deg)" : "rotate(0deg)",
                         transition: "0.3s",
                     }}
                 />

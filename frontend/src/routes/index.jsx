@@ -7,19 +7,22 @@ import visitorRoutes from "./PublicRoutes";
 import dashboardRoutes from "./DashboardRoutes";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Test from "../pages/dashboard/Test";
+
+// CREATE EVENT PAGES
 import CreateEvent from "../pages/event/CreateEvent";
 import EventDashboardPage from "../pages/event/EventDashboardPage";
 import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralInfo";
 import EventScheduleLocation from "../pages/event/detail-event/sections/EventScheduleLocation";
-// import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
-// import EventTicketManagement from "../pages/event/detail-event/sections/EventTicketManagement";
-// import EventRegistrationFormPage from "../pages/event/detail-event/sections/EventRegistrationFormPage";
-// import EventStaffManagementPage from "../pages/event/detail-event/sections/EventStaffManagementPage";
+import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
+import EventRegistrationForm from "../pages/event/detail-event/sections/EventRegistrationForm";
+import EventStaffManagement from "../pages/event/detail-event/sections/EventStaffManagement";
 
 import EventParticipantList from "../pages/event/EventParticipantListPage";
 import EventMaterialDistribution from "../pages/event/EventMaterialDistributionPage";
 import EventStatistics from "../pages/event/EventStatisticsPage";
 import EventPromotion from "../pages/event/EventPromotionPage";
+// END CREATE EVENT PAGES
+
 import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
 
 const AppRoutes = () => {
@@ -60,28 +63,24 @@ const AppRoutes = () => {
                         <Route path="detil-event">
                             <Route
                                 path="info-utama"
-                                element={<EventGeneralInfo   />}
+                                element={<EventGeneralInfo />}
                             />
                             <Route
                                 path="lokasi-n-waktu"
                                 element={<EventScheduleLocation />}
                             />
-                            {/* <Route
+                            <Route
                                 path="daftar-pembicara"
                                 element={<EventSpeakerList />}
                             />
                             <Route
-                                path="kelola-tiket"
-                                element={<EventTicketManagement />}
-                            />
-                            <Route
                                 path="formulir"
-                                element={<EventRegistrationFormPage />}
+                                element={<EventRegistrationForm />}
                             />
                             <Route
                                 path="kelola-staff"
-                                element={<EventStaffManagementPage />}
-                            /> */}
+                                element={<EventStaffManagement />}
+                            />
                         </Route>
 
                         <Route

@@ -20,11 +20,9 @@ const EventLayout = ({ title, children, nextPath }) => {
 
     return (
         <>
-            <Form>
-                <p className="mb-4 form-title">{title}</p>
-
-                {children}
-            </Form>
+            <div className="d-flex flex-column gap-4">
+            {children}
+            </div>
             <div className="w-100 d-flex justify-content-end mt-4 gap-4">
                 <Button variant="dark" onClick={handleSaveAndContinue}>
                     Simpan & Lanjut
