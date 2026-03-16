@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import VisitorLayout from "../layouts/MainLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 
@@ -8,6 +8,19 @@ import dashboardRoutes from "./DashboardRoutes";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Test from "../pages/dashboard/Test";
 import CreateEvent from "../pages/event/CreateEvent";
+import EventDashboardPage from "../pages/event/EventDashboardPage";
+import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralInfo";
+import EventScheduleLocation from "../pages/event/detail-event/sections/EventScheduleLocation";
+// import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
+// import EventTicketManagement from "../pages/event/detail-event/sections/EventTicketManagement";
+// import EventRegistrationFormPage from "../pages/event/detail-event/sections/EventRegistrationFormPage";
+// import EventStaffManagementPage from "../pages/event/detail-event/sections/EventStaffManagementPage";
+
+import EventParticipantList from "../pages/event/EventParticipantListPage";
+import EventMaterialDistribution from "../pages/event/EventMaterialDistributionPage";
+import EventStatistics from "../pages/event/EventStatisticsPage";
+import EventPromotion from "../pages/event/EventPromotionPage";
+import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
 
 const AppRoutes = () => {
     return (
@@ -34,34 +47,60 @@ const AppRoutes = () => {
                 </Route>
 
                 <Route path="organizer">
-                    <Route path="Dashboard" element={<CreateEvent />} />
+                    <Route path="Dashboard" element={<OrgDashboardPage />} />
                     <Route path="daftar-acara" element={<CreateEvent />} />
                     <Route path="buat-acara" element={<CreateEvent />} />
 
                     {/* Event Routes untuk Detail Event */}
                     <Route path="event">
-                        <Route path="dashboard" element={<CreateEvent />} />
-                        <Route path="detil-event" element={<CreateEvent />}>
-                            <Route path="info-utama" />
-                            <Route path="lokasi-n-waktu" />
-                            <Route path="daftar-pembicara" />
-                            <Route path="kelola-tiket" />
-                            <Route path="formulir" />
-                            <Route path="kelola-staff" />
+                        <Route
+                            path="dashboard"
+                            element={<EventDashboardPage />}
+                        />
+                        <Route path="detil-event">
+                            <Route
+                                path="info-utama"
+                                element={<EventGeneralInfo   />}
+                            />
+                            <Route
+                                path="lokasi-n-waktu"
+                                element={<EventScheduleLocation />}
+                            />
+                            {/* <Route
+                                path="daftar-pembicara"
+                                element={<EventSpeakerList />}
+                            />
+                            <Route
+                                path="kelola-tiket"
+                                element={<EventTicketManagement />}
+                            />
+                            <Route
+                                path="formulir"
+                                element={<EventRegistrationFormPage />}
+                            />
+                            <Route
+                                path="kelola-staff"
+                                element={<EventStaffManagementPage />}
+                            /> */}
                         </Route>
 
                         <Route
                             path="daftar-peserta"
-                            element={<CreateEvent />}
+                            element={<EventParticipantList />}
                         />
                         <Route
                             path="distribusi-materi"
-                            element={<CreateEvent />}
+                            element={<EventMaterialDistribution />}
                         />
-                        <Route path="statistik" element={<CreateEvent />} />
-                        <Route path="promosi" element={<CreateEvent />} />
+                        <Route path="statistik" element={<EventStatistics />} />
+                        <Route path="promosi" element={<EventPromotion />} />
                     </Route>
                 </Route>
+
+                {/* <Route
+                    path="*"
+                    element={<Navigate to="/dashboard" replace />}
+                /> */}
             </Route>
         </Routes>
     );

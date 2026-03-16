@@ -16,13 +16,6 @@ import {
 const MENU_ITEMS = {
     admin: [
         {
-            id: "test",
-            name: "Events",
-            icon: <LayoutDashboard size={20} className="me-2" />,
-            path: "admin/dashboard",
-            submenu: [{ name: "Create Event", path: "organizer/create-event" }],
-        },
-        {
             id: "1",
             name: "Admin Dashboard",
             icon: <LayoutDashboard size={20} className="me-2" />,
@@ -61,7 +54,7 @@ const MENU_ITEMS = {
             path: "organizer/dashboard",
         },
         {
-            id: "1",
+            id: "2",
             name: "Daftar Acara",
             icon: <LayoutDashboard size={20} className="me-2" />,
             path: "organizer/daftar-acara",
@@ -115,21 +108,26 @@ const MENU_ITEMS = {
     ],
 };
 
-const ACCOUNT_ITEMS = {
-    id: "account",
-    name: "Account",
-    icon: (
-        <div
-            className="bg-secondary rounded-circle me-2"
-            style={{ width: 20, height: 20 }}
-        />
-    ),
-    submenu: [
-        { name: "Profile", path: "#" },
-        { name: "Settings", path: "#" },
-        { name: "Sign out", path: "#" },
-    ],
-};
+const ACCOUNT_ITEMS = [
+    {
+        id: "admin-account",
+        name: "Admin",
+        path: "admin/dashboard",
+        icon: <UserCheck size={20} className="me-2" />,
+    },
+    {
+        id: "organizer-account",
+        name: "Organizer",
+        path: "organizer/dashboard",
+        icon: <UserCheck size={20} className="me-2" />,
+    },
+    {
+        id: "event-account",
+        name: "Event",
+        path: "organizer/event/dashboard",
+        icon: <UserCheck size={20} className="me-2" />,
+    },
+];
 
 // --- Sub-component for individual items ---
 const SidebarItem = ({ item, isOpen, toggle }) => {
@@ -137,7 +135,7 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
     const hasSubmenu = !!item.submenu;
 
     const isChildActive = item.submenu?.some((sub) => {
-        const fullPath = `${item.path}/${sub.path}`;
+        const fullPath = `${item.path}${sub.path}`.replace(/\/+/g, "/");
         return location.pathname.startsWith(fullPath);
     });
 
@@ -173,18 +171,18 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
 
             <div className={`submenu-collapse ${isOpen ? "show" : ""}`}>
                 <div className="submenu-inner">
-                <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-1 ms-4 mt-1 border-start">
-                    {item.submenu.map((sub, idx) => (
-                        <li key={idx}>
-                            <NavLink
-                                to={`${item.path}/${sub.path}`}
-                                className={navLinkClass}
-                            >
-                                {sub.name}
-                            </NavLink>
-                        </li>
-                    ))}
-                </ul>
+                    <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-1 ms-4 mt-1 border-start">
+                        {item.submenu.map((sub, idx) => (
+                            <li key={idx}>
+                                <NavLink
+                                    to={`${item.path}/${sub.path}`}
+                                    className={navLinkClass}
+                                >
+                                    {sub.name}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
         </>
@@ -249,6 +247,29 @@ const Sidebar = (props) => {
                     </li>
                 ))}
             </ul>
+
+            <div className="d-flex flex-column gap-2">
+                <NavLink
+                    to="/admin/dashboard"
+                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
+                >
+                    Admin
+                </NavLink>
+
+                <NavLink
+                    to="/organizer/dashboard"
+                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
+                >
+                    Organizer
+                </NavLink>
+
+                <NavLink
+                    to="/organizer/event/dashboard"
+                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
+                >
+                    Event Organizer
+                </NavLink>
+            </div>
         </div>
     );
 };

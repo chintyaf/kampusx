@@ -117,9 +117,6 @@ const Create = () => {
                 </Form.Group>
             </Form>
             <div className="w-100 d-flex justify-content-end mt-4 gap-4">
-                <Button variant="dark" type="button">
-                    Back
-                </Button>
                 <Button
                     variant="dark"
                     type="button"
