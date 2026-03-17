@@ -19,14 +19,14 @@ const DashboardLayout = () => {
         sidebarType = "event_detail";
     }
 
-    return (                                   
-        <div style={{ display: "flex", minHeight: "100vh" }}>
-            {/* 1. Sidebar yang nempel terus di kiri */}
-            <Sidebar type={sidebarType} />
+    return (
+        <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
+            {/* 2. Navbar yang nempel di atas */}
+            <Navbar />
 
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                {/* 2. Navbar yang nempel di atas */}
-                <Navbar />
+            <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
+                {/* 1. Sidebar yang nempel terus di kiri */}
+                <Sidebar type={sidebarType} />
 
                 {/* 3. Area Konten Utama */}
                 <main

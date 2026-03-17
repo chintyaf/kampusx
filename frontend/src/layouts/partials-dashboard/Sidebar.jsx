@@ -218,22 +218,6 @@ const Sidebar = (props) => {
             className="sidebar-container flex-shrink-0 p-3 bg-white border-end"
             style={{ width: 280, minHeight: "100vh" }}
         >
-            {/* Logo Section */}
-            <NavLink
-                to="/"
-                className="d-flex justify-content-center align-items-center pb-3 mb-3 link-dark text-decoration-none"
-            >
-                <span className="logo-text fw-bold">KAMPUS</span>
-                <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 24 24"
-                    fill="#1a3a63"
-                    className="ms-2"
-                >
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                </svg>
-            </NavLink>
 
             <ul className="list-unstyled ps-0 ">
                 {currentMenu.map((item) => (
