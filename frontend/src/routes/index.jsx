@@ -23,6 +23,7 @@ import EventStatistics from "../pages/event/EventStatisticsPage";
 import EventPromotion from "../pages/event/EventPromotionPage";
 // END CREATE EVENT PAGES
 
+
 import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
 
 const AppRoutes = () => {
@@ -38,6 +39,7 @@ const AppRoutes = () => {
                     />
                 ))}
             </Route> */}
+
 
             {/* Group Dashboard */}
             <Route element={<DashboardLayout />}>

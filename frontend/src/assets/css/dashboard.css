@@ -2,12 +2,23 @@
     SIDEBAR
 */
 .sidebar-container {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    overflow: auto;
     min-width: 250px;
     height: 100vh;
     background-color: #ffffff;
     padding-top: 1.5rem;
+
+    scrollbar-width: none; /* 1. Sembunyikan untuk Firefox */
+    -ms-overflow-style: none; /* 2. Sembunyikan untuk Internet Explorer/Edge */
 }
 
+/* 3. Sembunyikan untuk Chrome, Safari, dan Opera */
+.sidebar-container::-webkit-scrollbar {
+    display: none;
+}
 .sidebar-container .nav-link {
     padding: 10px 15px;
 }
@@ -100,6 +111,11 @@
 }
 
 .navbar {
+    background-color: white;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
     padding: 0px;
     border-bottom: 1px var(--color-border) solid;
 }
