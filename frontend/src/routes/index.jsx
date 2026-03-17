@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import VisitorLayout from "../layouts/MainLayout";
+import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 
 // Import daftar rute
@@ -23,13 +24,19 @@ import EventStatistics from "../pages/event/EventStatisticsPage";
 import EventPromotion from "../pages/event/EventPromotionPage";
 // END CREATE EVENT PAGES
 
+// Import Pages
+import LandingPage from "../pages/public/LandingPage";
+import SignIn from "../pages/auth/SignIn";
+import SignUp from "../pages/auth/SignUp";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+
 import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
 
 const AppRoutes = () => {
     return (
         <Routes>
             {/* Group Visitor */}
-            {/* <Route element={<VisitorLayout />}>
+            <Route element={<VisitorLayout />}>
                 {visitorRoutes.map((route, index) => (
                     <Route
                         key={index}
@@ -37,7 +44,14 @@ const AppRoutes = () => {
                         element={route.element}
                     />
                 ))}
-            </Route> */}
+            </Route>
+
+            {/* AUTH */}
+            <Route element={<AuthLayout />}>
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+            </Route>
 
             {/* Group Dashboard */}
             <Route element={<DashboardLayout />}>
