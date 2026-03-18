@@ -4,6 +4,7 @@ Font-family: Mengatur jenis tulisan untuk seluruh body.
 Background body: Warna latar belakang seluruh website.
 Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di banyak tempat. 
 */
+/* @import "tailwindcss"; */
 
 :root {
     /* FONT */
@@ -74,4 +75,56 @@ p {
 
 .btn-dark:hover {
     background-color: #384657;
+}
+
+/* Mengubah indikator carousel dari garis menjadi titik bulat */
+.carousel-indicators [data-bs-target] {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background-color: #adb5bd !important; /* Warna abu-abu saat tidak aktif */
+  border: none !important;
+  margin: 0 6px !important;
+}
+
+/* Warna titik saat gambar sedang aktif/dilihat */
+.carousel-indicators .active {
+  background-color: #212529 !important; /* Warna hitam gelap */
+}
+
+/* --- CAROUSEL CUSTOMIZATION --- */
+
+/* Menggeser panah carousel persis ke ujung layar */
+.carousel-control-prev {
+  justify-content: flex-start !important;
+  padding-left: 20px !important; /* Jarak panah dari ujung kiri */
+  width: 10% !important; /* Memperkecil area klik agar panah terdorong */
+}
+
+.carousel-control-next {
+  justify-content: flex-end !important;
+  padding-right: 20px !important; /* Jarak panah dari ujung kanan */
+  width: 10% !important;
+}
+
+/* (Opsional) Memperbesar ukuran icon panahnya agar lebih jelas */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px); /* Efek melompat sedikit */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+/* Efek Hover untuk Kategori Event */
+.category-card:hover .rounded-circle {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+.cursor-pointer {
+    cursor: pointer;
 }

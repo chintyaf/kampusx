@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import VisitorLayout from "../layouts/MainLayout";
+import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 
 // Import daftar rute
 import visitorRoutes from "./PublicRoutes";
+import ProtectedRoute from "./ProtectedRoute";
 import dashboardRoutes from "./DashboardRoutes";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Test from "../pages/dashboard/Test";
@@ -23,13 +25,22 @@ import EventStatistics from "../pages/event/EventStatisticsPage";
 import EventPromotion from "../pages/event/EventPromotionPage";
 // END CREATE EVENT PAGES
 
+// Import Pages
+// import LandingPage from "../pages/public/LandingPage";
+// import ExploreEvents from "../pages/ExploreEvents";
+import SignIn from "../pages/auth/SignIn";
+import SignUp from "../pages/auth/SignUp";
+import ForgotPassword from "../pages/auth/ForgotPassword";
+
 import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
+
+import Checkout from "../pages/event/Checkout";
 
 const AppRoutes = () => {
     return (
         <Routes>
             {/* Group Visitor */}
-            {/* <Route element={<VisitorLayout />}>
+            <Route element={<VisitorLayout />}>
                 {visitorRoutes.map((route, index) => (
                     <Route
                         key={index}
@@ -37,7 +48,21 @@ const AppRoutes = () => {
                         element={route.element}
                     />
                 ))}
-            </Route> */}
+            </Route>
+
+            {/* AUTH */}
+            <Route element={<AuthLayout />}>
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+            </Route>
+
+            {/* MEMBER */}
+            <Route element={<ProtectedRoute />}>
+                <Route path="/checkout/:id" element={<Checkout />} />
+                {/* Nanti bisa tambah rute profil peserta di sini: */}
+                {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
+            </Route>
 
             {/* Group Dashboard */}
             <Route element={<DashboardLayout />}>
