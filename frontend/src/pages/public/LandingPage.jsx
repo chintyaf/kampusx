@@ -1,11 +1,15 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Carousel, Container, Row, Col, Card, Button, InputGroup, Form } from 'react-bootstrap';
 // 1. IMPORT IKON DARI LUCIDE REACT
 import { 
-    Megaphone, Laptop, Music, Trophy, GraduationCap, Globe, 
-    Building2, ShieldCheck, Wallet, FileText, Users, 
+    Megaphone, Laptop, Trophy, GraduationCap,
+    Building2, ShieldCheck, Wallet, FileText, 
     Search, CreditCard, Ticket,
-    Calendar, MapPin, User, Wifi
+    Calendar, MapPin, User, Wifi,
+    Cat, Briefcase, BookOpen, Cpu, Scale, 
+    Stethoscope, Calculator, FlaskConical, Globe, 
+    Users, Palette, Music
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -19,14 +23,14 @@ const LandingPage = () => {
     ];
 
     // 2. MASUKKAN KOMPONEN IKON KE DALAM DATA
-    const categories = [
-        { id: 1, name: "Seminar", Icon: Megaphone },
-        { id: 2, name: "Workshop", Icon: Laptop },
-        { id: 3, name: "Konser", Icon: Music },
-        { id: 4, name: "Kompetisi", Icon: Trophy },
-        { id: 5, name: "Beasiswa", Icon: GraduationCap },
-        { id: 6, name: "Webinar", Icon: Globe },
-    ];
+    // const categories = [
+    //     { id: 1, name: "Seminar", Icon: Megaphone },
+    //     { id: 2, name: "Workshop", Icon: Laptop },
+    //     { id: 3, name: "Konser", Icon: Music },
+    //     { id: 4, name: "Kompetisi", Icon: Trophy },
+    //     { id: 5, name: "Beasiswa", Icon: GraduationCap },
+    //     { id: 6, name: "Webinar", Icon: Globe },
+    // ];
 
     const popularEvents = [
         { 
@@ -106,37 +110,167 @@ const LandingPage = () => {
                 </Carousel>
 
                 <Container className="text-center">
-                    <h1 className="display-4 fw-bold mb-3">Pusat Event Kampus Terbesar di Indonesia</h1>
+                    <h1 className="display-4 fw-bold mb-3">Xplore Potensimu, Dapatkan Xperience Baru!</h1>
                     <p className="lead text-muted mb-4 mx-auto" style={{ maxWidth: '700px' }}>
-                        Temukan ribuan event seru mulai dari seminar, workshop, hingga konser musik langsung dari kampus-kampus terbaik di seluruh Nusantara.
+                        Lebih dari sekadar cari tiket. Di KampusX, setiap event yang kamu ikuti akan otomatis menjadi portofolio profesionalmu. Mulai perjalananmu hari ini!
                     </p>
-                    <Button variant="dark" size="lg" className="px-5 rounded-pill shadow-sm">
-                        Cari Event Sekarang
+                    <Button variant="dark" size="lg" className="px-5 rounded-pill shadow-sm btn btn-secondary" >
+                        Mulai Xplore Event
                     </Button>
                 </Container>
             </section>
 
             {/* 2. KATEGORI EVENT */}
-            <Container className="py-5 text-center">
-                <h2 className="fw-bold mb-5">Kategori Event</h2>
-                <Row className="g-4 mb-4 justify-content-center">
-                    {categories.map((cat) => (
-                        <Col xs={4} md={2} key={cat.id} className="d-flex flex-column align-items-center">
-                            <div className="bg-white border border-secondary rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style={{ width: '80px', height: '80px', transition: '0.3s' }}>
-                                {/* 3. CARA RENDER IKON LUCIDE */}
-                                <cat.Icon size={32} strokeWidth={1.5} className="text-dark" />
-                            </div>
-                            <span className="fw-semibold text-secondary">{cat.name}</span>
-                        </Col>
-                    ))}
-                </Row>
-                <Button variant="outline-dark" className="px-4 mt-3">Lihat Semua Kategori</Button>
-            </Container>
+                <section className="py-5" style={{ backgroundColor: 'var(--color-white)' }}>
+                <Container>
+                    <div className="text-center mb-5">
+                        <h2 className="fw-bold" style={{ color: 'var(--color-text)' }}>Kategori Event</h2>
+                    </div>
+                    
+                    {/* Penjelasan Grid:
+                        xs={6}  : Di HP, 1 baris isi 2 (12/6 = 2)
+                        md={4}  : Di Tablet, 1 baris isi 3 (12/4 = 3) atau md={3} untuk isi 4
+                        lg={2}  : Di Layar Besar, 1 baris isi 6 (12/2 = 6)
+                    */}
+                    <Row className="g-4 justify-content-center">
+                        {[
+                            { id: 1, name: "Sains Hewan", icon: Cat, color: "#ef4444", bg: "#fee2e2" }, // Merah
+                            { id: 2, name: "Bisnis & Ekonomi", icon: Briefcase, color: "#52525b", bg: "#f4f4f5" }, // Abu
+                            { id: 3, name: "Pendidikan", icon: BookOpen, color: "#eab308", bg: "#fef9c3" }, // Kuning
+                            { id: 4, name: "Teknik & Tech", icon: Cpu, color: "#22c55e", bg: "#dcfce3" }, // Hijau
+                            { id: 5, name: "Hukum", icon: Scale, color: "#ca8a04", bg: "#fef08a" }, // Emas
+                            { id: 6, name: "Kesehatan", icon: Stethoscope, color: "#3b82f6", bg: "#dbeafe" }, // Biru
+                            { id: 7, name: "Matematika", icon: Calculator, color: "#06b6d4", bg: "#cffafe" }, // Cyan
+                            { id: 8, name: "Sains Fisik", icon: FlaskConical, color: "#a855f7", bg: "#f3e8ff" }, // Ungu
+                            { id: 9, name: "Studi Regional", icon: Globe, color: "#f59e0b", bg: "#fef3c7" }, // Oranye
+                            { id: 10, name: "Ilmu Sosial", icon: Users, color: "#ec4899", bg: "#fce7f3" }, // Pink
+                            { id: 11, name: "Seni & Desain", icon: Palette, color: "#f43f5e", bg: "#ffe4e6" }, // Rose
+                            { id: 12, name: "Musik & Hiburan", icon: Music, color: "#6366f1", bg: "#e0e7ff" }, // Indigo
+                        ].map((cat) => (
+                            <Col xs={6} md={3} lg={2} key={cat.id}>
+                                <div className="d-flex flex-column align-items-center text-center cursor-pointer category-card">
+                                    {/* LINGKARAN WARNA-WARNI */}
+                                    <div 
+                                        className="rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm"
+                                        style={{ 
+                                            width: '80px', 
+                                            height: '80px', 
+                                            backgroundColor: cat.bg,
+                                            transition: 'transform 0.2s ease-in-out' // Animasi saat di-hover
+                                        }}
+                                    >
+                                        <cat.icon size={32} color={cat.color} />
+                                    </div>
+                                    
+                                    {/* TEKS JUDUL & EXPLORE */}
+                                    <h6 className="fw-bold mb-1" style={{ color: 'var(--color-text)', fontSize: 'var(--font-sm)' }}>
+                                        {cat.name}
+                                    </h6>
+                                    <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-secondary)' }}>
+                                        Explore
+                                    </span>
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
 
-            {/* 3. EVENT TERPOPULER */}
+                    {/* TOMBOL LIHAT LEBIH BANYAK */}
+                    <div className="text-center mt-5">
+                        <Link>
+                            <Button 
+                                className="px-4 py-2 fw-semibold border-0" 
+                                style={{ backgroundColor: 'var(--color-primary)', borderRadius: '8px' }}
+                            >
+                                Lihat Semua Kategori
+                            </Button>
+                        </Link>
+                    </div>
+                </Container>
+            </section>
+
+            {/* 3. EVENT */}
+            {/* EVENT TERPOPULER*/}
             <section className="py-5" style={{ backgroundColor: 'var(--color-bg)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
                 <Container>
                     <h2 className="fw-bold mb-5 text-center" style={{ color: 'var(--color-text)' }}>Event Terpopuler</h2>
+                    <Row className="g-4">
+                        {popularEvents.map((ev) => (
+                            <Col xs={12} md={4} key={ev.id}>
+                                <Card className="h-100 shadow-sm p-3" style={{ borderRadius: '12px', backgroundColor: 'var(--color-white)', border: '1px solid var(--color-border)' }}>
+                                    
+                                    {/* --- BADGES ATAS (In-Person, Online, Featured) --- */}
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
+                                        <div className="d-flex gap-2">
+                                            {ev.isInPerson && (
+                                                <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium" 
+                                                     style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
+                                                    <Users size={14} className="me-2" /> In-Person
+                                                </div>
+                                            )}
+                                            {ev.isOnline && (
+                                                <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium" 
+                                                     style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
+                                                    <Wifi size={14} className="me-2" /> Online
+                                                </div>
+                                            )}
+                                        </div>
+                                        {ev.isFeatured && (
+                                            <div className="rounded-pill px-3 py-1 fw-medium" 
+                                                 style={{ fontSize: 'var(--font-xs)', backgroundColor: 'var(--bahama-blue-500)', color: 'var(--color-white)' }}>
+                                                Featured
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* --- GAMBAR EVENT --- */}
+                                    <img 
+                                        src={ev.image} 
+                                        alt={ev.title} 
+                                        className="w-100 object-fit-cover rounded mb-3" 
+                                        style={{ height: '180px' }} 
+                                    />
+
+                                    <Card.Body className="p-0 d-flex flex-column">
+                                        {/* --- INFO TANGGAL & HARGA --- */}
+                                        <div className="d-flex justify-content-between mb-3 fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
+                                            <div className="d-flex align-items-center">
+                                                <Calendar size={18} className="me-2" /> {ev.date}
+                                            </div>
+                                            <div className="d-flex align-items-center">
+                                                <Ticket size={18} className="me-2" /> {ev.price}
+                                            </div>
+                                        </div>
+
+                                        {/* --- JUDUL EVENT --- */}
+                                        <Card.Title className="fw-bold mb-auto" style={{ color: 'var(--color-text)', fontSize: 'var(--font-lg)', lineHeight: '1.4' }}>
+                                            {ev.title}
+                                        </Card.Title>
+
+                                        {/* --- GARIS PEMISAH --- */}
+                                        <hr className="opacity-100 my-3" style={{ color: 'var(--color-border)' }} />
+
+                                        {/* --- INFO LOKASI & PENYELENGGARA --- */}
+                                        <div className="d-flex justify-content-between fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
+                                            <div className="d-flex align-items-center">
+                                                <MapPin size={18} className="me-2" /> {ev.location}
+                                            </div>
+                                            <div className="d-flex align-items-center text-truncate ms-3">
+                                                <User size={18} className="me-2" /> {ev.org}
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                    
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+                </Container>
+            </section>
+
+            {/* EVENT TERBARU */}
+            <section className="py-5" style={{ backgroundColor: 'var(--color-bg)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
+                <Container>
+                    <h2 className="fw-bold mb-5 text-center" style={{ color: 'var(--color-text)' }}>Event Terbaru</h2>
                     <Row className="g-4">
                         {popularEvents.map((ev) => (
                             <Col xs={12} md={4} key={ev.id}>

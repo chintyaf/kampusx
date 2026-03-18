@@ -3,6 +3,8 @@
 // import AboutPage from "../pages/visitor/About";
 
 import LandingPage from "../pages/public/LandingPage";
+import ExploreEvents from "../pages/ExploreEvents";
+import EventDetail from "../pages/event/EventDetail";
 
 // const publicRoutes = [
 //     {
@@ -17,6 +19,15 @@ const mainRoutes = [
         path: "/", 
         element: <LandingPage /> 
     },
+    {
+        path: "/explore-events",
+        element: <ExploreEvents />
+    },
+    {
+        path: "/event/:id",
+        element: <EventDetail />
+    }
+    // <Route path="/events" element={<ExploreEvents />} /
     // { path: "/gallery", element: <GalleryPage /> },
     // { path: "/about", element: <AboutPage /> },
 ];

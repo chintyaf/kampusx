@@ -113,3 +113,18 @@ p {
   width: 3rem !important;
   height: 3rem !important;
 }
+
+.card-hover:hover {
+    transform: translateY(-5px); /* Efek melompat sedikit */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+/* Efek Hover untuk Kategori Event */
+.category-card:hover .rounded-circle {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+.cursor-pointer {
+    cursor: pointer;
+}
