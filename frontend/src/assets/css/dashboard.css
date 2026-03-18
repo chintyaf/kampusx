@@ -1,21 +1,21 @@
-/* 
-    SIDEBAR
+main {
+    overflow-y: auto;
+}
+/* SIDEBAR 
 */
+/* SIDEBAR */
 .sidebar-container {
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    overflow: auto;
-    max-width: 250px;
-    height: 100vh;
+    max-width: 280px; /* Samakan dengan inline style width di React */
+    width: 280px;
     background-color: #ffffff;
     padding-top: 1.5rem;
+    border-right: 1px solid var(--color-border);
 
-    scrollbar-width: none; /* 1. Sembunyikan untuk Firefox */
-    -ms-overflow-style: none; /* 2. Sembunyikan untuk Internet Explorer/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
-/* 3. Sembunyikan untuk Chrome, Safari, dan Opera */
+/* Sembunyikan untuk Chrome, Safari, dan Opera */
 .sidebar-container::-webkit-scrollbar {
     display: none;
 }

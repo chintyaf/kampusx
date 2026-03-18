@@ -1,6 +1,6 @@
 import React from "react";
 
-const StatCard = () => {
+const StatCard = ({ title, content, subcontent }) => {
     return (
         <div
             className="card border-grey p-3 d-flex flex-fill"
@@ -13,13 +13,13 @@ const StatCard = () => {
                             className="mb-1 fs-6 text-body-tertiary"
                             style={{ fontSize: "var(--font-sm)" }}
                         >
-                            Tickets Sold
+                            {title}
                         </p>
                         <h2
                             className="fw-bold mb-0"
                             style={{ fontSize: "var(--font-xl)" }}
                         >
-                            450 / 500
+                            {content}
                         </h2>
                     </div>
 
@@ -37,7 +37,7 @@ const StatCard = () => {
                         className="text-body-tertiary small mb-0"
                         style={{ fontSize: "var(--font-xs)" }}
                     >
-                        90% capacity
+                        {subcontent}
                     </p>
                 </div>
             </div>

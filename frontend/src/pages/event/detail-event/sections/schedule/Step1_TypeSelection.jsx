@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import EventLayout from "../../EventLayout";
-import { Form, InputGroup, Row, Col, Card } from "react-bootstrap";
+import {
+    Form,
+    InputGroup,
+    Row,
+    Col,
+    Card,
+} from "react-bootstrap";
 import { Video, MapPin, SquareCode, CheckCircle2 } from "lucide-react";
 
 const SelectionCard = ({ type, isSelected, onClick }) => {};
@@ -14,6 +20,8 @@ const Step1_TypeSelection = ({ onSelectType }) => {
             onSelectType(type);
         }
     };
+
+
 
     const attendanceTypes = [
         {
@@ -178,6 +186,7 @@ const Step1_TypeSelection = ({ onSelectType }) => {
                         </Form.Text>
                     </Form.Group>
                 </Row>
+
             </Form>
         </>
     );

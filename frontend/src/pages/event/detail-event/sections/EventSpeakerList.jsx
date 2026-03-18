@@ -114,7 +114,7 @@ const SpeakerCard = ({
 }) => {
     return (
         <Card
-            className="shadow-sm border-0 rounded-4 p-3 mb-3"
+            className="border rounded-2 p-3 mb-3"
             style={{ backgroundColor: "#fff" }}
         >
             <Card.Body className="p-0">
@@ -223,7 +223,11 @@ const EventSpeakerList = () => {
     const [showForm, setShowForm] = useState(false);
 
     return (
-        <EventLayout title="Tambah Pembicara">
+        <EventLayout
+            heading="Manajemen Pembicara & Narasumber"
+            subheading="Kelola profil pengisi acara dan hubungkan mereka dengan sesi yang relevan."
+            nextPath={"formulir"}
+        >
             <Form>
                 <h1></h1>
                 <SpeakerCard

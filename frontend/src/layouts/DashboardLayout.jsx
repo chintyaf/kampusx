@@ -11,8 +11,7 @@ const DashboardLayout = () => {
     const location = useLocation();
     const path = location.pathname;
 
-    // Logic to determine the sidebar type/state
-    let sidebarType = "organizer"; // Default
+    let sidebarType = "organizer";
     if (path.includes("/admin")) {
         sidebarType = "admin";
     } else if (path.includes("/organizer/event")) {
@@ -20,25 +19,34 @@ const DashboardLayout = () => {
     }
 
     return (
-        <div className="d-flex flex-column" style={{ minHeight: "100vh" }}>
-            {/* 2. Navbar yang nempel di atas */}
+        // 1. Ubah minHeight menjadi height: "100vh" dan tambahkan overflow: "hidden"
+        <div
+            className="d-flex flex-column"
+            style={{ height: "100vh", overflow: "hidden" }}
+        >
             <Navbar />
 
-            <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
-                {/* 1. Sidebar yang nempel terus di kiri */}
-                <Sidebar type={sidebarType} />
+            <div
+                style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "row",
+                    overflow: "hidden", // 2. Tambahkan overflow hidden di sini
+                }}
+            >
+                {!path.includes("buat-acara") &&
+                    !path.includes("organizer/dashboard") && (
+                        <Sidebar type={sidebarType} />
+                    )}
 
-                {/* 3. Area Konten Utama */}
                 <main
                     style={{
                         padding: "30px 60px",
                         backgroundColor: "#F7F8F9",
                         flex: 1,
+                        overflowY: "auto", // 3. Pindahkan scroll hanya ke dalam main
                     }}
                 >
-                    {/* Outlet inilah yang akan berubah jadi isi dari halaman 
-              seperti Overview, Settings, atau Profile */}
-                    {/* Pass the state to child page components via Outlet context */}
                     <Outlet context={{ sidebarType }} />
                 </main>
             </div>

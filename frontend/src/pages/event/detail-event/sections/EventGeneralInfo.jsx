@@ -1,9 +1,16 @@
 import { useState } from "react";
-import { Form, InputGroup } from "react-bootstrap";
+import {
+    Form,
+    InputGroup,
+    Badge,
+    CloseButton,
+    Row,
+    Col,
+} from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../EventLayout";
 // ICON
-import { Image } from "lucide-react";
+import { Image, CheckCircle2 } from "lucide-react";
 
 const EventGeneralInfo = () => {
     const [slug, setSlug] = useState("");
@@ -19,13 +26,34 @@ const EventGeneralInfo = () => {
         setSlug(formattedSlug);
     };
     const kategori_options = [
-        { value: "1", label: "One" },
-        { value: "2", label: "Two" },
-        { value: "3", label: "Three" },
+        { value: "1", label: "Seminar" },
+        { value: "2", label: "Workshop" },
+        { value: "3", label: "Course" },
     ];
 
+    const [tags, setTags] = useState([]);
+    const [inputValue, setInputValue] = useState("");
+
+    const handleAddTag = (e) => {
+        if (e.key === "Enter" && inputValue.trim() !== "") {
+            e.preventDefault();
+            if (!tags.includes(inputValue.trim())) {
+                setTags([...tags, inputValue.trim()]);
+            }
+            setInputValue("");
+        }
+    };
+
+    const removeTag = (indexToRemove) => {
+        setTags(tags.filter((_, index) => index !== indexToRemove));
+    };
+
     return (
-        <EventLayout title="Informasi Utama Event" nextPath="lokasi-n-waktu">
+        <EventLayout
+            heading="Informasi Utama Event"
+            subheading="Silakan lengkapi data di bawah ini untuk mulai mempublikasikan event-mu."
+            nextPath="lokasi-n-waktu"
+        >
             <Form>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                     <Form.Label>Judul Event</Form.Label>
@@ -68,6 +96,46 @@ const EventGeneralInfo = () => {
                         classNamePrefix="select form-select"
                     />
                 </Form.Group>
+
+                <Row className="mb-3">
+                    <Form.Group as={Col} controlId="formEventTags">
+                        <Form.Label>Tagging Event</Form.Label>
+                        <div className="border rounded p-2 bg-white">
+                            <div className="d-flex flex-wrap gap-2 mb-2">
+                                {tags.map((tag, index) => (
+                                    <Badge
+                                        key={index}
+                                        bg="secondary"
+                                        className="d-flex align-items-center gap-2 p-2"
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            fontWeight: "500",
+                                        }}
+                                    >
+                                        {tag}
+                                        <CloseButton
+                                            variant="white"
+                                            style={{ fontSize: "0.6rem" }}
+                                            onClick={() => removeTag(index)}
+                                        />
+                                    </Badge>
+                                ))}
+                            </div>
+                            <Form.Control
+                                type="text"
+                                placeholder="Ketik topik (e.g. Machine Learning) lalu tekan Enter"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={handleAddTag}
+                                className="border-0 shadow-none p-0 ps-1"
+                                style={{ fontSize: "0.9rem" }}
+                            />
+                        </div>
+                        <Form.Text className="text-muted">
+                            Maksimal 5 tag agar event lebih mudah ditemukan.
+                        </Form.Text>
+                    </Form.Group>
+                </Row>
 
                 <Form.Group className="mb-3">
                     <Form.Label className="fw-bold">

@@ -1,82 +1,151 @@
-import React, { useState } from "react";
-import {
-    Form,
-    Container,
-    Card,
-    Table,
-    Button,
-    Badge,
-    Row,
-    Col,
-} from "react-bootstrap";
-import {
-    CheckCircle2,
-    Info,
-    Plus,
-    Calendar,
-    Lock,
-    X,
-    Link as LinkIcon,
-} from "lucide-react";
-import DateRangePicker from "../../../../../components/form/DateRangePicker";
+import React, { useState, useEffect } from "react";
+import { Form, Table, Button, Badge, Row, Col } from "react-bootstrap";
+import { Lock, X, Plus } from "lucide-react";
 
-const ScheduleForm = ({ onClose }) => {
+// 1. Tambahkan prop sessionData dan onSave
+const ScheduleForm = ({ onClose, totalDays, sessionData, onSave }) => {
+    // 2. Buat state lokal untuk menampung nilai inputan form
+    // Inisialisasi dengan data sesi yang sedang diklik (sessionData)
+    const [formData, setFormData] = useState({
+        day: sessionData.day || 1,
+        title:
+            sessionData.title === "Sesi Baru (Belum Disimpan)"
+                ? ""
+                : sessionData.title || "",
+        startTime: sessionData.time ? sessionData.time.split("–")[0] : "",
+        endTime: sessionData.time ? sessionData.time.split("–")[1] : "",
+        quota: sessionData.quota || 0,
+        // Kita juga menyimpan nilai lain agar tidak hilang saat di-save
+        id: sessionData.id,
+        session: sessionData.session,
+        prerequisite: sessionData.prerequisite,
+        location: sessionData.location,
+    });
+
+    // 3. Fungsi untuk meng-handle perubahan input
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // 4. Fungsi saat tombol Simpan diklik
+    const handleSubmit = () => {
+        // Gabungkan startTime dan endTime menjadi format "HH:MM–HH:MM"
+        let timeString = "";
+        if (formData.startTime && formData.endTime) {
+            timeString = `${formData.startTime}–${formData.endTime}`;
+        } else if (formData.startTime) {
+            timeString = formData.startTime;
+        }
+
+        // Siapkan objek data yang sudah diupdate
+        const updatedSession = {
+            ...formData,
+            day: parseInt(formData.day), // Pastikan day berupa angka
+            quota: parseInt(formData.quota), // Pastikan quota berupa angka
+            time: timeString,
+            title: formData.title || "Sesi Tanpa Judul", // Beri fallback jika kosong
+        };
+
+        // Panggil fungsi onSave yang dikirim dari parent
+        onSave(updatedSession);
+    };
+
     return (
-        <div>
+        <div className="p-3 bg-light rounded border">
             <Form>
-                <Form.Group className="mb-3" controlId="formVenueName">
-                    <Form.Label className="">Judul/Agenda Sesi</Form.Label>
-                    <Form.Control type="text" placeholder="Pembukaan Materi" />
-                </Form.Group>
                 <Row className="mb-3">
-                    <Form.Group as={Col} md={6} controlId="formVenueName">
-                        <Form.Label className="">Waktu Mulai</Form.Label>
-                        <Form.Control
-                            type="time"
-                            placeholder="Pembukaan Materi"
-                        />
+                    <Form.Group as={Col} md={4} controlId="formDaySelection">
+                        <Form.Label>Pilih Hari</Form.Label>
+                        <Form.Select
+                            name="day"
+                            value={formData.day}
+                            onChange={handleChange}
+                        >
+                            {[...Array(totalDays)].map((_, i) => (
+                                <option key={i + 1} value={i + 1}>
+                                    Hari ke-{i + 1}
+                                </option>
+                            ))}
+                        </Form.Select>
                     </Form.Group>
-                    <Form.Group as={Col} md={6} controlId="formVenueName">
-                        <Form.Label className="">Waktu Selesai</Form.Label>
+
+                    <Form.Group as={Col} md={8} controlId="formAgenda">
+                        <Form.Label>Judul/Agenda Sesi</Form.Label>
                         <Form.Control
-                            type="time"
-                            placeholder="Pembukaan Materi"
+                            type="text"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleChange}
+                            placeholder="Misal: Pembukaan Materi"
                         />
-                    </Form.Group>
-                </Row>
-                <Row className="mb-3">
-                    <Form.Group as={Col} md={6} controlId="formVenueName">
-                        <Form.Label className="">Kuota</Form.Label>
-                        <Form.Control type="number" placeholder="150" />
                     </Form.Group>
                 </Row>
 
-                <Form.Group>
-                    <Form.Label>Prasyarat Kehadiran</Form.Label>
-                </Form.Group>
-                <Button onClick={onClose}>Close</Button>
+                <Row className="mb-3">
+                    <Form.Group as={Col} md={4} controlId="formStartTime">
+                        <Form.Label>Waktu Mulai</Form.Label>
+                        <Form.Control
+                            type="time"
+                            name="startTime"
+                            value={formData.startTime}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+                    <Form.Group as={Col} md={4} controlId="formEndTime">
+                        <Form.Label>Waktu Selesai</Form.Label>
+                        <Form.Control
+                            type="time"
+                            name="endTime"
+                            value={formData.endTime}
+                            onChange={handleChange}
+                        />
+                    </Form.Group>
+                    <Form.Group as={Col} md={4} controlId="formQuota">
+                        <Form.Label>Kuota</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="quota"
+                            value={formData.quota}
+                            onChange={handleChange}
+                            placeholder="150"
+                        />
+                    </Form.Group>
+                </Row>
+
+                <div className="d-flex gap-2 justify-content-end">
+                    <Button variant="secondary" onClick={onClose}>
+                        Batal
+                    </Button>
+                    <Button variant="primary" onClick={handleSubmit}>
+                        Simpan Sesi
+                    </Button>
+                </div>
             </Form>
         </div>
     );
 };
 
-const ScheduleTable = ({ sessions, setSessions }) => {
+const ScheduleTable = ({ sessions, setSessions, totalDays = 1 }) => {
+    // Beri default totalDays = 1
     const [activeRow, setActiveRow] = useState(null);
 
-    const [showForm, setShowForm] = useState(false);
-
     const handleAddSession = () => {
-        const lastSess = Math.max(...sessions.map((s) => s.session));
-        const lastDay = Math.max(...sessions.map((s) => s.day));
-        const newSess = lastSess + 1;
+        // Cari nomor sesi terakhir untuk hari ke-1, atau default ke 1 jika kosong
+        const sessionsInDay1 = sessions.filter((s) => s.day === 1);
+        const nextSessionNum =
+            sessionsInDay1.length > 0
+                ? Math.max(...sessionsInDay1.map((s) => s.session)) + 1
+                : 1;
+
         const newSession = {
             id: Date.now(),
-            day: lastDay,
-            session: newSess,
+            day: 1,
+            session: nextSessionNum,
             time: "",
-            title: "",
+            title: "Sesi Baru (Belum Disimpan)",
             prerequisite: null,
-            location: "",
+            location: "—",
             quota: 0,
         };
 
@@ -84,28 +153,51 @@ const ScheduleTable = ({ sessions, setSessions }) => {
         setActiveRow(newSession.id);
     };
 
-    const handleAddDay = () => {
-        const lastDay = Math.max(...sessions.map((s) => s.day));
-        const newDay = lastDay + 1;
+    // 5. Buat fungsi untuk menerima data dari Form dan mengupdate state sessions
+    const handleSaveSession = (updatedSession) => {
+        // Update array sessions
+        const updatedSessionsList = sessions.map((session) =>
+            session.id === updatedSession.id ? updatedSession : session,
+        );
 
-        const newSession = {
-            id: Date.now(),
-            day: newDay,
-            session: 1,
-            time: "",
-            title: "",
-            prerequisite: null,
-            location: "",
-            quota: 0,
-        };
+        // (Opsional tapi disarankan) Mengurutkan ulang tabel berdasarkan Hari dan Waktu Mulai
+        updatedSessionsList.sort((a, b) => {
+            if (a.day !== b.day) return a.day - b.day;
 
-        setSessions([...sessions, newSession]);
-        setActiveRow(newSession.id);
+            // Urutkan berdasarkan waktu mulai jika hari sama
+            const timeA = a.time ? a.time.split("–")[0] : "23:59";
+            const timeB = b.time ? b.time.split("–")[0] : "23:59";
+            return timeA.localeCompare(timeB);
+        });
+
+        // Hitung ulang nomor sesi (session: 1, 2, 3...) per hari setelah diurutkan
+        let currentDay = 0;
+        let sessionCounter = 1;
+
+        const finalSessionsList = updatedSessionsList.map((session) => {
+            if (session.day !== currentDay) {
+                currentDay = session.day;
+                sessionCounter = 1;
+            } else {
+                sessionCounter++;
+            }
+            return { ...session, session: sessionCounter };
+        });
+
+        setSessions(finalSessionsList);
+        setActiveRow(null); // Tutup form setelah save
+    };
+
+    // Fungsi untuk menghapus baris (Opsional, tambahan karena ada icon 'X' di tabel)
+    const handleDeleteSession = (idToDelete, e) => {
+        e.stopPropagation(); // Mencegah baris terpilih (form terbuka) saat klik X
+        const filteredSessions = sessions.filter((s) => s.id !== idToDelete);
+        setSessions(filteredSessions);
     };
 
     return (
         <>
-            <Table responsive hover className="align-middle border-light">
+            <Table responsive hover className="align-middle border rounded-2">
                 <thead className="bg-light">
                     <tr className="text-muted small">
                         <th>Hari</th>
@@ -122,25 +214,25 @@ const ScheduleTable = ({ sessions, setSessions }) => {
                 </thead>
                 <tbody>
                     {sessions.map((s, idx) => {
-                        // Logika untuk menampilkan nomor hari hanya di baris pertama tiap hari (Rowspan-like)
                         const showDay =
                             idx === 0 || sessions[idx - 1].day !== s.day;
 
                         return (
                             <React.Fragment key={s.id}>
                                 <tr
-                                    key={s.id}
                                     style={{ cursor: "pointer" }}
                                     onClick={() => setActiveRow(s.id)}
+                                    // Beri highlight ringan jika baris sedang diedit
+                                    className={
+                                        activeRow === s.id ? "bg-light" : ""
+                                    }
                                 >
                                     <td>
                                         {showDay && (
-                                            <div className="d-flex align-items-center gap-2">
-                                                <span className="small fw-semibold text-muted">
-                                                    {s.day}
-                                                </span>
-                                            </div>
-                                        )}  
+                                            <span className="small fw-semibold text-muted">
+                                                Hari {s.day}
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="text-muted small">
                                         Sesi {s.session}
@@ -153,10 +245,6 @@ const ScheduleTable = ({ sessions, setSessions }) => {
                                                 bg="warning"
                                                 text="dark"
                                                 className="fw-normal rounded-pill px-3"
-                                                style={{
-                                                    backgroundColor: "#fff8e6",
-                                                    border: "1px solid #ffe58f",
-                                                }}
                                             >
                                                 <Lock
                                                     size={12}
@@ -171,15 +259,26 @@ const ScheduleTable = ({ sessions, setSessions }) => {
                                     <td className="text-end">
                                         <X
                                             size={18}
-                                            className="text-light-emphasis"
+                                            className="text-danger"
                                             style={{ cursor: "pointer" }}
+                                            onClick={(e) =>
+                                                handleDeleteSession(s.id, e)
+                                            } // Pasang fungsi delete
                                         />
                                     </td>
                                 </tr>
+
+                                {/* Form Edit / Isi Data */}
                                 {activeRow === s.id && (
                                     <tr>
-                                        <td colSpan={8}>
+                                        <td
+                                            colSpan={8}
+                                            className="p-0 border-0"
+                                        >
                                             <ScheduleForm
+                                                totalDays={totalDays}
+                                                sessionData={s} // 6. Oper data baris ini ke form
+                                                onSave={handleSaveSession} // 7. Oper fungsi save
                                                 onClose={() =>
                                                     setActiveRow(null)
                                                 }
@@ -193,7 +292,6 @@ const ScheduleTable = ({ sessions, setSessions }) => {
                 </tbody>
             </Table>
 
-            {/* Action Buttons */}
             <div className="d-flex gap-3 mt-4">
                 <Button
                     variant="outline-secondary"
@@ -202,16 +300,7 @@ const ScheduleTable = ({ sessions, setSessions }) => {
                 >
                     <Plus size={18} /> Tambah Sesi
                 </Button>
-                <Button
-                    variant="outline-secondary"
-                    className="rounded-3 border-dashed px-4 py-2 border-2 d-flex align-items-center gap-2 small fw-bold"
-                    onClick={handleAddDay}
-                >
-                    <Calendar size={18} /> Tambah Hari Baru
-                </Button>
             </div>
-
-            {showForm && <ScheduleForm onClose={() => setShowForm(false)} />}
         </>
     );
 };

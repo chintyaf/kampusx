@@ -12,7 +12,11 @@ import Step3_Schedule from "./schedule/Step3_Schedule";
 const EventScheduleLocation = () => {
     const [selectedType, setSelectedType] = useState(null);
     return (
-        <EventLayout title="Informasi Utama Event" nextPath="event/create/">
+        <EventLayout
+            heading="Konfigurasi Teknis & Jadwal Event"
+            subheading="Atur mode kehadiran, lokasi, dan detail sesi acara dalam satu tempat."
+            nextPath="daftar-pembicara"
+        >
             <Step1_TypeSelection onSelectType={setSelectedType} />
 
             {selectedType ? (

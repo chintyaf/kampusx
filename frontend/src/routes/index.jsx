@@ -15,14 +15,13 @@ import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralI
 import EventScheduleLocation from "../pages/event/detail-event/sections/EventScheduleLocation";
 import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
 import EventRegistrationForm from "../pages/event/detail-event/sections/EventRegistrationForm";
-import EventStaffManagement from "../pages/event/detail-event/sections/EventStaffManagement";
+import EventStaffManagement from "../pages/event/EventStaffManagement";
 
 import EventParticipantList from "../pages/event/EventParticipantListPage";
-import EventMaterialDistribution from "../pages/event/EventMaterialDistributionPage";
+import EventMaterialDistributionPage from "../pages/event/EventMaterialDistributionPage";
 import EventStatistics from "../pages/event/EventStatisticsPage";
 import EventPromotion from "../pages/event/EventPromotionPage";
 // END CREATE EVENT PAGES
-
 
 import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
 
@@ -39,7 +38,6 @@ const AppRoutes = () => {
                     />
                 ))}
             </Route> */}
-
 
             {/* Group Dashboard */}
             <Route element={<DashboardLayout />}>
@@ -91,7 +89,7 @@ const AppRoutes = () => {
                         />
                         <Route
                             path="distribusi-materi"
-                            element={<EventMaterialDistribution />}
+                            element={<EventMaterialDistributionPage />}
                         />
                         <Route path="statistik" element={<EventStatistics />} />
                         <Route path="promosi" element={<EventPromotion />} />

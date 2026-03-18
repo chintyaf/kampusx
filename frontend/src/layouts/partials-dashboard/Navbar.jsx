@@ -53,7 +53,10 @@ const Navbar = () => {
                 </div>
                 <div className="d-flex align-items-center gap-3">
                     {/* Notifikasi */}
-                    <BellDotIcon size={20} />
+
+                    <div style={{ cursor: "pointer" }}>
+                        <BellDotIcon size={20} />
+                    </div>
 
                     {/* Status Event */}
                     {isInsideEvent && (
@@ -81,7 +84,10 @@ const Navbar = () => {
                         </NavLink>
                     )}
                     {/* Profile */}
-                    <div className="position-relative">
+                    <div
+                        className="position-relative"
+                        style={{ cursor: "pointer" }}
+                    >
                         <div
                             className="user-icon cursor-pointer"
                             onClick={toggleDropdown}

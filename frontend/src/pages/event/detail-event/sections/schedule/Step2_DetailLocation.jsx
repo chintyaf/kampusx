@@ -1,7 +1,5 @@
-import { React, useState } from "react";
-import Step1_TypeSelection from "./Step1_TypeSelection";
-import { Form, InputGroup, Row, Col, Card } from "react-bootstrap";
-import { Video, MapPin, SquareCode, CheckCircle2 } from "lucide-react";
+import { Form } from "react-bootstrap";
+import { CheckCircle2 } from "lucide-react";
 import OnlineForm from "./OnlineForm";
 import OfflineForm from "./OfflineForm";
 import HybridForm from "./HybridForm";
@@ -29,7 +27,6 @@ const Step2_DetailLocation = ({ selectedType }) => {
             {selectedType === "online" && <OnlineForm />}
             {selectedType === "offline" && <OfflineForm />}
             {selectedType === "hybrid" && <HybridForm />}
-            
         </Form>
     );
 };

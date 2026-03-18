@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
@@ -10,6 +10,7 @@ import {
     ChartColumn,
     Star,
     Form,
+    UserRoundPen,
 } from "lucide-react";
 
 // --- Configuration Data ---
@@ -77,8 +78,13 @@ const MENU_ITEMS = {
                 { name: "Waktu & Lokasi", path: "lokasi-n-waktu" },
                 { name: "Daftar Pembicara", path: "daftar-pembicara" },
                 { name: "Formulir Registrasi", path: "formulir" },
-                { name: "Kelola Staff", path: "kelola-staff" },
             ],
+        },
+        {
+            id: "7",
+            name: "Staff Administrasi",
+            icon: <UserRoundPen size={20} className="me-2" />,
+            path: "organizer/event/detil-event/kelola-staff",
         },
         {
             id: "3",
@@ -216,9 +222,8 @@ const Sidebar = (props) => {
     return (
         <div
             className="sidebar-container flex-shrink-0 p-3 bg-white border-end"
-            style={{ width: 280, minHeight: "100vh" }}
+            style={{ width: 280, height: "100%", overflowY: "auto" }}
         >
-
             <ul className="list-unstyled ps-0 ">
                 {currentMenu.map((item) => (
                     <li className="mb-3" key={item.id}>
