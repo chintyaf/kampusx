@@ -44,9 +44,9 @@ const AppRoutes = () => {
                 <Route path="admin">
                     <Route path="dashboard" element={<Dashboard />} />
                     <Route path="verifikasi-organizer" element={<Test />} />
-                    <Route path="kelola-pengguna" element={<CreateEvent />} />
-                    <Route path="pantau-acara" element={<CreateEvent />} />
-                    <Route path="kontrol-promosi" element={<CreateEvent />} />
+                    <Route path="kelola-pengguna" element={<Test />} />
+                    <Route path="pantau-acara" element={<Test />} />
+                    <Route path="kontrol-promosi" element={<Test />} />
                 </Route>
 
                 <Route path="organizer">

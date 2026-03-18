@@ -93,6 +93,12 @@ const MENU_ITEMS = {
             path: "organizer/event/daftar-peserta",
         },
         {
+            id: "8",
+            name: "Sertifikat",
+            icon: <UserRoundPen size={20} className="me-2" />,
+            path: "organizer/event/detil-event/kelola-staff",
+        },
+        {
             id: "4",
             name: "Distribusi Materi",
             icon: <FolderOpen size={20} className="me-2" />,
