@@ -129,6 +129,7 @@ p {
     cursor: pointer;
 }
 
+/* Progress Bar */
 .progress-container {
     position: fixed;
     top: 0;
@@ -144,4 +145,9 @@ p {
     background-color: #3b82f6; /* Warna biru, bisa diganti sesuai brand */
     transition: width 0.3s ease-out;
     box-shadow: 0 0 10px #3b82f6;
+}
+
+.toast {
+    box-shadow: none !important;
+
 }

@@ -6,6 +6,8 @@ import "../../assets/css/form.css";
 import { Image } from "lucide-react";
 import axios from "axios";
 
+import { notify } from "../../utils/notify";
+
 const Create = () => {
     const [title, setTitle] = useState("");
     const [slug, setSlug] = useState("");
@@ -55,6 +57,7 @@ const Create = () => {
             formData.append("banner", banner);
         }
 
+        // Save Form
         try {
             const response = await axios.post(
                 "http://127.0.0.1:8000/api/events",
@@ -69,13 +72,14 @@ const Create = () => {
             if (response.status === 200 || response.status === 201) {
                 console.log("Success:", response.data);
                 navigate("/organizer/event/detil-event/lokasi-n-waktu");
+                notify("success", "Congratulations!", "Event berhasil dibuat.");
             }
         } catch (error) {
+            notify("danger", "Something went wrong!", "Gagal menyimpan data.");
             console.error(
                 "Submission error:",
                 error.response?.data || error.message,
             );
-            alert("Gagal menyimpan event. Periksa konsol untuk detail.");
         }
     };
 
@@ -146,7 +150,7 @@ const Create = () => {
                 </Form.Group>
 
                 {/* Upload Banner */}
-                <Form.Group className="mb-3">
+                {/* <Form.Group className="mb-3">
                     <Form.Label className="fw-bold">Upload Banner</Form.Label>
                     <div className="upload-box-wrapper">
                         <input
@@ -173,7 +177,7 @@ const Create = () => {
                             </div>
                         </label>
                     </div>
-                </Form.Group>
+                </Form.Group> */}
             </Form>
 
             {/* Button Save  */}

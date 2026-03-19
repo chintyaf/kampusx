@@ -1,12 +1,15 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link, useLocation } from "react-router-dom";
+
 import Sidebar from "./partials-dashboard/Sidebar.jsx";
 import Navbar from "./partials-dashboard/Navbar.jsx";
+
+import AlertMessage from "../components/AlertMessage.jsx";
+import { Toaster } from "react-hot-toast";
 
 import "../assets/css/dashboard.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-
 const DashboardLayout = () => {
     const location = useLocation();
     const path = location.pathname;
@@ -19,7 +22,6 @@ const DashboardLayout = () => {
     }
 
     return (
-        // 1. Ubah minHeight menjadi height: "100vh" dan tambahkan overflow: "hidden"
         <div
             className="d-flex flex-column"
             style={{ height: "100vh", overflow: "hidden" }}
@@ -31,7 +33,7 @@ const DashboardLayout = () => {
                     flex: 1,
                     display: "flex",
                     flexDirection: "row",
-                    overflow: "hidden", // 2. Tambahkan overflow hidden di sini
+                    overflow: "hidden",
                 }}
             >
                 {!path.includes("buat-acara") &&
@@ -44,9 +46,13 @@ const DashboardLayout = () => {
                         padding: "30px 60px",
                         backgroundColor: "#F7F8F9",
                         flex: 1,
-                        overflowY: "auto", // 3. Pindahkan scroll hanya ke dalam main
+                        overflowY: "auto",
                     }}
                 >
+                    <Toaster
+                        position="top-right"
+                        containerStyle={{ top: 100, right: 40 }}
+                    />
                     <Outlet context={{ sidebarType }} />
                 </main>
             </div>

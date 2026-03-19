@@ -4,3 +4,45 @@ Layouting tingkat atas (misalnya setting Flexbox untuk seluruh aplikasi).
 Animasi global (seperti logo React yang berputar).
 */
 
+/* Animasi popup untuk Alert Message */
+/* Definisikan Keyframes Animasi Popup (Masuk) */
+@keyframes hotToastEnter {
+    0% {
+        transform: scale(0.6); /* Mulai dari kecil */
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.1); /* Sedikit membesar (efek pop) */
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1); /* Kembali ke ukuran normal */
+    }
+}
+
+/* Definisikan Keyframes Animasi Keluar (Pudar & Mengecil) */
+@keyframes hotToastLeave {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8); /* Mengecil sedikit */
+        opacity: 0; /* Pudar */
+    }
+}
+
+/* Class untuk animasi masuk */
+.animate-popup-enter {
+    animation: hotToastEnter 0.25s ease-out forwards;
+}
+
+/* Class untuk animasi keluar */
+.animate-popup-leave {
+    animation: hotToastLeave 0.25s ease-in forwards;
+}
+
+/* Pastikan container toast tidak memotong animasi scale */
+.toast-container {
+    overflow: visible !important;
+}
