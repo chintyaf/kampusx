@@ -12,18 +12,18 @@ return new class extends Migration {
 
             // $table->foreignId('organizer_id')->constrained('organizers')->cascadeOnDelete();
             // $table->foreignId('university_id')->constrained('universities')->cascadeOnDelete();
-            
+
             $table->foreignId('organizer_id')->constrained('users')->cascadeOnDelete();
 
 
-            $table->string('slug', 200)->unique();
-            $table->string('title', 200);
-            $table->text('description')->nullable();
+            $table->string('slug', 200)->unique()->nullable();
+            $table->string('title', 200)->nullable();
+            $table->text('description')->nullable()->nullable();
 
-            $table->enum('location_type', ['offline', 'online', 'hybrid']);
+            $table->enum('location_type', ['offline', 'online', 'hybrid'])->nullable();
 
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
+            $table->dateTime('start_date')->nullable();
+            $table->dateTime('end_date')->nullable();
 
             $table->enum('status', ['draft', 'published'])->default('draft');
 

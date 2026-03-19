@@ -1,4 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+import RouteProgressBar from "../components/RouteProgressBar";
+
 import VisitorLayout from "../layouts/MainLayout";
 import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -38,95 +41,109 @@ import Checkout from "../pages/event/Checkout";
 
 const AppRoutes = () => {
     return (
-        <Routes>
-            {/* Group Visitor */}
-            <Route element={<VisitorLayout />}>
-                {visitorRoutes.map((route, index) => (
-                    <Route
-                        key={index}
-                        path={route.path}
-                        element={route.element}
-                    />
-                ))}
-            </Route>
-
-            {/* AUTH */}
-            <Route element={<AuthLayout />}>
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-            </Route>
-
-            {/* MEMBER */}
-            <Route element={<ProtectedRoute />}>
-                <Route path="/checkout/:id" element={<Checkout />} />
-                {/* Nanti bisa tambah rute profil peserta di sini: */}
-                {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
-            </Route>
-
-            {/* Group Dashboard */}
-            <Route element={<DashboardLayout />}>
-                <Route path="admin">
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="verifikasi-organizer" element={<Test />} />
-                    <Route path="kelola-pengguna" element={<Test />} />
-                    <Route path="pantau-acara" element={<Test />} />
-                    <Route path="kontrol-promosi" element={<Test />} />
+        <Suspense fallback={<RouteProgressBar />}>
+            <Routes>
+                {/* Group Visitor */}
+                <Route element={<VisitorLayout />}>
+                    {visitorRoutes.map((route, index) => (
+                        <Route
+                            key={index}
+                            path={route.path}
+                            element={route.element}
+                        />
+                    ))}
                 </Route>
 
-                <Route path="organizer">
-                    <Route path="Dashboard" element={<OrgDashboardPage />} />
-                    <Route path="daftar-acara" element={<CreateEvent />} />
-                    <Route path="buat-acara" element={<CreateEvent />} />
+                {/* AUTH */}
+                <Route element={<AuthLayout />}>
+                    <Route path="/signin" element={<SignIn />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route
+                        path="/forgot-password"
+                        element={<ForgotPassword />}
+                    />
+                </Route>
 
-                    {/* Event Routes untuk Detail Event */}
-                    <Route path="event">
+                {/* MEMBER */}
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/checkout/:id" element={<Checkout />} />
+                    {/* Nanti bisa tambah rute profil peserta di sini: */}
+                    {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
+                </Route>
+
+                {/* Group Dashboard */}
+                <Route element={<DashboardLayout />}>
+                    <Route path="admin">
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="verifikasi-organizer" element={<Test />} />
+                        <Route path="kelola-pengguna" element={<Test />} />
+                        <Route path="pantau-acara" element={<Test />} />
+                        <Route path="kontrol-promosi" element={<Test />} />
+                    </Route>
+
+                    <Route path="organizer">
                         <Route
-                            path="dashboard"
-                            element={<EventDashboardPage />}
+                            path="Dashboard"
+                            element={<OrgDashboardPage />}
                         />
-                        <Route path="detil-event">
+                        <Route path="daftar-acara" element={<CreateEvent />} />
+                        <Route path="buat-acara" element={<CreateEvent />} />
+
+                        {/* Event Routes untuk Detail Event */}
+                        <Route path="event">
                             <Route
-                                path="info-utama"
-                                element={<EventGeneralInfo />}
+                                path="dashboard"
+                                element={<EventDashboardPage />}
+                            />
+                            <Route path="detil-event">
+                                <Route
+                                    path="info-utama"
+                                    element={<EventGeneralInfo />}
+                                />
+                                <Route
+                                    path="lokasi-n-waktu"
+                                    element={<EventScheduleLocation />}
+                                />
+                                <Route
+                                    path="daftar-pembicara"
+                                    element={<EventSpeakerList />}
+                                />
+                                <Route
+                                    path="formulir"
+                                    element={<EventRegistrationForm />}
+                                />
+                                <Route
+                                    path="kelola-staff"
+                                    element={<EventStaffManagement />}
+                                />
+                            </Route>
+
+                            <Route
+                                path="daftar-peserta"
+                                element={<EventParticipantList />}
                             />
                             <Route
-                                path="lokasi-n-waktu"
-                                element={<EventScheduleLocation />}
+                                path="distribusi-materi"
+                                element={<EventMaterialDistributionPage />}
                             />
                             <Route
-                                path="daftar-pembicara"
-                                element={<EventSpeakerList />}
+                                path="statistik"
+                                element={<EventStatistics />}
                             />
                             <Route
-                                path="formulir"
-                                element={<EventRegistrationForm />}
-                            />
-                            <Route
-                                path="kelola-staff"
-                                element={<EventStaffManagement />}
+                                path="promosi"
+                                element={<EventPromotion />}
                             />
                         </Route>
-
-                        <Route
-                            path="daftar-peserta"
-                            element={<EventParticipantList />}
-                        />
-                        <Route
-                            path="distribusi-materi"
-                            element={<EventMaterialDistributionPage />}
-                        />
-                        <Route path="statistik" element={<EventStatistics />} />
-                        <Route path="promosi" element={<EventPromotion />} />
                     </Route>
-                </Route>
 
-                {/* <Route
+                    {/* <Route
                     path="*"
                     element={<Navigate to="/dashboard" replace />}
                 /> */}
-            </Route>
-        </Routes>
+                </Route>
+            </Routes>
+        </Suspense>
     );
 };
 

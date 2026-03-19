@@ -25,6 +25,7 @@ class StoreEventRequest extends FormRequest
         // Rule dasar (hanya title yang wajib)
         $rules = [
             'title' => 'required|string|max:200',
+            'slug' => 'nullable|string|max:200',
             'status' => 'nullable|in:draft,published',
             'description' => 'nullable|string',
             'location_type' => 'nullable|in:offline,online,hybrid',
@@ -43,10 +44,10 @@ class StoreEventRequest extends FormRequest
         return $rules;
     }
 
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'slug' => \Str::slug($this->title),
-        ]);
-    }
+    // protected function prepareForValidation()
+    // {
+    //     $this->merge([
+    //         'slug' => \Str::slug($this->title),
+    //     ]);
+    // }
 }

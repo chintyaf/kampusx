@@ -17,18 +17,20 @@ class EventController extends Controller
     // Initialize Event Creation
     public function store(StoreEventRequest $request)
     {
-        // // Judul, Link, Deskripsi, Kategori, Interest, Upload Banner
-        // $data = $request->validated();
+        // Judul, Link, Deskripsi, Kategori, Interest, Upload Banner
+        $data = $request->validated();
 
-        // $event = Event::create($data);
-        // return response()->json(
-        //     [
-        //         'message' => $event->status === 'published' ? 'Event dipublikasikan!' : 'Draft tersimpan!',
-        //         'data' => $event,
-        //     ],
-        //     201,
-        // );
-        return response()->json('Hello');
+        $data['organizer_id'] = 1; // sementara
+
+        $event = Event::create($data);
+        return response()->json(
+            [
+                'message' => $event->status === 'published' ? 'Event dipublikasikan!' : 'Draft tersimpan!',
+                'data' => $event,
+            ],
+            201,
+        );
+        // return response()->json('Hello');
     }
 
     public function show($id)
