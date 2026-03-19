@@ -6,6 +6,11 @@ use App\Http\Controllers\Api\EventController;
 
 Route::apiResource('events', EventController::class);
 
+// 1. Initialize event Draft
+Route::post('/events', [EventController::class, 'store']);
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+

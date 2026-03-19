@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventRequest;
 use App\Models\Event;
 use Illuminate\Http\Request;
-
 class EventController extends Controller
 {
     public function index()
@@ -15,9 +14,21 @@ class EventController extends Controller
     }
 
     // php artisan make:request StoreEventRequest
+    // Initialize Event Creation
     public function store(StoreEventRequest $request)
     {
-        return Event::create($request->validated());
+        // // Judul, Link, Deskripsi, Kategori, Interest, Upload Banner
+        // $data = $request->validated();
+
+        // $event = Event::create($data);
+        // return response()->json(
+        //     [
+        //         'message' => $event->status === 'published' ? 'Event dipublikasikan!' : 'Draft tersimpan!',
+        //         'data' => $event,
+        //     ],
+        //     201,
+        // );
+        return response()->json('Hello');
     }
 
     public function show($id)
