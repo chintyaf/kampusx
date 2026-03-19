@@ -26,6 +26,7 @@ const Create = () => {
     };
 
     const handleTitleChange = (e) => {
+        console.log("test");
         const newTitle = e.target.value;
         setTitle(newTitle);
         setSlug(formatToSlug(newTitle));
@@ -44,6 +45,7 @@ const Create = () => {
 
     const handleSaveAndContinue = async (e) => {
         e.preventDefault();
+        const token = localStorage.getItem("token");
 
         const formData = new FormData();
         formData.append("title", title);
@@ -65,21 +67,18 @@ const Create = () => {
                 {
                     headers: {
                         "Content-Type": "multipart/form-data",
+                        Accept: "application/json",
+                        Authorization: `Bearer ${token}`,
                     },
                 },
             );
 
             if (response.status === 200 || response.status === 201) {
-                console.log("Success:", response.data);
                 navigate("/organizer/event/detil-event/lokasi-n-waktu");
                 notify("success", "Congratulations!", "Event berhasil dibuat.");
             }
         } catch (error) {
             notify("danger", "Something went wrong!", "Gagal menyimpan data.");
-            console.error(
-                "Submission error:",
-                error.response?.data || error.message,
-            );
         }
     };
 

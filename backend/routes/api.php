@@ -12,7 +12,7 @@ Route::get('/events/explore', [EventController::class, 'explore']); // Contoh me
 
 // PROTECTED ROUTES (Harus Login)
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user/profile', function (Request $request) {
         return $request->user(); // Untuk mengambil data user login di SPA
@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 2. ROLE: ORGANIZER
     Route::middleware('role:organizer,admin')->group(function () {
+        Route::post('/events', [EventController::class, 'store']);
+
         // Route::post('/events/create', [EventController::class, 'store']);
         // Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard']);
     });
@@ -44,10 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::apiResource('events', EventController::class);
+// Route::apiResource('events', EventController::class);
 
 // 1. Initialize event Draft
-Route::post('/events', [EventController::class, 'store']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
