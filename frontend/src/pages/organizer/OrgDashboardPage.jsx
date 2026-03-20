@@ -1,10 +1,11 @@
-import React from "react";
-import { Container, Card, Row, Col, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Container, Card, Row, Col, Button, Spinner } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
+import api from "../../api/axios";
 
-const OrgDashboardPage = () => {
+const NoEvent = () => {
     return (
-        <Container>
+        <>
             {/* Header Section */}
             <div className="mb-4">
                 <h4 className="fw-bold mb-2">
@@ -183,6 +184,89 @@ const OrgDashboardPage = () => {
                     </Row>
                 </Card.Body>
             </Card>
+        </>
+    );
+};
+
+const OrgDashboardPage = () => {
+    const [events, setEvents] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            // 1. Cek apakah data sudah ada di session storage
+            const cachedEvents = sessionStorage.getItem("organizer_events");
+
+            if (cachedEvents) {
+                // 2. Kalau ada, ubah kembali dari string ke array (JSON.parse)
+                // lalu langsung set ke state TANPA memanggil API Axios
+                setEvents(JSON.parse(cachedEvents));
+                setIsLoading(false);
+                return; // Stop fungsi di sini agar ke bawahnya tidak dieksekusi
+            }
+
+            // 3. Kalau tidak ada di session (baru pertama kali buka tab), tembak API
+            try {
+                const response = await api.get("/organizer/events-list");
+                setEvents(response.data);
+
+                // 4. Simpan data dari Laravel ke session storage
+                // Harus diubah jadi string dulu pakai JSON.stringify
+                sessionStorage.setItem(
+                    "organizer_events",
+                    JSON.stringify(response.data),
+                );
+            } catch (error) {
+                console.error("Error fetching events:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchEvents();
+    }, []);
+
+    return (
+        <Container className="py-5">
+            {/* 3. Conditional Rendering Logic */}
+            {isLoading ? (
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                    <p className="mt-2 text-muted">Memuat data acara...</p>
+                </div>
+            ) : events.length === 0 ? (
+                // If there are no events, call your awesome empty state component!
+                <NoEvent />
+            ) : (
+                // If there are events, map through them and show them here
+                <div>
+                    <h4 className="fw-bold mb-4">Acara Kamu</h4>
+                    <Row>
+                        {events.map((event) => (
+                            <Col md={4} key={event.id} className="mb-4">
+                                {/* NavLink menggunakan slug dan kita hilangkan garis bawah link-nya */}
+                                <NavLink
+                                    to={`/organizer/event-dashboard/${event.slug}`}
+                                    className="text-decoration-none text-dark"
+                                >
+                                    <Card
+                                        className="h-100 shadow-sm"
+                                        style={{ transition: "transform 0.2s" }}
+                                    >
+                                        <Card.Body>
+                                            <Card.Title className="fw-bold">
+                                                {event.title}
+                                            </Card.Title>
+                                            <Card.Text className="text-muted text-truncate">
+                                                {event.description}
+                                            </Card.Text>
+                                        </Card.Body>
+                                    </Card>
+                                </NavLink>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
+            )}
         </Container>
     );
 };

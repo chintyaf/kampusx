@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('organizer_id')->constrained('users')->cascadeOnDelete();
 
 
-            $table->string('slug', 200)->unique()->nullable();
+            $table->string('slug', 200)->unique()->nullable()->index();
             $table->string('title', 200)->nullable();
             $table->text('description')->nullable()->nullable();
 

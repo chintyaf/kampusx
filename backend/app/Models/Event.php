@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-namespace App\Models;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -37,6 +35,11 @@ class Event extends Model
     // Relasi Many-to-Many ke Category (lewat tabel event_categories)
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class, 'event_categories', 'event_id', 'tag_id');
+        return $this->belongsToMany(
+                Category::class, 
+                'event_categories', // nama tabel pivot
+                'event_id',         // foreign key di tabel pivot untuk Event
+                'tag_id'            // foreign key di tabel pivot untuk Category
+            );
     }
 }

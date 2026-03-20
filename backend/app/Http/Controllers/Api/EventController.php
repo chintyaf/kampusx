@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventRequest;
 use App\Models\Event;
 use Illuminate\Http\Request;
+
+// Controller untuk Organizer dalam membuat event
 class EventController extends Controller
 {
+
     public function index()
     {
         return Event::all();
@@ -38,9 +41,10 @@ class EventController extends Controller
         // return response()->json('Hello');
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        return Event::findOrFail($id);
+        $event = $request->user()->events()->findOrFail($id);
+        return response()->json($event);
     }
 
     public function update(Request $request, $id)

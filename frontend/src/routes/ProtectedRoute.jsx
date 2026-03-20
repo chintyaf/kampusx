@@ -1,25 +1,35 @@
-// src/routes/ProtectedRoute.jsx
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import VisitorLayout from '../layouts/MainLayout';
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
 
-const ProtectedRoute = () => {
-    // const isLogin = localStorage.getItem("token"); // Contoh cek login
+const ProtectedRoute = ({ allowedRole }) => {
+    const token = localStorage.getItem("token");
+    const userJson = localStorage.getItem("user");
 
-    // return isLogin ? <Outlet /> : <Navigate to="/login" />;
-    const isLoggedIn = true; // Coba ubah ke false untuk melihat efeknya
-
-    if (!isLoggedIn) {
-        // Kalau belum login, tendang ke halaman Sign In
+    // Jika belum login, tendang ke signin
+    if (!token) {
         return <Navigate to="/signin" replace />;
     }
 
-    // Kalau sudah login, tampilkan layout Visitor (dengan Navbar Member) beserta halaman Checkout-nya
-    return (
-        <VisitorLayout>
-            <Outlet />
-        </VisitorLayout>
-    );
+    try {
+        const user = JSON.parse(userJson);
+        const userRole = user.role;
+
+        // 3. Check if the user's role exists in the allowedRole array
+        // Example: ["admin"].includes("organizer") -> false
+        const isAllowed = allowedRole.includes(userRole);
+
+        if (!isAllowed) {
+            // If they are logged in but don't have the right role,
+            // send them to a "Unauthorized" page or back to their own dashboard.
+            return <Navigate to="/" replace />;
+        }
+
+        // 4. If everything is fine, show the page
+        return <Outlet />;
+    } catch (error) {
+        // If JSON parsing fails, the data is corrupt
+        return <Navigate to="/" replace />;
+    }
 };
 
 export default ProtectedRoute;

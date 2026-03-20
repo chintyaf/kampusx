@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
     Form,
     InputGroup,
@@ -9,12 +10,19 @@ import {
 } from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../EventLayout";
+import api from "../../../../api/axios";
+
 // ICON
 import { Image, CheckCircle2 } from "lucide-react";
 
 const EventGeneralInfo = () => {
-    const [slug, setSlug] = useState("");
+    const { eventSlug } = useParams();
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [selectedKategori, setSelectedKategori] = useState([]);
 
+    // Slug
+    const [slug, setSlug] = useState("");
     const handleSlugChange = (e) => {
         // 1. Convert to Lowercase
         // 2. Replace spaces with hyphens
@@ -25,15 +33,17 @@ const EventGeneralInfo = () => {
             .replace(/[^a-z0-9-]/g, "");
         setSlug(formattedSlug);
     };
+
+    // Kategori
     const kategori_options = [
         { value: "1", label: "Seminar" },
         { value: "2", label: "Workshop" },
         { value: "3", label: "Course" },
     ];
 
+    // Interest Taggin
     const [tags, setTags] = useState([]);
     const [inputValue, setInputValue] = useState("");
-
     const handleAddTag = (e) => {
         if (e.key === "Enter" && inputValue.trim() !== "") {
             e.preventDefault();
@@ -43,10 +53,49 @@ const EventGeneralInfo = () => {
             setInputValue("");
         }
     };
-
     const removeTag = (indexToRemove) => {
         setTags(tags.filter((_, index) => index !== indexToRemove));
     };
+
+    // 3. Gunakan useEffect untuk Fetch Data dari API
+    useEffect(() => {
+        const fetchEventData = async () => {
+            try {
+                const response = await api.get(
+                    `event-dashboard/${eventSlug}/info-utama`,
+                );
+
+                const result = response.data;
+
+                if (result.status === "success") {
+                    const data = result.data;
+
+                    // Isi state dengan data dari database
+                    setTitle(data.judul_event || "masuk");
+                    setSlug(data.slug_event || "");
+                    setDescription(data.deskripsi || "");
+
+                    if (data.tags_kategori) {
+                        const formattedKategori = data.tags_kategori.map(
+                            (cat) => ({
+                                value: cat.id.toString(),
+                                label: cat.name,
+                            }),
+                        );
+                        setSelectedKategori(formattedKategori);
+                    }
+                }
+                console.log("Sukses");
+            } catch (error) {
+                console.error("Gagal mengambil data event:", error);
+            }
+        };
+
+        // Panggil fungsi fetch hanya jika eventSlug tersedia
+        if (eventSlug) {
+            fetchEventData();
+        }
+    }, [eventSlug]); // Dependency array: fungsi dijalankan ulang jika eventSlug berubah
 
     return (
         <EventLayout
@@ -55,18 +104,22 @@ const EventGeneralInfo = () => {
             nextPath="lokasi-n-waktu"
         >
             <Form>
+                {/* Judul Event */}
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                     <Form.Label>Judul Event</Form.Label>
                     <Form.Control
                         required
                         type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
                         placeholder="Contoh: KampusX Xtra Xplore Xperience"
                     />
-                    <Form.Text className="text-muted">
+                    {/* <Form.Text className="text-muted">
                         We'll never share your email with anyone else.
-                    </Form.Text>
+                    </Form.Text> */}
                 </Form.Group>
 
+                {/* Link Event */}
                 <Form.Group className="mb-3" controlId="formBasicPassword">
                     <Form.Label>Link Event</Form.Label>
                     <InputGroup className="mb-3">
@@ -82,21 +135,31 @@ const EventGeneralInfo = () => {
                         />
                     </InputGroup>
                 </Form.Group>
+
+                {/* Description */}
                 <Form.Group className="mb-3" controlId="formBasicPassword">
                     <Form.Label>Deskripsi Event</Form.Label>
-                    <Form.Control as="textarea" rows={3} />
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                    />
                 </Form.Group>
 
+                {/* Kategori */}
                 <Form.Group className="mb-3">
                     <Form.Label>Kategori</Form.Label>
                     <Select
                         isMulti
+                        value={selectedKategori}
                         options={kategori_options}
                         className="basic-multi-select"
                         classNamePrefix="select form-select"
                     />
                 </Form.Group>
 
+                {/* Tagging Event */}
                 <Row className="mb-3">
                     <Form.Group as={Col} controlId="formEventTags">
                         <Form.Label>Tagging Event</Form.Label>
@@ -121,12 +184,13 @@ const EventGeneralInfo = () => {
                                     </Badge>
                                 ))}
                             </div>
+
                             <Form.Control
                                 type="text"
                                 placeholder="Ketik topik (e.g. Machine Learning) lalu tekan Enter"
                                 value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
                                 onKeyDown={handleAddTag}
+                                onChange={(e) => setInputValue(e.target.value)}
                                 className="border-0 shadow-none p-0 ps-1"
                                 style={{ fontSize: "0.9rem" }}
                             />
@@ -137,6 +201,7 @@ const EventGeneralInfo = () => {
                     </Form.Group>
                 </Row>
 
+                {/* Media */}
                 <Form.Group className="mb-3">
                     <Form.Label className="fw-bold">
                         Upload Banner

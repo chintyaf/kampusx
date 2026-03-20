@@ -35,6 +35,7 @@ const Create = () => {
     const handleSlugChange = (e) => {
         setSlug(formatToSlug(e.target.value));
     };
+    
     const kategori_options = [
         { value: "1", label: "One" },
         { value: "2", label: "Two" },

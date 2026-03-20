@@ -26,6 +26,7 @@ const Navbar = () => {
     const isOrganizer = location.pathname.startsWith("/organizer");
     const isInsideEvent = location.pathname.startsWith("/organizer/event");
 
+    const navLink = isAdmin ? "admin/dashboard" : "organizer/dashboard";
     return (
         <nav className="navbar">
             {/* Logo Section */}
@@ -36,7 +37,7 @@ const Navbar = () => {
             >
                 <div>
                     <NavLink
-                        to="/"
+                        to={navLink}
                         className="d-flex justify-content-center align-items-center link-dark text-decoration-none"
                     >
                         <span className="logo-text fw-bold">KAMPUS</span>

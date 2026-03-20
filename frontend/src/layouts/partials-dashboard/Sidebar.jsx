@@ -66,13 +66,13 @@ const MENU_ITEMS = {
             id: "1",
             name: "Dashboard",
             icon: <LayoutDashboard size={20} className="me-2" />,
-            path: "organizer/event/dashboard",
+            path: "/organizer/event-dashboard/:slug",
         },
         {
             id: "2",
             name: "Detil Event",
             icon: <Form size={20} className="me-2" />,
-            path: "organizer/event/detil-event",
+            path: "/organizer/event-dashboard/:slug/detil-event",
             submenu: [
                 { name: "Info Utama", path: "info-utama" },
                 { name: "Waktu & Lokasi", path: "lokasi-n-waktu" },
@@ -84,37 +84,37 @@ const MENU_ITEMS = {
             id: "7",
             name: "Staff Administrasi",
             icon: <UserRoundPen size={20} className="me-2" />,
-            path: "organizer/event/detil-event/kelola-staff",
+            path: "/organizer/event-dashboard/:slug/kelola-staff",
         },
         {
             id: "3",
             name: "Daftar Peserta",
             icon: <UsersRound size={20} className="me-2" />,
-            path: "organizer/event/daftar-peserta",
+            path: "/organizer/event-dashboard/:slug/daftar-peserta",
         },
         {
             id: "8",
             name: "Sertifikat",
             icon: <UserRoundPen size={20} className="me-2" />,
-            path: "organizer/event/detil-event/kelola-staff",
+            path: "/organizer/event-dashboard/:slug/upload-sertifikat",
         },
         {
             id: "4",
             name: "Distribusi Materi",
             icon: <FolderOpen size={20} className="me-2" />,
-            path: "organizer/event/distribusi-materi",
+            path: "/organizer/event-dashboard/:slug/distribusi-materi",
         },
         {
             id: "5",
             name: "Statistik",
             icon: <ChartColumn size={20} className="me-2" />,
-            path: "organizer/event/statistik",
+            path: "/organizer/event-dashboard/:slug/statistik",
         },
         {
             id: "6",
             name: "Promosi",
             icon: <Star size={20} className="me-2" />,
-            path: "organizer/event/promosi",
+            path: "/organizer/event-dashboard/:slug/promosi",
         },
     ],
 };
@@ -156,7 +156,11 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
 
     if (!hasSubmenu) {
         return (
-            <NavLink to={item.path} className={navLinkClass}>
+            <NavLink
+                to={item.path} // Cukup ke item.path saja, tidak perlu ${sub.path}
+                className={navLinkClass}
+                end
+            >
                 {item.icon} <span className="menu-text">{item.name}</span>
             </NavLink>
         );
@@ -203,19 +207,34 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
 // --- Main Sidebar Component ---
 const Sidebar = (props) => {
     const [openMenu, setOpenMenu] = useState("dashboard");
-    const currentMenu = MENU_ITEMS[props.type] || [];
+    const location = useLocation();
+
+    // 1. Tangkap slug dari URL saat ini (jika ada)
+    // Contoh: dari "/organizer/event-dashboard/tech-talk" akan menangkap "tech-talk"
+    const slugMatch = location.pathname.match(/\/event-dashboard\/([^/]+)/);
+    const currentSlug = slugMatch ? slugMatch[1] : "";
+
+    // 2. Ambil menu dasar, lalu "suntikkan" slug asli ke dalam path-nya
+    const baseMenu = MENU_ITEMS[props.type] || [];
+    const currentMenu = baseMenu.map((item) => ({
+        ...item,
+        path: item.path ? item.path.replace(":slug", currentSlug) : item.path,
+    }));
 
     const handleToggle = (id) => setOpenMenu(openMenu === id ? null : id);
 
-    const location = useLocation();
     useEffect(() => {
         const currentPath = location.pathname;
 
         currentMenu.forEach((item) => {
             if (item.submenu) {
                 const isActive = item.submenu.some((sub) => {
-                    const fullPath = `/${item.path}/${sub.path}`;
-                    return currentPath === fullPath;
+                    // Gunakan format absolut untuk pengecekan
+                    const fullPath = `${item.path}/${sub.path}`.replace(
+                        /\/+/g,
+                        "/",
+                    );
+                    return currentPath.startsWith(fullPath);
                 });
 
                 if (isActive) {
@@ -241,29 +260,6 @@ const Sidebar = (props) => {
                     </li>
                 ))}
             </ul>
-
-            <div className="d-flex flex-column gap-2">
-                <NavLink
-                    to="/admin/dashboard"
-                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
-                >
-                    Admin
-                </NavLink>
-
-                <NavLink
-                    to="/organizer/dashboard"
-                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
-                >
-                    Organizer
-                </NavLink>
-
-                <NavLink
-                    to="/organizer/event/dashboard"
-                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
-                >
-                    Event Organizer
-                </NavLink>
-            </div>
         </div>
     );
 };
