@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
@@ -55,3 +56,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
+// Endpoint sederhana untuk mengambil semua event (beserta nama organizernya)
+Route::get('/events', function () {
+    // Mengambil event beserta relasi organizer (user)
+    return Event::with('organizer')->get(); 
+});
