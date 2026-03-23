@@ -78,10 +78,10 @@ const EventDetail = () => {
                     </Button>
                     <div className="d-flex gap-2 mb-3">
                         {/* Render tipe event (Online/Onsite) */}
-                        {eventDetails.is_in_person && <Badge bg="light" text="dark" className="border px-3 py-2 d-flex align-items-center"><Users size={14} className="me-1"/> Onsite</Badge>}
-                        {eventDetails.is_online && <Badge bg="light" text="primary" className="border border-primary px-3 py-2 d-flex align-items-center"><Wifi size={14} className="me-1"/> Online</Badge>}
+                        {eventDetails.is_in_person ? <Badge bg="light" text="dark" className="border px-3 py-2 d-flex align-items-center"><Users size={14} className="me-1"/> Onsite</Badge> : null}
+                        {eventDetails.is_online ? <Badge bg="light" text="primary" className="border border-primary px-3 py-2 d-flex align-items-center"><Wifi size={14} className="me-1"/> Online</Badge> : null}
                         {/* Kategori Event (Jika ada) */}
-                        {eventDetails.category && <Badge bg="light" text="dark" className="border px-3 py-2">{eventDetails.category}</Badge>}
+                        {eventDetails.category ? <Badge bg="light" text="dark" className="border px-3 py-2">{eventDetails.category}</Badge> : null}
                     </div>
                     
                     <h1 className="fw-bold mb-3" style={{ color: 'var(--color-text)', fontSize: '2.5rem' }}>
