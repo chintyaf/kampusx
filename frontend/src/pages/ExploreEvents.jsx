@@ -1,66 +1,92 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { Users, Wifi, Calendar, Ticket, MapPin, User, Filter, RotateCcw, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const ExploreEvents = () => {
     // --- MOCK DATA EVENT (Sesuai dengan properti card Anda) ---
-    const popularEvents = [
-        {
-            id: 1, title: "International Conference on Management 2026", 
-            isInPerson: true, isOnline: false, isFeatured: true,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+1", date: "March 26, 2026", 
-            price: "Free", location: "Bandung, ID", org: "KampusX"
-        },
-        {
-            id: 2, title: "Web Development Bootcamp", 
-            isInPerson: true, isOnline: true, isFeatured: false,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+2", date: "April 10, 2026", 
-            price: "Rp 150.000", location: "Jakarta, ID", org: "Tech Indo"
-        },
-        {
-            id: 3, title: "Digital Marketing Online Workshop", 
-            isInPerson: false, isOnline: true, isFeatured: true,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+3", date: "May 05, 2026", 
-            price: "Rp 50.000", location: "Online", org: "Marketing Hub"
-        },
-        {
-            id: 4, title: "UI/UX Design Masterclass", 
-            isInPerson: true, isOnline: false, isFeatured: true,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+4", date: "June 12, 2026", 
-            price: "Rp 250.000", location: "Bandung, ID", org: "KampusX"
-        },
-        {
-            id: 5, title: "Data Science for Beginners", 
-            isInPerson: true, isOnline: true, isFeatured: false,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+5", date: "July 20, 2026", 
-            price: "Rp 100.000", location: "Surabaya, ID", org: "Tech Indo"
-        },
-        {
-            id: 6, title: "Startup Pitching Session", 
-            isInPerson: false, isOnline: true, isFeatured: true,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+6", date: "August 15, 2026", 
-            price: "Free", location: "Online", org: "Marketing Hub"
-        },
-        {
-            id: 7, title: "AI & Machine Learning Expo", 
-            isInPerson: true, isOnline: false, isFeatured: true,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+7", date: "September 10, 2026", 
-            price: "Rp 300.000", location: "Bali, ID", org: "KampusX"
-        },
-        {
-            id: 8, title: "Mobile App Development", 
-            isInPerson: true, isOnline: true, isFeatured: false,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+8", date: "October 05, 2026", 
-            price: "Rp 200.000", location: "Yogyakarta, ID", org: "Tech Indo"
-        },
-        {
-            id: 9, title: "Content Creator Summit", 
-            isInPerson: false, isOnline: true, isFeatured: true,
-            image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+9", date: "November 22, 2026", 
-            price: "Rp 75.000", location: "Online", org: "Marketing Hub"
-        },
-    ];
+    // const popularEvents = [
+    //     {
+    //         id: 1, title: "International Conference on Management 2026", 
+    //         isInPerson: true, isOnline: false, isFeatured: true,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+1", date: "March 26, 2026", 
+    //         price: "Free", location: "Bandung, ID", org: "KampusX"
+    //     },
+    //     {
+    //         id: 2, title: "Web Development Bootcamp", 
+    //         isInPerson: true, isOnline: true, isFeatured: false,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+2", date: "April 10, 2026", 
+    //         price: "Rp 150.000", location: "Jakarta, ID", org: "Tech Indo"
+    //     },
+    //     {
+    //         id: 3, title: "Digital Marketing Online Workshop", 
+    //         isInPerson: false, isOnline: true, isFeatured: true,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+3", date: "May 05, 2026", 
+    //         price: "Rp 50.000", location: "Online", org: "Marketing Hub"
+    //     },
+    //     {
+    //         id: 4, title: "UI/UX Design Masterclass", 
+    //         isInPerson: true, isOnline: false, isFeatured: true,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+4", date: "June 12, 2026", 
+    //         price: "Rp 250.000", location: "Bandung, ID", org: "KampusX"
+    //     },
+    //     {
+    //         id: 5, title: "Data Science for Beginners", 
+    //         isInPerson: true, isOnline: true, isFeatured: false,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+5", date: "July 20, 2026", 
+    //         price: "Rp 100.000", location: "Surabaya, ID", org: "Tech Indo"
+    //     },
+    //     {
+    //         id: 6, title: "Startup Pitching Session", 
+    //         isInPerson: false, isOnline: true, isFeatured: true,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+6", date: "August 15, 2026", 
+    //         price: "Free", location: "Online", org: "Marketing Hub"
+    //     },
+    //     {
+    //         id: 7, title: "AI & Machine Learning Expo", 
+    //         isInPerson: true, isOnline: false, isFeatured: true,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+7", date: "September 10, 2026", 
+    //         price: "Rp 300.000", location: "Bali, ID", org: "KampusX"
+    //     },
+    //     {
+    //         id: 8, title: "Mobile App Development", 
+    //         isInPerson: true, isOnline: true, isFeatured: false,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+8", date: "October 05, 2026", 
+    //         price: "Rp 200.000", location: "Yogyakarta, ID", org: "Tech Indo"
+    //     },
+    //     {
+    //         id: 9, title: "Content Creator Summit", 
+    //         isInPerson: false, isOnline: true, isFeatured: true,
+    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+9", date: "November 22, 2026", 
+    //         price: "Rp 75.000", location: "Online", org: "Marketing Hub"
+    //     },
+    // ];
+    const [events, setEvents] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            try {
+                // Pastikan URL API kamu benar
+                const response = await axios.get('http://localhost:8000/api/events');
+                
+                // Tergantung bagaimana backend kamu mereturn data.
+                // Jika pakai Eloquent Resource, biasanya di response.data.data
+                // Jika pakai response()->json(), biasanya langsung di response.data
+                const eventData = response.data.data || response.data;
+                setEvents(eventData);
+                setIsLoading(false);
+            } catch (err) {
+                console.error("Gagal mengambil data:", err);
+                setError("Terjadi kesalahan saat memuat data event. Pastikan server Laravel menyala.");
+                setIsLoading(false);
+            }
+        };
+
+        fetchEvents();
+    }, []);
 
     // Daftar sebagian negara (Anda bisa tambahkan sisanya di array ini)
     const countries = [
@@ -173,87 +199,106 @@ const ExploreEvents = () => {
                     {/* KOLOM KANAN: DAFTAR EVENT (75% di layar besar) */}
                     {/* ========================================== */}
                     <Col lg={9}>
-                        {/* Menampilkan jumlah event yang ditemukan */}
                         <div className="d-flex justify-content-between align-items-center mb-4">
-                            <span className="fw-medium text-muted">Menampilkan {popularEvents.length} Event</span>
+                            <span className="fw-medium text-muted">Menampilkan {events.length} Event</span>
                         </div>
 
-                        {/* MENGGUNAKAN KODE CARD DARI ANDA */}
-                        <Row className="g-4">
-                            {popularEvents.map((ev) => (
-                                /* Note: Diubah md={4} menjadi md={6} xl={4} karena ruangnya sudah diambil sidebar */
-                                <Col xs={12} md={6} xl={4} key={ev.id}>
-                                    <Link to={`/event/${ev.id}`} className="text-decoration-none text-dark">
-                                        <Card className="h-100 shadow-sm p-3 border-0 hover-lift" style={{ borderRadius: '12px', backgroundColor: 'var(--color-white)' }}>
-                                            
-                                            {/* --- BADGES ATAS --- */}
-                                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                                <div className="d-flex gap-2">
-                                                    {ev.isInPerson && (
-                                                        <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium bg-white" 
-                                                            style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
-                                                            <Users size={14} className="me-2" /> In-Person
+                        {/* --- HANDLING LOADING & ERROR STATE --- */}
+                        {isLoading && (
+                            <div className="text-center py-5">
+                                <Spinner animation="border" variant="primary" />
+                                <p className="mt-3 text-muted">Memuat data event...</p>
+                            </div>
+                        )}
+
+                        {error && (
+                            <Alert variant="danger">
+                                {error}
+                            </Alert>
+                        )}
+
+                        {!isLoading && !error && events.length === 0 && (
+                            <div className="text-center py-5 text-muted">
+                                Belum ada event yang tersedia.
+                            </div>
+                        )}
+                        
+                        {/* --- RENDER DATA EVENT --- */}
+                        {!isLoading && !error && events.length > 0 && (
+                            <Row className="g-4">
+                                {events.map((ev) => (
+                                    <Col xs={12} md={6} xl={4} key={ev.id}>
+                                        <Link to={`/event/${ev.id}`} className="text-decoration-none text-dark">
+                                            <Card className="h-100 shadow-sm p-3 border-0 hover-lift" style={{ borderRadius: '12px', backgroundColor: 'var(--color-white)' }}>
+                                                
+                                                {/* --- BADGES ATAS --- */}
+                                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                                    <div className="d-flex gap-2">
+                                                        {/* Perhatikan perubahan properti ke snake_case sesuai database */}
+                                                        {ev.is_in_person && (
+                                                            <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium bg-white" 
+                                                                style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
+                                                                <Users size={14} className="me-2" /> In-Person
+                                                            </div>
+                                                        )}
+                                                        {ev.is_online && (
+                                                            <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium bg-white" 
+                                                                style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
+                                                                <Wifi size={14} className="me-2" /> Online
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {ev.is_featured && (
+                                                        <div className="rounded-pill px-3 py-1 fw-medium" 
+                                                            style={{ fontSize: 'var(--font-xs)', backgroundColor: 'var(--bahama-blue-500)', color: 'var(--color-white)' }}>
+                                                            Featured
                                                         </div>
                                                     )}
-                                                    {ev.isOnline && (
-                                                        <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium bg-white" 
-                                                            style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
-                                                            <Wifi size={14} className="me-2" /> Online
+                                                </div>
+
+                                                {/* --- GAMBAR EVENT --- */}
+                                                <img 
+                                                    src={ev.image} 
+                                                    alt={ev.title} 
+                                                    className="w-100 object-fit-cover rounded mb-3" 
+                                                    style={{ height: '180px' }} 
+                                                />
+
+                                                <Card.Body className="p-0 d-flex flex-column">
+                                                    {/* --- INFO TANGGAL & HARGA --- */}
+                                                    <div className="d-flex justify-content-between mb-3 fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
+                                                        <div className="d-flex align-items-center">
+                                                            <Calendar size={18} className="me-2" /> {ev.date}
                                                         </div>
-                                                    )}
-                                                </div>
-                                                {ev.isFeatured && (
-                                                    <div className="rounded-pill px-3 py-1 fw-medium" 
-                                                        style={{ fontSize: 'var(--font-xs)', backgroundColor: 'var(--bahama-blue-500)', color: 'var(--color-white)' }}>
-                                                        Featured
+                                                        <div className="d-flex align-items-center">
+                                                            <Ticket size={18} className="me-2" /> {ev.price}
+                                                        </div>
                                                     </div>
-                                                )}
-                                            </div>
 
-                                            {/* --- GAMBAR EVENT --- */}
-                                            <img 
-                                                src={ev.image} 
-                                                alt={ev.title} 
-                                                className="w-100 object-fit-cover rounded mb-3" 
-                                                style={{ height: '180px' }} 
-                                            />
+                                                    {/* --- JUDUL EVENT --- */}
+                                                    <Card.Title className="fw-bold mb-auto" style={{ color: 'var(--color-text)', fontSize: 'var(--font-lg)', lineHeight: '1.4' }}>
+                                                        {ev.title}
+                                                    </Card.Title>
 
-                                            <Card.Body className="p-0 d-flex flex-column">
-                                                {/* --- INFO TANGGAL & HARGA --- */}
-                                                <div className="d-flex justify-content-between mb-3 fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
-                                                    <div className="d-flex align-items-center">
-                                                        <Calendar size={18} className="me-2" /> {ev.date}
+                                                    {/* --- GARIS PEMISAH --- */}
+                                                    <hr className="opacity-100 my-3" style={{ color: 'var(--color-border)' }} />
+
+                                                    {/* --- INFO LOKASI & PENYELENGGARA --- */}
+                                                    <div className="d-flex justify-content-between fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
+                                                        <div className="d-flex align-items-center text-truncate" style={{ maxWidth: '60%' }}>
+                                                            <MapPin size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.location}</span>
+                                                        </div>
+                                                        <div className="d-flex align-items-center text-truncate ms-2" style={{ maxWidth: '40%' }}>
+                                                            <User size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.org}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="d-flex align-items-center">
-                                                        <Ticket size={18} className="me-2" /> {ev.price}
-                                                    </div>
-                                                </div>
-
-                                                {/* --- JUDUL EVENT --- */}
-                                                <Card.Title className="fw-bold mb-auto" style={{ color: 'var(--color-text)', fontSize: 'var(--font-lg)', lineHeight: '1.4' }}>
-                                                    {ev.title}
-                                                </Card.Title>
-
-                                                {/* --- GARIS PEMISAH --- */}
-                                                <hr className="opacity-100 my-3" style={{ color: 'var(--color-border)' }} />
-
-                                                {/* --- INFO LOKASI & PENYELENGGARA --- */}
-                                                <div className="d-flex justify-content-between fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
-                                                    <div className="d-flex align-items-center text-truncate" style={{ maxWidth: '60%' }}>
-                                                        <MapPin size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.location}</span>
-                                                    </div>
-                                                    <div className="d-flex align-items-center text-truncate ms-2" style={{ maxWidth: '40%' }}>
-                                                        <User size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.org}</span>
-                                                    </div>
-                                                </div>
-                                            </Card.Body>
-                                            
-                                        </Card>
-                                    
-                                    </Link>
-                                </Col>
-                            ))}
-                        </Row>
+                                                </Card.Body>
+                                            </Card>
+                                        </Link>
+                                    </Col>
+                                ))}
+                            </Row>
+                        )}
                     </Col>
                 </Row>
             </Container>
