@@ -229,31 +229,31 @@ const ExploreEvents = () => {
                                 {events.map((ev) => (
                                     <Col xs={12} md={6} xl={4} key={ev.id}>
                                         <Link to={`/event/${ev.id}`} className="text-decoration-none text-dark">
-                                            <Card className="h-100 shadow-sm p-3 border-0 hover-lift" style={{ borderRadius: '12px', backgroundColor: 'var(--color-white)' }}>
+                                            <Card className="p-2 h-100 shadow-sm border-0 hover-lift overflow-hidden" style={{ borderRadius: '12px', backgroundColor: 'var(--color-white)' }}>
                                                 
                                                 {/* --- BADGES ATAS --- */}
-                                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                                    <div className="d-flex gap-2">
+                                                <div className="d-flex justify-content-between align-items-center mb-3" style={{ minHeight: '28px' }}>
+                                                    <div className="d-flex px-2 py-1 gap-2" style={{ fontSize: 'var(--font-xs)' }}>
                                                         {/* Perhatikan perubahan properti ke snake_case sesuai database */}
-                                                        {ev.is_in_person && (
-                                                            <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium bg-white" 
+                                                        {ev.is_in_person ? (
+                                                            <div className="rounded-pill px-2 py-1 d-flex align-items-center fw-medium bg-white" 
                                                                 style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
                                                                 <Users size={14} className="me-2" /> In-Person
                                                             </div>
-                                                        )}
-                                                        {ev.is_online && (
-                                                            <div className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium bg-white" 
+                                                        ) : null}
+                                                        {ev.is_online ? (
+                                                            <div className="rounded-pill px-2 py-1 d-flex align-items-center fw-medium bg-white" 
                                                                 style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
                                                                 <Wifi size={14} className="me-2" /> Online
                                                             </div>
-                                                        )}
+                                                        ) : null}
                                                     </div>
-                                                    {ev.is_featured && (
-                                                        <div className="rounded-pill px-3 py-1 fw-medium" 
+                                                    {ev.is_featured ? (
+                                                        <div className="rounded-pill px-2 py-1 fw-medium" 
                                                             style={{ fontSize: 'var(--font-xs)', backgroundColor: 'var(--bahama-blue-500)', color: 'var(--color-white)' }}>
                                                             Featured
                                                         </div>
-                                                    )}
+                                                    ) : null}
                                                 </div>
 
                                                 {/* --- GAMBAR EVENT --- */}
