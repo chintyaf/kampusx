@@ -63,6 +63,8 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+        
+
         Schema::create('speakers', function (Blueprint $table) {
             $table->id();
 

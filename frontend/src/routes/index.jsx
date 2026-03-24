@@ -17,7 +17,8 @@ import Test from "../pages/dashboard/Test";
 import CreateEvent from "../pages/event/CreateEvent";
 import EventDashboardPage from "../pages/event/EventDashboardPage";
 import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralInfo";
-import EventScheduleLocation from "../pages/event/detail-event/sections/EventScheduleLocation";
+import EventScheduleLocation from "../pages/event/detail-event/sections/EventLocation";
+import EventAgenda from "../pages/event/detail-event/sections/EventAgenda";
 import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
 import EventRegistrationForm from "../pages/event/detail-event/sections/EventRegistrationForm";
 import EventStaffManagement from "../pages/event/EventStaffManagement";
@@ -46,11 +47,7 @@ const AppRoutes = () => {
                 {/* Group Visitor */}
                 <Route element={<VisitorLayout />}>
                     {visitorRoutes.map((route, index) => (
-                        <Route
-                            key={index}
-                            path={route.path}
-                            element={route.element}
-                        />
+                        <Route key={index} path={route.path} element={route.element} />
                     ))}
                 </Route>
 
@@ -58,10 +55,7 @@ const AppRoutes = () => {
                 <Route element={<AuthLayout />}>
                     <Route path="/signin" element={<SignIn />} />
                     <Route path="/signup" element={<SignUp />} />
-                    <Route
-                        path="/forgot-password"
-                        element={<ForgotPassword />}
-                    />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
                 </Route>
 
                 {/* MEMBER */}
@@ -77,87 +71,37 @@ const AppRoutes = () => {
                     <Route element={<ProtectedRoute allowedRole={["admin"]} />}>
                         <Route path="admin">
                             <Route path="dashboard" element={<Dashboard />} />
-                            <Route
-                                path="verifikasi-organizer"
-                                element={<Test />}
-                            />
+                            <Route path="verifikasi-organizer" element={<Test />} />
                             <Route path="kelola-pengguna" element={<Test />} />
                             <Route path="pantau-acara" element={<Test />} />
                             <Route path="kontrol-promosi" element={<Test />} />
                         </Route>
                     </Route>
 
-                    <Route
-                        element={
-                            <ProtectedRoute
-                                allowedRole={["admin", "organizer"]}
-                            />
-                        }
-                    >
+                    <Route element={<ProtectedRoute allowedRole={["admin", "organizer"]} />}>
                         <Route path="organizer">
-                            <Route
-                                path="dashboard"
-                                element={<OrgDashboardPage />}
-                            />
-                            <Route
-                                path="daftar-acara"
-                                element={<CreateEvent />}
-                            />
-                            <Route
-                                path="buat-acara"
-                                element={<CreateEvent />}
-                            />
+                            <Route path="dashboard" element={<OrgDashboardPage />} />
+                            <Route path="daftar-acara" element={<CreateEvent />} />
+                            <Route path="buat-acara" element={<CreateEvent />} />
 
                             {/* Event Routes untuk Detail Event */}
-                            <Route path="event-dashboard/:eventSlug">
-                                <Route
-                                    path=""
-                                    element={<EventDashboardPage />}
-                                />
-                                <Route path="detil-event">
-                                    <Route
-                                        path="info-utama"
-                                        element={<EventGeneralInfo />}
-                                    />
-                                    <Route
-                                        path="lokasi-n-waktu"
-                                        element={<EventScheduleLocation />}
-                                    />
-                                    <Route
-                                        path="daftar-pembicara"
-                                        element={<EventSpeakerList />}
-                                    />
-                                    <Route
-                                        path="formulir"
-                                        element={<EventRegistrationForm />}
-                                    />
+                            <Route path="event-dashboard/:eventId">
+                                <Route path="" element={<EventDashboardPage />} />
+                                <Route path="detail">
+                                    <Route path="info" element={<EventGeneralInfo />} />
+                                    <Route path="tempat" element={<EventScheduleLocation />} />
+                                    <Route path="agenda" element={<EventAgenda />} />
+                                    <Route path="pembicara" element={<EventSpeakerList />} />
+                                    <Route path="formulir" element={<EventRegistrationForm />} />
                                 </Route>
-                                <Route
-                                    path="kelola-staff"
-                                    element={<EventStaffManagement />}
-                                />
+                                <Route path="kelola-staff" element={<EventStaffManagement />} />
 
-                                <Route
-                                    path="daftar-peserta"
-                                    element={<EventParticipantList />}
-                                />
-                                <Route
-                                    path="distribusi-materi"
-                                    element={<EventMaterialDistributionPage />}
-                                />
-                                <Route
-                                    path="upload-sertifikat"
-                                    element={<EventStaffManagement />}
-                                />
+                                <Route path="daftar-peserta" element={<EventParticipantList />} />
+                                <Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
+                                <Route path="upload-sertifikat" element={<EventStaffManagement />} />
 
-                                <Route
-                                    path="statistik"
-                                    element={<EventStatistics />}
-                                />
-                                <Route
-                                    path="promosi"
-                                    element={<EventPromotion />}
-                                />
+                                <Route path="statistik" element={<EventStatistics />} />
+                                <Route path="promosi" element={<EventPromotion />} />
                             </Route>
                         </Route>
                     </Route>

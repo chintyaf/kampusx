@@ -26,7 +26,6 @@ const Create = () => {
     };
 
     const handleTitleChange = (e) => {
-        console.log("test");
         const newTitle = e.target.value;
         setTitle(newTitle);
         setSlug(formatToSlug(newTitle));
@@ -35,7 +34,7 @@ const Create = () => {
     const handleSlugChange = (e) => {
         setSlug(formatToSlug(e.target.value));
     };
-    
+
     const kategori_options = [
         { value: "1", label: "One" },
         { value: "2", label: "Two" },
@@ -75,7 +74,7 @@ const Create = () => {
             );
 
             if (response.status === 200 || response.status === 201) {
-                navigate("/organizer/event/detil-event/lokasi-n-waktu");
+                navigate("/organizer/dashboard");
                 notify("success", "Congratulations!", "Event berhasil dibuat.");
             }
         } catch (error) {

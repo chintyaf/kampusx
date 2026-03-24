@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Form, Table, Button, Badge, Row, Col } from "react-bootstrap";
+import {
+    Form,
+    Table,
+    Button,
+    Badge,
+    Row,
+    Col,
+    InputGroup,
+} from "react-bootstrap";
 import { Lock, X, Plus } from "lucide-react";
 
 // 1. Tambahkan prop sessionData dan onSave
@@ -54,64 +62,65 @@ const ScheduleForm = ({ onClose, totalDays, sessionData, onSave }) => {
     return (
         <div className="p-3 bg-light rounded border">
             <Form>
-                <Row className="mb-3">
-                    <Form.Group as={Col} md={4} controlId="formDaySelection">
-                        <Form.Label>Pilih Hari</Form.Label>
-                        <Form.Select
-                            name="day"
-                            value={formData.day}
-                            onChange={handleChange}
-                        >
-                            {[...Array(totalDays)].map((_, i) => (
-                                <option key={i + 1} value={i + 1}>
-                                    Hari ke-{i + 1}
-                                </option>
-                            ))}
-                        </Form.Select>
-                    </Form.Group>
+                <Form.Group controlId="formDaySelection" className="mb-4">
+                    <Form.Label>Pilih Hari</Form.Label>
+                    <Form.Select
+                        name="day"
+                        value={formData.day}
+                        onChange={handleChange}
+                    >
+                        {[...Array(totalDays)].map((_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                                Hari ke-{i + 1}
+                            </option>
+                        ))}
+                    </Form.Select>
+                </Form.Group>
 
-                    <Form.Group as={Col} md={8} controlId="formAgenda">
-                        <Form.Label>Judul/Agenda Sesi</Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            placeholder="Misal: Pembukaan Materi"
-                        />
-                    </Form.Group>
-                </Row>
+                <Form.Group controlId="formAgenda" className="mb-4">
+                    <Form.Label>Judul/Agenda Sesi</Form.Label>
+                    <Form.Control
+                        type="text"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        placeholder="Misal: Pembukaan Materi"
+                    />
+                </Form.Group>
 
-                <Row className="mb-3">
-                    <Form.Group as={Col} md={4} controlId="formStartTime">
-                        <Form.Label>Waktu Mulai</Form.Label>
+                <Form.Group className="mb-3" controlId="formTimeRange">
+                    <Form.Label>Rentang Waktu</Form.Label>
+                    <InputGroup>
                         <Form.Control
+                            className="no-clock"
                             type="time"
                             name="startTime"
+                            aria-label="Waktu Mulai"
                             value={formData.startTime}
                             onChange={handleChange}
                         />
-                    </Form.Group>
-                    <Form.Group as={Col} md={4} controlId="formEndTime">
-                        <Form.Label>Waktu Selesai</Form.Label>
+                        <InputGroup.Text>-</InputGroup.Text>
                         <Form.Control
+                            className="no-clock"
                             type="time"
                             name="endTime"
+                            aria-label="Waktu Selesai"
                             value={formData.endTime}
                             onChange={handleChange}
                         />
-                    </Form.Group>
-                    <Form.Group as={Col} md={4} controlId="formQuota">
-                        <Form.Label>Kuota</Form.Label>
-                        <Form.Control
-                            type="number"
-                            name="quota"
-                            value={formData.quota}
-                            onChange={handleChange}
-                            placeholder="150"
-                        />
-                    </Form.Group>
-                </Row>
+                    </InputGroup>
+                </Form.Group>
+
+                {/* <Form.Group controlId="formQuota">
+                    <Form.Label>Kuota</Form.Label>
+                    <Form.Control
+                        type="number"
+                        name="quota"
+                        value={formData.quota}
+                        onChange={handleChange}
+                        placeholder="150"
+                    />
+                </Form.Group> */}
 
                 <div className="d-flex gap-2 justify-content-end">
                     <Button variant="secondary" onClick={onClose}>
@@ -197,100 +206,138 @@ const ScheduleTable = ({ sessions, setSessions, totalDays = 1 }) => {
 
     return (
         <>
-            <Table responsive hover className="align-middle border rounded-2">
-                <thead className="bg-light">
-                    <tr className="text-muted small">
-                        <th>Hari</th>
-                        <th>Sesi</th>
-                        <th>Waktu</th>
-                        <th>Agenda / Judul</th>
-                        <th>
-                            <Lock size={14} className="me-1" /> Prasyarat
-                        </th>
-                        <th>Lokasi</th>
-                        <th>Kuota</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {sessions.map((s, idx) => {
-                        const showDay =
-                            idx === 0 || sessions[idx - 1].day !== s.day;
+            {sessions && sessions.length > 0 ? (
+                <>
+                    <Table
+                        responsive
+                        // hover
+                        className="align-middle border rounded-2"
+                    >
+                        <thead className="bg-light">
+                            <tr className="text-muted small">
+                                <th>Hari</th>
+                                <th>Sesi</th>
+                                <th>Waktu</th>
+                                <th>Agenda / Judul</th>
+                                <th>
+                                    <Lock size={14} className="me-1" />{" "}
+                                    Prasyarat
+                                </th>
+                                <th>Lokasi</th>
+                                <th>Kuota</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sessions.map((s, idx) => {
+                                const showDay =
+                                    idx === 0 ||
+                                    sessions[idx - 1].day !== s.day;
 
-                        return (
-                            <React.Fragment key={s.id}>
-                                <tr
-                                    style={{ cursor: "pointer" }}
-                                    onClick={() => setActiveRow(s.id)}
-                                    // Beri highlight ringan jika baris sedang diedit
-                                    className={
-                                        activeRow === s.id ? "bg-light" : ""
-                                    }
-                                >
-                                    <td>
-                                        {showDay && (
-                                            <span className="small fw-semibold text-muted">
-                                                Hari {s.day}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="text-muted small">
-                                        Sesi {s.session}
-                                    </td>
-                                    <td className="small">{s.time}</td>
-                                    <td className="fw-medium">{s.title}</td>
-                                    <td>
-                                        {s.prerequisite && (
-                                            <Badge
-                                                bg="warning"
-                                                text="dark"
-                                                className="fw-normal rounded-pill px-3"
-                                            >
-                                                <Lock
-                                                    size={12}
-                                                    className="me-1"
-                                                />{" "}
-                                                {s.prerequisite}
-                                            </Badge>
-                                        )}
-                                    </td>
-                                    <td className="text-muted">{s.location}</td>
-                                    <td className="fw-semibold">{s.quota}</td>
-                                    <td className="text-end">
-                                        <X
-                                            size={18}
-                                            className="text-danger"
+                                return (
+                                    <React.Fragment key={s.id}>
+                                        <tr
                                             style={{ cursor: "pointer" }}
-                                            onClick={(e) =>
-                                                handleDeleteSession(s.id, e)
-                                            } // Pasang fungsi delete
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* Form Edit / Isi Data */}
-                                {activeRow === s.id && (
-                                    <tr>
-                                        <td
-                                            colSpan={8}
-                                            className="p-0 border-0"
+                                            onClick={() => setActiveRow(s.id)}
+                                            // Beri highlight ringan jika baris sedang diedit
+                                            className={
+                                                activeRow === s.id
+                                                    ? "bg-light"
+                                                    : ""
+                                            }
                                         >
-                                            <ScheduleForm
-                                                totalDays={totalDays}
-                                                sessionData={s} // 6. Oper data baris ini ke form
-                                                onSave={handleSaveSession} // 7. Oper fungsi save
-                                                onClose={() =>
-                                                    setActiveRow(null)
-                                                }
-                                            />
-                                        </td>
-                                    </tr>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
-                </tbody>
-            </Table>
+                                            <td>
+                                                {showDay && (
+                                                    <span className="small fw-semibold text-muted">
+                                                        Hari {s.day}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="text-muted small">
+                                                Sesi {s.session}
+                                            </td>
+                                            <td className="small">{s.time}</td>
+                                            <td className="fw-medium">
+                                                {s.title}
+                                            </td>
+                                            <td>
+                                                {s.prerequisite && (
+                                                    <Badge
+                                                        bg="warning"
+                                                        text="dark"
+                                                        className="fw-normal rounded-pill px-3"
+                                                    >
+                                                        <Lock
+                                                            size={12}
+                                                            className="me-1"
+                                                        />{" "}
+                                                        {s.prerequisite}
+                                                    </Badge>
+                                                )}
+                                            </td>
+                                            <td className="text-muted">
+                                                {s.location}
+                                            </td>
+                                            <td className="fw-semibold">
+                                                {s.quota}
+                                            </td>
+                                            <td className="text-end">
+                                                <X
+                                                    size={18}
+                                                    className="text-danger"
+                                                    style={{
+                                                        cursor: "pointer",
+                                                    }}
+                                                    onClick={(e) =>
+                                                        handleDeleteSession(
+                                                            s.id,
+                                                            e,
+                                                        )
+                                                    } // Pasang fungsi delete
+                                                />
+                                            </td>
+                                        </tr>
+
+                                        {/* Form Edit / Isi Data */}
+                                        {activeRow === s.id && (
+                                            <tr>
+                                                <td
+                                                    colSpan={8}
+                                                    className="p-0 border-0"
+                                                >
+                                                    <ScheduleForm
+                                                        totalDays={totalDays}
+                                                        sessionData={s} // 6. Oper data baris ini ke form
+                                                        onSave={
+                                                            handleSaveSession
+                                                        } // 7. Oper fungsi save
+                                                        onClose={() =>
+                                                            setActiveRow(null)
+                                                        }
+                                                    />
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </tbody>
+                    </Table>
+                </>
+            ) : (
+                <>
+                    {/* Tampilan jika data kosong */}
+                    <div className="text-center p-5 border rounded-3 bg-light text-muted">
+                        <i className="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+                        <h6 className="fw-semibold mb-1">
+                            Data belum ditambahkan
+                        </h6>
+                        <p className="small mb-0">
+                            Silakan tambah sesi jadwal terlebih dahulu.
+                        </p>
+                    </div>
+                </>
+            )}
 
             <div className="d-flex gap-3 mt-4">
                 <Button

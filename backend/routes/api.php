@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EventDashboardController;
 use App\Http\Controllers\Api\OrganizerEventController;
+use App\Http\Controllers\Api\EventDas\EventDetailController;
 
 // PUBLIC ROUTES (GUEST)
 Route::post('/register', [AuthController::class, 'register']);
@@ -32,7 +33,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/organizer/events/{id}', [EventController::class, 'show']);
         Route::get('/organizer/events-list', [OrganizerEventController::class, 'getOrgEvents']);
 
-        Route::get('event-dashboard/{slug}/info-utama', [EventDashboardController::class, 'getGeneralInfo']);
+        Route::get('event-dashboard/{eventId}/info-utama', [EventDashboardController::class, 'getGeneralInfo']);
+        Route::post('event-dashboard/{eventId}/info-utama/update', [EventDashboardController::class, 'updateGeneralInfo']);
+
+        Route::get('event-dashboard/{eventId}/info-utama/set-location', [EventDetailController::class, 'getLocation']);
+        Route::post('event-dashboard/{eventId}/info-utama/set-location', [EventDetailController::class, 'setLocation']);
         // Route::post('/events/create', [EventController::class, 'store']);
         // Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard']);
     });

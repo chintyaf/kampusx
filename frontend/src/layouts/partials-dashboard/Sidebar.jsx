@@ -19,31 +19,31 @@ const MENU_ITEMS = {
         {
             id: "1",
             name: "Admin Dashboard",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "admin/dashboard",
         },
         {
             id: "2",
             name: "Verifikasi Organizer",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/verifikasi-organizer",
         },
         {
             id: "3",
             name: "Kelola Pengguna",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/kelola-pengguna",
         },
         {
             id: "4",
             name: "Pantau Acara",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/pantau-acara",
         },
         {
             id: "5",
             name: "Kontrol Promosi",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/kontrol-promosi",
         },
     ],
@@ -51,13 +51,13 @@ const MENU_ITEMS = {
         {
             id: "1",
             name: "Dashboard",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "organizer/dashboard",
         },
         {
             id: "2",
             name: "Daftar Acara",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "organizer/daftar-acara",
         },
     ],
@@ -65,55 +65,56 @@ const MENU_ITEMS = {
         {
             id: "1",
             name: "Dashboard",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug",
         },
         {
             id: "2",
             name: "Detil Event",
-            icon: <Form size={20} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/detil-event",
+            icon: <Form size={16} className="me-2" />,
+            path: "/organizer/event-dashboard/:slug/detail",
             submenu: [
-                { name: "Info Utama", path: "info-utama" },
-                { name: "Waktu & Lokasi", path: "lokasi-n-waktu" },
-                { name: "Daftar Pembicara", path: "daftar-pembicara" },
+                { name: "Info Utama", path: "info" },
+                { name: "Tempat Acara", path: "tempat" },
+                { name: "Susunan Acara", path: "agenda" },
+                { name: "Daftar Pembicara", path: "pembicara" },
                 { name: "Formulir Registrasi", path: "formulir" },
             ],
         },
         {
             id: "7",
             name: "Staff Administrasi",
-            icon: <UserRoundPen size={20} className="me-2" />,
+            icon: <UserRoundPen size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug/kelola-staff",
         },
         {
             id: "3",
             name: "Daftar Peserta",
-            icon: <UsersRound size={20} className="me-2" />,
+            icon: <UsersRound size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug/daftar-peserta",
         },
         {
             id: "8",
             name: "Sertifikat",
-            icon: <UserRoundPen size={20} className="me-2" />,
+            icon: <UserRoundPen size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug/upload-sertifikat",
         },
         {
             id: "4",
             name: "Distribusi Materi",
-            icon: <FolderOpen size={20} className="me-2" />,
+            icon: <FolderOpen size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug/distribusi-materi",
         },
         {
             id: "5",
             name: "Statistik",
-            icon: <ChartColumn size={20} className="me-2" />,
+            icon: <ChartColumn size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug/statistik",
         },
         {
             id: "6",
             name: "Promosi",
-            icon: <Star size={20} className="me-2" />,
+            icon: <Star size={16} className="me-2" />,
             path: "/organizer/event-dashboard/:slug/promosi",
         },
     ],
@@ -124,19 +125,19 @@ const ACCOUNT_ITEMS = [
         id: "admin-account",
         name: "Admin",
         path: "admin/dashboard",
-        icon: <UserCheck size={20} className="me-2" />,
+        icon: <UserCheck size={16} className="me-2" />,
     },
     {
         id: "organizer-account",
         name: "Organizer",
         path: "organizer/dashboard",
-        icon: <UserCheck size={20} className="me-2" />,
+        icon: <UserCheck size={16} className="me-2" />,
     },
     {
         id: "event-account",
         name: "Event",
         path: "organizer/event/dashboard",
-        icon: <UserCheck size={20} className="me-2" />,
+        icon: <UserCheck size={16} className="me-2" />,
     },
 ];
 
@@ -247,7 +248,7 @@ const Sidebar = (props) => {
     return (
         <div
             className="sidebar-container flex-shrink-0 p-3 bg-white border-end"
-            style={{ width: 280, height: "100%", overflowY: "auto" }}
+            style={{ width: "250px", height: "100%", overflowY: "auto" }}
         >
             <ul className="list-unstyled ps-0 ">
                 {currentMenu.map((item) => (

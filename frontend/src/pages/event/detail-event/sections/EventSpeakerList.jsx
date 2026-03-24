@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import EventLayout from "../EventLayout";
 import { Form, Row, Col, Badge, Button, Card, Collapse } from "react-bootstrap";
 import Select from "react-select";
-import { User, Link as LinkIcon, Pin, Pencil, Trash2 } from "lucide-react";
+import { User, Link as LinkIcon, Pin, Users } from "lucide-react"; // Tambahkan icon Users untuk empty state
 
 const SpeakerForm = ({ onCancel, initialData }) => {
-    const isEdit = !!initialData; // Cek apakah sedang mode edit
+    const isEdit = !!initialData;
     const kategori_options = [
         { value: "1", label: "Satu" },
         { value: "2", label: "Dua" },
@@ -55,18 +55,20 @@ const SpeakerForm = ({ onCancel, initialData }) => {
                     </Row>
 
                     <Row>
-                        <Form.Group as={Col} md={6} controlId="formSpeakerName">
+                        <Form.Group as={Col} md={6} controlId="formLinkedIn">
                             <Form.Label className="small fw-bold">
                                 LinkedIn URL
                             </Form.Label>
                             <Form.Control
                                 type="text"
-                                defaultValue={initialData?.name || ""}
-                                placeholder="Contoh: Budi Santoso, S.Kom"
+                                defaultValue={initialData?.linkedin || ""}
+                                placeholder="Contoh: linkedin.com/in/budisantoso"
                             />
                         </Form.Group>
                         <Form.Group as={Col} className="mb-3">
-                            <Form.Label>Expertise Tags</Form.Label>
+                            <Form.Label className="small fw-bold">
+                                Expertise Tags
+                            </Form.Label>
                             <Select
                                 isMulti
                                 placeholder="Pilih Tag Keahlian..."
@@ -78,7 +80,9 @@ const SpeakerForm = ({ onCancel, initialData }) => {
                     </Row>
 
                     <Form.Group>
-                        <Form.Label>Assign to Session</Form.Label>
+                        <Form.Label className="small fw-bold">
+                            Assign to Session
+                        </Form.Label>
                         <Select
                             isMulti
                             options={kategori_options}
@@ -87,8 +91,6 @@ const SpeakerForm = ({ onCancel, initialData }) => {
                             classNamePrefix="select form-select"
                         />
                     </Form.Group>
-
-                    {/* ... (Bio dan LinkedIn gunakan pattern defaultValue serupa) ... */}
                 </Col>
             </Row>
             <div className="d-flex gap-2 justify-content-end mt-3">
@@ -119,7 +121,6 @@ const SpeakerCard = ({
         >
             <Card.Body className="p-0">
                 <Row className="align-items-start g-3">
-                    {/* Avatar Section */}
                     <Col xs="auto">
                         <div
                             className="bg-light d-flex align-items-center justify-content-center rounded-circle border"
@@ -133,7 +134,6 @@ const SpeakerCard = ({
                         </div>
                     </Col>
 
-                    {/* Info Section */}
                     <Col className="flex-grow-1">
                         <div className="d-flex align-items-center flex-wrap gap-2 mb-1">
                             <h5
@@ -176,7 +176,6 @@ const SpeakerCard = ({
                         </a>
                     </Col>
 
-                    {/* Action & Session Section */}
                     <Col
                         xs={12}
                         md="auto"
@@ -222,32 +221,53 @@ const SpeakerCard = ({
 const EventSpeakerList = () => {
     const [showForm, setShowForm] = useState(false);
 
+    // State untuk data speakers (dikososngkan untuk mentrigger Empty State)
+    // Silakan isi array ini dengan data object jika ingin melihat list-nya
+    const [speakers, setSpeakers] = useState([]);
+
     return (
         <EventLayout
             heading="Manajemen Pembicara & Narasumber"
             subheading="Kelola profil pengisi acara dan hubungkan mereka dengan sesi yang relevan."
             nextPath={"formulir"}
         >
-            <Form>
-                <h1></h1>
-                <SpeakerCard
-                    name="Dr. Andi Pratama"
-                    role="AI Researcher"
-                    tags={["AI", "Machine Learning"]}
-                    linkedin="linkedin.com/in/drandipratama"
-                    session="Session 2 — Workshop AI"
-                    onDelete={() => console.log("Dihapus!")}
-                />
+            <div>
+                {/* Logic untuk menampilkan list atau empty state */}
+                {speakers.length > 0 ? (
+                    speakers.map((speaker, index) => (
+                        <SpeakerCard
+                            key={index}
+                            name={speaker.name}
+                            role={speaker.role}
+                            tags={speaker.tags}
+                            linkedin={speaker.linkedin}
+                            session={speaker.session}
+                            onDelete={() =>
+                                console.log("Dihapus!", speaker.name)
+                            }
+                        />
+                    ))
+                ) : (
+                    // UI Empty State ("Belum ada data")
+                    <div
+                        className="text-center p-5 mb-4 border rounded-4 bg-light"
+                        style={{ borderStyle: "dashed" }}
+                    >
+                        <Users
+                            size={48}
+                            className="text-muted mb-3 opacity-50"
+                        />
+                        <h6 className="fw-bold text-muted mb-1">
+                            Belum ada data pembicara
+                        </h6>
+                        <p className="text-muted small mb-0">
+                            Silakan klik tombol di bawah untuk menambahkan
+                            pembicara baru.
+                        </p>
+                    </div>
+                )}
 
-                <SpeakerCard
-                    name="Dr. Andi Pratama"
-                    role="AI Researcher"
-                    tags={["AI", "Machine Learning"]}
-                    linkedin="linkedin.com/in/drandipratama"
-                    session="Session 2 — Workshop AI"
-                    onDelete={() => console.log("Dihapus!")}
-                />
-
+                {/* Form Toggle */}
                 {showForm ? (
                     <Collapse in={showForm}>
                         <div>
@@ -263,7 +283,7 @@ const EventSpeakerList = () => {
                         + Tambah Speaker
                     </Button>
                 )}
-            </Form>
+            </div>
         </EventLayout>
     );
 };

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Event extends Model
 {
@@ -36,10 +37,15 @@ class Event extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(
-                Category::class, 
+                Category::class,
                 'event_categories', // nama tabel pivot
                 'event_id',         // foreign key di tabel pivot untuk Event
                 'tag_id'            // foreign key di tabel pivot untuk Category
             );
+    }
+
+    public function locationDetail(): HasOne
+    {
+        return $this->hasOne(EventLocation::class, 'event_id');
     }
 }

@@ -19,13 +19,14 @@ import {
     Link as LinkIcon,
 } from "lucide-react";
 
-import ScheduleTable from "./ScheduleTable";
+import ScheduleTable from "./schedule/ScheduleTable";
+import EventLayout from "../EventLayout";
 
 const FooterSummary = () => {
     return (
         <>
             <Card.Footer
-                className="bg-white p-4 border-top mt-3"
+                className="bg-white p-4 border-top mt-4"
                 style={{ border: "1px var(--color-border) solid" }}
             >
                 <Row className="align-items-center">
@@ -62,40 +63,9 @@ const FooterSummary = () => {
     );
 };
 
-const Step3_Schedule = () => {
+const EventAgenda = () => {
     // Mock data awal berdasarkan gambar
-    const [sessions, setSessions] = useState([
-        {
-            id: 1,
-            day: 1,
-            session: 1,
-            time: "09:00–10:30",
-            title: "Pembukaan & Materi 1",
-            prerequisite: null,
-            location: "—",
-            quota: 200,
-        },
-        {
-            id: 2,
-            day: 1,
-            session: 2,
-            time: "10:45–12:00",
-            title: "Workshop AI",
-            prerequisite: "H1·S1",
-            location: "—",
-            quota: 200,
-        },
-        {
-            id: 3,
-            day: 2,
-            session: 1,
-            time: "13:00–15:00",
-            title: "Career Talk",
-            prerequisite: "H1·S2",
-            location: "—",
-            quota: 150,
-        },
-    ]);
+    const [sessions, setSessions] = useState([]);
 
     // 1. Tambahkan state untuk Tanggal Mulai dan Tanggal Berakhir
     const [startDate, setStartDate] = useState("");
@@ -125,49 +95,69 @@ const Step3_Schedule = () => {
     }, [startDate, endDate]);
 
     return (
-        <Form>
-            {/* Header Bagian */}
-            <div className="mb-4 d-flex align-items-start">
-                <div>
-                    <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
-                        Level 3 — Schedule Breakdown
-                    </h5>
-                    <p className="text-muted small mb-0">
-                        Susun jadwal detail per hari dan sesi menggunakan
-                        matriks waktu
-                    </p>
-                </div>
-            </div>
+        <>
+            <EventLayout
+                heading="Schedule Breakdown"
+                subheading={
+                    "Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
+                }
+            >
+                <Form>
+                    <Form.Group
+                        as={Col}
+                        controlId="formGridTimezone"
+                        className="mb-4"
+                    >
+                        <Form.Label>Zona Waktu</Form.Label>
+                        <Form.Select aria-label="Pilih Zona Waktu Indonesia">
+                            <option value="">Pilih Zona Waktu</option>
+                            <option value="WIB">
+                                WIB - Waktu Indonesia Barat (UTC+7)
+                            </option>
+                            <option value="WITA">
+                                WITA - Waktu Indonesia Tengah (UTC+8)
+                            </option>
+                            <option value="WIT">
+                                WIT - Waktu Indonesia Timur (UTC+9)
+                            </option>
+                        </Form.Select>
+                        <Form.Text className="text-muted">
+                            Penting jika peserta berasal dari berbagai zona
+                            waktu.
+                        </Form.Text>
+                    </Form.Group>
 
-            <Row className="mb-3">
-                <Form.Group as={Col} className="">
-                    <Form.Label>Tanggal Mulai</Form.Label>
-                    <Form.Control
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                    ></Form.Control>
-                </Form.Group>
-                <Form.Group as={Col} className="">
-                    <Form.Label>Tanggal Berakhir</Form.Label>
-                    <Form.Control
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                    ></Form.Control>
-                </Form.Group>
-            </Row>
+                    <Row className="mb-4">
+                        <Form.Group as={Col} className="">
+                            <Form.Label>Tanggal Mulai</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                            ></Form.Control>
+                        </Form.Group>
+                        <Form.Group as={Col} className="">
+                            <Form.Label>Tanggal Berakhir</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                            ></Form.Control>
+                        </Form.Group>
+                    </Row>
 
-            {/* Tabel */}
-            <ScheduleTable
-                sessions={sessions}
-                setSessions={setSessions}
-                totalDays={totalDays}
-            />
+                    {/* Tabel */}
+                    <ScheduleTable
+                        sessions={sessions}
+                        setSessions={setSessions}
+                        totalDays={totalDays}
+                    />
 
-            <FooterSummary />
-        </Form>
+                    <FooterSummary />
+                </Form>
+            </EventLayout>
+        </>
     );
 };
 
-export default Step3_Schedule;
+export default EventAgenda;

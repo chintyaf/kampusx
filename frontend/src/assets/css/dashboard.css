@@ -1,12 +1,9 @@
 main {
     overflow-y: auto;
 }
-/* SIDEBAR 
-*/
 /* SIDEBAR */
 .sidebar-container {
-    max-width: 280px; /* Samakan dengan inline style width di React */
-    width: 280px;
+    max-width: 280px;
     background-color: #ffffff;
     padding-top: 1.5rem;
     border-right: 1px solid var(--color-border);
@@ -71,7 +68,7 @@ main {
 
 .menu-text,
 .sidebar-parent-menu {
-    font-size: var(--font-md);
+    font-size: var(--font-sm);
     text-decoration: none;
     color: var(--color-text);
 }
@@ -95,18 +92,23 @@ main {
     min-height: 0;
 }
 
-/* 
+/*
     NAVBAR
 */
 .event-status {
-    border: 1px #cd9703 solid;
-    color: #a6784d;
-    background-color: #fff9e3;
     transition: 0.1s;
 }
 
 .event-status:hover {
     transition: 0.1s;
+}
+
+.event-status.draft {
+    border: 1px #cd9703 solid;
+    color: #a6784d;
+}
+
+.event-status.draft:hover {
     border: 1px #b38300 solid;
     background-color: #f7edc8;
 }
@@ -119,6 +121,8 @@ main {
     z-index: 1020;
     padding: 0px;
     border-bottom: 1px var(--color-border) solid;
+
+    height: 60px;
 }
 
 /* Component */
@@ -134,23 +138,23 @@ main {
     /* Initial hidden state */
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px) scale(0.95);
+    /* transform: translateY(-10px) scale(0.95); */
 
     /* Animation settings */
-    transition:
+    /* transition:
         opacity 0.1s ease-out,
         transform 0.2s ease-out,
-        visibility 0.2s;
+        visibility 0.2s; */
     pointer-events: none;
 }
 
 /* State when the 'show' class is present */
-.profile-dropdown.show {
+/* .profile-dropdown.show {
     opacity: 1;
     visibility: visible;
     transform: translateY(0) scale(1);
     pointer-events: auto;
-}
+} */
 
 /* Optional: Add a subtle shadow to make it pop */
 .profile-dropdown {

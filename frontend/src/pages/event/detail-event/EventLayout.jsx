@@ -4,17 +4,34 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "../../../assets/css/form.css";
 import { Image } from "lucide-react";
+import { notify } from "../../../utils/notify";
 
-const EventLayout = ({ heading, subheading, children, nextPath }) => {
+const EventLayout = ({ heading, subheading, children, nextPath, onSave }) => {
     const navigate = useNavigate();
-    const handleSaveAndContinue = () => {
+    const handleSaveAndContinue = async () => {
         try {
-            // Simpan data event ke backend (belum diimplementasikan)
-
+            // Simpan data event ke backend
             // Setelah berhasil menyimpan, navigasi ke halaman berikutnya
+            if (onSave) {
+                await onSave();
+            }
+
             navigate(`../${nextPath}`);
         } catch (error) {
             console.error("Navigation error:", error);
+        }
+    };
+
+    const [isSaving, setIsSaving] = useState(false);    
+    const handleSave = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            if (onSave) await onSave();
+        } catch (error) {
+            notify("Failed to save", "error");
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -31,8 +48,11 @@ const EventLayout = ({ heading, subheading, children, nextPath }) => {
             </div>
             <div className="d-flex flex-column gap-4">{children}</div>
             <div className="w-100 d-flex justify-content-end mt-4 gap-4">
+                <Button variant="dark" onClick={handleSave}>
+                    Simpan
+                </Button>
                 <Button variant="dark" onClick={handleSaveAndContinue}>
-                    Simpan & Lanjut
+                    Selanjutnya
                 </Button>
             </div>
         </>

@@ -1,8 +1,8 @@
-/* 
+/*
 CSS Reset/Normalize: Menghilangkan margin bawaan browser.
 Font-family: Mengatur jenis tulisan untuk seluruh body.
 Background body: Warna latar belakang seluruh website.
-Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di banyak tempat. 
+Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di banyak tempat.
 */
 /* @import "tailwindcss"; */
 
@@ -36,6 +36,23 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --bahama-blue-950: #07304a;
 }
 
+.border-c {
+    border-color: var(--color-border);
+}
+
+
+.text-primary {
+    color: var(--bahama-blue-600) !important;
+}
+
+.fs-xs {
+    font-size: var(--font-xs);
+}
+
+.fs-sm {
+    font-size: var(--font-sm);
+}
+
 p {
     margin: 0px;
 }
@@ -45,7 +62,7 @@ p {
     font-family: var(--font-md);
     /* transition: 0.2s; */
 }
-/* 
+/*
 .btn:hover {
     transform: scale(1.1);
     transition: 0.2s;
@@ -149,5 +166,4 @@ p {
 
 .toast {
     box-shadow: none !important;
-
 }

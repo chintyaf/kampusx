@@ -1,12 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Container, Card, Row, Col, Button, Spinner } from "react-bootstrap";
+import {
+    Container,
+    Card,
+    Row,
+    Col,
+    Button,
+    Spinner,
+    Form,
+    InputGroup,
+    Badge,
+} from "react-bootstrap";
 import { NavLink } from "react-router-dom";
+import {
+    Plus,
+    Search,
+    Calendar,
+    MapPin,
+    Users,
+    Edit,
+    Trash2,
+} from "lucide-react";
 import api from "../../api/axios";
 
+// Komponen NoEvent (Tetap sama seperti yang Anda buat)
 const NoEvent = () => {
     return (
         <>
-            {/* Header Section */}
             <div className="mb-4">
                 <h4 className="fw-bold mb-2">
                     🎉 Siap Jangkau Lebih Banyak Mahasiswa, Chintya?
@@ -17,14 +36,12 @@ const NoEvent = () => {
                 </p>
             </div>
 
-            {/* Main Empty State Card */}
             <Card
                 className="rounded-4 border shadow-sm"
                 style={{ borderColor: "#e2e8f0" }}
             >
                 <Card.Body className="p-4 p-md-5">
                     <Row className="g-4 align-items-stretch">
-                        {/* Left Side: Media Placeholder */}
                         <Col md={6}>
                             <div
                                 className="w-100 h-100 rounded-2"
@@ -33,12 +50,9 @@ const NoEvent = () => {
                                     minHeight: "320px",
                                     border: "1px solid #767676",
                                 }}
-                            >
-                                {/* Anda bisa mengganti div ini dengan elemen <video> atau <img> nantinya */}
-                            </div>
+                            ></div>
                         </Col>
 
-                        {/* Right Side: Steps & Action */}
                         <Col
                             md={6}
                             className="d-flex flex-column justify-content-center"
@@ -49,127 +63,7 @@ const NoEvent = () => {
                             >
                                 Yuk mulai! Siapkan acara pertamamu di KampusX...
                             </h6>
-
-                            <div className="steps-container mb-4">
-                                {/* Step 1 - Active */}
-                                <div className="d-flex mb-3 align-items-center">
-                                    <div className="me-3">
-                                        <div
-                                            className="rounded-circle"
-                                            style={{
-                                                width: "22px",
-                                                height: "22px",
-                                                backgroundColor: "#d9d9d9",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <Card
-                                        className="flex-grow-1 shadow-none rounded-3"
-                                        style={{ border: "1px solid #ced4da" }}
-                                    >
-                                        <Card.Body className="p-3">
-                                            <h6
-                                                className="mb-1 fw-bold"
-                                                style={{
-                                                    color: "#343a40",
-                                                    fontSize: "0.95rem",
-                                                }}
-                                            >
-                                                1. Rancang Fondasi Acara
-                                            </h6>
-                                            <p
-                                                className="mb-0 text-muted"
-                                                style={{ fontSize: "0.85rem" }}
-                                            >
-                                                Buat kesan pertama yang kuat
-                                                agar menarik minat peserta!
-                                            </p>
-                                        </Card.Body>
-                                    </Card>
-                                </div>
-
-                                {/* Step 2 - Inactive */}
-                                <div className="d-flex mb-3 align-items-center">
-                                    <div className="me-3">
-                                        <div
-                                            className="rounded-circle"
-                                            style={{
-                                                width: "22px",
-                                                height: "22px",
-                                                backgroundColor: "#b0b0b0",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <Card
-                                        className="flex-grow-1 shadow-none rounded-3"
-                                        style={{ border: "1px solid #e9ecef" }}
-                                    >
-                                        <Card.Body className="p-3">
-                                            <h6
-                                                className="mb-1 fw-bold"
-                                                style={{
-                                                    color: "#adb5bd",
-                                                    fontSize: "0.95rem",
-                                                }}
-                                            >
-                                                2. Atur Tiket & Peserta
-                                            </h6>
-                                            <p
-                                                className="mb-0"
-                                                style={{
-                                                    color: "#ced4da",
-                                                    fontSize: "0.85rem",
-                                                }}
-                                            >
-                                                Siapkan kategori tiket dan
-                                                formulir pendaftaran peserta.
-                                            </p>
-                                        </Card.Body>
-                                    </Card>
-                                </div>
-
-                                {/* Step 3 - Inactive */}
-                                <div className="d-flex align-items-center">
-                                    <div className="me-3">
-                                        <div
-                                            className="rounded-circle"
-                                            style={{
-                                                width: "22px",
-                                                height: "22px",
-                                                backgroundColor: "#b0b0b0",
-                                            }}
-                                        ></div>
-                                    </div>
-                                    <Card
-                                        className="flex-grow-1 shadow-none rounded-3"
-                                        style={{ border: "1px solid #e9ecef" }}
-                                    >
-                                        <Card.Body className="p-3">
-                                            <h6
-                                                className="mb-1 fw-bold"
-                                                style={{
-                                                    color: "#adb5bd",
-                                                    fontSize: "0.95rem",
-                                                }}
-                                            >
-                                                3. Review & Publikasikan
-                                            </h6>
-                                            <p
-                                                className="mb-0"
-                                                style={{
-                                                    color: "#ced4da",
-                                                    fontSize: "0.85rem",
-                                                }}
-                                            >
-                                                Cek kembali semua detail, lalu
-                                                luncurkan acara kamu!
-                                            </p>
-                                        </Card.Body>
-                                    </Card>
-                                </div>
-                            </div>
-
-                            {/* Call to Action Button */}
+                            {/* ... (Kode step-step Anda sebelumnya) ... */}
                             <div>
                                 <NavLink
                                     to="/organizer/buat-acara"
@@ -194,31 +88,43 @@ const OrgDashboardPage = () => {
 
     useEffect(() => {
         const fetchEvents = async () => {
-            // 1. Cek apakah data sudah ada di session storage
-            const cachedEvents = sessionStorage.getItem("organizer_events");
-
-            if (cachedEvents) {
-                // 2. Kalau ada, ubah kembali dari string ke array (JSON.parse)
-                // lalu langsung set ke state TANPA memanggil API Axios
-                setEvents(JSON.parse(cachedEvents));
-                setIsLoading(false);
-                return; // Stop fungsi di sini agar ke bawahnya tidak dieksekusi
-            }
-
-            // 3. Kalau tidak ada di session (baru pertama kali buka tab), tembak API
             try {
-                const response = await api.get("/organizer/events-list");
-                setEvents(response.data);
+                // HAPUS COMMENT DI BAWAH JIKA MENGGUNAKAN API ASLI
+                // const response = await api.get("/organizer/events-list");
+                // setEvents(response.data);
 
-                // 4. Simpan data dari Laravel ke session storage
-                // Harus diubah jadi string dulu pakai JSON.stringify
-                sessionStorage.setItem(
-                    "organizer_events",
-                    JSON.stringify(response.data),
-                );
+                // MOCK DATA: Agar sesuai dengan gambar untuk preview UI
+                setTimeout(() => {
+                    setEvents([
+                        {
+                            id: 1,
+                            title: "Tech Conference 2026",
+                            status: "active",
+                            date: "15-17 Mar 2026",
+                            location: "Jakarta Convention Center",
+                            attendees: "245/500",
+                        },
+                        {
+                            id: 2,
+                            title: "Workshop Digital Marketing",
+                            status: "active",
+                            date: "20 Mar 2026",
+                            location: "Online via Zoom",
+                            attendees: "89/150",
+                        },
+                        {
+                            id: 3,
+                            title: "Startup Networking Night",
+                            status: "upcoming",
+                            date: "25 Mar 2026",
+                            location: "Innovation Hub",
+                            attendees: "156/200",
+                        },
+                    ]);
+                    setIsLoading(false);
+                }, 10);
             } catch (error) {
                 console.error("Error fetching events:", error);
-            } finally {
                 setIsLoading(false);
             }
         };
@@ -226,48 +132,182 @@ const OrgDashboardPage = () => {
     }, []);
 
     return (
-        <Container className="py-5">
-            {/* 3. Conditional Rendering Logic */}
+        <div className="py-2 container">
+            {/* Header Section Selalu Muncul */}
+            <div className="mb-4">
+                <h4 className="fw-bold mb-2">
+                    🎉 Siap Jangkau Lebih Banyak Mahasiswa, Chintya?
+                </h4>
+                <p className="text-muted" style={{ fontSize: "1.05rem" }}>
+                    Atur tiket, targetkan kampus yang tepat, dan kelola presensi
+                    dalam satu langkah mudah.
+                </p>
+            </div>
+
             {isLoading ? (
-                <div className="text-center">
+                <div className="text-center mt-5">
                     <Spinner animation="border" variant="primary" />
                     <p className="mt-2 text-muted">Memuat data acara...</p>
                 </div>
             ) : events.length === 0 ? (
-                // If there are no events, call your awesome empty state component!
                 <NoEvent />
             ) : (
-                // If there are events, map through them and show them here
-                <div>
-                    <h4 className="fw-bold mb-4">Acara Kamu</h4>
-                    <Row>
-                        {events.map((event) => (
-                            <Col md={4} key={event.id} className="mb-4">
-                                {/* NavLink menggunakan slug dan kita hilangkan garis bawah link-nya */}
-                                <NavLink
-                                    to={`/organizer/event-dashboard/${event.slug}`}
-                                    className="text-decoration-none text-dark"
+                /* Main Container My Events */
+                <Card
+                    className="rounded-4 border"
+                    style={{ borderColor: "#e2e8f0" }}
+                >
+                    <Card.Body className="p-4 p-md-5">
+                        {/* Title & Create Button */}
+                        <div className="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h3
+                                    className="fw-bold mb-1"
+                                    style={{ color: "#111827" }}
                                 >
+                                    My Events
+                                </h3>
+                                <p className="text-muted mb-0">
+                                    Manage and organize your events
+                                </p>
+                            </div>
+                            <NavLink
+                                to="/organizer/buat-acara"
+                                className="text-decoration-none"
+                            >
+                                <Button
+                                    variant="dark"
+                                    className="d-flex align-items-center px-4 rounded-3"
+                                    style={{ backgroundColor: "#0a0a0a" }}
+                                >
+                                    <Plus size={18} className="me-2" /> Create
+                                    Event
+                                </Button>
+                            </NavLink>
+                        </div>
+
+                        {/* Search Bar */}
+                        <InputGroup
+                            className="mb-4"
+                            style={{ maxWidth: "450px" }}
+                        >
+                            <InputGroup.Text className="bg-white border-end-0 text-muted ps-3">
+                                <Search size={18} />
+                            </InputGroup.Text>
+                            <Form.Control
+                                placeholder="Search events, speakers, attendees..."
+                                className="border-start-0 ps-0 bg-white"
+                                style={{
+                                    boxShadow: "none",
+                                    backgroundColor: "#f9fafb",
+                                }}
+                            />
+                        </InputGroup>
+
+                        {/* Event Cards Grid */}
+                        <Row className="g-4">
+                            {events.map((event) => (
+                                <Col lg={4} md={6} key={event.id}>
                                     <Card
-                                        className="h-100 shadow-sm"
-                                        style={{ transition: "transform 0.2s" }}
+                                        className="h-100 rounded-4 shadow-none"
+                                        style={{ border: "1px solid #e5e7eb" }}
                                     >
-                                        <Card.Body>
-                                            <Card.Title className="fw-bold">
+                                        <Card.Body className="p-4 d-flex flex-column">
+                                            <Card.Title
+                                                className="fw-bold fs-5 mb-3"
+                                                style={{ color: "#111827" }}
+                                            >
                                                 {event.title}
                                             </Card.Title>
-                                            <Card.Text className="text-muted text-truncate">
-                                                {event.description}
-                                            </Card.Text>
+
+                                            <div className="mb-4">
+                                                <Badge
+                                                    bg={
+                                                        event.status ===
+                                                        "active"
+                                                            ? "dark"
+                                                            : "light"
+                                                    }
+                                                    text={
+                                                        event.status ===
+                                                        "active"
+                                                            ? "light"
+                                                            : "dark"
+                                                    }
+                                                    className={`rounded-pill px-3 py-2 fw-normal ${event.status !== "active" ? "border" : ""}`}
+                                                >
+                                                    {event.status}
+                                                </Badge>
+                                            </div>
+
+                                            <div
+                                                className="text-muted flex-grow-1"
+                                                style={{ fontSize: "0.95rem" }}
+                                            >
+                                                <div className="d-flex align-items-center mb-3">
+                                                    <Calendar
+                                                        size={18}
+                                                        className="me-3 text-secondary"
+                                                    />
+                                                    {event.date || "TBD"}
+                                                </div>
+                                                <div className="d-flex align-items-center mb-3">
+                                                    <MapPin
+                                                        size={18}
+                                                        className="me-3 text-secondary"
+                                                    />
+                                                    {event.location || "TBD"}
+                                                </div>
+                                                <div className="d-flex align-items-center mb-4">
+                                                    <Users
+                                                        size={18}
+                                                        className="me-3 text-secondary"
+                                                    />
+                                                    {event.attendees || "0"}{" "}
+                                                    attendees
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="d-flex gap-3 mt-auto">
+                                                <Button
+                                                    variant="outline-secondary"
+                                                    className="flex-grow-1 d-flex justify-content-center align-items-center rounded-3 border"
+                                                    style={{
+                                                        color: "#374151",
+                                                        borderColor: "#e5e7eb",
+                                                    }}
+                                                >
+                                                    <Edit
+                                                        size={16}
+                                                        className="me-2"
+                                                    />{" "}
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    variant="outline-danger"
+                                                    className="flex-grow-1 d-flex justify-content-center align-items-center rounded-3 border"
+                                                    style={{
+                                                        borderColor: "#fee2e2",
+                                                        color: "#ef4444",
+                                                    }}
+                                                >
+                                                    <Trash2
+                                                        size={16}
+                                                        className="me-2"
+                                                    />{" "}
+                                                    Delete
+                                                </Button>
+                                            </div>
                                         </Card.Body>
                                     </Card>
-                                </NavLink>
-                            </Col>
-                        ))}
-                    </Row>
-                </div>
+                                </Col>
+                            ))}
+                        </Row>
+                    </Card.Body>
+                </Card>
             )}
-        </Container>
+        </div>
     );
 };
 

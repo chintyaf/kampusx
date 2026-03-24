@@ -1,4 +1,4 @@
-/* 
+/*
 Gaya untuk container utama.
 Layouting tingkat atas (misalnya setting Flexbox untuk seluruh aplikasi).
 Animasi global (seperti logo React yang berputar).
@@ -46,3 +46,72 @@ Animasi global (seperti logo React yang berputar).
 .toast-container {
     overflow: visible !important;
 }
+
+/* Kelas animasi fade-in dan slide-up */
+.fade-in-down {
+    animation: fadeInDown 0.2s ease-out forwards;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 1;
+        transform: translateY(-15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pop-down,
+.show .dropdown-menu.pop-down {
+    animation: popDown 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Animasi Keluar */
+.pop-out,
+.show .dropdown-menu.pop-out {
+    animation: popOut 0.2s ease-in forwards;
+}
+
+@keyframes popDown {
+    from {
+        opacity: 0;
+        /* Start higher up for a more dramatic drop */
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes popOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+/* Input Time Iocn */
+/* Menghapus ikon jam di Chrome, Safari, dan Edge */
+.no-clock::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none;
+}
+
+/* Menghapus ikon di Firefox */
+.no-clock::-moz-calendar-picker-indicator {
+    display: none !important;
+}
+
+/* Tambahan jika ingin menghilangkan "inner spin buttons" (panah atas-bawah) */
+.no-clock::-webkit-inner-spin-button {
+    display: none;
+    -webkit-appearance: none;
+}
+

@@ -15,6 +15,8 @@ namespace App\Models{
 /**
  * @property int $id
  * @property string $name
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Event> $events
+ * @property-read int|null $events_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Category query()
@@ -28,16 +30,20 @@ namespace App\Models{
 /**
  * @property int $id
  * @property int $organizer_id
- * @property string $slug
- * @property string $title
+ * @property string|null $slug
+ * @property string|null $title
  * @property string|null $description
- * @property string $location_type
- * @property string $start_date
- * @property string $end_date
+ * @property string|null $location_type
+ * @property string|null $start_date
+ * @property string|null $end_date
  * @property string $status
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Category> $categories
+ * @property-read int|null $categories_count
  * @property-read \App\Models\User $organizer
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EventSession> $sessions
+ * @property-read int|null $sessions_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Event query()
@@ -60,6 +66,48 @@ namespace App\Models{
 /**
  * @property int $id
  * @property int $event_id
+ * @property string $type
+ * @property string|null $venue_name
+ * @property string|null $room_name
+ * @property string|null $floor
+ * @property string|null $room_code
+ * @property int|null $capacity_range
+ * @property string|null $maps_url
+ * @property string|null $access_instruction
+ * @property int|null $offline_quota
+ * @property string|null $meeting_link
+ * @property string|null $notes
+ * @property int|null $online_quota
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Event $event
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereAccessInstruction($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereCapacityRange($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereFloor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereMapsUrl($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereMeetingLink($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereOfflineQuota($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereOnlineQuota($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereRoomCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereRoomName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventLocation whereVenueName($value)
+ */
+	class EventLocation extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * @property int $id
+ * @property int $event_id
  * @property string $title
  * @property string|null $description
  * @property string $date
@@ -70,6 +118,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\Event $event
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Speaker> $speakers
+ * @property-read int|null $speakers_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventSession newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventSession newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventSession query()
@@ -118,11 +168,16 @@ namespace App\Models{
  * @property int $id
  * @property string $name
  * @property string $email
- * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property string|null $phone
  * @property string $password
+ * @property string $role
+ * @property string $status
+ * @property bool $is_verified
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Event> $events
+ * @property-read int|null $events_count
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
@@ -133,11 +188,14 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereIsVerified($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  */
 	class User extends \Eloquent {}
