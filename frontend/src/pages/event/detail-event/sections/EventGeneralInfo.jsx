@@ -133,7 +133,7 @@ const EventGeneralInfo = () => {
         <EventLayout
             heading="Informasi Utama"
             subheading="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
-            nextPath="lokasi-n-waktu"
+            nextPath="tempat"
             onSave={handleUpdate}
         >
             <Form>
@@ -150,10 +150,10 @@ const EventGeneralInfo = () => {
                 </Form.Group>
 
                 {/* Link Event */}
-                <Form.Group className="mb-4" controlId="formSlug">
+                {/* <Form.Group className="mb-4" controlId="formSlug">
                     <Form.Label>URL Kustom</Form.Label>
                     <InputGroup className="mb-4">
-                        <InputGroup.Text id="basic-addon1">
+                        <InputGroup.Text id=" fs-6" style={{fontSize : "14px"}}>
                             kampusx.com/events/
                         </InputGroup.Text>
                         <Form.Control
@@ -162,7 +162,7 @@ const EventGeneralInfo = () => {
                             placeholder="nama-event-kamu"
                         />
                     </InputGroup>
-                </Form.Group>
+                </Form.Group> */}
 
                 {/* Description */}
                 <Form.Group className="mb-4" controlId="formDescription">

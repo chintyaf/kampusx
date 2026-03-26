@@ -10,20 +10,16 @@ return new class extends Migration {
         Schema::create('events', function (Blueprint $table) {
             $table->id(); // BIGINT PK
 
-            // $table->foreignId('organizer_id')->constrained('organizers')->cascadeOnDelete();
-            // $table->foreignId('university_id')->constrained('universities')->cascadeOnDelete();
-
             $table->foreignId('organizer_id')->constrained('users')->cascadeOnDelete();
-
+            // $table->foreignId('university_id')->constrained('universities')->cascadeOnDelete();
 
             $table->string('slug', 200)->unique()->nullable()->index();
             $table->string('title', 200)->nullable();
             $table->text('description')->nullable()->nullable();
 
-            $table->enum('location_type', ['offline', 'online', 'hybrid'])->nullable();
-
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
+            $table->dateTime('timezone')->nullable();
 
             $table->enum('status', ['draft', 'published'])->default('draft');
 
@@ -57,13 +53,13 @@ return new class extends Migration {
             $table->time('start_time');
             $table->time('end_time');
 
-            $table->string('location')->nullable();
-            $table->integer('quota')->nullable();
+            // $table->string('location')->nullable();
+            // $table->integer('quota')->nullable();
 
             $table->timestamps();
         });
 
-        
+
 
         Schema::create('speakers', function (Blueprint $table) {
             $table->id();

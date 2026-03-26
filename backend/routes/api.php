@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EventDashboardController;
 use App\Http\Controllers\Api\OrganizerEventController;
 use App\Http\Controllers\Api\EventDas\EventDetailController;
+use App\Http\Controllers\Api\EventDas\EventSessionController;
 
 // PUBLIC ROUTES (GUEST)
 Route::post('/register', [AuthController::class, 'register']);
@@ -38,6 +39,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('event-dashboard/{eventId}/info-utama/set-location', [EventDetailController::class, 'getLocation']);
         Route::post('event-dashboard/{eventId}/info-utama/set-location', [EventDetailController::class, 'setLocation']);
+
+        Route::get('event-dashboard/{eventId}/info-utama/session', [EventSessionController::class, 'getSession']);
+        Route::post('event-dashboard/{eventId}/info-utama/session', [EventSessionController::class, 'setSession']);
         // Route::post('/events/create', [EventController::class, 'store']);
         // Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard']);
     });

@@ -14,8 +14,8 @@ class EventSession extends Model
         'date',
         'start_time',
         'end_time',
-        'location',
-        'quota'
+        // 'location',
+        // 'quota'
     ];
 
     public function event(): BelongsTo

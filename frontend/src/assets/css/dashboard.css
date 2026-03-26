@@ -122,7 +122,7 @@ main {
     padding: 0px;
     border-bottom: 1px var(--color-border) solid;
 
-    height: 60px;
+    min-height: 65px;
 }
 
 /* Component */

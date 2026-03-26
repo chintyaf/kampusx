@@ -13,10 +13,13 @@ const DashboardLayout = () => {
     const location = useLocation();
     const path = location.pathname;
 
+    const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(
+        location.pathname,
+    );
     let sidebarType = "organizer";
     if (path.includes("/admin")) {
         sidebarType = "admin";
-    } else if (path.includes("/organizer/event")) {
+    } else if (isInsideEvent) {
         sidebarType = "event_detail";
     }
 

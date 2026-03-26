@@ -58,7 +58,9 @@ const Navbar = () => {
 
     const isAdmin = location.pathname.startsWith("/admin");
     const isOrganizer = location.pathname.startsWith("/organizer");
-    const isInsideEvent = location.pathname.startsWith("/organizer/event");
+    const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(
+        location.pathname,
+    );
 
     const navLink = isAdmin ? "admin/dashboard" : "organizer/dashboard";
     return (
@@ -96,7 +98,12 @@ const Navbar = () => {
                             to="/organizer/buat-acara"
                             className="text-decoration-none"
                         >
-                            <button className="btn btn-primary" style={{fontSize:"14px"}}>Buat Event +</button>
+                            <button
+                                className="btn btn-primary"
+                                style={{ fontSize: "14px" }}
+                            >
+                                Buat Event +
+                            </button>
                         </NavLink>
                     )}
 

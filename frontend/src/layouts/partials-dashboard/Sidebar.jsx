@@ -66,17 +66,17 @@ const MENU_ITEMS = {
             id: "1",
             name: "Dashboard",
             icon: <LayoutDashboard size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug",
+            path: "/organizer/:eventId/event-dashboard/",
         },
         {
             id: "2",
             name: "Detil Event",
             icon: <Form size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/detail",
+            path: "/organizer/:eventId/event-dashboard/detail",
             submenu: [
                 { name: "Info Utama", path: "info" },
                 { name: "Tempat Acara", path: "tempat" },
-                { name: "Susunan Acara", path: "agenda" },
+                { name: "Susunan Acara", path: "sesi" },
                 { name: "Daftar Pembicara", path: "pembicara" },
                 { name: "Formulir Registrasi", path: "formulir" },
             ],
@@ -85,37 +85,37 @@ const MENU_ITEMS = {
             id: "7",
             name: "Staff Administrasi",
             icon: <UserRoundPen size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/kelola-staff",
+            path: "/organizer/:eventId/event-dashboard/kelola-staff",
         },
         {
             id: "3",
             name: "Daftar Peserta",
             icon: <UsersRound size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/daftar-peserta",
+            path: "/organizer/:eventId/event-dashboard/daftar-peserta",
         },
         {
             id: "8",
             name: "Sertifikat",
             icon: <UserRoundPen size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/upload-sertifikat",
+            path: "/organizer/:eventId/event-dashboard/upload-sertifikat",
         },
         {
             id: "4",
             name: "Distribusi Materi",
             icon: <FolderOpen size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/distribusi-materi",
+            path: "/organizer/:eventId/event-dashboard/distribusi-materi",
         },
         {
             id: "5",
             name: "Statistik",
             icon: <ChartColumn size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/statistik",
+            path: "/organizer/:eventId/event-dashboard/statistik",
         },
         {
             id: "6",
             name: "Promosi",
             icon: <Star size={16} className="me-2" />,
-            path: "/organizer/event-dashboard/:slug/promosi",
+            path: "/organizer/:eventId/event-dashboard/promosi",
         },
     ],
 };
@@ -210,16 +210,21 @@ const Sidebar = (props) => {
     const [openMenu, setOpenMenu] = useState("dashboard");
     const location = useLocation();
 
-    // 1. Tangkap slug dari URL saat ini (jika ada)
-    // Contoh: dari "/organizer/event-dashboard/tech-talk" akan menangkap "tech-talk"
-    const slugMatch = location.pathname.match(/\/event-dashboard\/([^/]+)/);
-    const currentSlug = slugMatch ? slugMatch[1] : "";
+    // 1. Tangkap eventId dari URL
+    // Pattern: /organizer/{eventId}/event-dashboard
+    const eventIdMatch = location.pathname.match(
+        /\/organizer\/([^/]+)\/event-dashboard/,
+    );
+    const currentEventId = eventIdMatch ? eventIdMatch[1] : "";
 
-    // 2. Ambil menu dasar, lalu "suntikkan" slug asli ke dalam path-nya
+    // 2. Ambil menu dasar, lalu ganti placeholder :eventId dengan ID asli
     const baseMenu = MENU_ITEMS[props.type] || [];
     const currentMenu = baseMenu.map((item) => ({
         ...item,
-        path: item.path ? item.path.replace(":slug", currentSlug) : item.path,
+        // Kita ganti :eventId (atau tetap dukung :slug jika belum diubah di config)
+        path: item.path
+            ? item.path.replace(/:eventId|:slug/g, currentEventId)
+            : item.path,
     }));
 
     const handleToggle = (id) => setOpenMenu(openMenu === id ? null : id);
@@ -230,7 +235,7 @@ const Sidebar = (props) => {
         currentMenu.forEach((item) => {
             if (item.submenu) {
                 const isActive = item.submenu.some((sub) => {
-                    // Gunakan format absolut untuk pengecekan
+                    // Gabungkan path parent dan child secara aman
                     const fullPath = `${item.path}/${sub.path}`.replace(
                         /\/+/g,
                         "/",
@@ -250,7 +255,7 @@ const Sidebar = (props) => {
             className="sidebar-container flex-shrink-0 p-3 bg-white border-end"
             style={{ width: "250px", height: "100%", overflowY: "auto" }}
         >
-            <ul className="list-unstyled ps-0 ">
+            <ul className="list-unstyled ps-0">
                 {currentMenu.map((item) => (
                     <li className="mb-3" key={item.id}>
                         <SidebarItem

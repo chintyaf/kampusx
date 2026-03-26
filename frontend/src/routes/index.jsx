@@ -18,7 +18,7 @@ import CreateEvent from "../pages/event/CreateEvent";
 import EventDashboardPage from "../pages/event/EventDashboardPage";
 import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralInfo";
 import EventScheduleLocation from "../pages/event/detail-event/sections/EventLocation";
-import EventAgenda from "../pages/event/detail-event/sections/EventAgenda";
+import EventSession from "../pages/event/detail-event/sections/EventSession";
 import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
 import EventRegistrationForm from "../pages/event/detail-event/sections/EventRegistrationForm";
 import EventStaffManagement from "../pages/event/EventStaffManagement";
@@ -85,12 +85,12 @@ const AppRoutes = () => {
                             <Route path="buat-acara" element={<CreateEvent />} />
 
                             {/* Event Routes untuk Detail Event */}
-                            <Route path="event-dashboard/:eventId">
+                            <Route path=":eventId/event-dashboard">
                                 <Route path="" element={<EventDashboardPage />} />
                                 <Route path="detail">
                                     <Route path="info" element={<EventGeneralInfo />} />
                                     <Route path="tempat" element={<EventScheduleLocation />} />
-                                    <Route path="agenda" element={<EventAgenda />} />
+                                    <Route path="sesi" element={<EventSession />} />
                                     <Route path="pembicara" element={<EventSpeakerList />} />
                                     <Route path="formulir" element={<EventRegistrationForm />} />
                                 </Route>

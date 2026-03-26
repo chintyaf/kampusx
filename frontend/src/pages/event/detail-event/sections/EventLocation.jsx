@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Form, InputGroup } from "react-bootstrap";
 import Select from "react-select";
@@ -7,9 +7,6 @@ import EventLayout from "../EventLayout";
 
 import Step1_TypeSelection from "./schedule/Step1_TypeSelection"; // Level 1
 import Step2_DetailLocation from "./schedule/Step2_DetailLocation"; // Level 2
-import SchedulePlaceholder from "./schedule/SchedulePlaceholder";
-import Step3_Schedule from "./schedule/Step3_Schedule";
-import AlertMessage from "../../../../components/AlertMessage";
 
 import api from "../../../../api/axios";
 import { notify } from "../../../../utils/notify";
@@ -40,7 +37,9 @@ const EventLocation = () => {
         offlineQuota: 0,
     });
 
+    const hasFetched = useRef(false); // Inisialisasi guard
     useEffect(() => {
+        if (hasFetched.current) return;
         const fetchLocationData = async () => {
             try {
                 const response = await api.get(
@@ -73,7 +72,7 @@ const EventLocation = () => {
                         onlineQuota: data.online_quota ?? 0,
                         offlineQuota: data.offline_quota ?? 0,
                     });
-                    console.log(data);
+                    hasFetched.current = true;
                 }
             } catch (error) {
                 console.error("Gagal mengambil data event:", error);
@@ -124,17 +123,11 @@ const EventLocation = () => {
                 },
             );
             console.log("Sukses update:", response.data);
-            notify(
-                "success",
-                "Berhasil!",
-                "Perubahan informasi utama telah disimpan.",
-            );
+            notify("success", "Berhasil!", "Perubahan informasi utama telah disimpan.");
         } catch (error) {
             console.error("Gagal update data");
             throw error;
         }
-
-        console.log("Data yang benar-benar dikirim ke DB:", payload);
     };
 
     return (
@@ -145,10 +138,7 @@ const EventLocation = () => {
                 nextPath="agenda"
                 onSave={handleSave}
             >
-                <Step1_TypeSelection
-                    selectedType={selectedType}
-                    onSelectType={setSelectedType}
-                />
+                <Step1_TypeSelection selectedType={selectedType} onSelectType={setSelectedType} />
 
                 {selectedType ? (
                     <>
@@ -160,7 +150,22 @@ const EventLocation = () => {
                         {/* <Step3_Schedule /> */}
                     </>
                 ) : (
-                    <SchedulePlaceholder />
+                    <div className="flex items-center justify-center min-h-[300px] w-full p-6">
+                        <div
+                            className="p-5 w-full max-w-4xl text-center"
+                            style={{ border: "1.5px #d2d7df dashed", backgroundColor: "#ffffff61" }}
+                        >
+                            {/* Ikon Bulat dengan Titik Tiga */}
+                            {/* <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center mb-6 text-gray-400">
+                    <MoreHorizontal size={20} />
+                </div> */}
+
+                            {/* Teks Utama */}
+                            <h2 className="fs-5 font-medium text-gray-600">
+                                Pilih tipe kehadiran di atas untuk melanjutkan
+                            </h2>
+                        </div>
+                    </div>
                 )}
             </EventLayout>
         </>

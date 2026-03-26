@@ -18,7 +18,8 @@ class Event extends Model
         'location_type',
         'start_date',
         'end_date',
-        'status'
+        'status',
+        'timezone'
     ];
 
     // Relasi ke User (Organizer)

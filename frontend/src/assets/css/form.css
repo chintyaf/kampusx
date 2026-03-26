@@ -17,8 +17,19 @@ form {
 }
 
 .form-label {
-    font-weight: 500;
-    color: var(--color-text);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.form-control,
+.form-select {
+    /* background-color: #f8fafc; */
+    font-weight: 400;
+    font-size: var(--font-sm);
+    color: var(--color-text) !important;
+    border-color: var(--color-border);
 }
 
 .form-control::placeholder,
@@ -62,4 +73,20 @@ form {
 
 .upload-box-label p {
     font-size: 14px;
+}
+
+/* Table */
+.form-table {
+    border-radius: 20px !important;
+}
+
+.form-table th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: var(--font-xs);
+    color: var(--color-text-muted);
+}
+
+.form-table td {
+    font-size: var(--font-sm);
 }

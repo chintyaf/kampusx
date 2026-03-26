@@ -6,6 +6,8 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 */
 /* @import "tailwindcss"; */
 
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
 :root {
     /* FONT */
     --font-xs: 12px; /* Caption / Label */
@@ -17,8 +19,9 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --color-primary: #00699e;
     --color-secondary: #64748b;
     --color-bg: #f8fafc;
-    --color-border: #e3e7ee;
+    --color-border: #dce0e7;
     --color-text: #0f172a;
+    --color-text-muted: #212529bf;
 
     --color-white: #fff;
 
@@ -36,10 +39,13 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --bahama-blue-950: #07304a;
 }
 
+* {
+    font-family: "Inter";
+}
+
 .border-c {
     border-color: var(--color-border);
 }
-
 
 .text-primary {
     color: var(--bahama-blue-600) !important;
