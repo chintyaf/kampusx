@@ -53,6 +53,7 @@ class EventSessionController extends Controller
             'startDate' => 'required|date',
             'endDate'   => 'nullable|date|after_or_equal:startDate',
             'sessions'   => 'nullable|array',
+            'sessions.*.id'          => 'required', // PENTING: Tambahkan validasi ID
             'sessions.*.title'       => 'required|string|max:255',
             'sessions.*.description' => 'nullable|string',
             'sessions.*.day'         => 'nullable|integer|min:1',
@@ -71,25 +72,52 @@ class EventSessionController extends Controller
                 ]);
 
                 // 2. Kelola Sessions
-                if (isset($validated['sessions'])) {
-                    // Hapus sesi lama (jika ingin replace all)
+                if (!isset($validated['sessions'])) {
+                    // Jika array sessions tidak dikirim (atau kosong), hapus semua sesi
                     $event->sessions()->delete();
-
+                } else {
                     $baseDate = Carbon::parse($validated['startDate']);
 
-                    foreach ($validated['sessions'] as $sessionData) {
-                        // Hitung tanggal berdasarkan 'day'
-                        // Day 1 = startDate + 0 days, Day 2 = startDate + 1 day
-                        $sessionDate = $baseDate->copy()->addDays($sessionData['day'] - 1);
+                    // Array untuk menyimpan ID sesi yang "selamat" (di-update atau baru dibuat)
+                    $activeSessionIds = [];
 
-                        $event->sessions()->create([
-                            'title'       => $sessionData['title'],
-                            'description' => $sessionData['description'] ?? null,
-                            'date'        => $sessionDate->format('Y-m-d'),
-                            'start_time'  => $sessionData['startTime'],
-                            'end_time'    => $sessionData['endTime'],
-                        ]);
+                    foreach ($validated['sessions'] as $sessionData) {
+                        $sessionDate = $baseDate->copy()->addDays($sessionData['day'] - 1)->format('Y-m-d');
+
+                        $sessionModel = null;
+
+                        // Cek apakah ID dari frontend adalah angka (Data Lama dari Database)
+                        if (is_numeric($sessionData['id'])) {
+                            $sessionModel = $event->sessions()->find($sessionData['id']);
+                        }
+
+                        if ($sessionModel) {
+                            // Sesi ditemukan, lakukan UPDATE
+                            $sessionModel->update([
+                                'title'       => $sessionData['title'],
+                                'description' => $sessionData['description'] ?? null,
+                                'date'        => $sessionDate,
+                                'start_time'  => $sessionData['startTime'],
+                                'end_time'    => $sessionData['endTime'],
+                            ]);
+                        } else {
+                            // Sesi tidak ditemukan ATAU ID berupa UUID dari Frontend, lakukan CREATE
+                            $sessionModel = $event->sessions()->create([
+                                'title'       => $sessionData['title'],
+                                'description' => $sessionData['description'] ?? null,
+                                'date'        => $sessionDate,
+                                'start_time'  => $sessionData['startTime'],
+                                'end_time'    => $sessionData['endTime'],
+                            ]);
+                        }
+
+                        // Kumpulkan ID asli dari database (baik yang baru dibuat maupun yang di-update)
+                        $activeSessionIds[] = $sessionModel->id;
                     }
+
+                    // 3. CLEAN UP (Delete)
+                    // Hapus sesi di DB yang tidak ada di dalam daftar $activeSessionIds
+                    $event->sessions()->whereNotIn('id', $activeSessionIds)->delete();
                 }
 
                 return response()->json([

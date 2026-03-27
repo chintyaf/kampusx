@@ -9,9 +9,16 @@ use App\Models\Event;
 class OrganizerEventController extends Controller
 {
     //
-    public function getOrgEvents(Request $request ){
-        $userId = $request->user()->id;
-        return Event::where('organizer_id', $userId)->get();
+    public function getOrgEvents(Request $request)
+    {
+        // 1. Get the raw events for this user
+        $events = Event::where('organizer_id', $request->user()->id)->get();
+
+        // 2. Send it back
+        return response()->json([
+            'status' => 'success',
+            'data' => $events
+        ]);
     }
 
 }

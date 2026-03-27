@@ -89,45 +89,19 @@ const OrgDashboardPage = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                // HAPUS COMMENT DI BAWAH JIKA MENGGUNAKAN API ASLI
-                // const response = await api.get("/organizer/events-list");
-                // setEvents(response.data);
+                const response = await api.get("/organizer/events-list");
+                const result = response.data;
 
-                // MOCK DATA: Agar sesuai dengan gambar untuk preview UI
-                setTimeout(() => {
-                    setEvents([
-                        {
-                            id: 1,
-                            title: "Tech Conference 2026",
-                            status: "active",
-                            date: "15-17 Mar 2026",
-                            location: "Jakarta Convention Center",
-                            attendees: "245/500",
-                        },
-                        {
-                            id: 2,
-                            title: "Workshop Digital Marketing",
-                            status: "active",
-                            date: "20 Mar 2026",
-                            location: "Online via Zoom",
-                            attendees: "89/150",
-                        },
-                        {
-                            id: 3,
-                            title: "Startup Networking Night",
-                            status: "upcoming",
-                            date: "25 Mar 2026",
-                            location: "Innovation Hub",
-                            attendees: "156/200",
-                        },
-                    ]);
+                if (result.status === "success" && Array.isArray(result.data)) {
+                    setEvents(result.data);
                     setIsLoading(false);
-                }, 10);
+                }
             } catch (error) {
                 console.error("Error fetching events:", error);
                 setIsLoading(false);
             }
         };
+
         fetchEvents();
     }, []);
 
@@ -171,19 +145,6 @@ const OrgDashboardPage = () => {
                                     Manage and organize your events
                                 </p>
                             </div>
-                            <NavLink
-                                to="/organizer/buat-acara"
-                                className="text-decoration-none"
-                            >
-                                <Button
-                                    variant="dark"
-                                    className="d-flex align-items-center px-4 rounded-3"
-                                    style={{ backgroundColor: "#0a0a0a" }}
-                                >
-                                    <Plus size={18} className="me-2" /> Create
-                                    Event
-                                </Button>
-                            </NavLink>
                         </div>
 
                         {/* Search Bar */}
@@ -270,20 +231,26 @@ const OrgDashboardPage = () => {
 
                                             {/* Action Buttons */}
                                             <div className="d-flex gap-3 mt-auto">
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    className="flex-grow-1 d-flex justify-content-center align-items-center rounded-3 border"
-                                                    style={{
-                                                        color: "#374151",
-                                                        borderColor: "#e5e7eb",
-                                                    }}
+                                                <NavLink
+                                                    to={`/organizer/${events.id}/event-dashboard`} // Route menuju form edit/dashboard event
+                                                    className="flex-grow-1 text-decoration-none"
                                                 >
-                                                    <Edit
-                                                        size={16}
-                                                        className="me-2"
-                                                    />{" "}
-                                                    Edit
-                                                </Button>
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        className="flex-grow-1 d-flex justify-content-center align-items-center rounded-3 border"
+                                                        style={{
+                                                            color: "#374151",
+                                                            borderColor:
+                                                                "#e5e7eb",
+                                                        }}
+                                                    >
+                                                        <Edit
+                                                            size={16}
+                                                            className="me-2"
+                                                        />{" "}
+                                                        Edit
+                                                    </Button>
+                                                </NavLink>
                                                 <Button
                                                     variant="outline-danger"
                                                     className="flex-grow-1 d-flex justify-content-center align-items-center rounded-3 border"
