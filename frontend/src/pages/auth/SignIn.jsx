@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
-import { Form, Button } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import { Facebook, Twitter, Github } from 'lucide-react'; // Anggap ini icon social login
+import React, { useState } from 'react';
+import { Form, Button, Alert } from 'react-bootstrap';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Facebook, Twitter, Github } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; 
 
 const SignIn = () => {
     const [email, setEmail] = useState('');
@@ -10,9 +11,14 @@ const SignIn = () => {
     const [errorMsg, setErrorMsg] = useState('');
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth(); 
+
+    const from = location.state?.from || '/';
+
     const handleLogin = async (e) => {
-        e.preventDefault(); // Cegah reload halaman
-        setErrorMsg(''); // Reset pesan error
+        e.preventDefault(); 
+        setErrorMsg(''); 
         try {
             const response = await axios.post('http://localhost:8000/api/login', {
                 email: email,
@@ -21,15 +27,12 @@ const SignIn = () => {
                 headers: { 'Accept': 'application/json' }
             }); 
 
-            // Simpan token dan info user di localStorage
-            localStorage.setItem('token', response.data.access_token);
-            localStorage.setItem('user', JSON.stringify(response.data.data));
+            login(response.data.access_token, response.data.data);
 
             alert("Login Berhasil!");
-            navigate('/'); // Pindahkan ke halaman yang diinginkan
+            navigate(from, { replace: true });
         } catch (error) {
             if (error.response && error.response.data.errors) {
-                // Error validasi (email/password salah)
                 setErrorMsg(error.response.data.errors.email[0]);
             } else if (error.response && error.response.data.message) {
                 setErrorMsg(error.response.data.message);
@@ -38,7 +41,6 @@ const SignIn = () => {
             }
         }
     };
-
 
     return (
         <div className="w-100" style={{ maxWidth: '400px' }}>
@@ -55,7 +57,6 @@ const SignIn = () => {
             {/* Tampilkan pesan error jika ada */}
             {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
 
-            {/* Tambahkan onSubmit di sini 👇 */}
             <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3" controlId="formEmail">
                     <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text)' }}>Email / Phone Number</Form.Label>
@@ -64,8 +65,8 @@ const SignIn = () => {
                         placeholder="johndoe@gmail.com" 
                         className="py-2 shadow-none" 
                         style={{ borderColor: 'var(--color-border)' }}
-                        value={email} // Hubungkan dengan state
-                        onChange={(e) => setEmail(e.target.value)} // Update state saat diketik
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
                         required
                     />
                 </Form.Group>
@@ -77,32 +78,11 @@ const SignIn = () => {
                         placeholder="******" 
                         className="py-2 shadow-none" 
                         style={{ borderColor: 'var(--color-border)' }}
-                        value={password} // Hubungkan dengan state
-                        onChange={(e) => setPassword(e.target.value)} // Update state saat diketik
+                        value={password} 
+                        onChange={(e) => setPassword(e.target.value)} 
                         required
                     />
                 </Form.Group>
-
-            {/* <Form>
-                <Form.Group className="mb-3" controlId="formEmail">
-                    <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text)' }}>Email / Phone Number</Form.Label>
-                    <Form.Control 
-                        type="email" 
-                        placeholder="johndoe@gmail.com" 
-                        className="py-2 shadow-none" 
-                        style={{ borderColor: 'var(--color-border)' }}
-                    />
-                </Form.Group>
-
-                <Form.Group className="mb-2" controlId="formPassword">
-                    <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text)' }}>Password</Form.Label>
-                    <Form.Control 
-                        type="password" 
-                        placeholder="******" 
-                        className="py-2 shadow-none" 
-                        style={{ borderColor: 'var(--color-border)' }}
-                    />
-                </Form.Group> */}
 
                 <div className="text-end mb-4">
                     <Link to="/forgot-password" className="text-decoration-none" style={{ fontSize: 'var(--font-xs)', color: 'var(--color-secondary)' }}>
@@ -120,14 +100,12 @@ const SignIn = () => {
                 </Button>
             </Form>
 
-            {/* Divider "metode lain" */}
             <div className="d-flex align-items-center my-4">
                 <hr className="flex-grow-1" style={{ borderColor: 'var(--color-border)' }} />
                 <span className="mx-3" style={{ fontSize: 'var(--font-xs)', color: 'var(--color-secondary)' }}>metode lain</span>
                 <hr className="flex-grow-1" style={{ borderColor: 'var(--color-border)' }} />
             </div>
 
-            {/* Social Login Icons */}
             <div className="d-flex justify-content-center gap-3 mb-4">
                 <Button variant="light" className="rounded-circle d-flex align-items-center justify-content-center p-2 border" style={{ width: '45px', height: '45px', borderColor: 'var(--color-border)' }}>
                     <Facebook size={20} style={{ color: 'var(--color-secondary)' }} />

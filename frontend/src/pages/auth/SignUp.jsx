@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; 
 
 const SignUp = () => {
     const [name, setName] = useState('');
@@ -10,11 +11,14 @@ const SignUp = () => {
     const [errorMsg, setErrorMsg] = useState('');
     
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth(); 
 
+    const from = location.state?.from || '/';
+    
     const handleRegister = async (e) => {
         e.preventDefault();
         setErrorMsg('');
-
         try {
             const response = await axios.post('http://localhost:8000/api/register', {
                 name: name,
@@ -26,12 +30,12 @@ const SignUp = () => {
             });
 
             // Simpan token otomatis setelah register (karena di controller register kita juga return token)
-            localStorage.setItem('token', response.data.access_token);
-            localStorage.setItem('user', JSON.stringify(response.data.data));
+            // localStorage.setItem('token', response.data.access_token);
+            // localStorage.setItem('user', JSON.stringify(response.data.data));
+            login(response.data.access_token, response.data.data);
 
             alert("Registrasi Berhasil!");
-            navigate('/'); // Pindahkan ke halaman yang diinginkan
-
+            navigate(from, { replace: true });
         } catch (error) {
             if (error.response && error.response.data.errors) {
                 // Menampilkan error validasi dari Laravel (misal: email sudah dipakai)

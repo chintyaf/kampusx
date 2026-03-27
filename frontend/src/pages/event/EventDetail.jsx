@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Form, Accordion, Spinner, Alert } from 'react-bootstrap';
 import { Calendar, MapPin, Clock, Share2, Heart, User, Info, Wifi, Users, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const EventDetail = () => {
-    // 1. Ambil ID dari URL params (contoh URL: /event/23, maka id = 23)
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+    const { user } = useAuth();
 
-    // 2. State Management
     const [eventDetails, setEventDetails] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedTicket, setSelectedTicket] = useState('day1');
 
-    // 3. Fetch Data berdasarkan ID saat komponen di-mount
     useEffect(() => {
         const fetchSingleEvent = async () => {
             setIsLoading(true);
             try {
-                // Asumsi endpoint API Laravel kamu: /api/events/{id}
-                const response = await axios.get(`http://localhost:8000/api/events/${id}`);
-                
-                // Menyesuaikan struktur response (bisa dari response.data.data atau response.data)
+                const response = await axios.get(`http://localhost:8000/api/events/${id}`);                
                 const data = response.data.data || response.data;
                 setEventDetails(data);
                 setIsLoading(false);
@@ -39,14 +36,18 @@ const EventDetail = () => {
         }
     }, [id]);
 
-    // 4. Handle Submit Pembayaran
     const handleLanjutPembayaran = (e) => {
         e.preventDefault();
-        // Redirect ke halaman checkout dengan membawa event ID
+        
+        if (!user) {
+            alert("Silakan Sign In terlebih dahulu untuk melanjutkan pembayaran.");
+            navigate('/signin', { state: { from: location.pathname } }); 
+            return;
+        }
+
         navigate(`/checkout/${id}`); 
     };
 
-    // --- RENDER STATE LOADING ---
     if (isLoading) {
         return (
             <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
@@ -56,7 +57,6 @@ const EventDetail = () => {
         );
     }
 
-    // --- RENDER STATE ERROR ---
     if (error || !eventDetails) {
         return (
             <Container className="py-5 text-center">
@@ -66,7 +66,6 @@ const EventDetail = () => {
         );
     }
 
-    // --- RENDER KONTEN UTAMA ---
     return (
         <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px' }}>
             
@@ -249,5 +248,6 @@ const EventDetail = () => {
         </div>
     );
 };
+
 
 export default EventDetail;

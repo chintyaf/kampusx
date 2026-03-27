@@ -5,6 +5,8 @@ use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\TicketController;
 
 // PUBLIC ROUTES (GUEST)
 Route::post('/register', [AuthController::class, 'register']);
@@ -45,6 +47,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::post('/admin/suspend-user/{id}', [AdminController::class, 'suspendUser']);
     });
 
+    Route::post('/checkout', [CheckoutController::class, 'store']);
+    Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
+    Route::get('/my-tickets', [TicketController::class, 'index']);
 });
 
 // Route::apiResource('events', EventController::class);

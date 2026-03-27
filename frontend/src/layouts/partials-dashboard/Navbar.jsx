@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../../context/AuthContext';
 
 import userImg from "../../assets/images/user-placeholder.avif";
 import Button from "../../components/Button";
@@ -13,14 +14,20 @@ import {
 } from "lucide-react";
 
 const Navbar = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/'); 
+        console.log("Logging out...");
+        
+    };
+
     const location = useLocation();
 
     const [isOpen, setIsOpen] = useState(false);
     const toggleDropdown = () => setIsOpen(!isOpen);
-
-    const handleLogout = () => {
-        console.log("Logging out...");
-    };
 
     const isAdmin = location.pathname.startsWith("/admin");
     const isOrganizer = location.pathname.startsWith("/organizer");
@@ -32,7 +39,7 @@ const Navbar = () => {
 
             <div
                 className="nav-content w-100 d-flex justify-content-between align-items-center gap-3"
-                style={{ padding: "16px 60px" }}
+                style={{ padding: "16px 60px"}}
             >
                 <div>
                     <NavLink

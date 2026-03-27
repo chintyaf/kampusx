@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useState } from "react";
 import RouteProgressBar from "../components/RouteProgressBar";
 
 import VisitorLayout from "../layouts/MainLayout";
@@ -11,6 +11,7 @@ import visitorRoutes from "./PublicRoutes";
 import ProtectedRoute from "./ProtectedRoute";
 import dashboardRoutes from "./DashboardRoutes";
 import Dashboard from "../pages/dashboard/Dashboard";
+import MemberDashboard from "../pages/member/MemberDashboard";
 import Test from "../pages/dashboard/Test";
 
 // CREATE EVENT PAGES
@@ -36,22 +37,52 @@ import SignUp from "../pages/auth/SignUp";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 
 import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
-
+import LandingPage from "../pages/public/LandingPage";
 import Checkout from "../pages/event/Checkout";
+import TicketDetail from "../pages/TicketDetail";
+import EventSpace from "../pages/member/EventSpace";
+import { useAuth } from "../context/AuthContext";
 
 const AppRoutes = () => {
+    // const [isAuthenticated, setIsAuthenticated] = useState(true);
+    const { isAuthenticated, loading } = useAuth();
+    if (loading) {
+    return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
+}
     return (
         <Suspense fallback={<RouteProgressBar />}>
             <Routes>
-                {/* Group Visitor */}
+                {/* 1. Jika BELUM login: Jadikan '/' sebagai Landing Page dengan VisitorLayout */}
+                {!isAuthenticated && (
+                    <Route element={<VisitorLayout />}>
+                        <Route path="/" element={<LandingPage />} />
+                    </Route>
+                )}
+
+                {/* 2. Jika SUDAH login: Jadikan '/' sebagai Member Dashboard dengan DashboardLayout */}
+                {isAuthenticated && (
+                    <Route element={<DashboardLayout />}>
+                        {/* Ganti <Dashboard /> di bawah dengan halaman khusus Member jika ada */}
+                        <Route path="/" element={<MemberDashboard />} />
+                    </Route>
+                )}
+
+                {/* ========================================== */}
+
+                {/* Group Visitor (Explore, Detail Event, dsb) */}
                 <Route element={<VisitorLayout />}>
-                    {visitorRoutes.map((route, index) => (
-                        <Route
-                            key={index}
-                            path={route.path}
-                            element={route.element}
-                        />
-                    ))}
+                    {visitorRoutes.map((route, index) => {
+                        // Abaikan route "/" dari daftar PublicRoutes agar tidak bentrok (double) dengan pengecekan di atas
+                        if (route.path === "/") return null; 
+                        
+                        return (
+                            <Route
+                                key={index}
+                                path={route.path}
+                                element={route.element}
+                            />
+                        );
+                    })}
                 </Route>
 
                 {/* AUTH */}
@@ -69,6 +100,8 @@ const AppRoutes = () => {
                     <Route path="/checkout/:id" element={<Checkout />} />
                     {/* Nanti bisa tambah rute profil peserta di sini: */}
                     {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
+                    <Route path="/ticket/:ticketCode" element={<TicketDetail />} />
+                    <Route path="/event-space/:id" element={<EventSpace />} />
                 </Route>
 
                 {/* Group Dashboard */}

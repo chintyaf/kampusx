@@ -262,7 +262,7 @@ const LandingPage = () => {
                 src={banner.image}
                 alt={banner.title}
                 className="d-block w-100 object-fit-cover"
-                style={{ height: "500px" }}
+                style={{ height: "300px" }}
               />
             </Carousel.Item>
           ))}
