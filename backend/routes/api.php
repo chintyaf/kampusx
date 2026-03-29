@@ -4,13 +4,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
+
+// Organizer Dashboard
 use App\Http\Controllers\Api\EventDashboardController;
 use App\Http\Controllers\Api\OrganizerEventController;
 use App\Http\Controllers\Api\EventDas\EventDetailController;
 use App\Http\Controllers\Api\EventDas\EventSessionController;
+use App\Http\Controllers\Api\EventDas\EventSpeakerController;
 
 // PUBLIC ROUTES (GUEST)
 Route::post('/register', [AuthController::class, 'register']);
+
+Route::get('/test', function () {
+    return response()->json("hallo", 200,);;
+});
+
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/events/explore', [EventController::class, 'explore']); // Contoh melihat event tanpa login
 
@@ -30,22 +38,44 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // 2. ROLE: ORGANIZER
     Route::middleware('role:organizer,admin')->group(function () {
+
+        // 1. General Events
         Route::post('/events', [EventController::class, 'store']);
-        Route::get('/organizer/events/{id}', [EventController::class, 'show']);
-        Route::get('/organizer/events-list', [OrganizerEventController::class, 'getOrgEvents']);
-
-        Route::get('event-dashboard/{eventId}/info-utama', [EventDashboardController::class, 'getGeneralInfo']);
-        Route::post('event-dashboard/{eventId}/info-utama/update', [EventDashboardController::class, 'updateGeneralInfo']);
-
-        Route::get('event-dashboard/{eventId}/info-utama/set-location', [EventDetailController::class, 'getLocation']);
-        Route::post('event-dashboard/{eventId}/info-utama/set-location', [EventDetailController::class, 'setLocation']);
-
-        Route::get('event-dashboard/{eventId}/info-utama/session', [EventSessionController::class, 'getSession']);
-        Route::post('event-dashboard/{eventId}/info-utama/session', [EventSessionController::class, 'setSession']);
         // Route::post('/events/create', [EventController::class, 'store']);
-        // Route::get('/organizer/dashboard', [OrganizerController::class, 'dashboard']);
-    });
 
+        // 2. Group: Organizer
+        Route::prefix('organizer')->group(function () {
+            Route::get('/events-list', [OrganizerEventController::class, 'getOrgEvents']);
+            Route::get('/events/{id}', [EventController::class, 'show']);
+            // Route::get('/dashboard', [OrganizerController::class, 'dashboard']);
+        });
+
+        // 3. Group: Event Dashboard
+        Route::prefix('event-dashboard/{eventId}')->group(function () {
+
+            // Sub-group: Info Utama
+            Route::prefix('info-utama')->group(function () {
+
+                // General Info
+                Route::get('/', [EventDashboardController::class, 'getGeneralInfo']);
+                Route::post('/update', [EventDashboardController::class, 'updateGeneralInfo']);
+
+                // Location
+                Route::get('/set-location', [EventDetailController::class, 'getLocation']);
+                Route::post('/set-location', [EventDetailController::class, 'setLocation']);
+
+                // Session
+                Route::get('/session', [EventSessionController::class, 'getSession']);
+                Route::post('/session', [EventSessionController::class, 'setSession']);
+
+                Route::get('/speaker', [EventSpeakerController::class, 'getSpeakers']);
+                Route::post('/speaker', [EventSpeakerController::class, 'setSpeakers']);
+
+            });
+
+        });
+
+    });
     // 3. ROLE: PANITIA (COMMITTEE)
     Route::middleware('role:committee,organizer')->group(function () {
         // Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);

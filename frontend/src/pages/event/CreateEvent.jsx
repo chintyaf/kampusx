@@ -108,7 +108,7 @@ const Create = () => {
                 </Form.Group>
 
                 {/* Link Event */}
-                <Form.Group className="mb-3" controlId="formBasicPassword">
+                {/* <Form.Group className="mb-3" controlId="formBasicPassword">
                     <Form.Label>Link Event</Form.Label>
                     <InputGroup className="mb-3">
                         <InputGroup.Text id="basic-addon1">
@@ -122,7 +122,7 @@ const Create = () => {
                             aria-describedby="basic-addon1"
                         />
                     </InputGroup>
-                </Form.Group>
+                </Form.Group> */}
 
                 {/* Deskripsi Event */}
                 <Form.Group className="mb-3" controlId="formBasicPassword">

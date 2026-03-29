@@ -105,6 +105,7 @@ const EventAgenda = () => {
             heading="Schedule Breakdown"
             subheading="Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
             onSave={handleSave}
+            nextPath={"pembicara"}
         >
             <Form>
                 <SessionDateForm

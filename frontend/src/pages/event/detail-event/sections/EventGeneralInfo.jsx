@@ -238,7 +238,7 @@ const EventGeneralInfo = () => {
 
                 {/* Media */}
                 <Form.Group className="mb-4">
-                    <Form.Label >Banner Event</Form.Label>
+                    <Form.Label>Banner Event</Form.Label>
 
                     <div className="upload-box-wrapper">
                         <input

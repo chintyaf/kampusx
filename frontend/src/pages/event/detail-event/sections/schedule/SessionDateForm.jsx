@@ -1,3 +1,4 @@
+import { useState } from "react"; // <-- Jangan lupa import useState
 import { Form, Badge, Row, Col } from "react-bootstrap";
 
 const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
@@ -9,11 +10,14 @@ const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
 
     const todayDate = new Date().toISOString().split("T")[0];
 
-    // Derived state: Automatically know if it's multiple days
-    const isMultipleDay =
-        formData.startDate &&
-        formData.endDate &&
-        formData.startDate !== formData.endDate;
+    // SOLUSI: Jadikan local state. Inisialisasi awal mengecek apakah datanya beda hari
+    const [isMultipleDay, setIsMultipleDay] = useState(() => {
+        return !!(
+            formData.startDate &&
+            formData.endDate &&
+            formData.startDate !== formData.endDate
+        );
+    });
 
     // Helper function to calculate days and update parent
     const calculateAndSetDays = (start, end) => {
@@ -29,19 +33,15 @@ const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
     // Custom handler for dates to handle the business logic before sending to parent
     const handleDateChange = (e) => {
         const { name, value } = e.target;
-
-        // 1. Send the actual change to the parent
         onChange(e);
 
-        // 2. Calculate days based on the new input
         if (name === "startDate") {
-            const newEndDate = isMultipleDay ? formData.endDate : value;
-            calculateAndSetDays(value, newEndDate);
-
-            // If it's a single day event, force endDate to match startDate
+            // If we are NOT in multiple day mode, keep endDate in sync
             if (!isMultipleDay) {
-                // We simulate an event object to reuse the parent's onChange
                 onChange({ target: { name: "endDate", value: value } });
+                calculateAndSetDays(value, value);
+            } else {
+                calculateAndSetDays(value, formData.endDate);
             }
         } else if (name === "endDate") {
             calculateAndSetDays(formData.startDate, value);
@@ -51,10 +51,22 @@ const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
     // Handler for the Multiple Days Switch
     const handleSwitchChange = (e) => {
         const checked = e.target.checked;
-        if (!checked) {
-            // Revert back to single day
+        setIsMultipleDay(checked); // <-- Update state UI secara langsung
+
+        if (checked) {
+            // Turning ON: Set endDate to tomorrow (or startDate + 1) to "unlock" the view
+            const nextDay = new Date(formData.startDate || new Date());
+            nextDay.setDate(nextDay.getDate() + 1);
+            const formattedNextDay = nextDay.toISOString().split("T")[0];
+
             onChange({
-                target: { name: "endDate", value: formData.startDate },
+                target: { name: "endDate", value: formattedNextDay },
+            });
+            onSetTotalDays(2);
+        } else {
+            // Turning OFF: Revert back to single day (atasi undefined kalau startDate kosong)
+            onChange({
+                target: { name: "endDate", value: formData.startDate || "" },
             });
             onSetTotalDays(1);
         }
@@ -138,15 +150,6 @@ const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
                             onChange={handleSwitchChange}
                             className="mb-0"
                         />
-                        {/* {totalDays > 1 && isMultipleDay && (
-                            <Badge
-                                bg="primary-subtle"
-                                className="text-primary border border-primary-subtle ms-2"
-                                style={{ fontSize: "0.7rem" }}
-                            >
-                                {totalDays} Hari
-                            </Badge>
-                        )} */}
                     </div>
                 </Col>
             </Row>

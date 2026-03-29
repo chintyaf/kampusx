@@ -26,6 +26,11 @@ class EventSession extends Model
     // Relasi Many-to-Many ke Speaker (lewat tabel event_session_speakers)
     public function speakers(): BelongsToMany
     {
-        return $this->belongsToMany(Speaker::class, 'event_session_speakers', 'session_id', 'speaker_id');
+        return $this->belongsToMany(
+            Speaker::class,
+            'event_session_speakers',
+            'session_id',
+            'speaker_id'
+        );
     }
 }

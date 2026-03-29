@@ -135,7 +135,7 @@ const EventLocation = () => {
             <EventLayout
                 heading="Konfigurasi Teknis & Jadwal Event"
                 subheading="Atur mode kehadiran, lokasi, dan detail sesi acara dalam satu tempat."
-                nextPath="agenda"
+                nextPath="sesi"
                 onSave={handleSave}
             >
                 <Step1_TypeSelection selectedType={selectedType} onSelectType={setSelectedType} />

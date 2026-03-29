@@ -19,7 +19,7 @@ import EventDashboardPage from "../pages/event/EventDashboardPage";
 import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralInfo";
 import EventScheduleLocation from "../pages/event/detail-event/sections/EventLocation";
 import EventSession from "../pages/event/detail-event/sections/EventSession";
-import EventSpeakerList from "../pages/event/detail-event/sections/EventSpeakerList";
+import EventSpeaker from "../pages/event/detail-event/sections/EventSpeaker";
 import EventRegistrationForm from "../pages/event/detail-event/sections/EventRegistrationForm";
 import EventStaffManagement from "../pages/event/EventStaffManagement";
 
@@ -91,7 +91,7 @@ const AppRoutes = () => {
                                     <Route path="info" element={<EventGeneralInfo />} />
                                     <Route path="tempat" element={<EventScheduleLocation />} />
                                     <Route path="sesi" element={<EventSession />} />
-                                    <Route path="pembicara" element={<EventSpeakerList />} />
+                                    <Route path="pembicara" element={<EventSpeaker />} />
                                     <Route path="formulir" element={<EventRegistrationForm />} />
                                 </Route>
                                 <Route path="kelola-staff" element={<EventStaffManagement />} />
