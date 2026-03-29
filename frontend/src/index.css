@@ -1,10 +1,12 @@
-/* 
+/*
 CSS Reset/Normalize: Menghilangkan margin bawaan browser.
 Font-family: Mengatur jenis tulisan untuk seluruh body.
 Background body: Warna latar belakang seluruh website.
-Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di banyak tempat. 
+Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di banyak tempat.
 */
 /* @import "tailwindcss"; */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 :root {
     /* FONT */
@@ -17,8 +19,9 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --color-primary: #00699e;
     --color-secondary: #64748b;
     --color-bg: #f8fafc;
-    --color-border: #e3e7ee;
+    --color-border: #dce0e7;
     --color-text: #0f172a;
+    --color-text-muted: #212529bf;
 
     --color-white: #fff;
 
@@ -36,6 +39,26 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --bahama-blue-950: #07304a;
 }
 
+* {
+    font-family: "Inter";
+}
+
+.border-c {
+    border-color: var(--color-border);
+}
+
+.text-primary {
+    color: var(--bahama-blue-600) !important;
+}
+
+.fs-xs {
+    font-size: var(--font-xs);
+}
+
+.fs-sm {
+    font-size: var(--font-sm);
+}
+
 p {
     margin: 0px;
 }
@@ -45,7 +68,7 @@ p {
     font-family: var(--font-md);
     /* transition: 0.2s; */
 }
-/* 
+/*
 .btn:hover {
     transform: scale(1.1);
     transition: 0.2s;
@@ -149,5 +172,4 @@ p {
 
 .toast {
     box-shadow: none !important;
-
 }

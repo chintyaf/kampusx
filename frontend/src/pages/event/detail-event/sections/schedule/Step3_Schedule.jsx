@@ -128,9 +128,6 @@ const Step3_Schedule = () => {
         <Form>
             {/* Header Bagian */}
             <div className="mb-4 d-flex align-items-start">
-                <div className="me-2 mt-1 text-success">
-                    <CheckCircle2 size={24} fill="currentColor" color="white" />
-                </div>
                 <div>
                     <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
                         Level 3 — Schedule Breakdown

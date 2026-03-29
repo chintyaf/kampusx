@@ -1,28 +1,8 @@
-import React, { useState } from "react";
-import EventLayout from "../../EventLayout";
-import {
-    Form,
-    InputGroup,
-    Row,
-    Col,
-    Card,
-} from "react-bootstrap";
-import { Video, MapPin, SquareCode, CheckCircle2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Form, Row, Col, Card } from "react-bootstrap";
+import { Video, MapPin, SquareCode } from "lucide-react";
 
-const SelectionCard = ({ type, isSelected, onClick }) => {};
-
-const Step1_TypeSelection = ({ onSelectType }) => {
-    const [selectedType, setSelectedType] = useState(null);
-
-    const handleChange = (type) => {
-        setSelectedType(type);
-        if (onSelectType) {
-            onSelectType(type);
-        }
-    };
-
-
-
+const TypeCard = ({ selectedType, onSelectType }) => {
     const attendanceTypes = [
         {
             id: "online",
@@ -56,139 +36,109 @@ const Step1_TypeSelection = ({ onSelectType }) => {
         },
     ];
 
-    const locationPlaceholder = {
-        online: "Contoh: Link Zoom, Google Meet, YouTube Live",
-        offline: "Contoh: Nama Gedung, Ruangan, atau Alamat Lengkap",
-        hybrid: "Contoh: Link Online & Alamat Lokasi Fisik",
+    return (
+        <Row className="g-3 mb-4">
+            {attendanceTypes.map((type) => (
+                <Col md={4} key={type.id}>
+                    <Card
+                        onClick={() => onSelectType(type.id)}
+                        style={{
+                            cursor: "pointer",
+                            border: `2px ${selectedType === type.id ? type.borderColor : "#dee2e6"} solid`,
+                            borderRadius: "12px",
+                            transition: "0.2s ease-in-out",
+                            backgroundColor: `${selectedType === type.id ? type.bgColor : "white"}`,
+                        }}
+                        className="h-100"
+                    >
+                        <Card.Body className="p-3">
+                            <div className="d-flex justify-content-between align-items-start mb-3">
+                                <div
+                                    className="p-2 rounded-3 d-flex align-items-center justify-content-center"
+                                    style={{
+                                        backgroundColor: type.bgIconColor,
+                                    }}
+                                >
+                                    {type.icon}
+                                </div>
+                                <Form.Check
+                                    type="radio"
+                                    name="attendanceType"
+                                    checked={selectedType === type.id}
+                                    onChange={() => onSelectType(type.id)} // Sinkronkan radio button
+                                    style={{ cursor: "pointer" }}
+                                />
+                            </div>
+
+                            <h6
+                                className="fw-bold mb-0"
+                                style={{ fontSize: "1rem" }}
+                            >
+                                {type.title}
+                            </h6>
+                            <p
+                                className="text-muted small mb-2"
+                                style={{ fontSize: "0.85rem" }}
+                            >
+                                {type.subtitle}
+                            </p>
+                            <p
+                                className="text-secondary mb-0"
+                                style={{
+                                    fontSize: "0.75rem",
+                                    lineHeight: "1.4",
+                                }}
+                            >
+                                {type.desc}
+                            </p>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            ))}
+        </Row>
+    );
+};
+
+const Step1_TypeSelection = ({ onSelectType, selectedType }) => {
+    const [localSelectedType, setLocalSelectedType] = useState(
+        selectedType || "",
+    );
+
+    const handleTypeSelection = (type) => {
+        setLocalSelectedType(type);
+        if (onSelectType) {
+            onSelectType(type);
+        }
     };
 
+    useEffect(() => {
+        if (selectedType) {
+            setLocalSelectedType(selectedType);
+            handleTypeSelection(selectedType);
+        }
+    }, [selectedType]);
+
     return (
-        <>
-            <Form>
-                {/* Header Bagian */}
-                <div className="mb-4 d-flex align-items-start">
-                    <div className="me-2 mt-1 text-success">
-                        <CheckCircle2
-                            size={24}
-                            fill="currentColor"
-                            color="white"
-                        />
-                    </div>
-                    <div>
-                        <h5
-                            className="fw-bold mb-1"
-                            style={{ fontSize: "1.1rem" }}
-                        >
-                            Level 1 — Tipe Kehadiran
-                        </h5>
-                        <p className="text-muted small mb-0">
-                            Pilih mode kehadiran. Ini menentukan field yang
-                            perlu diisi.
-                        </p>
-                    </div>
+        <Form>
+            {/* Header Bagian */}
+            <div className="mb-4 d-flex align-items-start">
+                <div>
+                    <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
+                        Tipe Kehadiran
+                    </h5>
+                    <p className="text-muted small mb-0">
+                        Pilih mode kehadiran. Ini menentukan field yang perlu
+                        diisi.
+                    </p>
                 </div>
+            </div>
 
-                {/* Pilihan Tipe Kehadiran */}
-                <Row className="g-3 mb-4">
-                    {attendanceTypes.map((type) => (
-                        <Col md={4} key={type.id}>
-                            <Card
-                                onClick={() => {
-                                    handleChange(type.id);
-                                }}
-                                style={{
-                                    cursor: "pointer",
-                                    border: `2px ${selectedType === type.id ? type.borderColor : "#dee2e6"} solid`,
-                                    borderRadius: "12px",
-                                    transition: "0.2s ease-in-out",
-                                    backgroundColor: `${selectedType === type.id ? type.bgColor : "white"}`,
-                                }}
-                                className="h-100"
-                            >
-                                <Card.Body className="p-3">
-                                    <div className="d-flex justify-content-between align-items-start mb-3">
-                                        <div
-                                            className="p-2 rounded-3 d-flex align-items-center justify-content-center"
-                                            style={{
-                                                backgroundColor:
-                                                    type.bgIconColor,
-                                            }}
-                                        >
-                                            {type.icon}
-                                        </div>
-                                        <Form.Check
-                                            type="radio"
-                                            name="attendanceType"
-                                            checked={selectedType === type.id}
-                                            onChange={() =>
-                                                handleChange(type.id)
-                                            }
-                                            style={{ cursor: "pointer" }}
-                                        />
-                                    </div>
-
-                                    <h6
-                                        className="fw-bold mb-0"
-                                        style={{ fontSize: "1rem" }}
-                                    >
-                                        {type.title}
-                                    </h6>
-                                    <p
-                                        className="text-muted small mb-2"
-                                        style={{ fontSize: "0.85rem" }}
-                                    >
-                                        {type.subtitle}
-                                    </p>
-                                    <p
-                                        className="text-secondary mb-0"
-                                        style={{
-                                            fontSize: "0.75rem",
-                                            lineHeight: "1.4",
-                                        }}
-                                    >
-                                        {type.desc}
-                                    </p>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-
-                <Row className="mb-3">
-                    <Form.Group as={Col} controlId="formGridEmail">
-                        <Form.Label>Zona Waktu</Form.Label>
-                        <Form.Select aria-label="Pilih Zona Waktu Indonesia">
-                            <option>Pilih Zona Waktu</option>
-                            <option value="WIB">
-                                WIB - Waktu Indonesia Barat (UTC+7)
-                            </option>
-                            <option value="WITA">
-                                WITA - Waktu Indonesia Tengah (UTC+8)
-                            </option>
-                            <option value="WIT">
-                                WIT - Waktu Indonesia Timur (UTC+9)
-                            </option>
-                        </Form.Select>
-                        <Form.Text className="text-muted">
-                            Penting jika peserta berasal dari berbagai zona
-                            waktu.
-                        </Form.Text>
-                    </Form.Group>
-
-                    <Form.Group as={Col} controlId="formGridPassword">
-                        <Form.Label>Informasi Lokasi Umum</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder={`${locationPlaceholder[selectedType] || "Masukkan informasi lokasi"}`}
-                        />
-                        <Form.Text className="text-muted">
-                            Ditampilkan di halaman event publik
-                        </Form.Text>
-                    </Form.Group>
-                </Row>
-
-            </Form>
-        </>
+            {/* Pilihan Tipe Kehadiran */}
+            <TypeCard
+                selectedType={localSelectedType}
+                onSelectType={handleTypeSelection}
+            />
+        </Form>
     );
 };
 

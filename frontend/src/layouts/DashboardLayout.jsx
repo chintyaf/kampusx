@@ -4,7 +4,6 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import Sidebar from "./partials-dashboard/Sidebar.jsx";
 import Navbar from "./partials-dashboard/Navbar.jsx";
 
-import AlertMessage from "../components/AlertMessage.jsx";
 import { Toaster } from "react-hot-toast";
 
 import "../assets/css/dashboard.css";
@@ -14,10 +13,13 @@ const DashboardLayout = () => {
     const location = useLocation();
     const path = location.pathname;
 
+    const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(
+        location.pathname,
+    );
     let sidebarType = "organizer";
     if (path.includes("/admin")) {
         sidebarType = "admin";
-    } else if (path.includes("/organizer/event")) {
+    } else if (isInsideEvent) {
         sidebarType = "event_detail";
     }
 

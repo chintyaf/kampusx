@@ -1,0 +1,8 @@
+/* custom.scss */
+
+// 1. Override the primary color variable
+$primary: #ff5733; // Replace with your custom hex code
+
+// 2. Import Bootstrap (adjust the path depending on your setup)
+@import 'bootstrap/dist/css/bootstrap.min.css';
+;

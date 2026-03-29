@@ -1,0 +1,14 @@
+{
+    "printWidth": 80,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "overrides": [
+        {
+            "files": ["frontend/src/routes/index.jsx"],
+            "options": {
+                "printWidth": 300
+            }
+        }
+    ]
+}

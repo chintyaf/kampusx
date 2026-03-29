@@ -30,4 +30,10 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_verified' => 'boolean',
     ];
+
+    public function events()
+{
+    return $this->hasMany(Event::class, 'organizer_id');
+}
+
 }

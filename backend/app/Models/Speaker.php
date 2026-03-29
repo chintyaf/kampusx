@@ -14,13 +14,32 @@ class Speaker extends Model
         'name',
         'role',
         'bio',
-        'linkedin',
+        'social_link',
         'expertise'
+    ];
+
+    protected $casts = [
+        'expertise' => 'array',
+        'social_links' => 'array',
     ];
 
     // Relasi Many-to-Many ke Sessions
     public function sessions(): BelongsToMany
     {
-        return $this->belongsToMany(EventSession::class, 'event_session_speakers', 'speaker_id', 'session_id');
+        return $this->belongsToMany(
+                EventSession::class,        // Model Target
+                'event_session_speakers',   // Nama tabel Pivot
+                'speaker_id',               // Foreign key di pivot untuk model ini
+                'session_id'                // Foreign key di pivot untuk target
+        );
+    }
+
+    /**
+     * Relasi One-to-Many ke session utama (opsional)
+     * Berdasarkan kolom 'event_session_id' yang ada langsung di tabel speakers
+     */
+    public function primarySession()
+    {
+        return $this->belongsTo(EventSession::class, 'event_session_id');
     }
 }

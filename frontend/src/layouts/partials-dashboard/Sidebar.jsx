@@ -19,31 +19,31 @@ const MENU_ITEMS = {
         {
             id: "1",
             name: "Admin Dashboard",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "admin/dashboard",
         },
         {
             id: "2",
             name: "Verifikasi Organizer",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/verifikasi-organizer",
         },
         {
             id: "3",
             name: "Kelola Pengguna",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/kelola-pengguna",
         },
         {
             id: "4",
             name: "Pantau Acara",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/pantau-acara",
         },
         {
             id: "5",
             name: "Kontrol Promosi",
-            icon: <UserCheck size={20} className="me-2" />,
+            icon: <UserCheck size={16} className="me-2" />,
             path: "admin/kontrol-promosi",
         },
     ],
@@ -51,13 +51,13 @@ const MENU_ITEMS = {
         {
             id: "1",
             name: "Dashboard",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "organizer/dashboard",
         },
         {
             id: "2",
             name: "Daftar Acara",
-            icon: <LayoutDashboard size={20} className="me-2" />,
+            icon: <LayoutDashboard size={16} className="me-2" />,
             path: "organizer/daftar-acara",
         },
     ],
@@ -65,56 +65,57 @@ const MENU_ITEMS = {
         {
             id: "1",
             name: "Dashboard",
-            icon: <LayoutDashboard size={20} className="me-2" />,
-            path: "organizer/event/dashboard",
+            icon: <LayoutDashboard size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/",
         },
         {
             id: "2",
             name: "Detil Event",
-            icon: <Form size={20} className="me-2" />,
-            path: "organizer/event/detil-event",
+            icon: <Form size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/detail",
             submenu: [
-                { name: "Info Utama", path: "info-utama" },
-                { name: "Waktu & Lokasi", path: "lokasi-n-waktu" },
-                { name: "Daftar Pembicara", path: "daftar-pembicara" },
+                { name: "Info Utama", path: "info" },
+                { name: "Tempat Acara", path: "tempat" },
+                { name: "Susunan Acara", path: "sesi" },
+                { name: "Daftar Pembicara", path: "pembicara" },
                 { name: "Formulir Registrasi", path: "formulir" },
             ],
         },
         {
             id: "7",
             name: "Staff Administrasi",
-            icon: <UserRoundPen size={20} className="me-2" />,
-            path: "organizer/event/detil-event/kelola-staff",
+            icon: <UserRoundPen size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/kelola-staff",
         },
         {
             id: "3",
             name: "Daftar Peserta",
-            icon: <UsersRound size={20} className="me-2" />,
-            path: "organizer/event/daftar-peserta",
+            icon: <UsersRound size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/daftar-peserta",
         },
         {
             id: "8",
             name: "Sertifikat",
-            icon: <UserRoundPen size={20} className="me-2" />,
-            path: "organizer/event/detil-event/kelola-staff",
+            icon: <UserRoundPen size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/upload-sertifikat",
         },
         {
             id: "4",
             name: "Distribusi Materi",
-            icon: <FolderOpen size={20} className="me-2" />,
-            path: "organizer/event/distribusi-materi",
+            icon: <FolderOpen size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/distribusi-materi",
         },
         {
             id: "5",
             name: "Statistik",
-            icon: <ChartColumn size={20} className="me-2" />,
-            path: "organizer/event/statistik",
+            icon: <ChartColumn size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/statistik",
         },
         {
             id: "6",
             name: "Promosi",
-            icon: <Star size={20} className="me-2" />,
-            path: "organizer/event/promosi",
+            icon: <Star size={16} className="me-2" />,
+            path: "/organizer/:eventId/event-dashboard/promosi",
         },
     ],
 };
@@ -124,19 +125,19 @@ const ACCOUNT_ITEMS = [
         id: "admin-account",
         name: "Admin",
         path: "admin/dashboard",
-        icon: <UserCheck size={20} className="me-2" />,
+        icon: <UserCheck size={16} className="me-2" />,
     },
     {
         id: "organizer-account",
         name: "Organizer",
         path: "organizer/dashboard",
-        icon: <UserCheck size={20} className="me-2" />,
+        icon: <UserCheck size={16} className="me-2" />,
     },
     {
         id: "event-account",
         name: "Event",
         path: "organizer/event/dashboard",
-        icon: <UserCheck size={20} className="me-2" />,
+        icon: <UserCheck size={16} className="me-2" />,
     },
 ];
 
@@ -156,7 +157,11 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
 
     if (!hasSubmenu) {
         return (
-            <NavLink to={item.path} className={navLinkClass}>
+            <NavLink
+                to={item.path} // Cukup ke item.path saja, tidak perlu ${sub.path}
+                className={navLinkClass}
+                end
+            >
                 {item.icon} <span className="menu-text">{item.name}</span>
             </NavLink>
         );
@@ -203,19 +208,39 @@ const SidebarItem = ({ item, isOpen, toggle }) => {
 // --- Main Sidebar Component ---
 const Sidebar = (props) => {
     const [openMenu, setOpenMenu] = useState("dashboard");
-    const currentMenu = MENU_ITEMS[props.type] || [];
+    const location = useLocation();
+
+    // 1. Tangkap eventId dari URL
+    // Pattern: /organizer/{eventId}/event-dashboard
+    const eventIdMatch = location.pathname.match(
+        /\/organizer\/([^/]+)\/event-dashboard/,
+    );
+    const currentEventId = eventIdMatch ? eventIdMatch[1] : "";
+
+    // 2. Ambil menu dasar, lalu ganti placeholder :eventId dengan ID asli
+    const baseMenu = MENU_ITEMS[props.type] || [];
+    const currentMenu = baseMenu.map((item) => ({
+        ...item,
+        // Kita ganti :eventId (atau tetap dukung :slug jika belum diubah di config)
+        path: item.path
+            ? item.path.replace(/:eventId|:slug/g, currentEventId)
+            : item.path,
+    }));
 
     const handleToggle = (id) => setOpenMenu(openMenu === id ? null : id);
 
-    const location = useLocation();
     useEffect(() => {
         const currentPath = location.pathname;
 
         currentMenu.forEach((item) => {
             if (item.submenu) {
                 const isActive = item.submenu.some((sub) => {
-                    const fullPath = `/${item.path}/${sub.path}`;
-                    return currentPath === fullPath;
+                    // Gabungkan path parent dan child secara aman
+                    const fullPath = `${item.path}/${sub.path}`.replace(
+                        /\/+/g,
+                        "/",
+                    );
+                    return currentPath.startsWith(fullPath);
                 });
 
                 if (isActive) {
@@ -228,9 +253,9 @@ const Sidebar = (props) => {
     return (
         <div
             className="sidebar-container flex-shrink-0 p-3 bg-white border-end"
-            style={{ width: 280, height: "100%", overflowY: "auto" }}
+            style={{ width: "250px", height: "100%", overflowY: "auto" }}
         >
-            <ul className="list-unstyled ps-0 ">
+            <ul className="list-unstyled ps-0">
                 {currentMenu.map((item) => (
                     <li className="mb-3" key={item.id}>
                         <SidebarItem
@@ -241,29 +266,6 @@ const Sidebar = (props) => {
                     </li>
                 ))}
             </ul>
-
-            <div className="d-flex flex-column gap-2">
-                <NavLink
-                    to="/admin/dashboard"
-                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
-                >
-                    Admin
-                </NavLink>
-
-                <NavLink
-                    to="/organizer/dashboard"
-                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
-                >
-                    Organizer
-                </NavLink>
-
-                <NavLink
-                    to="/organizer/event/dashboard"
-                    className="btn btn-outline-primary d-flex align-items-center link-dark text-decoration-none mt-auto"
-                >
-                    Event Organizer
-                </NavLink>
-            </div>
         </div>
     );
 };
