@@ -49,4 +49,11 @@ class Event extends Model
     {
         return $this->hasOne(EventLocation::class, 'event_id');
     }
+
+
+    public function types()
+    {
+        return $this->belongsToMany(EventType::class);
+    }
 }
+    
