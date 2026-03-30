@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Event extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = [
         'organizer_id',
         'slug',
@@ -25,38 +25,58 @@ class Event extends Model
         'timezone'
     ];
 
-    // Relasi ke User (Organizer)
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'is_featured' => 'boolean',
+    ];
+
+    // Penyelenggara individu (User)
     public function organizer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'organizer_id', 'id');
+        return $this->belongsTo(User::class, 'organizer_id');
     }
 
-    // Relasi ke Sessions
+    // Institusi penyelenggara utama
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
+    }
+
+    // Lokasi (1-to-1)
+    public function location(): HasOne
+    {
+        return $this->hasOne(EventLocation::class);
+    }
+
+    // Sesi/Agenda event
     public function sessions(): HasMany
     {
         return $this->hasMany(EventSession::class);
     }
 
-    // Relasi Many-to-Many ke Category (lewat tabel event_categories)
+    // Daftar pembicara yang terdaftar di event ini
+    public function speakers(): HasMany
+    {
+        return $this->hasMany(Speaker::class);
+    }
+
+    // Institusi partner (Collaborators)
+    public function collaborators(): BelongsToMany
+    {
+        return $this->belongsToMany(Institution::class, 'event_collaborators')
+                    ->withPivot('role');
+    }
+
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(
-                Category::class,
-                'event_categories', // nama tabel pivot
-                'event_id',         // foreign key di tabel pivot untuk Event
-                'tag_id'            // foreign key di tabel pivot untuk Category
-            );
+        return $this->belongsToMany(Category::class, 'event_categories');
     }
 
-    public function locationDetail(): HasOne
+    public function types(): BelongsToMany
     {
-        return $this->hasOne(EventLocation::class, 'event_id');
+        return $this->belongsToMany(EventType::class, 'event_types_event', 'event_id', 'event_types_id');
     }
 
 
-    public function types()
-    {
-        return $this->belongsToMany(EventType::class);
-    }
 }
-    

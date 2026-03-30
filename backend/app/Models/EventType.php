@@ -13,6 +13,7 @@ class EventType extends Model
     ];
 
     // many-to-many ke Event
+    public $timestamps = false;
     public function events()
     {
         return $this->belongsToMany(

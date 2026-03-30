@@ -10,18 +10,24 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            // $table->foreignId('university_id')->nullable()->constrained(); // Uncomment jika tabel universities sudah ada
+
+            // $table->foreignId('university_id')->nullable()->constrained('institutions')->nullOnDelete();
+
             $table->string('name', 100);
             $table->string('email', 150)->unique();
             $table->string('phone', 20)->nullable();
             $table->string('password');
             $table->enum('role', ['participant', 'organizer', 'admin', 'committee'])->default('participant');
             $table->enum('status', ['active', 'suspended', 'banned'])->default('active');
+
             $table->boolean('is_verified')->default(false);
             $table->rememberToken();
+
             $table->timestamps();
             $table->timestamp('email_verified_at')->nullable();
-        });
+            $table->softDeletes();
+
+            });
     }
 
     public function down(): void

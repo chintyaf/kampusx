@@ -33,4 +33,5 @@ class EventSession extends Model
             'speaker_id'
         );
     }
+
 }

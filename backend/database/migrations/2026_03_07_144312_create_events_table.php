@@ -8,10 +8,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('events', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->id();
 
             $table->foreignId('organizer_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignUlid('institution_id')->constrained('institutions')->cascadeOnDelete();
+            $table->foreignId('institution_id')->nullable()->constrained('institutions')->cascadeOnDelete();
 
             $table->string('title', 200);
             $table->string('slug', 200)->unique()->index();
@@ -26,22 +26,15 @@ return new class extends Migration {
             $table->softDeletes(); // Tambahan fitur restore
             $table->timestamps();
 
-            $table->boolean('is_in_person')->default(false);
-            $table->boolean('is_online')->default(false);
             $table->boolean('is_featured')->default(false);
-            $table->string('image')->nullable();
-            $table->string('date');
-            $table->string('price');
-            $table->string('location');
-            $table->string('org');
         });
 
         Schema::create('event_collaborators', function (Blueprint $table) {
             $table->id();
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
 
             // Institusi partner yang diajak kerja sama
-            $table->foreignUlid('institution_id')->constrained('institutions')->cascadeOnDelete();
+            $table->foreignId('institution_id')->constrained('institutions')->cascadeOnDelete();
 
             $table->enum('role', ['co_host', 'sponsor', 'media_partner']);
             $table->unique(['event_id', 'institution_id']);
@@ -55,14 +48,14 @@ return new class extends Migration {
 
         Schema::create('event_categories', function (Blueprint $table) {
             $table->id(); // BIGINT PK
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
             $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
             $table->unique(['event_id', 'category_id']);
         });
 
         Schema::create('event_sessions', function (Blueprint $table) {
-            $table->ulid('id')->primary();
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->id();
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
 
             $table->string('title');
             $table->text('description')->nullable();
@@ -83,7 +76,7 @@ return new class extends Migration {
 
             // Menghubungkan ke tabel utama events
             // Supaya organizer bisa mengakses speaker yang sudah ditambahkan di event tertentu
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
 
             $table->string('name');
             $table->string('role')->nullable();
@@ -95,7 +88,7 @@ return new class extends Migration {
         Schema::create('event_session_speakers', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignUlid('session_id')->constrained('event_sessions')->cascadeOnDelete();
+            $table->foreignId('session_id')->constrained('event_sessions')->cascadeOnDelete();
             $table->foreignId('speaker_id')->constrained('speakers')->cascadeOnDelete();
             $table->unique(['session_id', 'speaker_id']);
         });
@@ -103,7 +96,7 @@ return new class extends Migration {
         Schema::create('event_locations', function (Blueprint $table) {
             $table->id();
             // Menghubungkan ke tabel utama events
-            $table->foreignUlid('event_id')->unique()->constrained('events')->cascadeOnDelete();
+            $table->foreignId('event_id')->unique()->constrained('events')->cascadeOnDelete();
 
             // Pembeda tipe: online, offline, atau hybrid
             $table->enum('type', ['online', 'offline', 'hybrid']);

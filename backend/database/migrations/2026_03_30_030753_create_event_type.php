@@ -19,7 +19,7 @@ return new class extends Migration
 
         Schema::create('event_types_event', function (Blueprint $table) {
             $table->id(); // BIGINT PK
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
             $table->foreignId('event_types_id')->constrained('event_types')->cascadeOnDelete();
             $table->unique(['event_id', 'event_types_id']);
         });

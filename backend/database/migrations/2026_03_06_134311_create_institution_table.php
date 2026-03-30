@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('institutions', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->id();
+
 
             $table->string('name', 200);
             $table->string('slug', 200)->unique()->index();
@@ -29,7 +30,7 @@ return new class extends Migration
         Schema::create('institution_user', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignUlid('institution_id')->constrained('institutions')->cascadeOnDelete();
+            $table->foreignId('institution_id')->constrained('institutions')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete(); // Asumsi tabel users pakai BigInt bawaan
 
             // Role di dalam institusi:

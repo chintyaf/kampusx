@@ -31,7 +31,7 @@ class EventSeeder extends Seeder
             ['name' => 'Design'],
             ['name' => 'Entertainment'],
         ];
-        
+
         $categoryIds = [];
         foreach ($categories as $category) {
             $categoryIds[] = DB::table('categories')->insertGetId($category);

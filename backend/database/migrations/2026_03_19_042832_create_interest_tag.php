@@ -18,7 +18,7 @@ return new class extends Migration
 
         Schema::create('event_interest', function (Blueprint $table) {
             $table->id();
-            $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
+            $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
             $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
             $table->unique(['event_id', 'category_id']);
         });

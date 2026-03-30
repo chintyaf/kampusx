@@ -22,11 +22,16 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-    
-        Event::factory(50)->create();
-    
-        // $this->call([
-        //     EventSeeder::class,
-        // ]);
+
+        $this->call([
+            UserSeeder::class,
+            CategorySeeder::class,
+            EventTypeSeeder::class,
+            InstitutionSeeder::class,
+        ]);
+
+        // Event::factory(50)->create();
+
+
     }
 }
