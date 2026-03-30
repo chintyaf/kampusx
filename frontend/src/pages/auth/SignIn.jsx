@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { Form, Button, Alert } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
-import { Facebook, Twitter, Github } from "lucide-react"; // Anggap ini icon social login
-import axios from "axios";
+import React, { useState } from 'react';
+import { Form, Button, Alert } from 'react-bootstrap';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Facebook, Twitter, Github } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; 
 
 const SignIn = () => {
     const [email, setEmail] = useState("");
@@ -10,9 +11,14 @@ const SignIn = () => {
     const [errorMsg, setErrorMsg] = useState("");
 
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth(); 
+
+    const from = location.state?.from || '/';
+
     const handleLogin = async (e) => {
-        e.preventDefault(); // Cegah reload halaman
-        setErrorMsg(""); // Reset pesan error
+        e.preventDefault(); 
+        setErrorMsg(''); 
         try {
             const response = await axios.post(
                 "http://localhost:8000/api/login",
@@ -25,15 +31,12 @@ const SignIn = () => {
                 },
             );
 
-            // Simpan token dan info user di localStorage
-            localStorage.setItem("token", response.data.access_token);
-            localStorage.setItem("user", JSON.stringify(response.data.data));
+            login(response.data.access_token, response.data.data);
 
             alert("Login Berhasil!");
-            navigate("/"); // Pindahkan ke halaman yang diinginkan
+            navigate(from, { replace: true });
         } catch (error) {
             if (error.response && error.response.data.errors) {
-                // Error validasi (email/password salah)
                 setErrorMsg(error.response.data.errors.email[0]);
             } else if (error.response && error.response.data.message) {
                 setErrorMsg(error.response.data.message);
@@ -67,7 +70,6 @@ const SignIn = () => {
             {/* Tampilkan pesan error jika ada */}
             {errorMsg && <Alert variant="danger">{errorMsg}</Alert>}
 
-            {/* Tambahkan onSubmit di sini 👇 */}
             <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3" controlId="formEmail">
                     <Form.Label
@@ -155,7 +157,6 @@ const SignIn = () => {
                 </Button>
             </Form>
 
-            {/* Divider "metode lain" */}
             <div className="d-flex align-items-center my-4">
                 <hr
                     className="flex-grow-1"
@@ -176,7 +177,6 @@ const SignIn = () => {
                 />
             </div>
 
-            {/* Social Login Icons */}
             <div className="d-flex justify-content-center gap-3 mb-4">
                 <Button
                     variant="light"

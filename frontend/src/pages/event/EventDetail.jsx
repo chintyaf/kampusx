@@ -1,41 +1,95 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Form, Accordion } from 'react-bootstrap';
-import { Calendar, MapPin, Clock, Share2, Heart, User, Info } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Button, Badge, Form, Accordion, Spinner, Alert } from 'react-bootstrap';
+import { Calendar, MapPin, Clock, Share2, Heart, User, Info, Wifi, Users, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const EventDetail = () => {
-    // State untuk memilih jenis tiket
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { user } = useAuth();
+
+    const [eventDetails, setEventDetails] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [selectedTicket, setSelectedTicket] = useState('day1');
 
-    const navigate = useNavigate(); // 1. Panggil hook di atas
+    useEffect(() => {
+        const fetchSingleEvent = async () => {
+            setIsLoading(true);
+            try {
+                const response = await axios.get(`http://localhost:8000/api/events/${id}`);                
+                const data = response.data.data || response.data;
+                setEventDetails(data);
+                setIsLoading(false);
+            } catch (err) {
+                console.error("Gagal memuat detail event:", err);
+                setError("Data event tidak ditemukan atau terjadi kesalahan server.");
+                setIsLoading(false);
+            }
+        };
 
-    // 2. Buat fungsi untuk menangani klik/submit form
+        if (id) {
+            fetchSingleEvent();
+        }
+    }, [id]);
+
     const handleLanjutPembayaran = (e) => {
-        e.preventDefault(); // Mencegah halaman ter-refresh otomatis
+        e.preventDefault();
         
-        // Nanti di sini Anda bisa tambahkan validasi form jika ada
-        
-        // 3. Pindah ke halaman checkout
-        // navigate(`/checkout/${eventDetails.id}`); 
-        navigate(`/checkout/1`); // Contoh hardcoded ID, nanti ganti dengan dynamic ID dari eventDetails
+        if (!user) {
+            alert("Silakan Sign In terlebih dahulu untuk melanjutkan pembayaran.");
+            navigate('/signin', { state: { from: location.pathname } }); 
+            return;
+        }
+
+        navigate(`/checkout/${id}`); 
     };
+
+    if (isLoading) {
+        return (
+            <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+                <Spinner animation="border" style={{ color: 'var(--color-primary)' }} />
+                <p className="mt-3 text-muted">Memuat detail event...</p>
+            </div>
+        );
+    }
+
+    if (error || !eventDetails) {
+        return (
+            <Container className="py-5 text-center">
+                <Alert variant="danger" className="mb-4">{error}</Alert>
+                <Button variant="outline-primary" onClick={() => navigate(-1)}>Kembali ke Eksplor</Button>
+            </Container>
+        );
+    }
 
     return (
         <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '80px' }}>
             
             {/* --- HEADER BANNER --- */}
-            <div className="bg-white border-bottom pt-5 pb-4 mb-4 shadow-sm">
+            <div className="bg-white border-bottom pt-4 pb-4 mb-4 shadow-sm">
                 <Container>
+                    <Button variant="link" className="text-decoration-none p-0 d-flex align-items-center mb-3 text-muted" onClick={() => navigate(-1)}>
+                        <ArrowLeft size={16} className="me-2" /> Kembali
+                    </Button>
                     <div className="d-flex gap-2 mb-3">
-                        <Badge bg="light" text="dark" className="border px-3 py-2">Conference</Badge>
-                        <Badge bg="light" text="dark" className="border px-3 py-2">Technology</Badge>
+                        {/* Render tipe event (Online/Onsite) */}
+                        {eventDetails.is_in_person ? <Badge bg="light" text="dark" className="border px-3 py-2 d-flex align-items-center"><Users size={14} className="me-1"/> Onsite</Badge> : null}
+                        {eventDetails.is_online ? <Badge bg="light" text="primary" className="border border-primary px-3 py-2 d-flex align-items-center"><Wifi size={14} className="me-1"/> Online</Badge> : null}
+                        {/* Kategori Event (Jika ada) */}
+                        {eventDetails.category ? <Badge bg="light" text="dark" className="border px-3 py-2">{eventDetails.category}</Badge> : null}
                     </div>
+                    
                     <h1 className="fw-bold mb-3" style={{ color: 'var(--color-text)', fontSize: '2.5rem' }}>
-                        Global Tech & Innovation Summit 2026
+                        {eventDetails.title}
                     </h1>
-                    <p className="text-muted fs-5 mb-0">
-                        Bergabunglah dengan ribuan inovator, developer, dan pemimpin industri untuk membahas masa depan teknologi AI dan Web3.
+                    
+                    <p className="text-muted fs-5 mb-0" style={{ maxWidth: '800px' }}>
+                        {/* Menampilkan deskripsi singkat (jika ada field short_description), atau potong deskripsi panjang */}
+                        {eventDetails.short_description || "Bergabunglah dalam event luar biasa ini dan tingkatkan portofolio serta kemampuan profesional Anda bersama KampusX."}
                     </p>
                 </Container>
             </div>
@@ -43,14 +97,14 @@ const EventDetail = () => {
             <Container>
                 <Row className="g-4">
                     {/* ========================================== */}
-                    {/* KOLOM KIRI: KONTEN UTAMA (Sekitar 7-8 kolom) */}
+                    {/* KOLOM KIRI: KONTEN UTAMA */}
                     {/* ========================================== */}
                     <Col lg={8}>
                         {/* Gambar Utama Event */}
                         <div className="mb-4">
                             <img 
-                                src="https://placehold.co/600x300/e2e8f0/64748b?text=Banner+Event" 
-                                alt="Event Banner" 
+                                src={eventDetails.image_url || `https://placehold.co/1200x600/e2e8f0/64748b?text=${encodeURIComponent(eventDetails.title)}`} 
+                                alt={eventDetails.title} 
                                 className="w-100 rounded-4 object-fit-cover shadow-sm"
                                 style={{ height: '400px' }}
                             />
@@ -59,59 +113,30 @@ const EventDetail = () => {
                         {/* Deskripsi Event */}
                         <div className="bg-white p-4 rounded-4 shadow-sm border mb-4">
                             <h4 className="fw-bold mb-3" style={{ color: 'var(--color-text)' }}>Tentang Event Ini</h4>
-                            <p style={{ lineHeight: '1.8', color: 'var(--color-secondary)' }}>
-                                Global Tech Summit adalah acara tahunan terbesar yang mempertemukan para ahli teknologi. 
-                                Tahun ini, kami berfokus pada implementasi Artificial Intelligence dalam kehidupan sehari-hari 
-                                dan bagaimana bisnis dapat beradaptasi dengan cepat. Akan ada sesi networking, workshop praktis, 
-                                dan pameran teknologi terbaru.
-                            </p>
-                            <p style={{ lineHeight: '1.8', color: 'var(--color-secondary)' }}>
-                                Pastikan Anda membawa laptop untuk sesi workshop interaktif dan siapkan kartu nama Anda untuk networking!
-                            </p>
+                            
+                            {/* Jika dari Laravel Anda mengirim format HTML (misal dari CKEditor), gunakan dangerouslySetInnerHTML */}
+                            <div 
+                                style={{ lineHeight: '1.8', color: 'var(--color-secondary)' }}
+                                dangerouslySetInnerHTML={{ __html: eventDetails.description || '<p>Deskripsi tidak tersedia.</p>' }}
+                            />
                         </div>
 
-                        {/* Jadwal & Sesi (Multi-day support) */}
+                        {/* Jadwal & Sesi (Bisa disesuaikan jika data session dikirim dari backend) */}
                         <div className="bg-white p-4 rounded-4 shadow-sm border mb-4">
                             <h4 className="fw-bold mb-4" style={{ color: 'var(--color-text)' }}>Jadwal & Agenda</h4>
                             
                             <Accordion defaultActiveKey="0">
-                                {/* Hari 1 */}
                                 <Accordion.Item eventKey="0" className="mb-3 border rounded">
                                     <Accordion.Header>
-                                        <div className="fw-bold">Day 1: AI Revolution (26 March 2026)</div>
+                                        <div className="fw-bold">Hari 1: Sesi Utama</div>
                                     </Accordion.Header>
                                     <Accordion.Body>
                                         <ul className="list-unstyled m-0">
                                             <li className="d-flex mb-3">
                                                 <div className="fw-bold me-3" style={{ minWidth: '80px', color: 'var(--color-primary)' }}>09:00 AM</div>
                                                 <div>
-                                                    <div className="fw-semibold text-dark">Opening Keynote: The Future of AI</div>
-                                                    <div className="text-muted small">Oleh John Doe (CEO TechCorp)</div>
-                                                </div>
-                                            </li>
-                                            <li className="d-flex mb-3">
-                                                <div className="fw-bold me-3" style={{ minWidth: '80px', color: 'var(--color-primary)' }}>11:00 AM</div>
-                                                <div>
-                                                    <div className="fw-semibold text-dark">Workshop: Building LLM Apps</div>
-                                                    <div className="text-muted small">Ruang Cendrawasih</div>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </Accordion.Body>
-                                </Accordion.Item>
-
-                                {/* Hari 2 */}
-                                <Accordion.Item eventKey="1" className="border rounded">
-                                    <Accordion.Header>
-                                        <div className="fw-bold">Day 2: Web3 & Security (27 March 2026)</div>
-                                    </Accordion.Header>
-                                    <Accordion.Body>
-                                        <ul className="list-unstyled m-0">
-                                            <li className="d-flex mb-3">
-                                                <div className="fw-bold me-3" style={{ minWidth: '80px', color: 'var(--color-primary)' }}>10:00 AM</div>
-                                                <div>
-                                                    <div className="fw-semibold text-dark">Panel Discussion: Cybersecurity</div>
-                                                    <div className="text-muted small">Main Stage</div>
+                                                    <div className="fw-semibold text-dark">Registrasi & Pembukaan</div>
+                                                    <div className="text-muted small">Panitia KampusX</div>
                                                 </div>
                                             </li>
                                         </ul>
@@ -122,7 +147,7 @@ const EventDetail = () => {
                     </Col>
 
                     {/* ========================================== */}
-                    {/* KOLOM KANAN: STICKY TICKET CARD (4 kolom)  */}
+                    {/* KOLOM KANAN: STICKY TICKET CARD */}
                     {/* ========================================== */}
                     <Col lg={4}>
                         <div className="sticky-top" style={{ top: '90px' }}>
@@ -134,51 +159,29 @@ const EventDetail = () => {
                                     <p className="text-muted small mb-4">Pilih jenis tiket atau sesi yang ingin Anda ikuti.</p>
 
                                     <Form onSubmit={handleLanjutPembayaran}>
-                                        {/* Pilihan Tiket */}
                                         <div 
-                                            className={`border rounded-3 p-3 mb-3 cursor-pointer ${selectedTicket === 'day1' ? 'border-primary bg-light' : ''}`}
+                                            className={`border rounded-3 p-3 mb-4 cursor-pointer ${selectedTicket === 'day1' ? 'border-primary bg-light' : ''}`}
                                             onClick={() => setSelectedTicket('day1')}
                                         >
                                             <Form.Check 
-                                                type="radio" id="ticket-day1" label={<span className="fw-bold">Day 1 Pass</span>}
+                                                type="radio" id="ticket-day1" label={<span className="fw-bold">General Admission</span>}
                                                 checked={selectedTicket === 'day1'} onChange={() => setSelectedTicket('day1')}
                                             />
                                             <div className="ms-4 mt-1 d-flex justify-content-between align-items-center">
-                                                <span className="small text-muted">Akses penuh tanggal 26 Mar</span>
-                                                <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>Rp 150.000</span>
+                                                <span className="small text-muted">Akses ke semua materi</span>
+                                                <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>
+                                                    {eventDetails.price === 0 || eventDetails.price === 'Free' ? 'Gratis' : `Rp ${eventDetails.price}`}
+                                                </span>
                                             </div>
                                         </div>
 
-                                        <div 
-                                            className={`border rounded-3 p-3 mb-3 cursor-pointer ${selectedTicket === 'day2' ? 'border-primary bg-light' : ''}`}
-                                            onClick={() => setSelectedTicket('day2')}
+                                        <Button 
+                                            type="submit" 
+                                            className="w-100 py-3 fw-bold rounded-3 border-0 mb-3" 
+                                            style={{ backgroundColor: 'var(--color-primary)' }}
+                                            disabled={eventDetails.quota <= 0} // Disable jika kuota habis
                                         >
-                                            <Form.Check 
-                                                type="radio" id="ticket-day2" label={<span className="fw-bold">Day 2 Pass</span>}
-                                                checked={selectedTicket === 'day2'} onChange={() => setSelectedTicket('day2')}
-                                            />
-                                            <div className="ms-4 mt-1 d-flex justify-content-between align-items-center">
-                                                <span className="small text-muted">Akses penuh tanggal 27 Mar</span>
-                                                <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>Rp 150.000</span>
-                                            </div>
-                                        </div>
-
-                                        <div 
-                                            className={`border rounded-3 p-3 mb-4 cursor-pointer ${selectedTicket === 'full' ? 'border-primary bg-light' : ''}`}
-                                            onClick={() => setSelectedTicket('full')}
-                                        >
-                                            <Form.Check 
-                                                type="radio" id="ticket-full" label={<span className="fw-bold">Full 2-Days Pass</span>}
-                                                checked={selectedTicket === 'full'} onChange={() => setSelectedTicket('full')}
-                                            />
-                                            <div className="ms-4 mt-1 d-flex justify-content-between align-items-center">
-                                                <span className="small text-success">Hemat 20%</span>
-                                                <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>Rp 240.000</span>
-                                            </div>
-                                        </div>
-
-                                        <Button type="submit" className="w-100 py-3 fw-bold rounded-3 border-0 mb-3" style={{ backgroundColor: 'var(--color-primary)' }}>
-                                            Lanjutkan ke Pembayaran
+                                            {eventDetails.quota <= 0 ? 'Kouta Habis' : 'Lanjutkan ke Pembayaran'}
                                         </Button>
                                     </Form>
 
@@ -203,8 +206,10 @@ const EventDetail = () => {
                                             <Calendar size={20} style={{ color: 'var(--color-primary)' }} />
                                         </div>
                                         <div>
-                                            <div className="fw-semibold text-dark" style={{ fontSize: 'var(--font-sm)' }}>26 - 27 March 2026</div>
-                                            <div className="text-muted" style={{ fontSize: 'var(--font-xs)' }}>09:00 AM - 17:00 PM WIB</div>
+                                            <div className="fw-semibold text-dark" style={{ fontSize: 'var(--font-sm)' }}>
+                                                {eventDetails.date || eventDetails.start_date}
+                                            </div>
+                                            <div className="text-muted" style={{ fontSize: 'var(--font-xs)' }}>Sesuai Jadwal</div>
                                         </div>
                                     </div>
 
@@ -213,14 +218,14 @@ const EventDetail = () => {
                                             <MapPin size={20} style={{ color: 'var(--color-primary)' }} />
                                         </div>
                                         <div>
-                                            <div className="fw-semibold text-dark" style={{ fontSize: 'var(--font-sm)' }}>Sabuga ITB</div>
-                                            <div className="text-muted" style={{ fontSize: 'var(--font-xs)' }}>Jl. Tamansari No.73, Lb. Siliwangi, Bandung</div>
+                                            <div className="fw-semibold text-dark" style={{ fontSize: 'var(--font-sm)' }}>
+                                                {eventDetails.location_name || 'Lokasi Event'}
+                                            </div>
+                                            <div className="text-muted" style={{ fontSize: 'var(--font-xs)' }}>
+                                                {eventDetails.location || eventDetails.address}
+                                            </div>
                                         </div>
                                     </div>
-                                    
-                                    <a href="#" className="text-decoration-none fw-medium" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-primary)' }}>
-                                        Lihat di Google Maps
-                                    </a>
                                 </Card.Body>
                             </Card>
 
@@ -231,9 +236,8 @@ const EventDetail = () => {
                                     <div className="bg-light rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style={{ width: '60px', height: '60px' }}>
                                         <User size={30} className="text-secondary" />
                                     </div>
-                                    <h6 className="fw-bold mb-1">Tech Indo Nusantara</h6>
-                                    <p className="text-muted small mb-3">12 Event telah diselenggarakan</p>
-                                    <Button variant="outline-dark" size="sm" className="w-100 rounded-pill">Follow Organizer</Button>
+                                    <h6 className="fw-bold mb-1">{eventDetails.organizer_name || eventDetails.org || 'Panitia KampusX'}</h6>
+                                    <Button variant="outline-dark" size="sm" className="w-100 rounded-pill mt-3">Follow Organizer</Button>
                                 </Card.Body>
                             </Card>
 
@@ -244,5 +248,6 @@ const EventDetail = () => {
         </div>
     );
 };
+
 
 export default EventDetail;

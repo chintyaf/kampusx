@@ -1,12 +1,36 @@
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
+import { useAuth } from '../../context/AuthContext';
 
 import userImg from "../../assets/images/user-placeholder.avif";
 import Button from "../../components/Button";
 import EventStatusDropdown from "../../components/event/EventStatusDropdown";
 import NotificationDropdown from "../../components/NotificationDropdown";
 import LogoKampusX from "../../assets/images/logo/Logo_KampusX.svg";
-import { LogOut } from "lucide-react";
+
+import {
+    Bell,
+    BellDotIcon,
+    SquarePen,
+    ChevronDown,
+    LogOut,
+} from "lucide-react";
+
+// const Navbar = () => {
+//     const { user, logout } = useAuth();
+//     const navigate = useNavigate();
+
+//     const handleLogout = async () => {
+//         await logout();
+//         navigate('/'); 
+//         console.log("Logging out...");
+        
+//     };
+
+//     const location = useLocation();
+
+//     const [isOpen, setIsOpen] = useState(false);
+//     const toggleDropdown = () => setIsOpen(!isOpen);
 
 const ProfileDropdown = () => {
     const handleLogout = () => {

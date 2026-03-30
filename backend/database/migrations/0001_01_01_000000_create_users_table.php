@@ -20,6 +20,7 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->rememberToken();
             $table->timestamps();
+            $table->timestamp('email_verified_at')->nullable();
         });
     }
 

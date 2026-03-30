@@ -25,6 +25,15 @@ return new class extends Migration {
             $table->enum('status', ['draft', 'published', 'cancelled'])->default('draft');
             $table->softDeletes(); // Tambahan fitur restore
             $table->timestamps();
+
+            $table->boolean('is_in_person')->default(false);
+            $table->boolean('is_online')->default(false);
+            $table->boolean('is_featured')->default(false);
+            $table->string('image')->nullable();
+            $table->string('date');
+            $table->string('price');
+            $table->string('location');
+            $table->string('org');
         });
 
         Schema::create('event_collaborators', function (Blueprint $table) {

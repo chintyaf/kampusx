@@ -38,10 +38,11 @@ const DashboardLayout = () => {
                     overflow: "hidden",
                 }}
             >
-                {!path.includes("buat-acara") &&
-                    !path.includes("organizer/dashboard") && (
-                        <Sidebar type={sidebarType} />
-                    )}
+                {path !== "/" && 
+                 !path.includes("buat-acara") &&
+                 !path.includes("organizer/dashboard") && (
+                    <Sidebar type={sidebarType} />
+                )}
 
                 <main
                     style={{
