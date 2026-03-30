@@ -47,7 +47,7 @@ const SignIn = () => {
     };
 
     return (
-        <div className="w-100" style={{ maxWidth: "400px" }}>
+        <div className="w-100 mt-5 pt-5" style={{ maxWidth: "400px" }}>
             <div className="text-center mb-4">
                 <h3 className="fw-bold" style={{ color: "var(--color-text)" }}>
                     Enter your info to sign in
