@@ -7,7 +7,6 @@ import Button from "../../components/Button";
 import EventStatusDropdown from "../../components/event/EventStatusDropdown";
 import NotificationDropdown from "../../components/NotificationDropdown";
 import LogoKampusX from "../../assets/images/logo/Logo_KampusX.svg";
-import { LogOut } from "lucide-react";
 
 import {
     Bell,
