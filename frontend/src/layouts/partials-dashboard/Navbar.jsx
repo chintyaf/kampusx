@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from "../../context/AuthContext";
 
 import userImg from "../../assets/images/user-placeholder.avif";
 import Button from "../../components/Button";
@@ -22,9 +22,9 @@ import {
 
 //     const handleLogout = async () => {
 //         await logout();
-//         navigate('/'); 
+//         navigate('/');
 //         console.log("Logging out...");
-        
+
 //     };
 
 //     const location = useLocation();
@@ -33,10 +33,15 @@ import {
 //     const toggleDropdown = () => setIsOpen(!isOpen);
 
 const ProfileDropdown = () => {
-    const handleLogout = () => {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        navigate("/");
         console.log("Logging out...");
     };
-
+ 
     return (
         <>
             <div className="dropdown">
@@ -62,6 +67,24 @@ const ProfileDropdown = () => {
                     className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
                     style={{ minWidth: "150px" }}
                 >
+                    <li>
+                        <NavLink
+                            to="/organizer/dashboard"
+                            className="dropdown-item d-flex align-items-center gap-2 py-2"
+                        >
+                            <LogOut size={16} />
+                            <span>Masuk Organizer</span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink
+                            to="/admin/dashboard"
+                            className="dropdown-item d-flex align-items-center gap-2 py-2"
+                        >
+                            <LogOut size={16} />
+                            <span>Masuk Admin</span>
+                        </NavLink>
+                    </li>
                     <li>
                         <button
                             className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
