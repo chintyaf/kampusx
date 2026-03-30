@@ -11,16 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('interest', function (Blueprint $table) {
-            $table->id();
+
+        Schema::create('event_types', function (Blueprint $table) {
+            $table->id(); // BIGINT PK
             $table->string('name', 100);
         });
 
-        Schema::create('event_interest', function (Blueprint $table) {
-            $table->id();
+        Schema::create('event_types_event', function (Blueprint $table) {
+            $table->id(); // BIGINT PK
             $table->foreignUlid('event_id')->constrained('events')->cascadeOnDelete();
-            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
-            $table->unique(['event_id', 'category_id']);
+            $table->foreignId('event_types_id')->constrained('event_types')->cascadeOnDelete();
+            $table->unique(['event_id', 'event_types_id']);
         });
     }
 
@@ -29,7 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('interest');
-        Schema::dropIfExists('event_interest');
+        Schema::dropIfExists('event_type');
     }
 };
