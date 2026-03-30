@@ -41,10 +41,12 @@ class EventSeeder extends Seeder
         $events = [
             [
                 'organizer_id' => $organizerId,
+                // 'institution_id' => 1, // Buka komen ini & isi ID-nya jika institution_id wajib diisi
                 'slug' => Str::slug('Tech Startup Conference 2026'),
                 'title' => 'Tech Startup Conference 2026',
                 'description' => 'Konferensi tahunan untuk para penggiat startup dan teknologi. Dapatkan insight langsung dari para praktisi industri ternama.',
-                'location_type' => 'offline',
+                // HAPUS ATAU KOMENTARI BARIS DI BAWAH INI
+                // 'location_type' => 'offline', 
                 'start_date' => Carbon::now()->addDays(10)->setTime(9, 0),
                 'end_date' => Carbon::now()->addDays(10)->setTime(17, 0),
                 'status' => 'published',
@@ -53,10 +55,12 @@ class EventSeeder extends Seeder
             ],
             [
                 'organizer_id' => $organizerId,
+                // 'institution_id' => 1, // Buka komen ini & isi ID-nya jika institution_id wajib diisi
                 'slug' => Str::slug('Workshop UI UX Design Figma'),
                 'title' => 'Workshop UI/UX Design Figma',
                 'description' => 'Belajar membuat desain UI/UX interaktif menggunakan Figma dari nol sampai mahir dalam 1 hari full.',
-                'location_type' => 'online',
+                // HAPUS ATAU KOMENTARI BARIS DI BAWAH INI
+                // 'location_type' => 'online', 
                 'start_date' => Carbon::now()->addDays(3)->setTime(13, 0),
                 'end_date' => Carbon::now()->addDays(3)->setTime(16, 0),
                 'status' => 'published',
@@ -64,7 +68,6 @@ class EventSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ];
-
         $eventIds = [];
         foreach ($events as $event) {
             $eventIds[] = DB::table('events')->insertGetId($event);
@@ -72,8 +75,9 @@ class EventSeeder extends Seeder
 
         // 4. HUBUNGKAN EVENT DENGAN KATEGORINYA (TABEL PIVOT)
         DB::table('event_categories')->insert([
-            ['event_id' => $eventIds[0], 'tag_id' => $categoryIds[0]], // Tech Conference -> Technology
-            ['event_id' => $eventIds[1], 'tag_id' => $categoryIds[1]], // UI/UX -> Design
+            // Ganti 'tag_id' menjadi 'category_id'
+            ['event_id' => $eventIds[0], 'category_id' => $categoryIds[0]], // Tech Conference -> Technology
+            ['event_id' => $eventIds[1], 'category_id' => $categoryIds[1]], // UI/UX -> Design
         ]);
 
         // 5. BUAT SESSION UNTUK EVENT (Misal event pertama punya 2 sesi)
@@ -84,8 +88,8 @@ class EventSeeder extends Seeder
             'date' => Carbon::now()->addDays(10)->toDateString(),
             'start_time' => '09:00:00',
             'end_time' => '12:00:00',
-            'location' => 'Main Hall A',
-            'quota' => 200,
+            // 'location' => 'Main Hall A',
+            // 'quota' => 200,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -97,29 +101,31 @@ class EventSeeder extends Seeder
             'date' => Carbon::now()->addDays(10)->toDateString(),
             'start_time' => '13:00:00',
             'end_time' => '17:00:00',
-            'location' => 'Room B2',
-            'quota' => 100,
+            // 'location' => 'Room B2',
+            // 'quota' => 100,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         // 6. BUAT DUMMY SPEAKER
         $speakerId1 = DB::table('speakers')->insertGetId([
-            'event_session_id' => $sessionId1,
+            // 'event_session_id' => $sessionId1,
+            'event_id' => $eventIds[0],
             'name' => 'Budi Santoso',
-            'role' => 'CEO TechIndo',
-            'bio' => 'Penggiat AI dan founder startup unicorn.',
-            'linkedin' => 'https://linkedin.com/in/budisantoso',
-            'expertise' => 'Artificial Intelligence',
+            // 'role' => 'CEO TechIndo',
+            // 'bio' => 'Penggiat AI dan founder startup unicorn.',
+            // 'linkedin' => 'https://linkedin.com/in/budisantoso',
+            // 'expertise' => 'Artificial Intelligence',
         ]);
 
         $speakerId2 = DB::table('speakers')->insertGetId([
-            'event_session_id' => $sessionId2,
+            // 'event_session_id' => $sessionId2,
+            'event_id' => $eventIds[0],
             'name' => 'Siti Aminah',
-            'role' => 'Venture Capitalist',
-            'bio' => 'Investor aktif di berbagai startup tahap awal.',
-            'linkedin' => 'https://linkedin.com/in/sitiaminah',
-            'expertise' => 'Investment & Funding',
+            // 'role' => 'Venture Capitalist',
+            // 'bio' => 'Investor aktif di berbagai startup tahap awal.',
+            // 'linkedin' => 'https://linkedin.com/in/sitiaminah',
+            // 'expertise' => 'Investment & Funding',
         ]);
 
         // 7. HUBUNGKAN SPEAKER DENGAN SESSIONNYA (TABEL PIVOT)

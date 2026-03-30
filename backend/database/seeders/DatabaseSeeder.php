@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             EventTypeSeeder::class,
             InstitutionSeeder::class,
+            EventSeeder::class,
         ]);
 
         // Event::factory(50)->create();

@@ -201,31 +201,42 @@ const LandingPage = () => {
         const eventData = response.data.data || response.data;
 
         // 2. Ganti response.data.map menjadi eventData.map
-        const formattedEvents = eventData.map((ev) => ({
-          id: ev.id,
-          title: ev.title,
-          org: ev.organizer ? ev.organizer.name : "Unknown Organizer",
-          image: `https://placehold.co/600x300/e2e8f0/64748b?text=Event+${ev.id}`,
+        const formattedEvents = eventData.map((ev) => {
+          // Tangkap data relasi lokasi yang dikirim Laravel
+          const loc = ev.location || {}; 
+          
+          // Cek tipe event (prioritaskan data dari relasi jika ada)
+          const eventType = loc.type || ev.location_type || "offline";
 
-          // 3. Pastikan ev.start_date adalah nama field yang benar dari API-mu.
-          // Kita tambahkan fallback biar kalau datanya kosong nggak error 1970 lagi.
-          date: ev.start_date
-            ? new Date(ev.start_date).toLocaleDateString("id-ID", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })
-            : "Tanggal Belum Ditentukan",
+          // Format teks lokasi agar dinamis (muncul nama kota atau nama platform)
+          let displayLocation = "Lokasi Belum Ditentukan";
+          if (eventType === "online") {
+             displayLocation = loc.platform ? `Online (${loc.platform})` : "Online Meeting";
+          } else {
+             displayLocation = loc.location || "Offline Venue";
+          }
 
-          price: "Cek Detail",
-          location:
-            ev.location_type === "online" ? "Online Meeting" : "Offline Venue",
-          isOnline:
-            ev.location_type === "online" || ev.location_type === "hybrid",
-          isInPerson:
-            ev.location_type === "offline" || ev.location_type === "hybrid",
-          isFeatured: ev.id % 2 === 0,
-        }));
+          return {
+            id: ev.id,
+            title: ev.title,
+            org: ev.organizer ? ev.organizer.name : "Unknown Organizer",
+            image: `https://placehold.co/600x300/e2e8f0/64748b?text=Event+${ev.id}`,
+            date: ev.start_date
+              ? new Date(ev.start_date).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : "Tanggal Belum Ditentukan",
+            price: "Cek Detail",
+            
+            // --- BAGIAN YANG DIUPDATE ---
+            location: displayLocation,
+            isOnline: eventType === "online" || eventType === "hybrid",
+            isInPerson: eventType === "offline" || eventType === "hybrid",
+            isFeatured: ev.id % 2 === 0,
+          };
+        });
 
         // Simpan semua data ke allEvents
         setAllEvents(formattedEvents);

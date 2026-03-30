@@ -7,24 +7,24 @@ use App\Http\Requests\StoreEventRequest;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
-// Controller untuk Organizer dalam membuat event
 class EventController extends Controller
 {
-
     public function index()
     {
-        return Event::all();
+        // 1. UPDATE DI SINI: Gunakan with() dan panggil relasi 'location' sesuai nama di Model Event.php
+        $events = Event::with(['organizer', 'location'])->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $events
+        ]);
     }
 
-    // php artisan make:request StoreEventRequest
-    // Initialize Event Creation
     public function store(StoreEventRequest $request)
     {
         if ($request->user()) {
-            // Judul, Link, Deskripsi, Kategori, Interest, Upload Banner
             $data = $request->validated();
-
-            $data['organizer_id'] = $request->user()->id; // sementara
+            $data['organizer_id'] = $request->user()->id;
 
             $event = Event::create($data);
             return response()->json(
@@ -35,16 +35,19 @@ class EventController extends Controller
                 201,
             );
         } else {
-            // User belum login (null)
             return response()->json(['message' => 'Silakan login dulu'], 401);
         }
-        // return response()->json('Hello');
     }
 
     public function show(Request $request, $id)
     {
-        $event = $request->user()->events()->findOrFail($id);
-        return response()->json($event);
+        // 2. UPDATE DI SINI: Ubah 'event_locations' menjadi 'location'
+        $event = Event::with(['organizer', 'location'])->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $event
+        ]);
     }
 
     public function update(Request $request, $id)
