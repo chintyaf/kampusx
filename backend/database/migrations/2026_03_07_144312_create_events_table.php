@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
 
             $table->foreignId('organizer_id')->nullable()->constrained('users')->nullOnDelete();
+            // Asosiasi or smth
             $table->foreignId('institution_id')->nullable()->constrained('institutions')->cascadeOnDelete();
 
             $table->string('title', 200);

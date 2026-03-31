@@ -46,8 +46,7 @@ const OrgDashboardPage = () => {
         };
 
         fetchEvents();
-        console.log(events);
-    }, [events]);
+    }, []);
 
     return (
         <div className="py-2 container">

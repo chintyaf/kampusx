@@ -41,7 +41,7 @@ const ProfileDropdown = () => {
         navigate("/");
         console.log("Logging out...");
     };
- 
+
     return (
         <>
             <div className="dropdown">

@@ -28,6 +28,7 @@ Route::apiResource('events', EventController::class);
 // PROTECTED ROUTES (Harus Login)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+    
     Route::get('/user/profile', function (Request $request) {
         return $request->user(); // Untuk mengambil data user login di SPA
     });
@@ -107,5 +108,5 @@ Route::get('/user', function (Request $request) {
 // Endpoint sederhana untuk mengambil semua event (beserta nama organizernya)
 Route::get('/events', function () {
     // Mengambil event beserta relasi organizer (user)
-    return Event::with('organizer')->get(); 
+    return Event::with('organizer')->get();
 });

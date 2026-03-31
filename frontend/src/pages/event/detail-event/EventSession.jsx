@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { Form, Card, Row, Col } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
-import ScheduleTable from "./schedule/ScheduleTable";
+import ScheduleTable from "./sections/event-session/ScheduleTable";
 import EventLayout from "../EventLayout";
-import SessionDateForm from "./schedule/SessionDateForm";
+import SessionDateForm from "./sections/event-session/SessionDateForm";
 
-import api from "../../../../api/axios";
-import { notify } from "../../../../utils/notify";
+import api from "../../../api/axios";
+import { notify } from "../../../utils/notify";
 
 const EventAgenda = () => {
     const { eventId } = useParams();

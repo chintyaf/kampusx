@@ -17,11 +17,11 @@ import Test from "../pages/dashboard/Test";
 // CREATE EVENT PAGES
 import CreateEvent from "../pages/event/CreateEvent";
 import EventDashboardPage from "../pages/event/EventDashboardPage";
-import EventGeneralInfo from "../pages/event/detail-event/sections/EventGeneralInfo";
-import EventScheduleLocation from "../pages/event/detail-event/sections/EventLocation";
-import EventSession from "../pages/event/detail-event/sections/EventSession";
-import EventSpeaker from "../pages/event/detail-event/sections/EventSpeaker";
-import EventRegistrationForm from "../pages/event/detail-event/sections/EventRegistrationForm";
+import EventGeneralInfo from "../pages/event/detail-event/EventGeneralInfo";
+import EventScheduleLocation from "../pages/event/detail-event/EventLocation";
+import EventSession from "../pages/event/detail-event/EventSession";
+import EventSpeaker from "../pages/event/detail-event/EventSpeaker";
+import EventRegistrationForm from "../pages/event/detail-event/EventRegistrationForm";
 import EventStaffManagement from "../pages/event/EventStaffManagement";
 
 import EventParticipantList from "../pages/event/EventParticipantListPage";
@@ -48,8 +48,8 @@ const AppRoutes = () => {
     // const [isAuthenticated, setIsAuthenticated] = useState(true);
     const { isAuthenticated, loading } = useAuth();
     if (loading) {
-    return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
-}
+        return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
+    }
     return (
         <Suspense fallback={<RouteProgressBar />}>
             <Routes>
@@ -74,15 +74,9 @@ const AppRoutes = () => {
                 <Route element={<VisitorLayout />}>
                     {visitorRoutes.map((route, index) => {
                         // Abaikan route "/" dari daftar PublicRoutes agar tidak bentrok (double) dengan pengecekan di atas
-                        if (route.path === "/") return null; 
-                        
-                        return (
-                            <Route
-                                key={index}
-                                path={route.path}
-                                element={route.element}
-                            />
-                        );
+                        if (route.path === "/") return null;
+
+                        return <Route key={index} path={route.path} element={route.element} />;
                     })}
                     {/* // {visitorRoutes.map((route, index) => (
                     //     <Route key={index} path={route.path} element={route.element} />

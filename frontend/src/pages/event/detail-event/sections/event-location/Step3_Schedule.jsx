@@ -19,7 +19,7 @@ import {
     Link as LinkIcon,
 } from "lucide-react";
 
-import ScheduleTable from "./ScheduleTable";
+import ScheduleTable from "../event-session/ScheduleTable";
 
 const FooterSummary = () => {
     return (

@@ -4,11 +4,11 @@ import { Collapse, Button } from "react-bootstrap";
 import { Users } from "lucide-react";
 import { useParams } from "react-router-dom";
 
-import SpeakerForm from "./schedule/SpeakerForm";
-import SpeakerCard from "./schedule/SpeakerCard";
+import SpeakerForm from "./sections/event-speaker/SpeakerForm";
+import SpeakerCard from "./sections/event-speaker/SpeakerCard";
 
-import api from "../../../../api/axios";
-import { notify } from "../../../../utils/notify";
+import api from "../../../api/axios";
+import { notify } from "../../../utils/notify";
 
 const EventSpeaker = () => {
     const { eventId } = useParams();

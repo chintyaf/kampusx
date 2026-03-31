@@ -10,8 +10,8 @@ import {
 } from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../EventLayout";
-import api from "../../../../api/axios";
-import { notify } from "../../../../utils/notify";
+import api from "../../../api/axios";
+import { notify } from "../../../utils/notify";
 
 // ICON
 import { Image, CheckCircle2 } from "lucide-react";

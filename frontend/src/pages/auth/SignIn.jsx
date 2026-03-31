@@ -3,7 +3,7 @@ import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Facebook, Twitter, Github } from 'lucide-react';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext';
 
 const SignIn = () => {
     const [email, setEmail] = useState("");
@@ -12,13 +12,13 @@ const SignIn = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth(); 
+    const { login } = useAuth();
 
     const from = location.state?.from || '/';
 
     const handleLogin = async (e) => {
-        e.preventDefault(); 
-        setErrorMsg(''); 
+        e.preventDefault();
+        setErrorMsg('');
         try {
             const response = await axios.post(
                 "http://localhost:8000/api/login",
@@ -34,6 +34,7 @@ const SignIn = () => {
             login(response.data.access_token, response.data.data);
 
             alert("Login Berhasil!");
+            console.log("User Info:", response.data.data);
             navigate(from, { replace: true });
         } catch (error) {
             if (error.response && error.response.data.errors) {

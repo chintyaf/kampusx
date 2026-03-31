@@ -5,11 +5,11 @@ import { Form, InputGroup } from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../EventLayout";
 
-import Step1_TypeSelection from "./schedule/Step1_TypeSelection"; // Level 1
-import Step2_DetailLocation from "./schedule/Step2_DetailLocation"; // Level 2
+import Step1_TypeSelection from "./sections/event-location/Step1_TypeSelection"; // Level 1
+import Step2_DetailLocation from "./sections/event-location/Step2_DetailLocation"; // Level 2
 
-import api from "../../../../api/axios";
-import { notify } from "../../../../utils/notify";
+import api from "../../../api/axios";
+import { notify } from "../../../utils/notify";
 
 const EventLocation = () => {
     const { eventId } = useParams();
@@ -123,7 +123,11 @@ const EventLocation = () => {
                 },
             );
             console.log("Sukses update:", response.data);
-            notify("success", "Berhasil!", "Perubahan informasi utama telah disimpan.");
+            notify(
+                "success",
+                "Berhasil!",
+                "Perubahan informasi utama telah disimpan.",
+            );
         } catch (error) {
             console.error("Gagal update data");
             throw error;
@@ -138,7 +142,10 @@ const EventLocation = () => {
                 nextPath="sesi"
                 onSave={handleSave}
             >
-                <Step1_TypeSelection selectedType={selectedType} onSelectType={setSelectedType} />
+                <Step1_TypeSelection
+                    selectedType={selectedType}
+                    onSelectType={setSelectedType}
+                />
 
                 {selectedType ? (
                     <>
@@ -153,7 +160,10 @@ const EventLocation = () => {
                     <div className="flex items-center justify-center min-h-[300px] w-full p-6">
                         <div
                             className="p-5 w-full max-w-4xl text-center"
-                            style={{ border: "1.5px #d2d7df dashed", backgroundColor: "#ffffff61" }}
+                            style={{
+                                border: "1.5px #d2d7df dashed",
+                                backgroundColor: "#ffffff61",
+                            }}
                         >
                             {/* Ikon Bulat dengan Titik Tiga */}
                             {/* <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center mb-6 text-gray-400">
