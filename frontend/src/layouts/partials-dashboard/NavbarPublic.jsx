@@ -114,7 +114,7 @@ const NavbarPublic = () => {
                         </div>
                     ) : (
                         // JIKA USER GUEST: Tampilkan Tombol Masuk
-                        <Link to="/signin">
+                        <Link to="/login">
                             <Button className="px-4 fw-semibold border-0" style={{ backgroundColor: "var(--color-primary)", fontSize: "var(--font-sm)", borderRadius: "6px" }}>
                                 Masuk
                             </Button>

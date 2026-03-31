@@ -67,6 +67,7 @@ const ProfileDropdown = () => {
                     className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
                     style={{ minWidth: "150px" }}
                 >
+                {(user.role === "admin" || user.role === "organizer") && (
                     <li>
                         <NavLink
                             to="/organizer/dashboard"
@@ -76,6 +77,8 @@ const ProfileDropdown = () => {
                             <span>Masuk Organizer</span>
                         </NavLink>
                     </li>
+                )}
+                {(user.role === "admin") && (
                     <li>
                         <NavLink
                             to="/admin/dashboard"
@@ -85,6 +88,7 @@ const ProfileDropdown = () => {
                             <span>Masuk Admin</span>
                         </NavLink>
                     </li>
+                )}
                     <li>
                         <button
                             className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"

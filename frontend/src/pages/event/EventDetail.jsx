@@ -44,7 +44,7 @@ const EventDetail = () => {
         if (!user) {
             console.log("User belum login, redirect ke Sign In");
             alert("Silakan Sign In terlebih dahulu untuk melanjutkan pembayaran.");
-            navigate('/signin', { state: { from: location.pathname } }); 
+            navigate('/login', { state: { from: location.pathname } }); 
             return;
         }
 
