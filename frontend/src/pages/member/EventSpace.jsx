@@ -115,37 +115,37 @@ const EventSpace = () => {
                         <p className="text-muted small">Ruang diskusi untuk event ini akan segera dibuka.</p>
                     </div>
                 );
-            case 'tiket':
-                return (
-                    <div className="fade-in text-center py-4">
-                        <Card className="border-0 shadow-sm rounded-4 d-inline-block text-start" style={{ maxWidth: '400px', width: '100%' }}>
-                            <Card.Body className="p-4 d-flex flex-column align-items-center">
-                                <h5 className="fw-bold mb-1">E-Tiket Kamu</h5>
-                                <p className="text-muted small mb-4">Tunjukkan QR ini kepada panitia saat registrasi ulang</p>
+            // case 'tiket':
+                // return (
+                //     <div className="fade-in text-center py-4">
+                //         <Card className="border-0 shadow-sm rounded-4 d-inline-block text-start" style={{ maxWidth: '400px', width: '100%' }}>
+                //             <Card.Body className="p-4 d-flex flex-column align-items-center">
+                //                 <h5 className="fw-bold mb-1">E-Tiket Kamu</h5>
+                //                 <p className="text-muted small mb-4">Tunjukkan QR ini kepada panitia saat registrasi ulang</p>
                                 
-                                <div className="bg-light p-3 rounded-4 mb-4 border border-dashed text-center w-100">
-                                    {/* Placeholder QR Code */}
-                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${eventData.ticketCode}`} alt="QR Code" className="img-fluid mix-blend-multiply" />
-                                </div>
+                //                 <div className="bg-light p-3 rounded-4 mb-4 border border-dashed text-center w-100">
+                //                     {/* Placeholder QR Code */}
+                //                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${eventData.ticketCode}`} alt="QR Code" className="img-fluid mix-blend-multiply" />
+                //                 </div>
                                 
-                                <div className="w-100 bg-light rounded p-3 mb-4">
-                                    <div className="d-flex justify-content-between mb-2">
-                                        <span className="text-muted small">Kode Peserta</span>
-                                        <span className="fw-bold">{eventData.ticketCode}</span>
-                                    </div>
-                                    <div className="d-flex justify-content-between">
-                                        <span className="text-muted small">Status</span>
-                                        <Badge bg="success">AKTIF / VALID</Badge>
-                                    </div>
-                                </div>
+                //                 <div className="w-100 bg-light rounded p-3 mb-4">
+                //                     <div className="d-flex justify-content-between mb-2">
+                //                         <span className="text-muted small">Kode Peserta</span>
+                //                         <span className="fw-bold">{eventData.ticketCode}</span>
+                //                     </div>
+                //                     <div className="d-flex justify-content-between">
+                //                         <span className="text-muted small">Status</span>
+                //                         <Badge bg="success">AKTIF / VALID</Badge>
+                //                     </div>
+                //                 </div>
 
-                                <Button variant="outline-dark" className="w-100 rounded-pill d-flex align-items-center justify-content-center">
-                                    <Download size={18} className="me-2" /> Unduh Tiket (PDF)
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    </div>
-                );
+                //                 <Button variant="outline-dark" className="w-100 rounded-pill d-flex align-items-center justify-content-center">
+                //                     <Download size={18} className="me-2" /> Unduh Tiket (PDF)
+                //                 </Button>
+                //             </Card.Body>
+                //         </Card>
+                //     </div>
+                // );
             default:
                 return null;
         }
@@ -212,12 +212,12 @@ const EventSpace = () => {
                                     <hr className="my-2 opacity-25" />
                                     
                                     {/* MENU TIKET DI SIDEBAR */}
-                                    <Nav.Link 
+                                    {/* <Nav.Link 
                                         className={`d-flex align-items-center px-3 py-2 rounded-3 ${activeTab === 'tiket' ? 'bg-dark text-white' : 'text-dark hover-bg-light'}`}
                                         onClick={() => setActiveTab('tiket')}
                                     >
                                         <QrCode size={18} className="me-3" /> Akses Tiket
-                                    </Nav.Link>
+                                    </Nav.Link> */}
                                 </Nav>
                             </Card.Body>
                         </Card>
