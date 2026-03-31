@@ -15,51 +15,60 @@ use App\Http\Controllers\Api\EventDas\EventDetailController;
 use App\Http\Controllers\Api\EventDas\EventSessionController;
 use App\Http\Controllers\Api\EventDas\EventSpeakerController;
 
-// PUBLIC ROUTES (GUEST)
+// ==========================================
+// 1. PUBLIC ROUTES (Bisa diakses tanpa login)
+// ==========================================
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+// Landing Page & Explore Event
+Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi index() di EventController
+Route::get('/events/explore', [EventController::class, 'explore']);
+Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 Route::get('/test', function () {
-    return response()->json("hallo", 200,);;
+    return response()->json("hallo", 200);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/events/explore', [EventController::class, 'explore']); // Contoh melihat event tanpa login
-Route::apiResource('events', EventController::class);
-// PROTECTED ROUTES (Harus Login)
+
+// ==========================================
+// 2. PROTECTED ROUTES (Harus Login Sanctum)
+// ==========================================
 Route::middleware('auth:sanctum')->group(function () {
+
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
+    // Ambil data user yang sedang login
     Route::get('/user/profile', function (Request $request) {
-        return $request->user(); // Untuk mengambil data user login di SPA
+        return $request->user();
+    });
+    Route::get('/user', function (Request $request) {
+        return $request->user();
     });
 
-    // 1. ROLE: MEMBER / PARTICIPANT
-    Route::middleware('role:participant,organizer,admin')->group(function () {
-        // Participant bisa akses ini, organizer & admin juga boleh (opsional)
-        // Route::post('/events/{id}/checkout', [OrderController::class, 'checkout']);
-        // Route::get('/my-tickets', [TicketController::class, 'inventory']);
-    });
+    // --- ROLE: PARTICIPANT / UMUM ---
+    Route::post('/checkout', [CheckoutController::class, 'store']);
+    Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
+    Route::get('/my-tickets', [TicketController::class, 'index']);
 
-    // 2. ROLE: ORGANIZER
+    // --- ROLE: ORGANIZER & ADMIN ---
     Route::middleware('role:organizer,admin')->group(function () {
 
-        // 1. General Events
+        // General Events (Create, Update, Delete)
         Route::post('/events', [EventController::class, 'store']);
-        // Route::post('/events/create', [EventController::class, 'store']);
+        Route::put('/events/{id}', [EventController::class, 'update']);
+        Route::delete('/events/{id}', [EventController::class, 'destroy']);
 
-        // 2. Group: Organizer
+        // Group: Organizer Dashboard List
         Route::prefix('organizer')->group(function () {
             Route::get('/events-list', [OrganizerEventController::class, 'getOrgEvents']);
-            Route::get('/events/{id}', [EventController::class, 'show']);
-            // Route::get('/dashboard', [OrganizerController::class, 'dashboard']);
+            // Untuk melihat detail spesifik milik organizer
+            Route::get('/events/{id}', [OrganizerEventController::class, 'show']);
         });
 
-        // 3. Group: Event Dashboard
+        // Group: Event Dashboard (Manage Detail Event)
         Route::prefix('event-dashboard/{eventId}')->group(function () {
-
-            // Sub-group: Info Utama
             Route::prefix('info-utama')->group(function () {
-
                 // General Info
                 Route::get('/', [EventDashboardController::class, 'getGeneralInfo']);
                 Route::post('/update', [EventDashboardController::class, 'updateGeneralInfo']);
@@ -72,41 +81,22 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::get('/session', [EventSessionController::class, 'getSession']);
                 Route::post('/session', [EventSessionController::class, 'setSession']);
 
+                // Speaker
                 Route::get('/speaker', [EventSpeakerController::class, 'getSpeakers']);
                 Route::post('/speaker', [EventSpeakerController::class, 'setSpeakers']);
-
             });
-
         });
 
     });
-    // 3. ROLE: PANITIA (COMMITTEE)
+
+    // --- ROLE: PANITIA (COMMITTEE) ---
     Route::middleware('role:committee,organizer')->group(function () {
         // Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
     });
 
-    // 4. ROLE: ADMIN PUSAT
+    // --- ROLE: ADMIN PUSAT ---
     Route::middleware('role:admin')->group(function () {
         // Route::post('/admin/approve-organizer/{id}', [AdminController::class, 'approveOrganizer']);
         // Route::post('/admin/suspend-user/{id}', [AdminController::class, 'suspendUser']);
     });
-
-    Route::post('/checkout', [CheckoutController::class, 'store']);
-    Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
-    Route::get('/my-tickets', [TicketController::class, 'index']);
-});
-
-// Route::apiResource('events', EventController::class);
-
-// 1. Initialize event Draft
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-
-// Endpoint sederhana untuk mengambil semua event (beserta nama organizernya)
-Route::get('/events', function () {
-    // Mengambil event beserta relasi organizer (user)
-    return Event::with('organizer')->get();
 });

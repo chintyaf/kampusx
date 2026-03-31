@@ -230,7 +230,7 @@ const MemberDashboard = () => {
                 <p className="text-muted small mb-4">
                   Yuk cari event dan mulai tingkatkan *skill* kamu!
                 </p>
-                <Link to="/explore">
+                <Link to="/explore-events">
                   <Button
                     variant="outline-primary"
                     className="rounded-pill px-4"

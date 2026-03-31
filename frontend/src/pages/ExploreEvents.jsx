@@ -1,67 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Spinner } from 'react-bootstrap';
+// 1. TAMBAHKAN Alert DI SINI
+import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { Users, Wifi, Calendar, Ticket, MapPin, User, Filter, RotateCcw, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const ExploreEvents = () => {
-    // --- MOCK DATA EVENT (Sesuai dengan properti card Anda) ---
-    // const popularEvents = [
-    //     {
-    //         id: 1, title: "International Conference on Management 2026", 
-    //         isInPerson: true, isOnline: false, isFeatured: true,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+1", date: "March 26, 2026", 
-    //         price: "Free", location: "Bandung, ID", org: "KampusX"
-    //     },
-    //     {
-    //         id: 2, title: "Web Development Bootcamp", 
-    //         isInPerson: true, isOnline: true, isFeatured: false,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+2", date: "April 10, 2026", 
-    //         price: "Rp 150.000", location: "Jakarta, ID", org: "Tech Indo"
-    //     },
-    //     {
-    //         id: 3, title: "Digital Marketing Online Workshop", 
-    //         isInPerson: false, isOnline: true, isFeatured: true,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+3", date: "May 05, 2026", 
-    //         price: "Rp 50.000", location: "Online", org: "Marketing Hub"
-    //     },
-    //     {
-    //         id: 4, title: "UI/UX Design Masterclass", 
-    //         isInPerson: true, isOnline: false, isFeatured: true,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+4", date: "June 12, 2026", 
-    //         price: "Rp 250.000", location: "Bandung, ID", org: "KampusX"
-    //     },
-    //     {
-    //         id: 5, title: "Data Science for Beginners", 
-    //         isInPerson: true, isOnline: true, isFeatured: false,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+5", date: "July 20, 2026", 
-    //         price: "Rp 100.000", location: "Surabaya, ID", org: "Tech Indo"
-    //     },
-    //     {
-    //         id: 6, title: "Startup Pitching Session", 
-    //         isInPerson: false, isOnline: true, isFeatured: true,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+6", date: "August 15, 2026", 
-    //         price: "Free", location: "Online", org: "Marketing Hub"
-    //     },
-    //     {
-    //         id: 7, title: "AI & Machine Learning Expo", 
-    //         isInPerson: true, isOnline: false, isFeatured: true,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+7", date: "September 10, 2026", 
-    //         price: "Rp 300.000", location: "Bali, ID", org: "KampusX"
-    //     },
-    //     {
-    //         id: 8, title: "Mobile App Development", 
-    //         isInPerson: true, isOnline: true, isFeatured: false,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+8", date: "October 05, 2026", 
-    //         price: "Rp 200.000", location: "Yogyakarta, ID", org: "Tech Indo"
-    //     },
-    //     {
-    //         id: 9, title: "Content Creator Summit", 
-    //         isInPerson: false, isOnline: true, isFeatured: true,
-    //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+9", date: "November 22, 2026", 
-    //         price: "Rp 75.000", location: "Online", org: "Marketing Hub"
-    //     },
-    // ];
     const [events, setEvents] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -69,12 +13,9 @@ const ExploreEvents = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                // Pastikan URL API kamu benar
                 const response = await axios.get('http://localhost:8000/api/events');
                 
-                // Tergantung bagaimana backend kamu mereturn data.
-                // Jika pakai Eloquent Resource, biasanya di response.data.data
-                // Jika pakai response()->json(), biasanya langsung di response.data
+                // Ambil data (sesuaikan jika ada pagination)
                 const eventData = response.data.data || response.data;
                 setEvents(eventData);
                 setIsLoading(false);
@@ -88,7 +29,30 @@ const ExploreEvents = () => {
         fetchEvents();
     }, []);
 
-    // Daftar sebagian negara (Anda bisa tambahkan sisanya di array ini)
+    // 2. HELPER UNTUK FORMAT HARGA
+    const formatPrice = (price) => {
+        if (!price || price === 0 || price === "0") return "Free";
+        // Jika dari API sudah berbentuk string "Rp xxx"
+        if (typeof price === 'string' && price.toLowerCase().includes('rp')) return price;
+        
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(price);
+    };
+
+    // 3. HELPER UNTUK FORMAT TANGGAL
+    const formatDate = (dateString) => {
+        if (!dateString) return "TBA";
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
     const countries = [
         "Afghanistan", "Albania", "Algeria", "Argentina", "Australia", 
         "Brazil", "Canada", "China", "France", "Germany", "India", 
@@ -107,11 +71,9 @@ const ExploreEvents = () => {
 
             <Container>
                 <Row className="g-4">
-                    {/* ========================================== */}
-                    {/* KOLOM KIRI: SIDEBAR FILTER (25% di layar besar) */}
-                    {/* ========================================== */}
+                    {/* KOLOM KIRI: SIDEBAR FILTER */}
                     <Col lg={3}>
-                        <Card className="border-0 shadow-sm sticky-top" style={{ top: '90px', borderRadius: '12px' }}>
+                        <Card className="border-0 shadow-sm" style={{ borderRadius: '10px' }}>
                             <Card.Header className="bg-white border-bottom py-3 d-flex justify-content-between align-items-center" style={{ borderTopLeftRadius: '12px', borderTopRightRadius: '12px' }}>
                                 <span className="fw-bold" style={{ color: 'var(--color-text)' }}>Filters</span>
                                 <Button variant="link" className="text-decoration-none p-0 d-flex align-items-center" style={{ fontSize: 'var(--font-xs)', color: 'var(--color-secondary)' }}>
@@ -121,7 +83,6 @@ const ExploreEvents = () => {
                             
                             <Card.Body className="p-4" style={{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }}>
                                 <Form>
-                                    {/* Event Title */}
                                     <Form.Group className="mb-4">
                                         <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Event Title</Form.Label>
                                         <div className="position-relative">
@@ -130,21 +91,18 @@ const ExploreEvents = () => {
                                         </div>
                                     </Form.Group>
 
-                                    {/* Event Type */}
                                     <Form.Group className="mb-4">
                                         <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Event Type</Form.Label>
                                         <Form.Check type="checkbox" label="Conference" id="type-conf" style={{ fontSize: 'var(--font-sm)' }} />
                                         <Form.Check type="checkbox" label="Workshop" id="type-work" style={{ fontSize: 'var(--font-sm)' }} />
                                     </Form.Group>
 
-                                    {/* Online Type */}
                                     <Form.Group className="mb-4">
                                         <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Online Type</Form.Label>
                                         <Form.Check type="checkbox" label="Online" id="online-1" style={{ fontSize: 'var(--font-sm)' }} />
                                         <Form.Check type="checkbox" label="In-Person" id="online-2" style={{ fontSize: 'var(--font-sm)' }} />
                                     </Form.Group>
 
-                                    {/* Categories */}
                                     <Form.Group className="mb-4">
                                         <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Categories</Form.Label>
                                         <Form.Select style={{ fontSize: 'var(--font-sm)' }}>
@@ -155,38 +113,6 @@ const ExploreEvents = () => {
                                         </Form.Select>
                                     </Form.Group>
 
-                                    {/* Date Range */}
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Start Date</Form.Label>
-                                        <Form.Control type="date" style={{ fontSize: 'var(--font-sm)' }} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>End Date</Form.Label>
-                                        <Form.Control type="date" style={{ fontSize: 'var(--font-sm)' }} />
-                                    </Form.Group>
-
-                                    {/* Location Details */}
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Country</Form.Label>
-                                        <Form.Select style={{ fontSize: 'var(--font-sm)' }}>
-                                            <option>-- Choose Country --</option>
-                                            <option>Online</option>
-                                            {countries.map((c, i) => <option key={i}>{c}</option>)}
-                                        </Form.Select>
-                                    </Form.Group>
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>City</Form.Label>
-                                        <Form.Control type="text" placeholder="e.g. Bandung" style={{ fontSize: 'var(--font-sm)' }} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Venue</Form.Label>
-                                        <Form.Control type="text" placeholder="e.g. Sabuga" style={{ fontSize: 'var(--font-sm)' }} />
-                                    </Form.Group>
-                                    <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Tags</Form.Label>
-                                        <Form.Control type="text" placeholder="e.g. #tech, #business" style={{ fontSize: 'var(--font-sm)' }} />
-                                    </Form.Group>
-
                                     <Button className="w-100 fw-bold border-0 py-2 mt-2" style={{ backgroundColor: 'var(--color-primary)' }}>
                                         <Filter size={16} className="me-2"/> Terapkan Filter
                                     </Button>
@@ -195,15 +121,12 @@ const ExploreEvents = () => {
                         </Card>
                     </Col>
 
-                    {/* ========================================== */}
-                    {/* KOLOM KANAN: DAFTAR EVENT (75% di layar besar) */}
-                    {/* ========================================== */}
+                    {/* KOLOM KANAN: DAFTAR EVENT */}
                     <Col lg={9}>
                         <div className="d-flex justify-content-between align-items-center mb-4">
                             <span className="fw-medium text-muted">Menampilkan {events.length} Event</span>
                         </div>
 
-                        {/* --- HANDLING LOADING & ERROR STATE --- */}
                         {isLoading && (
                             <div className="text-center py-5">
                                 <Spinner animation="border" variant="primary" />
@@ -223,7 +146,6 @@ const ExploreEvents = () => {
                             </div>
                         )}
                         
-                        {/* --- RENDER DATA EVENT --- */}
                         {!isLoading && !error && events.length > 0 && (
                             <Row className="g-4">
                                 {events.map((ev) => (
@@ -231,10 +153,8 @@ const ExploreEvents = () => {
                                         <Link to={`/event/${ev.id}`} className="text-decoration-none text-dark">
                                             <Card className="p-2 h-100 shadow-sm border-0 hover-lift overflow-hidden" style={{ borderRadius: '12px', backgroundColor: 'var(--color-white)' }}>
                                                 
-                                                {/* --- BADGES ATAS --- */}
                                                 <div className="d-flex justify-content-between align-items-center mb-3" style={{ minHeight: '28px' }}>
                                                     <div className="d-flex px-2 py-1 gap-2" style={{ fontSize: 'var(--font-xs)' }}>
-                                                        {/* Perhatikan perubahan properti ke snake_case sesuai database */}
                                                         {ev.is_in_person ? (
                                                             <div className="rounded-pill px-2 py-1 d-flex align-items-center fw-medium bg-white" 
                                                                 style={{ fontSize: 'var(--font-xs)', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' }}>
@@ -256,40 +176,40 @@ const ExploreEvents = () => {
                                                     ) : null}
                                                 </div>
 
-                                                {/* --- GAMBAR EVENT --- */}
                                                 <img 
-                                                    src={ev.image} 
+                                                    // Jika API mu mereturn null untuk image, gunakan placehold.co sebagai default
+                                                    src={ev.image || `https://placehold.co/600x300/e2e8f0/64748b?text=Event+${ev.id}`} 
                                                     alt={ev.title} 
                                                     className="w-100 object-fit-cover rounded mb-3" 
                                                     style={{ height: '180px' }} 
                                                 />
 
                                                 <Card.Body className="p-0 d-flex flex-column">
-                                                    {/* --- INFO TANGGAL & HARGA --- */}
                                                     <div className="d-flex justify-content-between mb-3 fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
                                                         <div className="d-flex align-items-center">
-                                                            <Calendar size={18} className="me-2" /> {ev.date}
+                                                            {/* Gunakan helper formatDate */}
+                                                            <Calendar size={18} className="me-2" /> {formatDate(ev.date || ev.start_date)}
                                                         </div>
                                                         <div className="d-flex align-items-center">
-                                                            <Ticket size={18} className="me-2" /> {ev.price}
+                                                            {/* Gunakan helper formatPrice */}
+                                                            <Ticket size={18} className="me-2" /> {formatPrice(ev.price)}
                                                         </div>
                                                     </div>
 
-                                                    {/* --- JUDUL EVENT --- */}
                                                     <Card.Title className="fw-bold mb-auto" style={{ color: 'var(--color-text)', fontSize: 'var(--font-lg)', lineHeight: '1.4' }}>
                                                         {ev.title}
                                                     </Card.Title>
 
-                                                    {/* --- GARIS PEMISAH --- */}
                                                     <hr className="opacity-100 my-3" style={{ color: 'var(--color-border)' }} />
 
-                                                    {/* --- INFO LOKASI & PENYELENGGARA --- */}
                                                     <div className="d-flex justify-content-between fw-medium" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-sm)' }}>
                                                         <div className="d-flex align-items-center text-truncate" style={{ maxWidth: '60%' }}>
-                                                            <MapPin size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.location}</span>
+                                                            {/* Fallback ke "TBA" jika location kosong */}
+                                                            <MapPin size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.location || 'TBA'}</span>
                                                         </div>
                                                         <div className="d-flex align-items-center text-truncate ms-2" style={{ maxWidth: '40%' }}>
-                                                            <User size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.org}</span>
+                                                            {/* Fallback ke "KampusX" jika org kosong */}
+                                                            <User size={18} className="me-2 flex-shrink-0" /> <span className="text-truncate">{ev.org || ev.institution?.name || 'KampusX'}</span>
                                                         </div>
                                                     </div>
                                                 </Card.Body>

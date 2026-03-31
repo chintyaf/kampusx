@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 
+
 const EventDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -38,14 +39,17 @@ const EventDetail = () => {
 
     const handleLanjutPembayaran = (e) => {
         e.preventDefault();
+        console.log("Tombol diklik! ID event:", id);
         
         if (!user) {
+            console.log("User belum login, redirect ke Sign In");
             alert("Silakan Sign In terlebih dahulu untuk melanjutkan pembayaran.");
-            navigate('/signin', { state: { from: location.pathname } }); 
+            navigate('/login', { state: { from: location.pathname } }); 
             return;
         }
 
         navigate(`/checkout/${id}`); 
+        console.log("Navigasi ke halaman checkout dengan ID event:", id);
     };
 
     if (isLoading) {
@@ -150,7 +154,7 @@ const EventDetail = () => {
                     {/* KOLOM KANAN: STICKY TICKET CARD */}
                     {/* ========================================== */}
                     <Col lg={4}>
-                        <div className="sticky-top" style={{ top: '90px' }}>
+                        <div className="" style={{ top: '90px' }}>
                             
                             {/* Card Pembelian Tiket */}
                             <Card className="border shadow-sm rounded-4 mb-4">
