@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import PublishModal from "./PublishModal";
 import ConfirmationModal from "./ConfirmationModal";
 import StatusDropdown from "./StatusDropdown";
+import "./modal.css";
 
 const EventStatusDropdown = ({ isInsideEvent }) => {
     const [status, setStatus] = useState("Draft");

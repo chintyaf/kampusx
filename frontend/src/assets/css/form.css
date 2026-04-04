@@ -20,7 +20,7 @@ form {
     font-weight: 600;
     text-transform: uppercase;
     font-size: var(--font-xs);
-    color: var(--color-text-muted);
+    color: var(--color-secondary);
 }
 
 .form-control,
