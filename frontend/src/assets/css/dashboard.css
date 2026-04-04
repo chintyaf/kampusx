@@ -33,11 +33,31 @@ main {
 
 .custom-menu-item {
     background: transparent;
-    padding: 50px 100px;
-    border-radius: 12px;
+    padding: 10px 15px; /* Standar padding, jangan terlalu besar */
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    text-align: left;
+    white-space: nowrap; /* Mencegah tulisan turun ke bawah saat transisi mengecil */
+    color: var(--color-text);
+}
+
+/* Pastikan margin di hilangkan saat mode collapsed supaya ikon persis ditengah */
+.sidebar-container.collapsed .custom-menu-item .me-2 {
+    margin-right: 0 !important;
+}
+.sidebar-container.collapsed .custom-menu-item .ms-2 {
+    margin-left: 0 !important;
+}
+
+/* Update .custom-menu-item padding, yg sebelumnya 50px 100px */
+.custom-menu-item {
+    background: transparent;
+    padding: 10px 15px; /* Standar padding agar tidak terlalu kebesaran */
+    border-radius: 12px; /* Dikembalikan ke 12px sesuai aslinya */
     margin-bottom: 0.25rem;
     transition: all 0.2s ease;
     text-align: left;
+    white-space: nowrap; /* PENTING: Mencegah teks turun saat transisi mengecil */
 }
 
 .custom-menu-item .menu-icon {
@@ -46,12 +66,21 @@ main {
     align-items: center;
 }
 
-/* State: HOVER */
+/* Dikembalikan ke margin 0 saat collapsed supaya ikon persis di tengah */
+.sidebar-container.collapsed .custom-menu-item .me-2 {
+    margin-right: 0 !important;
+}
+.sidebar-container.collapsed .custom-menu-item .ms-2 {
+    margin-left: 0 !important;
+}
+
+/* State: HOVER (Kembali ke kode asli) */
 .custom-menu-item:hover {
     background-color: #f8f9fa;
     color: #333;
 }
 
+/* State: ACTIVE (Kembali menggunakan CSS variables asli) */
 .custom-menu-item.active {
     background-color: var(--bahama-blue-50) !important;
     color: var(--bahama-blue-700) !important;
@@ -70,9 +99,10 @@ main {
 .sidebar-parent-menu {
     font-size: var(--font-sm);
     text-decoration: none;
-    color: var(--color-text);
+    color: var(--color-text); /* Kembali menggunakan var text aslinya */
 }
 
+/* --- (Animasi Submenu dan class lainnya di bawah ini biarkan persis seperti kode Anda) --- */
 /* Animasi Submenu */
 /* The wrapper for the submenu */
 .submenu-collapse {

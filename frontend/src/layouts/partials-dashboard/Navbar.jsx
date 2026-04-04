@@ -14,24 +14,10 @@ import {
     SquarePen,
     ChevronDown,
     LogOut,
+    Menu, // Import Menu icon
 } from "lucide-react";
 
-// const Navbar = () => {
-//     const { user, logout } = useAuth();
-//     const navigate = useNavigate();
-
-//     const handleLogout = async () => {
-//         await logout();
-//         navigate('/');
-//         console.log("Logging out...");
-
-//     };
-
-//     const location = useLocation();
-
-//     const [isOpen, setIsOpen] = useState(false);
-//     const toggleDropdown = () => setIsOpen(!isOpen);
-
+// ... (Kode ProfileDropdown tetap sama persis)
 const ProfileDropdown = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -46,32 +32,29 @@ const ProfileDropdown = () => {
         return null;
     }
 
-
     return (
-        <>
-            <div className="dropdown">
-                <div
-                    className="d-flex align-items-center"
-                    style={{ cursor: "pointer" }}
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                >
-                    <div>
-                        <img
-                            className="rounded-circle object-fit-cover"
-                            src={userImg}
-                            alt="User"
-                            width="30px"
-                            height="30px"
-                        />
-                    </div>
+        <div className="dropdown">
+            <div
+                className="d-flex align-items-center"
+                style={{ cursor: "pointer" }}
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+                <div>
+                    <img
+                        className="rounded-circle object-fit-cover"
+                        src={userImg}
+                        alt="User"
+                        width="30px"
+                        height="30px"
+                    />
                 </div>
+            </div>
 
-                {/* 2. Menu Dropdown: Langsung tambahkan class pop-down */}
-                <ul
-                    className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
-                    style={{ minWidth: "150px" }}
-                >
+            <ul
+                className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
+                style={{ minWidth: "150px" }}
+            >
                 {(user.role === "admin" || user.role === "organizer") && (
                     <li>
                         <NavLink
@@ -83,7 +66,7 @@ const ProfileDropdown = () => {
                         </NavLink>
                     </li>
                 )}
-                {(user.role === "admin") && (
+                {user.role === "admin" && (
                     <li>
                         <NavLink
                             to="/admin/dashboard"
@@ -94,22 +77,22 @@ const ProfileDropdown = () => {
                         </NavLink>
                     </li>
                 )}
-                    <li>
-                        <button
-                            className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
-                            onClick={handleLogout}
-                        >
-                            <LogOut size={16} />
-                            <span>Logout</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </>
+                <li>
+                    <button
+                        className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                        onClick={handleLogout}
+                    >
+                        <LogOut size={16} />
+                        <span>Logout</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
     );
 };
 
-const Navbar = () => {
+// Terima props dari DashboardLayout
+const Navbar = ({ toggleSidebar, showToggleBtn }) => {
     const location = useLocation();
 
     const isAdmin = location.pathname.startsWith("/admin");
@@ -119,14 +102,23 @@ const Navbar = () => {
     );
 
     const navLink = isAdmin ? "admin/dashboard" : "organizer/dashboard";
+
     return (
         <nav className="navbar">
-            {/* Logo Section */}
             <div
                 className="nav-content w-100 d-flex justify-content-between align-items-center"
-                style={{ padding: "10px 60px 10px 40px" }}
+                style={{ padding: "10px 20px" }}
             >
-                <div className="col-2">
+                {/* Tambahkan Icon Menu Sebelum Logo */}
+                <div className="d-flex align-items-center gap-2">
+                    {showToggleBtn && (
+                        <button
+                            className="btn btn-light d-flex align-items-center justify-content-center p-2 border-0 bg-transparent text-secondary hover-bg-light rounded-circle"
+                            onClick={toggleSidebar}
+                        >
+                            <Menu size={22} />
+                        </button>
+                    )}
                     <NavLink
                         to={navLink}
                         className="link-dark text-decoration-none"
@@ -141,14 +133,9 @@ const Navbar = () => {
                 </div>
 
                 <div className="d-flex align-items-center gap-3">
-                    {/* Notifikasi */}
-
                     <NotificationDropdown />
-
-                    {/* Status Event */}
                     <EventStatusDropdown isInsideEvent={isInsideEvent} />
 
-                    {/* Buat Event */}
                     {isOrganizer && !isInsideEvent && (
                         <NavLink
                             to="/organizer/buat-acara"
@@ -163,7 +150,6 @@ const Navbar = () => {
                         </NavLink>
                     )}
 
-                    {/* Profile */}
                     <ProfileDropdown />
                 </div>
             </div>

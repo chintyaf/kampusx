@@ -13,6 +13,8 @@ import {
     UserRoundPen,
 } from "lucide-react";
 
+import SidebarItem from "./section/SidebarItem";
+
 // --- Configuration Data ---
 const MENU_ITEMS = {
     admin: [
@@ -141,127 +143,71 @@ const ACCOUNT_ITEMS = [
     },
 ];
 
-// --- Sub-component for individual items ---
-const SidebarItem = ({ item, isOpen, toggle }) => {
-    const location = useLocation();
-    const hasSubmenu = !!item.submenu;
 
-    const isChildActive = item.submenu?.some((sub) => {
-        const fullPath = `${item.path}${sub.path}`.replace(/\/+/g, "/");
-        return location.pathname.startsWith(fullPath);
-    });
 
-    // Shared NavLink style logic
-    const navLinkClass = ({ isActive }) =>
-        `nav-link custom-menu-item d-flex align-items-center border-0 ${isActive || isChildActive ? "active" : ""}`;
-
-    if (!hasSubmenu) {
-        return (
-            <NavLink
-                to={item.path} // Cukup ke item.path saja, tidak perlu ${sub.path}
-                className={navLinkClass}
-                end
-            >
-                {item.icon} <span className="menu-text">{item.name}</span>
-            </NavLink>
-        );
-    }
-
-    return (
-        <>
-            <button
-                onClick={() => toggle(item.id)}
-                className={`${navLinkClass({ isActive: false })} btn btn-toggle d-flex align-items-center justify-content-between w-100 rounded border-0 ${isOpen ? "" : "collapsed"}`}
-            >
-                <div className="d-flex align-items-center sidebar-parent-menu">
-                    {item.icon} {item.name}
-                </div>
-                <ChevronDown
-                    size={16}
-                    style={{
-                        transform: isOpen ? "rotate(-90deg)" : "rotate(0deg)",
-                        transition: "0.3s",
-                    }}
-                />
-            </button>
-
-            <div className={`submenu-collapse ${isOpen ? "show" : ""}`}>
-                <div className="submenu-inner">
-                    <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-1 ms-4 mt-1 border-start">
-                        {item.submenu.map((sub, idx) => (
-                            <li key={idx}>
-                                <NavLink
-                                    to={`${item.path}/${sub.path}`}
-                                    className={navLinkClass}
-                                >
-                                    {sub.name}
-                                </NavLink>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-        </>
-    );
-};
-
-// --- Main Sidebar Component ---
-const Sidebar = (props) => {
+const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
     const [openMenu, setOpenMenu] = useState("dashboard");
     const location = useLocation();
 
-    // 1. Tangkap eventId dari URL
-    // Pattern: /organizer/{eventId}/event-dashboard
     const eventIdMatch = location.pathname.match(
         /\/organizer\/([^/]+)\/event-dashboard/,
     );
     const currentEventId = eventIdMatch ? eventIdMatch[1] : "";
 
-    // 2. Ambil menu dasar, lalu ganti placeholder :eventId dengan ID asli
-    const baseMenu = MENU_ITEMS[props.type] || [];
+    const baseMenu = MENU_ITEMS[type] || [];
     const currentMenu = baseMenu.map((item) => ({
         ...item,
-        // Kita ganti :eventId (atau tetap dukung :slug jika belum diubah di config)
         path: item.path
             ? item.path.replace(/:eventId|:slug/g, currentEventId)
             : item.path,
     }));
 
-    const handleToggle = (id) => setOpenMenu(openMenu === id ? null : id);
+    const handleToggle = (id) => {
+        if (isSidebarCollapsed) {
+            // Jika sidebar sedang mengecil, otomatis lebarkan dan buka submenunya
+            setIsSidebarCollapsed(false);
+            setOpenMenu(id);
+        } else {
+            // Perilaku normal saat sidebar sudah lebar
+            setOpenMenu(openMenu === id ? null : id);
+        }
+    };
 
     useEffect(() => {
         const currentPath = location.pathname;
-
         currentMenu.forEach((item) => {
             if (item.submenu) {
                 const isActive = item.submenu.some((sub) => {
-                    // Gabungkan path parent dan child secara aman
                     const fullPath = `${item.path}/${sub.path}`.replace(
                         /\/+/g,
                         "/",
                     );
                     return currentPath.startsWith(fullPath);
                 });
-
-                if (isActive) {
-                    setOpenMenu(item.id);
-                }
+                if (isActive) setOpenMenu(item.id);
             }
         });
     }, [location.pathname, currentMenu]);
 
     return (
         <div
-            className="sidebar-container flex-shrink-0 p-3 bg-white border-end"
-            style={{ width: "250px", height: "100%", overflowY: "auto" }}
+            className={`sidebar-container flex-shrink-0 p-3 bg-white border-end ${isSidebarCollapsed ? "collapsed" : ""}`}
+            style={{
+                width: isSidebarCollapsed ? "80px" : "280px", // Animasi Lebar disini
+                transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                height: "100%",
+                overflowY: "auto",
+                overflowX: "hidden",
+            }}
         >
             <ul className="list-unstyled ps-0">
                 {currentMenu.map((item) => (
-                    <li className="mb-3" key={item.id}>
+                    <li className="mb-2" key={item.id}>
                         <SidebarItem
                             item={item}
                             isOpen={openMenu === item.id}
                             toggle={handleToggle}
+                            isSidebarCollapsed={isSidebarCollapsed}
                         />
                     </li>
                 ))}
