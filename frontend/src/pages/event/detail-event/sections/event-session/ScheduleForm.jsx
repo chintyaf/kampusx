@@ -54,11 +54,16 @@ const ScheduleForm = ({
 
     // Prepare and send data back to parent
     const handleSubmit = () => {
+        const validPrerequisites = formData.prerequisites.filter((id) =>
+            prereqOptions.some((opt) => opt.value === id)
+        );
+
         // Ensure day is an integer
         const updatedSession = {
             ...formData,
             day: parseInt(formData.day, 10),
             title: formData.title.trim() || "Sesi Tanpa Judul",
+            prerequisites: validPrerequisites,
             // Note: 'time' string generation is now handled cleanly in the parent (ScheduleTable)
         };
 
@@ -66,8 +71,39 @@ const ScheduleForm = ({
     };
 
     // Mapping prerequisites options (exclude the current session)
+    // --- LOGIKA FILTER PRASYARAT BARU ---
     const prereqOptions = allSessions
-        .filter((s) => s.id !== formData.id)
+        .filter((s) => {
+            // 1. Tidak boleh memilih diri sendiri
+            if (s.id === formData.id) return false;
+
+            const prereqDay = parseInt(s.day, 10) || 1;
+            const currentDay = parseInt(formData.day, 10) || 1;
+
+            // 2. Jika harinya sebelum hari ini, BOLEH
+            if (prereqDay < currentDay) return true;
+
+            // 3. Jika harinya setelah hari ini, TIDAK BOLEH
+            if (prereqDay > currentDay) return false;
+
+            // 4. Jika harinya SAMA, cek waktu mulai atau nomor urutan sesinya
+            if (prereqDay === currentDay) {
+                // Jika memiliki format waktu (HH:mm), bandingkan string-nya
+                if (s.startTime && formData.startTime) {
+                    return s.startTime < formData.startTime;
+                }
+
+                // Fallback jika belum ada waktu: bandingkan nomor/urutan sesi
+                const prereqSeq = parseInt(s.session, 10);
+                const currentSeq = parseInt(formData.session, 10);
+
+                if (!isNaN(prereqSeq) && !isNaN(currentSeq)) {
+                    return prereqSeq < currentSeq;
+                }
+            }
+
+            return false; // Default: Jika tidak bisa dipastikan lebih awal, sembunyikan.
+        })
         .map((s) => ({
             value: s.id,
             label: `Hari ${s.day} - ${s.title || "Sesi " + s.session}`,
@@ -77,6 +113,7 @@ const ScheduleForm = ({
     const selectedPrereqs = prereqOptions.filter((opt) =>
         formData.prerequisites.includes(opt.value),
     );
+
 
     return (
         <div className="p-1">

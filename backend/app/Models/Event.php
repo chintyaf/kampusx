@@ -15,14 +15,20 @@ class Event extends Model
 
     protected $fillable = [
         'organizer_id',
-        'slug',
+        'institution_id',
+
         'title',
+        'slug',
         'description',
-        'location_type',
+        'image_path',
+
         'start_date',
         'end_date',
+        'timezone',
+
         'status',
-        'timezone'
+
+        'is_featured'
     ];
 
     protected $casts = [
@@ -44,7 +50,7 @@ class Event extends Model
     }
 
     // Lokasi (1-to-1)
-    public function location(): HasOne
+    public function locationDetail(): HasOne
     {
         return $this->hasOne(EventLocation::class);
     }
@@ -73,7 +79,7 @@ class Event extends Model
         return $this->belongsToMany(Category::class, 'event_categories');
     }
 
-    public function types(): BelongsToMany
+    public function eventTypes(): BelongsToMany
     {
         return $this->belongsToMany(EventType::class, 'event_types_event', 'event_id', 'event_types_id');
     }

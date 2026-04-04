@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\EventDas;
+namespace App\Http\Controllers\Api\EventDashboard\DetailEvent;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

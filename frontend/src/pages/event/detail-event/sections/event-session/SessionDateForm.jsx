@@ -1,4 +1,4 @@
-import { useState } from "react"; // <-- Jangan lupa import useState
+import { useState, useEffect } from "react"; // <-- Jangan lupa import useState
 import { Form, Badge, Row, Col } from "react-bootstrap";
 
 const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
@@ -11,13 +11,19 @@ const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
     const todayDate = new Date().toISOString().split("T")[0];
 
     // SOLUSI: Jadikan local state. Inisialisasi awal mengecek apakah datanya beda hari
-    const [isMultipleDay, setIsMultipleDay] = useState(() => {
-        return !!(
+    const [isMultipleDay, setIsMultipleDay] = useState(false);
+
+    useEffect(() => {
+        if (
             formData.startDate &&
             formData.endDate &&
             formData.startDate !== formData.endDate
-        );
-    });
+        ) {
+            setIsMultipleDay(true);
+        } else {
+            setIsMultipleDay(false);
+        }
+    }, [formData.startDate, formData.endDate]);
 
     // Helper function to calculate days and update parent
     const calculateAndSetDays = (start, end) => {
@@ -126,7 +132,7 @@ const SessionDateForm = ({ formData, totalDays, onSetTotalDays, onChange }) => {
                                 type="date"
                                 size="sm"
                                 name="endDate"
-                                min={formData.startDate} // Cannot end before it starts
+                                min={formData.startDate}
                                 className="border-start-0 ps-0"
                                 value={formData.endDate || ""}
                                 onChange={handleDateChange}

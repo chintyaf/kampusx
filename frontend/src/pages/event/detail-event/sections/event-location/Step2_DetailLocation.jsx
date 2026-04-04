@@ -5,7 +5,7 @@ import OfflineForm from "./OfflineForm";
 import HybridForm from "./HybridForm";
 import { useState } from "react";
 
-const Step2_DetailLocation = ({ selectedType, formData, onChange }) => {
+const Step2_DetailLocation = ({ selectedType, formData, onChange, errors }) => {
     return (
         <Form className="fade-in-down" key={selectedType}>
             {/* Header Bagian */}
@@ -27,24 +27,24 @@ const Step2_DetailLocation = ({ selectedType, formData, onChange }) => {
 
             {/* Form Berdasarkan Tipe Kehadiran */}
             {selectedType === "online" && (
-                <OnlineForm data={formData} onChange={onChange} />
+                <OnlineForm data={formData} onChange={onChange} errors={errors} />
             )}
             {selectedType === "offline" && (
-                <OfflineForm data={formData} onChange={onChange} />
+                <OfflineForm data={formData} onChange={onChange} errors={errors} />
             )}
             {selectedType === "hybrid" && (
-                <HybridForm data={formData} onChange={onChange} />
+                <HybridForm data={formData} onChange={onChange} errors={errors} />
             )}
 
             {/* Tombol Simpan (CREATE/UPDATE) */}
-            <div className="d-flex justify-content-end">
+            {/* <div className="d-flex justify-content-end">
                 <button
                     className="btn btn-outline-dark"
                     onClick={() => console.log("Kirim ke API:", formData)}
                 >
                     Simpan Informasi
                 </button>
-            </div>
+            </div> */}
         </Form>
     );
 };

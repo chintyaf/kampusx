@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignId('institution_id')->nullable()->constrained('institutions')->cascadeOnDelete();
 
             $table->string('title', 200);
-            $table->string('slug', 200)->unique()->index();
+            $table->string('slug', 200)->nullable()->unique()->index();
             $table->text('description')->nullable();
             $table->string('image_path')->nullable(); // Untuk poster event
 
@@ -83,7 +83,7 @@ return new class extends Migration {
             $table->string('role')->nullable();
             $table->text('bio')->nullable();
             $table->json('social_link')->nullable();
-            $table->string('expertise')->nullable();
+            $table->json('expertise')->nullable();
         });
 
         Schema::create('event_session_speakers', function (Blueprint $table) {
@@ -116,8 +116,8 @@ return new class extends Migration {
 
 
             // Hybird
-            $table->integer('online_quota')->nullable();
-            $table->integer('offline_quota')->nullable();
+            $table->integer('online_quota')->nullable()->default(0);
+            $table->integer('offline_quota')->nullable()->default(0);
 
             $table->timestamps();
         });

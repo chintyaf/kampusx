@@ -9,7 +9,7 @@ import {
     Badge,
 } from "react-bootstrap";
 import { List, Type, ChevronDown, Plus } from "lucide-react";
-import EventLayout from "../EventLayout";
+import EventLayout from "../../../layouts/EventLayout";
 const EventRegistrationForm = () => {
     const [questions, setQuestions] = useState([
         { id: 4, label: "Ukuran Baju", type: "dropdown", required: false },
@@ -19,6 +19,8 @@ const EventRegistrationForm = () => {
         <EventLayout
             heading={"Custom Checkout Questions"}
             subheading={"Buat pertanyaan tambahan saat peserta checkout."}
+            nextPath={"preview"}
+            prevPath={"pembicara"}
         >
             <Form className="py-4">
                 {/* Preview */}

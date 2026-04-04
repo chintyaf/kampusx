@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { Form, Row, Col, Button } from "react-bootstrap";
+import { Form, Row, Col, Button, InputGroup } from "react-bootstrap";
 import Select from "react-select";
-import { User } from "lucide-react";
+import { User, Trash2, Plus } from "lucide-react";
+import CreatableSelect from "react-select/creatable";
 
 import api from "../../../../../api/axios";
-import { notify } from "../../../../../utils/notify"; // Pastikan path ini benar jika ingin pakai notify di sini
 
 const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
     const isEdit = !!initialData;
 
-    // Opsi dummy untuk kategori
-    const kategori_options = [
-        { value: "AI", label: "Artificial Intelligence" },
-        { value: "Web", label: "Web Development" },
-        { value: "Mobile", label: "Mobile Development" },
-    ];
-
     const [sessionOptions, setSessionOptions] = useState([]);
     const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+
+    // Opsi platform untuk dropdown social link
+    const platformOptions = [
+        "LinkedIn",
+        "Instagram",
+        "Twitter/X",
+        "Facebook",
+        "Website",
+        "Lainnya",
+    ];
 
     const [formData, setFormData] = useState({
         name: "",
         role: "",
-        linkedin: "",
+        bio: "",
+        // social_links sekarang menggunakan array of object
+        social_links: [{ platform: "LinkedIn", url: "" }],
         expertise: [],
         sessions: [],
     });
@@ -46,7 +51,6 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
                     const formattedSessions = result.data.sessions.map(
                         (session) => ({
                             value: session.id.toString(),
-                            // Support 'name' atau 'title' sesuai struktur DB kamu
                             label:
                                 session.name ||
                                 session.title ||
@@ -79,10 +83,30 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
                 }
             }
 
+            // Handle Parsing JSON Social Links dari Database
+            let parsedSocialLinks = [{ platform: "LinkedIn", url: "" }];
+            if (
+                initialData.social_link &&
+                Array.isArray(initialData.social_link) &&
+                initialData.social_link.length > 0
+            ) {
+                // Mengecek apakah isinya object {platform, url} atau masih string biasa (data lama)
+                if (typeof initialData.social_link[0] === "object") {
+                    parsedSocialLinks = initialData.social_link;
+                } else {
+                    // Fallback jika database masih berisi data format lama (array of string)
+                    parsedSocialLinks = initialData.social_link.map((link) => ({
+                        platform: "Lainnya",
+                        url: link,
+                    }));
+                }
+            }
+
             setFormData({
                 name: initialData.name || "",
                 role: initialData.role || "",
-                linkedin: initialData.linkedin || "",
+                bio: initialData.bio || "",
+                social_links: parsedSocialLinks,
                 expertise: safeExpertise.map((t) => {
                     if (typeof t === "string") return { value: t, label: t };
                     return {
@@ -90,7 +114,6 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
                         label: t?.label || t?.name || "",
                     };
                 }),
-                // Mapping sessions dari backend agar cocok dengan react-select
                 sessions:
                     initialData.sessions && Array.isArray(initialData.sessions)
                         ? initialData.sessions.map((s) => {
@@ -123,30 +146,49 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Fungsi untuk mengontrol input Social Links dinamis
+    const handleSocialLinkChange = (index, field, value) => {
+        const updatedLinks = [...formData.social_links];
+        updatedLinks[index][field] = value;
+        setFormData({ ...formData, social_links: updatedLinks });
+    };
+
+    const addSocialLink = () => {
+        setFormData({
+            ...formData,
+            social_links: [
+                ...formData.social_links,
+                { platform: "LinkedIn", url: "" },
+            ],
+        });
+    };
+
+    const removeSocialLink = (index) => {
+        const updatedLinks = formData.social_links.filter(
+            (_, i) => i !== index,
+        );
+        setFormData({ ...formData, social_links: updatedLinks });
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // 3. Validasi Wajib Pilih Sesi (karena DB event_session_id tidak boleh null)
-        if (!formData.sessions || formData.sessions.length === 0) {
-            // Bisa pakai alert bawaan atau notify kamu
-            alert(
-                "Peringatan: Mohon pilih minimal satu sesi untuk pembicara ini.",
-            );
-            return;
-        }
+        // Filter social links agar tidak mengirim object yang URL-nya kosong
+        const validSocialLinks = formData.social_links.filter(
+            (link) => link.url.trim() !== "",
+        );
 
         const payload = {
             id: initialData?.id,
             name: formData.name,
             role: formData.role,
-            linkedin: formData.linkedin,
-            // Expertise dikirim sebagai array string biasa
+            bio: formData.bio,
+            social_link: validSocialLinks, // Sekarang formatnya JSON Array of Objects
             expertise: formData.expertise.map(
                 (item) => item.label || item.value,
             ),
-            // Sessions dikirim sebagai array of ID
-            // PERBAIKAN DI SINI: Kirim object agar Card tau nama sesinya
-            sessions: formData.sessions.map((item) => ({
+            sessions: formData.sessions.map((item) => item.value),
+            session_details: formData.sessions.map((item) => ({
                 id: item.value,
                 name: item.label,
             })),
@@ -177,71 +219,128 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
                     </div>
                 </Col>
                 <Col>
-                    <Row className="mb-3">
-                        <Form.Group as={Col} md={6}>
-                            <Form.Label className="small fw-bold">
-                                Nama Lengkap *
-                            </Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Contoh: Budi Santoso, S.Kom"
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group as={Col} md={6}>
-                            <Form.Label className="small fw-bold">
-                                Jabatan / Keahlian *
-                            </Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="role"
-                                value={formData.role}
-                                onChange={handleChange}
-                                placeholder="Contoh: Senior AI Developer"
-                                required
-                            />
-                        </Form.Group>
-                    </Row>
-
-                    <Row>
-                        <Form.Group as={Col} md={6}>
-                            <Form.Label className="small fw-bold">
-                                LinkedIn URL
-                            </Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="linkedin"
-                                value={formData.linkedin}
-                                onChange={handleChange}
-                                placeholder="Contoh: linkedin.com/in/budisantoso"
-                            />
-                        </Form.Group>
-                        <Form.Group as={Col} className="mb-3">
-                            <Form.Label className="small fw-bold">
-                                Expertise Tags
-                            </Form.Label>
-                            <Select
-                                isMulti
-                                value={formData.expertise}
-                                onChange={(selected) =>
-                                    setFormData({
-                                        ...formData,
-                                        expertise: selected || [],
-                                    })
-                                }
-                                options={kategori_options}
-                                placeholder="Pilih Tag Keahlian..."
-                                classNamePrefix="select form-select"
-                            />
-                        </Form.Group>
-                    </Row>
-
-                    <Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Nama Lengkap *</Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder="Contoh: Budi Santoso, S.Kom"
+                            required
+                        />
+                    </Form.Group>
+                    <Form.Group className="mb-3">
                         <Form.Label className="small fw-bold">
-                            Assign to Session *
+                            Jabatan / Keahlian *
+                        </Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="role"
+                            value={formData.role}
+                            onChange={handleChange}
+                            placeholder="Contoh: Senior AI Developer"
+                            required
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small fw-bold">
+                            Biografi Ringkas
+                        </Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            name="bio"
+                            value={formData.bio}
+                            onChange={handleChange}
+                            placeholder="Ceritakan singkat latar belakang pembicara..."
+                        />
+                    </Form.Group>
+
+                    {/* Dynamic Social Links dalam Satu Baris */}
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small fw-bold d-flex justify-content-between align-items-center">
+                            Tautan Media Sosial
+                        </Form.Label>
+                        {formData.social_links.map((link, index) => (
+                            <InputGroup className="mb-2" key={index}>
+                                <Form.Select
+                                    style={{ maxWidth: "130px" }}
+                                    value={link.platform}
+                                    onChange={(e) =>
+                                        handleSocialLinkChange(
+                                            index,
+                                            "platform",
+                                            e.target.value,
+                                        )
+                                    }
+                                >
+                                    {platformOptions.map((opt) => (
+                                        <option key={opt} value={opt}>
+                                            {opt}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Control
+                                    type="url"
+                                    placeholder="https://..."
+                                    value={link.url}
+                                    onChange={(e) =>
+                                        handleSocialLinkChange(
+                                            index,
+                                            "url",
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                {formData.social_links.length > 1 && (
+                                    <Button
+                                        variant="outline-danger"
+                                        onClick={() => removeSocialLink(index)}
+                                    >
+                                        <Trash2 size={16} />
+                                    </Button>
+                                )}
+                            </InputGroup>
+                        ))}
+                        <Button
+                            variant="link"
+                            className="p-0 text-decoration-none small mt-1 d-flex align-items-center gap-1"
+                            onClick={addSocialLink}
+                        >
+                            <Plus size={16} /> Tambah Link
+                        </Button>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small fw-bold">
+                            Expertise Tags
+                        </Form.Label>
+                        <CreatableSelect
+                            isMulti
+                            value={formData.expertise}
+                            onChange={(selected) =>
+                                setFormData({
+                                    ...formData,
+                                    expertise: selected || [],
+                                })
+                            }
+                            components={{ DropdownIndicator: null }}
+                            placeholder="Ketik keahlian lalu tekan Enter..."
+                            classNamePrefix="select form-select"
+                            formatCreateLabel={(inputValue) =>
+                                `Tambahkan "${inputValue}"`
+                            }
+                        />
+                        <Form.Text className="text-muted small">
+                            Ketik dan tekan Enter untuk menambahkan.
+                        </Form.Text>
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label className="small fw-bold">
+                            Assign to Session
                         </Form.Label>
                         <Select
                             isMulti
@@ -258,14 +357,10 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
                             placeholder={
                                 isLoadingSessions
                                     ? "Memuat sesi..."
-                                    : "Pilih Sesi... (Wajib)"
+                                    : "Pilih Sesi..."
                             }
                             classNamePrefix="select form-select"
                         />
-                        {/* Pesan bantuan untuk user */}
-                        <Form.Text className="text-muted small">
-                            Pembicara harus di-assign minimal ke 1 sesi acara.
-                        </Form.Text>
                     </Form.Group>
                 </Col>
             </Row>
@@ -276,9 +371,10 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
                 </Button>
                 <Button
                     variant="primary"
-                    type="submit"
+                    type="button"
                     className="px-4"
                     disabled={isLoadingSessions}
+                    onClick={handleSubmit}
                 >
                     {isEdit ? "Simpan Perubahan" : "Simpan Speaker"}
                 </Button>

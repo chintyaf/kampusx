@@ -17,7 +17,7 @@ import {
     Trash2,
     MoreVertical,
 } from "lucide-react";
-import EventLayout from "./detail-event/EventLayout";
+import EventLayout from "../../layouts/EventLayout";
 import FormHeading from "../../components/dashboard/FormHeading";
 
 const EventStaffManagement = () => {

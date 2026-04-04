@@ -1,62 +1,89 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import {
-    Form,
-    InputGroup,
-    Badge,
-    CloseButton,
-    Row,
-    Col,
-} from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import Select from "react-select";
-import EventLayout from "../EventLayout";
+import EventLayout from "../../../layouts/EventLayout";
 import api from "../../../api/axios";
 import { notify } from "../../../utils/notify";
 
 // ICON
-import { Image, CheckCircle2 } from "lucide-react";
+import { Image } from "lucide-react";
 
 const EventGeneralInfo = () => {
     const { eventId } = useParams();
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [selectedKategori, setSelectedKategori] = useState([]);
-    const [banner, setBanner] = useState(null);
+    const [errors, setErrors] = useState({});
 
-    // Slug
-    const [slug, setSlug] = useState("");
-    const handleSlugChange = (e) => {
-        const formattedSlug = e.target.value
-            .toLowerCase()
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-]/g, "");
-        setSlug(formattedSlug);
+    // ==========================================
+    // 1. SATU STATE UNTUK SEMUA FORM (Lebih Rapi)
+    // ==========================================
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        banner: null,
+        kategori: [],
+        eventType: [],
+    });
+
+    // STATE UNTUK OPTIONS (Data dari API)
+    const [kategoriOptions, setKategoriOptions] = useState([]);
+    const [eventTypeOptions, setEventTypeOptions] = useState([]);
+
+    // ==========================================
+    // 2. HANDLER UNTUK UBAH STATE
+    // ==========================================
+    // Untuk text input biasa (Title, Description)
+    const handleTextChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Kategori
-    const kategori_options = [
-        { value: "1", label: "Seminar" },
-        { value: "2", label: "Workshop" },
-        { value: "3", label: "Course" },
-    ];
+    // Untuk Multi-Select (Kategori, Event Type)
+    const handleSelectChange = (field, selectedOptions) => {
+        setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
+    };
 
-    // Interest Tagging
-    const [tags, setTags] = useState([]);
-    const [inputValue, setInputValue] = useState("");
-    const handleAddTag = (e) => {
-        if (e.key === "Enter" && inputValue.trim() !== "") {
-            e.preventDefault();
-            if (!tags.includes(inputValue.trim())) {
-                setTags([...tags, inputValue.trim()]);
+    // Untuk File Upload (Banner)
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setFormData((prev) => ({ ...prev, banner: file }));
+    };
+
+    // ==========================================
+    // 3. AMBIL DATA OPTIONS & DATA EVENT
+    // ==========================================
+    useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const [kategoriRes, eventTypeRes] = await Promise.all([
+                    api.get("/categories"),
+                    api.get("/event-types"),
+                ]);
+
+                if (kategoriRes.data.success) {
+                    setKategoriOptions(
+                        kategoriRes.data.data.map((cat) => ({
+                            value: cat.id.toString(),
+                            label: cat.name,
+                        })),
+                    );
+                }
+
+                if (eventTypeRes.data.success) {
+                    setEventTypeOptions(
+                        eventTypeRes.data.data.map((type) => ({
+                            value: type.id.toString(),
+                            label: type.name,
+                        })),
+                    );
+                }
+            } catch (error) {
+                console.error("Gagal mengambil opsi data:", error);
             }
-            setInputValue("");
-        }
-    };
-    const removeTag = (indexToRemove) => {
-        setTags(tags.filter((_, index) => index !== indexToRemove));
-    };
+        };
 
-    // Ambil Data Event
+        fetchOptions();
+    }, []);
+
     useEffect(() => {
         const fetchEventData = async () => {
             try {
@@ -68,20 +95,26 @@ const EventGeneralInfo = () => {
 
                 if (result.status === "success") {
                     const data = result.data;
+                    console.log("Data event yang diambil:", data);
 
-                    setTitle(data.title || "");
-                    setSlug(data.slug || "");
-                    setDescription(data.description || "");
-
-                    if (data.tags_kategori) {
-                        const formattedKategori = data.tags_kategori.map(
-                            (cat) => ({
-                                value: cat.id.toString(),
-                                label: cat.name,
-                            }),
-                        );
-                        setSelectedKategori(formattedKategori);
-                    }
+                    // Langsung set semua data ke dalam satu state
+                    setFormData((prev) => ({
+                        ...prev,
+                        title: data.title || "",
+                        description: data.description || "",
+                        kategori: data.tags_kategori
+                            ? data.tags_kategori.map((cat) => ({
+                                  value: cat.id.toString(),
+                                  label: cat.name,
+                              }))
+                            : [],
+                        eventType: data.event_types
+                            ? data.event_types.map((type) => ({
+                                  value: type.id.toString(),
+                                  label: type.name,
+                              }))
+                            : [],
+                    }));
                 }
             } catch (error) {
                 console.error("Gagal mengambil data event:", error);
@@ -93,30 +126,37 @@ const EventGeneralInfo = () => {
         }
     }, [eventId]);
 
+    // ==========================================
+    // 4. SUBMIT DATA
+    // ==========================================
     const handleUpdate = async () => {
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("slug", slug);
-        formData.append("description", description);
+        // Gunakan nama 'submitData' agar tidak bentrok dengan state 'formData'
+        const submitData = new FormData();
 
-        const kategoriIds = selectedKategori.map((cat) => cat.value);
-        kategoriIds.forEach((id) => formData.append("kategori_ids[]", id));
+        submitData.append("title", formData.title);
+        submitData.append("description", formData.description);
 
-        tags.forEach((tag) => formData.append("tags[]", tag));
+        formData.kategori.forEach((cat) =>
+            submitData.append("kategori_ids[]", cat.value),
+        );
 
-        if (banner) {
-            formData.append("banner", banner);
+        formData.eventType.forEach((type) =>
+            submitData.append("event_type_ids[]", type.value),
+        );
+
+        if (formData.banner) {
+            submitData.append("banner", formData.banner);
         }
 
         try {
             const response = await api.post(
                 `event-dashboard/${eventId}/info-utama/update`,
-                formData,
+                submitData,
                 {
                     headers: { "Content-Type": "multipart/form-data" },
                 },
             );
-            console.log("Sukses update:", response.data);
+
             notify(
                 "success",
                 "Berhasil!",
@@ -135,6 +175,7 @@ const EventGeneralInfo = () => {
             subheading="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
             nextPath="tempat"
             onSave={handleUpdate}
+            // prevPath={}
         >
             <Form>
                 {/* Judul Event */}
@@ -143,26 +184,12 @@ const EventGeneralInfo = () => {
                     <Form.Control
                         required
                         type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        name="title" // Penting untuk handleTextChange
+                        value={formData.title}
+                        onChange={handleTextChange}
                         placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
                     />
                 </Form.Group>
-
-                {/* Link Event */}
-                {/* <Form.Group className="mb-4" controlId="formSlug">
-                    <Form.Label>URL Kustom</Form.Label>
-                    <InputGroup className="mb-4">
-                        <InputGroup.Text id=" fs-6" style={{fontSize : "14px"}}>
-                            kampusx.com/events/
-                        </InputGroup.Text>
-                        <Form.Control
-                            value={slug}
-                            onChange={handleSlugChange}
-                            placeholder="nama-event-kamu"
-                        />
-                    </InputGroup>
-                </Form.Group> */}
 
                 {/* Description */}
                 <Form.Group className="mb-4" controlId="formDescription">
@@ -170,73 +197,46 @@ const EventGeneralInfo = () => {
                     <Form.Control
                         as="textarea"
                         rows={5}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        name="description" // Penting untuk handleTextChange
+                        value={formData.description}
+                        onChange={handleTextChange}
                         placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
                     />
                 </Form.Group>
 
-                {/* Kategori */}
+                {/* Event Type (Multi Select) */}
                 <Form.Group className="mb-4">
-                    <Form.Label>Kategori Event</Form.Label>
+                    <Form.Label>Tipe Event</Form.Label>
                     <Select
                         isMulti
-                        value={selectedKategori}
-                        options={kategori_options}
-                        placeholder="Pilih kategori..."
+                        value={formData.eventType}
+                        options={eventTypeOptions}
+                        placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
                         className="basic-multi-select"
                         classNamePrefix="select form-select"
-                        // PERBAIKAN: Menangkap perubahan opsi
-                        onChange={(selectedOptions) =>
-                            setSelectedKategori(selectedOptions || [])
+                        onChange={(selected) =>
+                            handleSelectChange("eventType", selected)
                         }
                     />
                 </Form.Group>
 
-                {/* Tagging Event */}
-                <Row className="mb-4">
-                    <Form.Group as={Col} controlId="formEventTags">
-                        <Form.Label>Tag Minat</Form.Label>
-                        <div className="border rounded p-2 bg-white">
-                            <div className="d-flex flex-wrap gap-2 mb-2">
-                                {tags.map((tag, index) => (
-                                    <Badge
-                                        key={index}
-                                        bg="secondary"
-                                        className="d-flex align-items-center gap-2 p-2"
-                                        style={{
-                                            fontSize: "0.85rem",
-                                            fontWeight: "500",
-                                        }}
-                                    >
-                                        {tag}
-                                        <CloseButton
-                                            variant="white"
-                                            style={{ fontSize: "0.6rem" }}
-                                            onClick={() => removeTag(index)}
-                                        />
-                                    </Badge>
-                                ))}
-                            </div>
+                {/* Kategori (Multi Select) */}
+                <Form.Group className="mb-4">
+                    <Form.Label>Kategori Event</Form.Label>
+                    <Select
+                        isMulti
+                        value={formData.kategori}
+                        options={kategoriOptions}
+                        placeholder="Pilih kategori (Bisa lebih dari satu)..."
+                        className="basic-multi-select"
+                        classNamePrefix="select form-select"
+                        onChange={(selected) =>
+                            handleSelectChange("kategori", selected)
+                        }
+                    />
+                </Form.Group>
 
-                            <Form.Control
-                                type="text"
-                                placeholder="Tambah tag (e.g. Design) lalu tekan Enter"
-                                value={inputValue}
-                                onKeyDown={handleAddTag}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                className="border-0 shadow-none p-0 ps-1"
-                                style={{ fontSize: "0.9rem" }}
-                            />
-                        </div>
-                        <Form.Text className="text-muted">
-                            Gunakan hingga 5 tag agar event lebih relevan di
-                            hasil pencarian.
-                        </Form.Text>
-                    </Form.Group>
-                </Row>
-
-                {/* Media */}
+                {/* Media Banner */}
                 <Form.Group className="mb-4">
                     <Form.Label>Banner Event</Form.Label>
 
@@ -246,7 +246,7 @@ const EventGeneralInfo = () => {
                             id="bannerUpload"
                             className="hidden-input"
                             accept="image/*"
-                            onChange={(e) => setBanner(e.target.files[0])}
+                            onChange={handleFileChange}
                         />
                         <label
                             htmlFor="bannerUpload"
@@ -255,8 +255,8 @@ const EventGeneralInfo = () => {
                             <div className="text-center">
                                 <Image size={32} color="#a1a1a1" />
                                 <p className="mb-0 text-muted mt-2">
-                                    {banner
-                                        ? banner.name
+                                    {formData.banner
+                                        ? formData.banner.name
                                         : "Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)"}
                                 </p>
                             </div>

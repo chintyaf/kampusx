@@ -52,14 +52,32 @@ const TypeCard = ({ selectedType, onSelectType }) => {
                         className="h-100"
                     >
                         <Card.Body className="p-3">
-                            <div className="d-flex justify-content-between align-items-start mb-3">
-                                <div
-                                    className="p-2 rounded-3 d-flex align-items-center justify-content-center"
-                                    style={{
-                                        backgroundColor: type.bgIconColor,
-                                    }}
-                                >
-                                    {type.icon}
+                            <div className="d-flex justify-content-between align-items-start mb-2">
+                                <div className="d-flex gap-3">
+                                    <div
+                                        className="p-2 rounded-3 d-flex align-items-center justify-content-center"
+                                        style={{
+                                            backgroundColor: type.bgIconColor,
+                                            width: "40px",
+                                            height: "40px",
+                                        }}
+                                    >
+                                        {type.icon}
+                                    </div>
+                                    <div>
+                                        <h6
+                                            className="fw-bold mb-0"
+                                            style={{ fontSize: "1rem" }}
+                                        >
+                                            {type.title}
+                                        </h6>
+                                        <p
+                                            className="text-muted small mb-2"
+                                            style={{ fontSize: "0.85rem" }}
+                                        >
+                                            {type.subtitle}
+                                        </p>
+                                    </div>
                                 </div>
                                 <Form.Check
                                     type="radio"
@@ -70,18 +88,6 @@ const TypeCard = ({ selectedType, onSelectType }) => {
                                 />
                             </div>
 
-                            <h6
-                                className="fw-bold mb-0"
-                                style={{ fontSize: "1rem" }}
-                            >
-                                {type.title}
-                            </h6>
-                            <p
-                                className="text-muted small mb-2"
-                                style={{ fontSize: "0.85rem" }}
-                            >
-                                {type.subtitle}
-                            </p>
                             <p
                                 className="text-secondary mb-0"
                                 style={{

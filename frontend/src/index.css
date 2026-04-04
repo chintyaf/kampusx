@@ -19,9 +19,11 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --color-primary: #00699e;
     --color-secondary: #64748b;
     --color-bg: #f8fafc;
-    --color-border: #dce0e7;
     --color-text: #0f172a;
     --color-text-muted: #212529bf;
+
+    --color-border: #58657a39;
+    --color-border-mid: #c7cdd8;
 
     --color-white: #fff;
 
@@ -98,6 +100,11 @@ p {
 
 .btn-dark:hover {
     background-color: #384657;
+}
+
+.border-darker {
+    border: 1.5px solid !important;
+    border-color: #ced7e0 !important;
 }
 
 /* Mengubah indikator carousel dari garis menjadi titik bulat */

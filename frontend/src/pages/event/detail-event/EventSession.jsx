@@ -3,7 +3,7 @@ import { Form, Card, Row, Col } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 
 import ScheduleTable from "./sections/event-session/ScheduleTable";
-import EventLayout from "../EventLayout";
+import EventLayout from "../../../layouts/EventLayout";
 import SessionDateForm from "./sections/event-session/SessionDateForm";
 
 import api from "../../../api/axios";
@@ -11,6 +11,7 @@ import { notify } from "../../../utils/notify";
 
 const EventAgenda = () => {
     const { eventId } = useParams();
+    const [errors, setErrors] = useState({});
 
     const [sessions, setSessions] = useState([]);
     const [totalDays, setTotalDays] = useState(1);
@@ -100,16 +101,18 @@ const EventAgenda = () => {
         }));
     };
 
+    // --- RETURN PAGE
     return (
         <EventLayout
             heading="Schedule Breakdown"
             subheading="Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
             onSave={handleSave}
             nextPath={"pembicara"}
+            prevPath={"tempat"}
         >
             <Form>
                 <SessionDateForm
-                    formData={formData} // Changed 'data' to 'formData' to match props
+                    formData={formData}
                     totalDays={totalDays}
                     onSetTotalDays={setTotalDays}
                     onChange={handleChange}

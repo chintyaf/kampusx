@@ -1,77 +1,66 @@
-import React from "react";
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Form, InputGroup } from "react-bootstrap";
-import Select from "react-select";
-import EventLayout from "../EventLayout";
-
-import Step1_TypeSelection from "./sections/event-location/Step1_TypeSelection"; // Level 1
-import Step2_DetailLocation from "./sections/event-location/Step2_DetailLocation"; // Level 2
-
+// import { Form, InputGroup } from "react-bootstrap"; // Unused in this snippet
+// import Select from "react-select"; // Unused in this snippet
+import EventLayout from "../../../layouts/EventLayout";
+import Step1_TypeSelection from "./sections/event-location/Step1_TypeSelection";
+import Step2_DetailLocation from "./sections/event-location/Step2_DetailLocation";
 import api from "../../../api/axios";
 import { notify } from "../../../utils/notify";
 
 const EventLocation = () => {
     const { eventId } = useParams();
-
+    const [errors, setErrors] = useState({});
     const [selectedType, setSelectedType] = useState(null);
 
     const [formData, setFormData] = useState({
-        type: "", // Nilainya: 'online', 'offline', atau 'hybrid'
-
-        // Fields untuk Online
+        type: "",
         platform: "",
-        meeting_link: "", // Diubah dari 'link' agar sesuai DB
-        onlineInstruction: "",
-
-        // Fields untuk Offline
+        meeting_link: "",
+        online_instruction: "",
         location: "",
-        locationDetail: "", // Diubah ke snake_case
-        maps_url: "", // Sebaiknya diaktifkan karena ada di DB
-        access_instruction: "", // Diubah ke snake_case
-
-        // Pengaturan Kuota (Untuk Online, Offline, atau Hybrid)
-        is_onlineQuotaUnlimited: false, // Diperbaiki penamaannya
-        is_offllineQuoataUnlimited: false, // Diperbaiki typo: offllineQuoata
-        onlineQuota: 0,
-        offlineQuota: 0,
+        location_detail: "",
+        maps_url: "",
+        offline_instruction: "",
+        is_online_quota_unlimited: false,
+        is_offline_quota_unlimited: false,
+        online_quota: 0,
+        offline_quota: 0,
     });
 
-    const hasFetched = useRef(false); // Inisialisasi guard
+    const hasFetched = useRef(false);
+
     useEffect(() => {
         if (hasFetched.current) return;
+
         const fetchLocationData = async () => {
             try {
                 const response = await api.get(
                     `event-dashboard/${eventId}/info-utama/set-location`,
                 );
-
                 const result = response.data;
 
-                // Memastikan status sukses dan data tersedia
-                if (result.status === "sucesss" && result.data) {
+                if (result.status === "success" && result.data) {
                     const data = result.data;
 
-                    setSelectedType("online");
+                    setSelectedType(data.type);
+
+                    // FIX: Ensure these keys match the formData state exactly!
                     setFormData({
-                        // Menggunakan ?? "" agar jika null/undefined, input tidak menjadi 'uncontrolled'
+                        type: data.type ?? "",
                         platform: data.platform ?? "",
-                        link: data.meeting_link ?? "",
-                        onlineInstruction: data.online_instruction ?? "",
-
-                        // Fields untuk Offline (Jika API menyediakan, masukkan di sini)
+                        meeting_link: data.meetingLink ?? "",
+                        online_instruction: data.onlineInstruction ?? "",
                         location: data.location ?? "",
-                        locationDetail: data.location_detail ?? "",
-                        accessInstruction: data.access_instruction ?? "",
-
-                        // Logika Quota: Jika null maka true (unlimited)
-                        is_onlineQuotaUnlimited: data.online_quota === null,
-                        is_offllineQuoataUnlimited: data.offline_quota === null,
-
-                        // Jika ada nilainya pakai nilainya, kalau null jadi 0
-                        onlineQuota: data.online_quota ?? 0,
-                        offlineQuota: data.offline_quota ?? 0,
+                        location_detail: data.locationDetail ?? "",
+                        maps_url: data.mapsUrl ?? "",
+                        offline_instruction: data.offlineInstruction ?? "",
+                        is_online_quota_unlimited: data.onlineQuota === null,
+                        is_offline_quota_unlimited: data.offlineQuota === null,
+                        online_quota: data.onlineQuota ?? 0,
+                        offline_quota: data.offlineQuota ?? 0,
                     });
+
                     hasFetched.current = true;
                 }
             } catch (error) {
@@ -79,13 +68,15 @@ const EventLocation = () => {
             }
         };
 
-        if (eventId) {
+        if (eventId && !hasFetched.current) {
             fetchLocationData();
         }
     }, [eventId]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const value =
+            e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        const { name } = e.target;
 
         setFormData((prev) => ({
             ...prev,
@@ -94,91 +85,94 @@ const EventLocation = () => {
     };
 
     const handleSave = async () => {
-        let payload = {};
+        setErrors({});
 
-        if (selectedType === "online") {
-            payload = {
-                type: "online",
-                platform: formData.platform,
-                meeting_link: formData.link,
-                online_instruction: formData.onlineInstruction,
-                online_quota: formData.onlineQuota,
-            };
-        } else if (selectedType === "offline") {
-            payload = {
-                locationSummary: formData.locationSummary,
-                venueName: formData.venueName,
-                // ... field offline lainnya
-            };
-        } else {
-            payload = formData; // Kirim semua jika hybrid
+        // FIX: Cleaner payload mapping based on selectedType
+        let payload = {
+            type: selectedType,
+            is_online_quota_unlimited: formData.is_online_quota_unlimited,
+            is_offline_quota_unlimited: formData.is_offline_quota_unlimited,
+            online_quota: formData.online_quota,
+            offline_quota: formData.offline_quota,
+        };
+
+        if (selectedType === "online" || selectedType === "hybrid") {
+            payload.platform = formData.platform;
+            payload.meeting_link = formData.meeting_link;
+            payload.online_instruction = formData.online_instruction;
+        }
+
+        if (selectedType === "offline" || selectedType === "hybrid") {
+            payload.location = formData.location;
+            payload.location_detail = formData.location_detail;
+            payload.maps_url = formData.maps_url;
+            payload.offline_instruction = formData.offline_instruction;
         }
 
         try {
-            const response = await api.post(
+            await api.post(
                 `event-dashboard/${eventId}/info-utama/set-location`,
                 payload,
                 {
-                    headers: { "Content-Type": "multipart/form-data" },
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
                 },
             );
-            console.log("Sukses update:", response.data);
+
             notify(
                 "success",
                 "Berhasil!",
                 "Perubahan informasi utama telah disimpan.",
             );
         } catch (error) {
-            console.error("Gagal update data");
+            if (error.response && error.response.status === 422) {
+                setErrors(error.response.data.errors);
+            } else {
+                const errorMsg = error.response?.data?.message || error.message;
+                notify("error", "Sistem Error!", errorMsg);
+            }
             throw error;
         }
     };
 
     return (
-        <>
-            <EventLayout
-                heading="Konfigurasi Teknis & Jadwal Event"
-                subheading="Atur mode kehadiran, lokasi, dan detail sesi acara dalam satu tempat."
-                nextPath="sesi"
-                onSave={handleSave}
-            >
-                <Step1_TypeSelection
+        <EventLayout
+            heading="Konfigurasi Teknis & Jadwal Event"
+            subheading="Atur mode kehadiran, lokasi, dan detail sesi acara dalam satu tempat."
+            nextPath="sesi"
+            prevPath="info"
+            onSave={handleSave}
+        >
+            <Step1_TypeSelection
+                selectedType={selectedType}
+                onSelectType={setSelectedType}
+            />
+
+            {selectedType ? (
+                <Step2_DetailLocation
                     selectedType={selectedType}
-                    onSelectType={setSelectedType}
+                    formData={formData}
+                    onChange={handleChange}
+                    errors={errors}
                 />
-
-                {selectedType ? (
-                    <>
-                        <Step2_DetailLocation
-                            selectedType={selectedType}
-                            formData={formData}
-                            onChange={handleChange}
-                        />
-                        {/* <Step3_Schedule /> */}
-                    </>
-                ) : (
-                    <div className="flex items-center justify-center min-h-[300px] w-full p-6">
-                        <div
-                            className="p-5 w-full max-w-4xl text-center"
-                            style={{
-                                border: "1.5px #d2d7df dashed",
-                                backgroundColor: "#ffffff61",
-                            }}
-                        >
-                            {/* Ikon Bulat dengan Titik Tiga */}
-                            {/* <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center mb-6 text-gray-400">
-                    <MoreHorizontal size={20} />
-                </div> */}
-
-                            {/* Teks Utama */}
-                            <h2 className="fs-5 font-medium text-gray-600">
-                                Pilih tipe kehadiran di atas untuk melanjutkan
-                            </h2>
-                        </div>
+            ) : (
+                <div className="flex items-center justify-center min-h-[300px] w-full p-6">
+                    <div
+                        className="p-5 w-full max-w-4xl text-center"
+                        style={{
+                            border: "1.5px #d2d7df dashed",
+                            backgroundColor: "#ffffff61",
+                        }}
+                    >
+                        <h2 className="fs-5 font-medium text-gray-600">
+                            Pilih tipe kehadiran di atas untuk melanjutkan
+                        </h2>
                     </div>
-                )}
-            </EventLayout>
-        </>
+                </div>
+            )}
+        </EventLayout>
     );
 };
 

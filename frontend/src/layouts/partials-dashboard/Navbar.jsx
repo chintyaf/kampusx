@@ -42,6 +42,11 @@ const ProfileDropdown = () => {
         console.log("Logging out...");
     };
 
+    if (!user) {
+        return null;
+    }
+
+
     return (
         <>
             <div className="dropdown">

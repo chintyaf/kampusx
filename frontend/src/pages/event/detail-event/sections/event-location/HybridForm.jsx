@@ -13,7 +13,7 @@ import OnlineForm from "./OnlineForm";
 import OfflineForm from "./OfflineForm";
 import QuotaCard from "./QuotaCard";
 
-const HybridForm = ({ data, onChange }) => {
+const HybridForm = ({ data, onChange, errors }) => {
     const [currentType, setCurrentType] = useState("online");
     const [quota, setQuota] = useState({ online: 0, offline: 0 });
 
@@ -73,10 +73,10 @@ const HybridForm = ({ data, onChange }) => {
 
                 {/* Form Berdasarkan Tipe Kehadiran */}
                 {currentType === "online" && (
-                    <OnlineForm data={data} onChange={onChange} />
+                    <OnlineForm data={data} onChange={onChange} errors={errors} />
                 )}
                 {currentType === "offline" && (
-                    <OfflineForm data={data} onChange={onChange} />
+                    <OfflineForm data={data} onChange={onChange} errors={errors}    />
                 )}
                 <hr />
 

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Http\Request;
-use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
@@ -9,11 +8,18 @@ use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\TicketController;
 
 // Organizer Dashboard
-use App\Http\Controllers\Api\EventDashboardController;
+// use App\Http\Controllers\Api\EventDashboardController;
 use App\Http\Controllers\Api\OrganizerEventController;
-use App\Http\Controllers\Api\EventDas\EventDetailController;
-use App\Http\Controllers\Api\EventDas\EventSessionController;
-use App\Http\Controllers\Api\EventDas\EventSpeakerController;
+
+// use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventDetailController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
+
+use App\Http\Controllers\Api\EventTypeController;
+use App\Http\Controllers\Api\InstitutionController;
+use App\Http\Controllers\Api\CategoryController;
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
@@ -68,22 +74,23 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Group: Event Dashboard (Manage Detail Event)
         Route::prefix('event-dashboard/{eventId}')->group(function () {
+            // Detail Event
             Route::prefix('info-utama')->group(function () {
                 // General Info
-                Route::get('/', [EventDashboardController::class, 'getGeneralInfo']);
-                Route::post('/update', [EventDashboardController::class, 'updateGeneralInfo']);
+                Route::get('/', [EventGeneralInfoController::class, 'index']);
+                Route::post('/update', [EventGeneralInfoController::class, 'update']);
 
                 // Location
-                Route::get('/set-location', [EventDetailController::class, 'getLocation']);
-                Route::post('/set-location', [EventDetailController::class, 'setLocation']);
+                Route::get('/set-location', [EventLocationController::class, 'index']);
+                Route::post('/set-location', [EventLocationController::class, 'update']);
 
                 // Session
                 Route::get('/session', [EventSessionController::class, 'getSession']);
                 Route::post('/session', [EventSessionController::class, 'setSession']);
 
                 // Speaker
-                Route::get('/speaker', [EventSpeakerController::class, 'getSpeakers']);
-                Route::post('/speaker', [EventSpeakerController::class, 'setSpeakers']);
+                Route::get('/speaker', [EventSpeakerController::class, 'index']);
+                Route::post('/speaker', [EventSpeakerController::class, 'update']);
             });
         });
 
@@ -100,3 +107,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::post('/admin/suspend-user/{id}', [AdminController::class, 'suspendUser']);
     });
 });
+
+
+// Category
+Route::get('/categories', [CategoryController::class, 'index']);
+
+// Event Type
+Route::get('/event-types', [EventTypeController::class, 'index']);
+
+// Institution
+Route::get('/institutions', [InstitutionController::class, 'index']);

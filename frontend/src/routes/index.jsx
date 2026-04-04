@@ -30,6 +30,8 @@ import EventStatistics from "../pages/event/EventStatisticsPage";
 import EventPromotion from "../pages/event/EventPromotionPage";
 // END CREATE EVENT PAGES
 
+import NotFound from "../pages/NotFoundPage";
+
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
 // import ExploreEvents from "../pages/ExploreEvents";
@@ -145,6 +147,7 @@ const AppRoutes = () => {
                     element={<Navigate to="/dashboard" replace />}
                 /> */}
                 </Route>
+                    <Route path="*" element={<NotFound />} />
             </Routes>
         </Suspense>
     );

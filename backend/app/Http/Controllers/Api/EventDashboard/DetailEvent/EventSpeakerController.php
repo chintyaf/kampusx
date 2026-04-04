@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Api\EventDas;
+namespace App\Http\Controllers\Api\EventDashboard\DetailEvent;
+
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ class EventSpeakerController extends Controller
     /**
      * Mengambil daftar pembicara berdasarkan Event ID
      */
-    public function getSpeakers($eventId)
+    public function index($eventId)
     {
         try {
             // Mengambil speaker yang terhubung dengan sesi pada event ini
@@ -45,46 +46,50 @@ class EventSpeakerController extends Controller
     /**
      * Menyimpan atau mengupdate daftar pembicara
      */
-    public function setSpeakers(Request $request, $eventId) // <-- Tambahkan parameter $eventId di sini
+    public function update(Request $request, $eventId)
     {
         // Validasi struktur data yang dikirim dari React
         $request->validate([
-            'speakers'              => 'required|array',
-            'speakers.*.name'       => 'required|string|max:255',
-            'speakers.*.role'       => 'nullable|string|max:255',
+            'speakers'                  => 'required|array',
+            'speakers.*.id'             => 'nullable|exists:speakers,id', // Opsional: pastikan ID valid jika dikirim untuk update
+            'speakers.*.name'           => 'required|string|max:255',
+            'speakers.*.role'           => 'nullable|string|max:255',
+            'speakers.*.bio'            => 'nullable|string', // Tambahkan validasi bio
 
-            'speakers.*.social_links'   => 'nullable|array',
-            'speakers.*.social_links.*' => 'url', // Opsional: memastikan isinya format URL yang valid
+            // Sesuaikan key dengan nama kolom di database (social_link)
+            'speakers.*.social_link'             => 'nullable|array',
+            'speakers.*.social_link.*.platform'  => 'required_with:speakers.*.social_link|string',
+            'speakers.*.social_link.*.url'       => 'required_with:speakers.*.social_link|url',
 
-            'speakers.*.expertise'  => 'nullable|array',
-            // Pastikan sesi ada karena relasi DB membutuhkan event_session_id
-            'speakers.*.sessions'   => 'required|array|min:1',
-            'speakers.*.sessions.*' => 'exists:event_sessions,id',
+            'speakers.*.expertise'      => 'nullable|array',
+
+            // Relasi ke tabel pivot
+            'speakers.*.sessions'       => 'nullable|array',
+            'speakers.*.sessions.*'     => 'exists:event_sessions,id',
         ]);
 
         try {
             DB::beginTransaction();
 
             foreach ($request->speakers as $speakerData) {
-                // Ambil ID sesi pertama sebagai foreign_key utama (wajib ada di tabel speakers)
-                $primarySessionId = $speakerData['sessions'][0];
 
                 // Proses Simpan / Update
+                // Kita tidak lagi menyimpan session_id di tabel speaker, melainkan event_id
                 $speaker = Speaker::updateOrCreate(
-                    ['id' => $speakerData['id'] ?? null],
+                    ['id' => $speakerData['id'] ?? null], // Cari berdasarkan ID jika ada
                     [
-                        'event_session_id' => $primarySessionId,
-                        'name'             => $speakerData['name'],
-                        'role'             => $speakerData['role'] ?? null,
-                        'social_links'     => $speakerData['social_links'] ?? null,
-                        // Jika model Speaker sudah ada "protected $casts = ['expertise' => 'array'];"
-                        // kita bisa langsung memasukkan array-nya, Laravel yang otomatis mengubah jadi JSON
-                        'expertise'        => $speakerData['expertise'] ?? null,
+                        'event_id'    => $eventId, // Gunakan parameter $eventId dari URL
+                        'name'        => $speakerData['name'],
+                        'role'        => $speakerData['role'] ?? null,
+                        'bio'         => $speakerData['bio'] ?? null, // Simpan data bio
+                        'social_link' => $speakerData['social_link'] ?? null, // Simpan sebagai array (Laravel cast ke JSON)
+                        'expertise'   => $speakerData['expertise'] ?? null,
                     ]
                 );
 
                 // Update data di pivot table 'event_session_speakers'
                 if (isset($speakerData['sessions'])) {
+                    // Sync akan mengurus insert & delete relasi otomatis di tabel pivot
                     $speaker->sessions()->sync($speakerData['sessions']);
                 }
             }

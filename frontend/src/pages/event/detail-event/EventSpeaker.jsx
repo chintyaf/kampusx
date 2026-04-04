@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useCallback } from "react";
-import EventLayout from "../EventLayout";
-import { Collapse, Button } from "react-bootstrap";
+import EventLayout from "../../../layouts/EventLayout";
+import { Form, Collapse, Button } from "react-bootstrap";
 import { Users } from "lucide-react";
 import { useParams } from "react-router-dom";
 
 import SpeakerForm from "./sections/event-speaker/SpeakerForm";
 import SpeakerCard from "./sections/event-speaker/SpeakerCard";
 
+import SectionPlaceholder from "../../../components/form/SectionPlaceholder";
+
 import api from "../../../api/axios";
 import { notify } from "../../../utils/notify";
 
 const EventSpeaker = () => {
     const { eventId } = useParams();
+    const [errors, setErrors] = useState({});
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingSpeakerId, setEditingSpeakerId] = useState(null);
@@ -130,6 +133,7 @@ const EventSpeaker = () => {
             }
 
             notify("error", "Gagal!", errorMsg);
+            throw error;
         }
     };
 
@@ -139,30 +143,14 @@ const EventSpeaker = () => {
             subheading="Kelola profil pengisi acara dan hubungkan mereka dengan sesi yang relevan."
             nextPath={"formulir"}
             onSave={handleSave}
+            prevPath={"sesi"}
         >
-            <div>
+            <Form>
                 {speakers.length > 0 ? (
                     speakers.map((speaker) => (
                         <div key={speaker.id}>
                             <SpeakerCard
-                                name={speaker.name}
-                                role={speaker.role}
-                                tags={speaker.expertise}
-                                linkedin={speaker.linkedin}
-                                session={
-                                    speaker.sessions &&
-                                    speaker.sessions.length > 0
-                                        ? speaker.sessions
-                                              .map(
-                                                  (s) =>
-                                                      s.name ||
-                                                      s.title ||
-                                                      s.label ||
-                                                      s,
-                                              )
-                                              .join(", ")
-                                        : "Belum ada sesi"
-                                }
+                                data={speaker}
                                 onEdit={() => handleEditClick(speaker.id)}
                                 onDelete={() => handleDeleteSpeaker(speaker.id)}
                             />
@@ -186,22 +174,7 @@ const EventSpeaker = () => {
                         </div>
                     ))
                 ) : (
-                    <div
-                        className="text-center p-5 mb-4 border rounded-4 bg-light"
-                        style={{ borderStyle: "dashed" }}
-                    >
-                        <Users
-                            size={48}
-                            className="text-muted mb-3 opacity-50"
-                        />
-                        <h6 className="fw-bold text-muted mb-1">
-                            Belum ada data pembicara
-                        </h6>
-                        <p className="text-muted small mb-0">
-                            Silakan klik tombol di bawah untuk menambahkan
-                            pembicara baru.
-                        </p>
-                    </div>
+                    <SectionPlaceholder />
                 )}
 
                 {showAddForm ? (
@@ -224,7 +197,7 @@ const EventSpeaker = () => {
                         + Tambah Speaker
                     </Button>
                 )}
-            </div>
+            </Form>
         </EventLayout>
     );
 };

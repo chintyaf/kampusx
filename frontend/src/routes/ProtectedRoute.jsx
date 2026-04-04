@@ -7,7 +7,7 @@ const ProtectedRoute = ({ allowedRole = [] }) => {
 
     // 1. Cek ketat: tendang ke signin kalau tidak ada token, atau userJson kosong/bernilai string "null"/"undefined"
     if (!token || !userJson || userJson === "null" || userJson === "undefined") {
-        return <Navigate to="/signin" replace />;
+        return <Navigate to="/login" replace />;
     }
 
     try {
@@ -15,7 +15,7 @@ const ProtectedRoute = ({ allowedRole = [] }) => {
 
         // 2. Cek ekstra: Pastikan hasil parse benar-benar object (bukan null)
         if (!user) {
-            return <Navigate to="/signin" replace />;
+            return <Navigate to="/login" replace />;
         }
 
         const userRole = user.role;
@@ -34,11 +34,11 @@ const ProtectedRoute = ({ allowedRole = [] }) => {
         return <Outlet />;
     } catch (error) {
         console.error("Error parsing user data:", error);
-        
+
         // Bersihkan localStorage yang korup agar tidak nyangkut terus
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        
+
         return <Navigate to="/signin" replace />;
     }
 };
