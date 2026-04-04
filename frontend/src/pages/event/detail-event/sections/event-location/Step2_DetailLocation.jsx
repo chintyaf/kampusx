@@ -27,13 +27,25 @@ const Step2_DetailLocation = ({ selectedType, formData, onChange, errors }) => {
 
             {/* Form Berdasarkan Tipe Kehadiran */}
             {selectedType === "online" && (
-                <OnlineForm data={formData} onChange={onChange} errors={errors} />
+                <OnlineForm
+                    data={formData}
+                    onChange={onChange}
+                    errors={errors}
+                />
             )}
             {selectedType === "offline" && (
-                <OfflineForm data={formData} onChange={onChange} errors={errors} />
+                <OfflineForm
+                    data={formData}
+                    onChange={onChange}
+                    errors={errors}
+                />
             )}
             {selectedType === "hybrid" && (
-                <HybridForm data={formData} onChange={onChange} errors={errors} />
+                <HybridForm
+                    data={formData}
+                    onChange={onChange}
+                    errors={errors}
+                />
             )}
 
             {/* Tombol Simpan (CREATE/UPDATE) */}

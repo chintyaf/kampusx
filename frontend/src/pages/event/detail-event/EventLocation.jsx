@@ -14,14 +14,28 @@ const EventLocation = () => {
     const [selectedType, setSelectedType] = useState(null);
 
     const [formData, setFormData] = useState({
-        type: "",
+        type: "", // 'online', 'offline', atau 'hybrid'
+
+        // --- Field Online ---
         platform: "",
         meeting_link: "",
         online_instruction: "",
-        location: "",
+
+        // --- Field Offline ---
+        location_name: "", // Diperbaiki: sebelumnya 'location'
         location_detail: "",
         maps_url: "",
         offline_instruction: "",
+
+        latitude: "",
+        longitude: "",
+        country: "",
+        province: "",
+        city: "",
+        district: "",
+        address_detail: "",
+
+        // --- Field Kuota ---
         is_online_quota_unlimited: false,
         is_offline_quota_unlimited: false,
         online_quota: 0,
@@ -36,29 +50,46 @@ const EventLocation = () => {
         const fetchLocationData = async () => {
             try {
                 const response = await api.get(
-                    `event-dashboard/${eventId}/info-utama/set-location`,
+                    `event-dashboard/${eventId}/info-utama/location`,
                 );
                 const result = response.data;
 
                 if (result.status === "success" && result.data) {
-                    const data = result.data;
+                    const d = result.data; // pakai alias 'd' biar ngetiknya lebih singkat
 
-                    setSelectedType(data.type);
+                    setSelectedType(d.type);
+                    console.log("Data lokasi yang di-fetch:", d); // Debug log untuk melihat data yang diterima
 
-                    // FIX: Ensure these keys match the formData state exactly!
                     setFormData({
-                        type: data.type ?? "",
-                        platform: data.platform ?? "",
-                        meeting_link: data.meetingLink ?? "",
-                        online_instruction: data.onlineInstruction ?? "",
-                        location: data.location ?? "",
-                        location_detail: data.locationDetail ?? "",
-                        maps_url: data.mapsUrl ?? "",
-                        offline_instruction: data.offlineInstruction ?? "",
-                        is_online_quota_unlimited: data.onlineQuota === null,
-                        is_offline_quota_unlimited: data.offlineQuota === null,
-                        online_quota: data.onlineQuota ?? 0,
-                        offline_quota: data.offlineQuota ?? 0,
+                        type: d.type ?? "",
+
+                        // --- Field Online ---
+                        platform: d.platform ?? "",
+                        meeting_link: d.meeting_link ?? "",
+                        online_instruction: d.online_instruction ?? "",
+
+                        // --- Field Offline ---
+                        location_name: d.location_name ?? "",
+                        location_detail: d.location_detail ?? "",
+                        maps_url: d.maps_url ?? "",
+                        offline_instruction: d.offline_instruction ?? "",
+
+                        // --- Field Koordinat ---
+                        latitude: d.latitude ?? "",
+                        longitude: d.longitude ?? "",
+
+                        // --- Field Hierarki Alamat ---
+                        country: d.country ?? "",
+                        province: d.province ?? "",
+                        city: d.city ?? "",
+                        district: d.district ?? "",
+                        address_detail: d.address_detail ?? "",
+
+                        // --- Field Kuota ---
+                        is_online_quota_unlimited: d.online_quota === null,
+                        is_offline_quota_unlimited: d.offline_quota === null,
+                        online_quota: d.online_quota ?? 0,
+                        offline_quota: d.offline_quota ?? 0,
                     });
 
                     hasFetched.current = true;
@@ -103,10 +134,25 @@ const EventLocation = () => {
         }
 
         if (selectedType === "offline" || selectedType === "hybrid") {
-            payload.location = formData.location;
+            // --- Field Utama Offline ---
+            payload.location_name = formData.location_name; // Diperbarui dari 'location'
             payload.location_detail = formData.location_detail;
             payload.maps_url = formData.maps_url;
             payload.offline_instruction = formData.offline_instruction;
+
+            // --- Field Koordinat ---
+            // Konversi string kosong ke null agar tidak error di field database bertipe decimal
+            payload.latitude =
+                formData.latitude !== "" ? formData.latitude : null;
+            payload.longitude =
+                formData.longitude !== "" ? formData.longitude : null;
+
+            // --- Field Hierarki Alamat ---
+            payload.country = formData.country;
+            payload.province = formData.province;
+            payload.city = formData.city;
+            payload.district = formData.district;
+            payload.address_detail = formData.address_detail;
         }
 
         try {

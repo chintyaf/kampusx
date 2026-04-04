@@ -107,11 +107,21 @@ return new class extends Migration {
             $table->text('meeting_link')->nullable();
             $table->text('online_instruction')->nullable();
 
-
             // --- Field untuk Offline ---
-            $table->string('location')->nullable();
+            $table->string('location_name')->nullable();
             $table->string('location_detail')->nullable();
             $table->text('maps_url')->nullable();
+
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+
+            // --- Hierarki Alamat ---
+            $table->string('country')->nullable();
+            $table->string('province')->nullable();     // Contoh: "Jawa Barat"
+            $table->string('city')->nullable();         // Contoh: "Kota Bandung"
+            $table->string('district')->nullable();     // Contoh: "Sukajadi" (Kecamatan/Daerah)
+            $table->string('address_detail')->nullable(); // Contoh: "Jl. Surya Sumantri No. 65"
+
             $table->text('offline_instruction')->nullable();
 
 

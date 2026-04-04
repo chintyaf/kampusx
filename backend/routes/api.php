@@ -81,8 +81,8 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::post('/update', [EventGeneralInfoController::class, 'update']);
 
                 // Location
-                Route::get('/set-location', [EventLocationController::class, 'index']);
-                Route::post('/set-location', [EventLocationController::class, 'update']);
+                Route::get('/location', [EventLocationController::class, 'index']);
+                Route::post('/location', [EventLocationController::class, 'update']);
 
                 // Session
                 Route::get('/session', [EventSessionController::class, 'getSession']);

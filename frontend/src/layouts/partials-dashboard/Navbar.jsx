@@ -3,16 +3,11 @@ import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 import userImg from "../../assets/images/user-placeholder.avif";
-import Button from "../../components/Button";
 import EventStatusDropdown from "../../components/event/EventStatusDropdown";
 import NotificationDropdown from "../../components/NotificationDropdown";
 import LogoKampusX from "../../assets/images/logo/Logo_KampusX.svg";
 
 import {
-    Bell,
-    BellDotIcon,
-    SquarePen,
-    ChevronDown,
     LogOut,
     Menu, // Import Menu icon
 } from "lucide-react";
@@ -55,6 +50,15 @@ const ProfileDropdown = () => {
                 className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
                 style={{ minWidth: "150px" }}
             >
+                <li>
+                    <NavLink
+                        to=""
+                        className="dropdown-item d-flex align-items-center gap-2 py-2"
+                    >
+                        <LogOut size={16} />
+                        <span>Halaman Utama</span>
+                    </NavLink>
+                </li>
                 {(user.role === "admin" || user.role === "organizer") && (
                     <li>
                         <NavLink
