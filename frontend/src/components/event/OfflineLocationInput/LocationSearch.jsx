@@ -2,11 +2,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Form, ListGroup, Spinner } from "react-bootstrap";
 
-const LocationSearch = ({ setLocationData }) => {
-    const [searchQuery, setSearchQuery] = useState("");
+const LocationSearch = ({ setLocationData, initialValue = "" }) => {
+    // 1. Inisialisasi searchQuery dengan initialValue jika ada
+    const [searchQuery, setSearchQuery] = useState(initialValue);
     const [suggestions, setSuggestions] = useState([]);
     const [isTyping, setIsTyping] = useState(false);
     const searchRef = useRef(null);
+
+    // 2. State untuk mengunci query API jika data dipilih/sudah ada
+    const [selected, setSelected] = useState(initialValue !== "");
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -19,7 +23,14 @@ const LocationSearch = ({ setLocationData }) => {
     }, []);
 
     useEffect(() => {
-        if (searchQuery.length < 3) return setSuggestions([]);
+        // JANGAN lakukan fetch jika:
+        // - Karakter < 3
+        // - State 'selected' bernilai true (data sudah ada/baru dipilih)
+        if (searchQuery.length < 3 || selected) {
+            setSuggestions([]);
+            return;
+        }
+
         setIsTyping(true);
         const timer = setTimeout(async () => {
             try {
@@ -33,16 +44,19 @@ const LocationSearch = ({ setLocationData }) => {
                 setIsTyping(false);
             }
         }, 500);
+
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, selected]); // Tambahkan 'selected' ke dependency
 
     const handleSelect = (place) => {
         const addr = place.address;
+        const displayName = place.display_name;
+
         setLocationData({
             location_name: place.name || searchQuery,
             address_detail: addr.road
                 ? `${addr.road} ${addr.house_number || ""}`.trim()
-                : "",
+                : displayName,
             country: addr.country || "Indonesia",
             province: addr.state || "",
             city: addr.city || addr.regency || addr.town || "",
@@ -50,8 +64,21 @@ const LocationSearch = ({ setLocationData }) => {
             latitude: parseFloat(place.lat),
             longitude: parseFloat(place.lon),
         });
-        setSearchQuery(place.display_name);
+
+        setSelected(true); // Kunci query setelah memilih
+        setSearchQuery(displayName);
         setSuggestions([]);
+    };
+
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setSearchQuery(value);
+
+        // Jika user menghapus atau mengubah teks, buka kunci 'selected'
+        // agar fitur pencarian otomatis aktif kembali
+        if (selected) {
+            setSelected(false);
+        }
     };
 
     return (
@@ -59,14 +86,8 @@ const LocationSearch = ({ setLocationData }) => {
             <Form.Control
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleInputChange}
                 placeholder="Cari tempat (Cth: Paris Van Java)"
-                style={{
-                    fontSize: "var(--font-md)",
-                    color: "var(--color-text)",
-                    borderColor: "var(--color-border-mid)",
-                }}
-                className="py-2 shadow-sm"
             />
             {isTyping && (
                 <Spinner

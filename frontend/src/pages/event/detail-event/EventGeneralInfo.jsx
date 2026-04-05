@@ -1,21 +1,17 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useOutletContext } from "react-router-dom";
 import { Form } from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../../../layouts/EventLayout";
 import api from "../../../api/axios";
 import { notify } from "../../../utils/notify";
-
 // ICON
 import { Image } from "lucide-react";
 
 const EventGeneralInfo = () => {
     const { eventId } = useParams();
-    const [errors, setErrors] = useState({});
+    const { setIsPageLoading } = useOutletContext() || {};
 
-    // ==========================================
-    // 1. SATU STATE UNTUK SEMUA FORM (Lebih Rapi)
-    // ==========================================
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -24,80 +20,100 @@ const EventGeneralInfo = () => {
         eventType: [],
     });
 
-    // STATE UNTUK OPTIONS (Data dari API)
+    // ==========================================
+    // STATE UNTUK OPTIONS & LOADING DROPDOWN
+    // ==========================================
     const [kategoriOptions, setKategoriOptions] = useState([]);
+    const [isKategoriLoading, setIsKategoriLoading] = useState(false);
+    const [isKategoriFetched, setIsKategoriFetched] = useState(false); // Flag agar tidak fetch berulang
+
     const [eventTypeOptions, setEventTypeOptions] = useState([]);
+    const [isEventTypeLoading, setIsEventTypeLoading] = useState(false);
+    const [isEventTypeFetched, setIsEventTypeFetched] = useState(false); // Flag agar tidak fetch berulang
 
     // ==========================================
-    // 2. HANDLER UNTUK UBAH STATE
+    // HANDLER UNTUK UBAH STATE
     // ==========================================
-    // Untuk text input biasa (Title, Description)
     const handleTextChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Untuk Multi-Select (Kategori, Event Type)
     const handleSelectChange = (field, selectedOptions) => {
         setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
     };
 
-    // Untuk File Upload (Banner)
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         setFormData((prev) => ({ ...prev, banner: file }));
     };
 
     // ==========================================
-    // 3. AMBIL DATA OPTIONS & DATA EVENT
+    // FETCH DATA ON DEMAND (SAAT DROPDOWN DIKLIK)
+    // ==========================================
+    const fetchEventTypes = async () => {
+        // Jika data sudah pernah di-fetch, jangan hit API lagi
+        if (isEventTypeFetched) return;
+
+        setIsEventTypeLoading(true);
+        try {
+            const res = await api.get("/event-types");
+            if (res.data.success) {
+                setEventTypeOptions(
+                    res.data.data.map((type) => ({
+                        value: type.id.toString(),
+                        label: type.name,
+                    })),
+                );
+                setIsEventTypeFetched(true); // Tandai sudah di-fetch
+            }
+        } catch (error) {
+            console.error("Gagal mengambil opsi event type:", error);
+        } finally {
+            setIsEventTypeLoading(false);
+        }
+    };
+
+    const fetchCategories = async () => {
+        // Jika data sudah pernah di-fetch, jangan hit API lagi
+        if (isKategoriFetched) return;
+
+        setIsKategoriLoading(true);
+        try {
+            const res = await api.get("/categories");
+            if (res.data.success) {
+                setKategoriOptions(
+                    res.data.data.map((cat) => ({
+                        value: cat.id.toString(),
+                        label: cat.name,
+                    })),
+                );
+                setIsKategoriFetched(true); // Tandai sudah di-fetch
+            }
+        } catch (error) {
+            console.error("Gagal mengambil opsi kategori:", error);
+        } finally {
+            setIsKategoriLoading(false);
+        }
+    };
+
+    // ==========================================
+    // AMBIL DATA EVENT UTAMA SAAT MOUNT
     // ==========================================
     useEffect(() => {
-        const fetchOptions = async () => {
-            try {
-                const [kategoriRes, eventTypeRes] = await Promise.all([
-                    api.get("/categories"),
-                    api.get("/event-types"),
-                ]);
+        // PERHATIKAN: useEffect untuk fetchOptions (kategori & event-type) sudah dihapus dari sini.
 
-                if (kategoriRes.data.success) {
-                    setKategoriOptions(
-                        kategoriRes.data.data.map((cat) => ({
-                            value: cat.id.toString(),
-                            label: cat.name,
-                        })),
-                    );
-                }
-
-                if (eventTypeRes.data.success) {
-                    setEventTypeOptions(
-                        eventTypeRes.data.data.map((type) => ({
-                            value: type.id.toString(),
-                            label: type.name,
-                        })),
-                    );
-                }
-            } catch (error) {
-                console.error("Gagal mengambil opsi data:", error);
-            }
-        };
-
-        fetchOptions();
-    }, []);
-
-    useEffect(() => {
         const fetchEventData = async () => {
+            if (setIsPageLoading) setIsPageLoading(true);
+
             try {
                 const response = await api.get(
                     `event-dashboard/${eventId}/info-utama`,
                 );
-
                 const result = response.data;
 
                 if (result.status === "success") {
                     const data = result.data;
-                    console.log("Data event yang diambil:", data);
-
-                    // Langsung set semua data ke dalam satu state
                     setFormData((prev) => ({
                         ...prev,
                         title: data.title || "",
@@ -118,19 +134,20 @@ const EventGeneralInfo = () => {
                 }
             } catch (error) {
                 console.error("Gagal mengambil data event:", error);
+            } finally {
+                if (setIsPageLoading) setIsPageLoading(false);
             }
         };
 
         if (eventId) {
             fetchEventData();
         }
-    }, [eventId]);
+    }, [eventId, setIsPageLoading]);
 
     // ==========================================
-    // 4. SUBMIT DATA
+    // SUBMIT DATA
     // ==========================================
     const handleUpdate = async () => {
-        // Gunakan nama 'submitData' agar tidak bentrok dengan state 'formData'
         const submitData = new FormData();
 
         submitData.append("title", formData.title);
@@ -175,29 +192,27 @@ const EventGeneralInfo = () => {
             subheading="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
             nextPath="tempat"
             onSave={handleUpdate}
-            // prevPath={}
         >
             <Form>
-                {/* Judul Event */}
+                {/* ... Input Judul & Deskripsi tetap sama ... */}
                 <Form.Group className="mb-4" controlId="formTitle">
                     <Form.Label>Nama Event</Form.Label>
                     <Form.Control
                         required
                         type="text"
-                        name="title" // Penting untuk handleTextChange
+                        name="title"
                         value={formData.title}
                         onChange={handleTextChange}
                         placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
                     />
                 </Form.Group>
 
-                {/* Description */}
                 <Form.Group className="mb-4" controlId="formDescription">
                     <Form.Label>Deskripsi Lengkap</Form.Label>
                     <Form.Control
                         as="textarea"
                         rows={5}
-                        name="description" // Penting untuk handleTextChange
+                        name="description"
                         value={formData.description}
                         onChange={handleTextChange}
                         placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
@@ -211,6 +226,8 @@ const EventGeneralInfo = () => {
                         isMulti
                         value={formData.eventType}
                         options={eventTypeOptions}
+                        isLoading={isEventTypeLoading} // Menampilkan spinner saat fetch
+                        onMenuOpen={fetchEventTypes} // Trigger API saat dropdown diklik
                         placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
                         className="basic-multi-select"
                         classNamePrefix="select form-select"
@@ -227,6 +244,8 @@ const EventGeneralInfo = () => {
                         isMulti
                         value={formData.kategori}
                         options={kategoriOptions}
+                        isLoading={isKategoriLoading} // Menampilkan spinner saat fetch
+                        onMenuOpen={fetchCategories} // Trigger API saat dropdown diklik
                         placeholder="Pilih kategori (Bisa lebih dari satu)..."
                         className="basic-multi-select"
                         classNamePrefix="select form-select"
@@ -236,10 +255,9 @@ const EventGeneralInfo = () => {
                     />
                 </Form.Group>
 
-                {/* Media Banner */}
+                {/* Media Banner tetap sama */}
                 <Form.Group className="mb-4">
                     <Form.Label>Banner Event</Form.Label>
-
                     <div className="upload-box-wrapper">
                         <input
                             type="file"

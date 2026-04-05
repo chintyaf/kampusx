@@ -11,27 +11,15 @@ class EventLocationController extends Controller
 {
     public function index($eventId) {
         $event = Event::with('locationDetail')->findOrFail($eventId);
-        $location = $event->locationDetail;
+        $data = $event->locationDetail;
 
-        if (!$location) {
+        if (!$data) {
             return response()->json([
                 'status' => 'success',
                 'data' => null
             ]);
         }
 
-        $data = [
-            'type'               => $location->type,
-            'platform'           => $location->platform,
-            'meetingLink'        => $location->meeting_link,
-            'onlineInstruction'  => $location->online_instruction,
-            'location'           => $location->location,
-            'locationDetail'     => $location->location_detail,
-            'mapsUrl'            => $location->maps_url,
-            'offlineInstruction' => $location->offline_instruction,
-            'onlineQuota'        => $location->online_quota,
-            'offlineQuota'       => $location->offline_quota,
-        ];
 
         return response()->json([
             'status' => "success",
@@ -70,19 +58,6 @@ class EventLocationController extends Controller
             ? null
             : ($validated['offline_quota'] ?? 0);
 
-        // CLEANUP: Ensure irrelevant data is wiped when switching types
-        if ($validated['type'] === 'online') {
-            $validated['location'] = null;
-            $validated['location_detail'] = null;
-            $validated['maps_url'] = null;
-            $validated['offline_instruction'] = null;
-            $validated['offline_quota'] = null;
-        } elseif ($validated['type'] === 'offline') {
-            $validated['platform'] = null;
-            $validated['meeting_link'] = null;
-            $validated['online_instruction'] = null;
-            $validated['online_quota'] = null;
-        }
 
         // Unset boolean flags as they likely don't exist in the DB columns
         unset($validated['is_online_quota_unlimited']);

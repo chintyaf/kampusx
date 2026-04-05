@@ -100,6 +100,7 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
                 <Dropdown.Toggle
                     as={CustomToggle}
                     style={{
+                        boxShadow: "none",
                         backgroundColor: current.bg,
                         borderColor: current.border,
                         color: current.color,
@@ -121,80 +122,79 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 
                 <Dropdown.Menu
                     className="p-0 border-0 mt-2"
-                    style={{
-                        minWidth: 220,
-                        borderRadius: 12,
-                        boxShadow:
-                            "0 0 0 1px rgba(0,105,158,0.06), 0 16px 32px -8px rgba(7,48,74,0.18), 0 4px 10px -2px rgba(0,0,0,0.08)",
-                        overflow: "hidden",
-                    }}
+                    style={{ borderRadius: 12, shadowColor: "none" }}
                 >
                     <div
-                        className="px-3 py-2 text-uppercase fw-bold text-secondary border-bottom bg-light"
-                        style={{ fontSize: 10, letterSpacing: "0.7px" }}
+                        className="border pop-down"
+                        style={{ borderRadius: 12, overflow: "hidden" }}
                     >
-                        Ubah Status
-                    </div>
+                        <div
+                            className="px-3 py-2 text-uppercase fw-bold text-secondary border-bottom bg-light"
+                            style={{ fontSize: 10, letterSpacing: "0.7px" }}
+                        >
+                            Ubah Status
+                        </div>
 
-                    {ALL_STATUSES.map((s) => {
-                        const cfg = STATUS_CONFIG[s];
-                        const isActive = s === status;
+                        {ALL_STATUSES.map((s) => {
+                            const cfg = STATUS_CONFIG[s];
+                            const isActive = s === status;
 
-                        return (
-                            <Dropdown.Item
-                                key={s}
-                                onClick={() => handleSelectStatus(s)}
-                                className="d-flex align-items-center gap-2 px-3 py-2 border-bottom"
-                                style={{
-                                    backgroundColor: isActive
-                                        ? "#f0f9ff"
-                                        : "transparent",
-                                    transition: "background 0.12s ease",
-                                }}
-                            >
-                                <div
-                                    className="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+                            return (
+                                <Dropdown.Item
+                                    key={s}
+                                    onClick={() => handleSelectStatus(s)}
+                                    className="d-flex align-items-center gap-2 px-3 py-2 border-bottom"
                                     style={{
-                                        width: 32,
-                                        height: 32,
-                                        border: `1.5px solid ${cfg.border}`,
-                                        backgroundColor: cfg.bg,
+                                        backgroundColor: isActive
+                                            ? "#f0f9ff"
+                                            : "transparent",
+                                        transition: "background 0.12s ease",
                                     }}
                                 >
-                                    <cfg.icon
-                                        size={15}
-                                        color={cfg.color}
-                                        strokeWidth={2}
-                                    />
-                                </div>
-                                <div className="flex-grow-1 ms-1">
                                     <div
-                                        className="fw-semibold text-dark"
+                                        className="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
                                         style={{
-                                            fontSize: 13,
-                                            lineHeight: 1.2,
+                                            width: 32,
+                                            height: 32,
+                                            border: `1.5px solid ${cfg.border}`,
+                                            backgroundColor: cfg.bg,
                                         }}
                                     >
-                                        {cfg.label}
+                                        <cfg.icon
+                                            size={15}
+                                            color={cfg.color}
+                                            strokeWidth={2}
+                                        />
                                     </div>
-                                    <div
-                                        className="text-secondary mt-1"
-                                        style={{ fontSize: 11 }}
-                                    >
-                                        {cfg.desc}
+                                    <div className="flex-grow-1 ms-1">
+                                        <div
+                                            className="fw-semibold text-dark"
+                                            style={{
+                                                fontSize: 13,
+                                                lineHeight: 1.2,
+                                            }}
+                                        >
+                                            {cfg.label}
+                                        </div>
+                                        <div
+                                            className="text-secondary mt-1"
+                                            style={{ fontSize: 11 }}
+                                        >
+                                            {cfg.desc}
+                                        </div>
                                     </div>
-                                </div>
-                                {isActive && (
-                                    <Check
-                                        size={14}
-                                        color="#0089cb"
-                                        strokeWidth={2.5}
-                                        className="flex-shrink-0 ms-2"
-                                    />
-                                )}
-                            </Dropdown.Item>
-                        );
-                    })}
+                                    {isActive && (
+                                        <Check
+                                            size={14}
+                                            color="#0089cb"
+                                            strokeWidth={2.5}
+                                            className="flex-shrink-0 ms-2"
+                                        />
+                                    )}
+                                </Dropdown.Item>
+                            );
+                        })}
+                    </div>
                 </Dropdown.Menu>
             </Dropdown>
 

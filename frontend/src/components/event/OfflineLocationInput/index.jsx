@@ -1,5 +1,5 @@
 // index.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { MapPin, Edit3, Search, Info } from "lucide-react";
 
@@ -10,7 +10,7 @@ import MapVisualizer from "./MapVisualizer";
 import LocationSummary from "./LocationSummary";
 import NearbyCampuses from "./NearbyCampuses";
 
-const OfflineLocationInput = () => {
+const OfflineLocationInput = ({ onLocationChange, data }) => {
     const [isManualMode, setIsManualMode] = useState(false);
     const [locationData, setLocationData] = useState({
         location_name: "",
@@ -23,24 +23,28 @@ const OfflineLocationInput = () => {
         longitude: null,
     });
 
+    useEffect(() => {
+        if (data) {
+            setLocationData({
+                location_name: data.location_name,
+                address_detail: data.address_detail,
+                country: data.country,
+                province: data.province,
+                city: data.city,
+                district: data.district,
+                latitude: data.latitude,
+                longitude: data.longitude,
+            });
+        }
+    }, [data]);
     const isLocationSelected =
         locationData.latitude !== null && locationData.longitude !== null;
 
     return (
         <div className="mb-4">
             {/* Header & Toggle Mode */}
-            <div className="d-flex justify-content-between align-items-center mb-2">
-                <Form.Label
-                    className="d-flex align-items-center gap-2 mb-0 fw-bold"
-                    style={{
-                        fontSize: "var(--font-md)",
-                        color: "var(--color-text)",
-                    }}
-                >
-                    <MapPin
-                        size={20}
-                        style={{ color: "var(--color-primary)" }}
-                    />{" "}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <Form.Label className="d-flex align-items-center gap-2 mb-0 fw-bold">
                     Tentukan Titik Lokasi Peta
                 </Form.Label>
                 <Button
@@ -67,7 +71,11 @@ const OfflineLocationInput = () => {
 
             {/* Input Section (Auto / Manual) */}
             {!isManualMode ? (
-                <LocationSearch setLocationData={setLocationData} />
+                // Jika data sudah ada (Edit Mode)
+                <LocationSearch
+                    setLocationData={setLocationData}
+                    initialValue={locationData.address_detail}
+                />
             ) : (
                 <ManualLocationForm
                     locationData={locationData}

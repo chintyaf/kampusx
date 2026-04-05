@@ -22,7 +22,7 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --color-text: #0f172a;
     --color-text-muted: #212529bf;
 
-    --color-border: #58657a39;
+    --color-border: #3762a739;
     --color-border-blue: #3a6ecf;
 
     --color-white: #fff;
@@ -39,6 +39,8 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --bahama-blue-800: #055c87;
     --bahama-blue-900: #0a4c70;
     --bahama-blue-950: #07304a;
+
+    --color-bg-2 : #f1f5f9;
 }
 
 * {
@@ -179,4 +181,12 @@ p {
 
 .toast {
     box-shadow: none !important;
+}
+
+
+/* In your CSS */
+@keyframes loading-bar {
+    0% { width: 0%; left: 0; }
+    50% { width: 100%; left: 0; }
+    100% { width: 0%; left: 100%; }
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form, Container, Button, InputGroup } from "react-bootstrap";
+import { Form, Container, Button, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "../assets/css/form.css";
@@ -13,7 +13,7 @@ const EventLayout = ({
     nextPath,
     prevPath,
     onSave,
-}) => {
+}) => { 
     const navigate = useNavigate();
     const [isSaving, setIsSaving] = useState(false);
     const handleSaveAndContinue = async () => {
@@ -42,7 +42,7 @@ const EventLayout = ({
 
     return (
         <>
-            {/* Header Bagian */}
+            {/* Header Section */}
             <div className="mb-4 d-flex align-items-start">
                 <div>
                     <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
@@ -51,14 +51,40 @@ const EventLayout = ({
                     <p className="text-muted small mb-0">{subheading}</p>
                 </div>
             </div>
-            <div className="d-flex flex-column gap-4">{children}</div>
+
+            {/* Children Container with Loading State */}
+            <div className="position-relative">
+                {isSaving && (
+                    <div
+                        className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
+                        style={{
+                            background: "rgba(255, 255, 255, 0.7)",
+                            zIndex: 10,
+                            borderRadius: "8px",
+                        }}
+                    >
+                        <Spinner animation="border" variant="dark" />
+                    </div>
+                )}
+
+                <div
+                    className="d-flex flex-column gap-4"
+                    style={{
+                        opacity: isSaving ? 0.5 : 1,
+                        pointerEvents: isSaving ? "none" : "auto",
+                    }}
+                >
+                    {children}
+                </div>
+            </div>
+
+            {/* Footer Buttons */}
             <div className="w-100 d-flex justify-content-end mt-4 gap-4">
                 {prevPath && (
                     <Button
                         variant="dark"
-                        onClick={() =>
-                            prevPath ? navigate(`../${prevPath}`) : navigate(-1)
-                        }
+                        disabled={isSaving}
+                        onClick={() => navigate(`../${prevPath}`)}
                     >
                         Back
                     </Button>
@@ -68,7 +94,7 @@ const EventLayout = ({
                     onClick={handleSaveAndContinue}
                     disabled={isSaving}
                 >
-                    Selanjutnya
+                    {isSaving ? "Saving..." : "Selanjutnya"}
                 </Button>
             </div>
         </>

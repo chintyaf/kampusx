@@ -1,12 +1,19 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 
 const ProtectedRoute = ({ allowedRole = [] }) => {
     const token = localStorage.getItem("token");
     const userJson = localStorage.getItem("user");
+    const context = useOutletContext();
 
     // 1. Cek ketat: tendang ke signin kalau tidak ada token, atau userJson kosong/bernilai string "null"/"undefined"
-    if (!token || !userJson || userJson === "null" || userJson === "undefined") {
+    if (
+        !token ||
+        !userJson ||
+        userJson === "null" ||
+        userJson === "undefined"
+    ) {
         return <Navigate to="/login" replace />;
     }
 
@@ -31,7 +38,7 @@ const ProtectedRoute = ({ allowedRole = [] }) => {
         }
 
         // 4. Semua aman, render halaman
-        return <Outlet />;
+        return <Outlet context={context} />;
     } catch (error) {
         console.error("Error parsing user data:", error);
 

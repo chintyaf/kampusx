@@ -10,16 +10,16 @@ const ManualLocationForm = ({ locationData, setLocationData }) => {
     };
 
     const formFields = [
+        // {
+        //     label: "Negara",
+        //     name: "country",
+        //     placeholder: "Cth: Indonesia",
+        //     type: "text",
+        // },
         {
-            label: "Nama Tempat / Gedung",
+            label: "Nama Lokasi",
             name: "location_name",
-            placeholder: "Cth: Universitas Kristen Maranatha",
-            type: "text",
-        },
-        {
-            label: "Detail Alamat (Jalan/No)",
-            name: "address_detail",
-            placeholder: "Cth: Jl. Surya Sumantri No. 65",
+            placeholder: "Cth: Gedung Utama",
             type: "text",
         },
         {
@@ -41,11 +41,12 @@ const ManualLocationForm = ({ locationData, setLocationData }) => {
             type: "text",
         },
         {
-            label: "Negara",
-            name: "country",
-            placeholder: "Cth: Indonesia",
+            label: "Detail Alamat (Jalan/No)",
+            name: "address_detail",
+            placeholder: "Cth: Jl. Surya Sumantri No. 65",
             type: "text",
         },
+
         {
             label: "Latitude (Lintang)",
             name: "latitude",
@@ -62,10 +63,10 @@ const ManualLocationForm = ({ locationData, setLocationData }) => {
 
     return (
         <Card
-            className="mb-3 shadow-sm border-0"
+            className="mb-3"
             style={{
-                backgroundColor: "var(--color-white)",
-                border: `1px solid var(--color-border-mid)`,
+                backgroundColor: "#ffffff",
+                border: `2px solid var(--color-border)`,
             }}
         >
             <Card.Body className="p-3">

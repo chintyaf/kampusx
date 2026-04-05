@@ -102,7 +102,7 @@ const EventLocation = () => {
         if (eventId && !hasFetched.current) {
             fetchLocationData();
         }
-    }, [eventId]);
+    }, []);
 
     const handleChange = (e) => {
         const value =
