@@ -4,6 +4,7 @@ import { Form } from "react-bootstrap";
 import Select from "react-select";
 import EventLayout from "../../../layouts/EventLayout";
 import api from "../../../api/axios";
+import { STORAGE_URL } from "../../../api/storage";
 import { notify } from "../../../utils/notify";
 // ICON
 import { Image } from "lucide-react";
@@ -45,7 +46,11 @@ const EventGeneralInfo = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        setFormData((prev) => ({ ...prev, banner: file }));
+        if (file) {
+            // Tambahkan properti preview ke dalam objek file secara temporary
+            file.preview = URL.createObjectURL(file);
+            setFormData((prev) => ({ ...prev, banner: file }));
+        }
     };
 
     // ==========================================
@@ -111,6 +116,7 @@ const EventGeneralInfo = () => {
                     `event-dashboard/${eventId}/info-utama`,
                 );
                 const result = response.data;
+                console.log("Data event yang di-fetch:", result); // Debug log
 
                 if (result.status === "success") {
                     const data = result.data;
@@ -118,6 +124,7 @@ const EventGeneralInfo = () => {
                         ...prev,
                         title: data.title || "",
                         description: data.description || "",
+                        banner: data.banner || null,
                         kategori: data.tags_kategori
                             ? data.tags_kategori.map((cat) => ({
                                   value: cat.id.toString(),
@@ -206,7 +213,6 @@ const EventGeneralInfo = () => {
                         placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
                     />
                 </Form.Group>
-
                 <Form.Group className="mb-4" controlId="formDescription">
                     <Form.Label>Deskripsi Lengkap</Form.Label>
                     <Form.Control
@@ -218,7 +224,6 @@ const EventGeneralInfo = () => {
                         placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
                     />
                 </Form.Group>
-
                 {/* Event Type (Multi Select) */}
                 <Form.Group className="mb-4">
                     <Form.Label>Tipe Event</Form.Label>
@@ -236,7 +241,6 @@ const EventGeneralInfo = () => {
                         }
                     />
                 </Form.Group>
-
                 {/* Kategori (Multi Select) */}
                 <Form.Group className="mb-4">
                     <Form.Label>Kategori Event</Form.Label>
@@ -254,7 +258,6 @@ const EventGeneralInfo = () => {
                         }
                     />
                 </Form.Group>
-
                 {/* Media Banner tetap sama */}
                 <Form.Group className="mb-4">
                     <Form.Label>Banner Event</Form.Label>
@@ -274,13 +277,42 @@ const EventGeneralInfo = () => {
                                 <Image size={32} color="#a1a1a1" />
                                 <p className="mb-0 text-muted mt-2">
                                     {formData.banner
-                                        ? formData.banner.name
+                                        ? // Cek apakah formData.banner adalah File Object (punya properti name)
+                                          // Jika bukan (berarti string URL), ambil potongan terakhir dari URL tersebut
+                                          formData.banner.name ||
+                                          formData.banner.split("/").pop()
                                         : "Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)"}
                                 </p>
                             </div>
                         </label>
                     </div>
                 </Form.Group>
+                <div>
+                    {formData.banner && (
+                        <div
+                            className="w-100 border mt-3"
+                            style={{
+                                height: "200px",
+                                overflow: "hidden",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <img
+                                src={
+                                    formData.banner instanceof File
+                                        ? formData.banner.preview // Jika file baru, gunakan URL blob temporary
+                                        : formData.banner // Jika string (dari database), gunakan langsung
+                                }
+                                alt="Banner Preview"
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                }}
+                            />
+                        </div>
+                    )}
+                </div>
             </Form>
         </EventLayout>
     );

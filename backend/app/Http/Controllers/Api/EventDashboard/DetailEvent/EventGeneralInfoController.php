@@ -34,7 +34,7 @@ class EventGeneralInfoController extends Controller
             'data' => [
                 'title'         => $event->title,
                 'description'   => $event->description,
-                'banner'        => $event->banner_path ? url('storage/' . $event->banner_path) : null,
+                'banner'        => $event->image_path ? url('storage/' . $event->image_path ) : null,
 
                 // Menyesuaikan dengan response yang dibaca di useEffect React
                 'tags_kategori' => $event->categories->map(function($cat) {
@@ -91,7 +91,7 @@ class EventGeneralInfoController extends Controller
 
                     // Simpan banner baru
                     $path = $request->file('banner')->store('event-banners', 'public');
-                    $updateData['banner_path'] = $path;
+                    $updateData['image_path'] = $path;
                 }
 
                 $event->update($updateData);
