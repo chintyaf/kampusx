@@ -46,7 +46,7 @@ class EventSeeder extends Seeder
                 'title' => 'Tech Startup Conference 2026',
                 'description' => 'Konferensi tahunan untuk para penggiat startup dan teknologi. Dapatkan insight langsung dari para praktisi industri ternama.',
                 // HAPUS ATAU KOMENTARI BARIS DI BAWAH INI
-                // 'location_type' => 'offline', 
+                // 'location_type' => 'offline',
                 'start_date' => Carbon::now()->addDays(10)->setTime(9, 0),
                 'end_date' => Carbon::now()->addDays(10)->setTime(17, 0),
                 'status' => 'published',
@@ -60,7 +60,7 @@ class EventSeeder extends Seeder
                 'title' => 'Workshop UI/UX Design Figma',
                 'description' => 'Belajar membuat desain UI/UX interaktif menggunakan Figma dari nol sampai mahir dalam 1 hari full.',
                 // HAPUS ATAU KOMENTARI BARIS DI BAWAH INI
-                // 'location_type' => 'online', 
+                // 'location_type' => 'online',
                 'start_date' => Carbon::now()->addDays(3)->setTime(13, 0),
                 'end_date' => Carbon::now()->addDays(3)->setTime(16, 0),
                 'status' => 'published',

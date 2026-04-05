@@ -91,7 +91,7 @@ return new class extends Migration {
 
             $table->foreignId('session_id')->constrained('event_sessions')->cascadeOnDelete();
             $table->foreignId('speaker_id')->constrained('speakers')->cascadeOnDelete();
-            $table->unique(['session_id', 'speaker_id']);
+             $table->unique(['session_id', 'speaker_id']);
         });
 
         Schema::create('event_locations', function (Blueprint $table) {

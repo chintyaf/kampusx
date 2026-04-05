@@ -33,6 +33,14 @@ class Institution extends Model
         return $this->belongsToMany(Event::class, 'event_collaborators')
                     ->withPivot('role');
     }
-
+    
+    // Di dalam file app/Models/Institution.php
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($institution) {
+            $institution->slug = \Illuminate\Support\Str::slug($institution->name);
+        });
+    }
 
 }

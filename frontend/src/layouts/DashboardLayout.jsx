@@ -1,6 +1,7 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useState } from "react"; // Tambahkan useState
+import { useParams } from "react-router-dom";
 
 import Sidebar from "./partials-dashboard/Sidebar.jsx";
 import Navbar from "./partials-dashboard/Navbar.jsx";
@@ -12,6 +13,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 const DashboardLayout = () => {
+    const { eventId } = useParams();
     const location = useLocation();
     const path = location.pathname;
 
@@ -43,6 +45,7 @@ const DashboardLayout = () => {
         >
             {/* Kirim state dan toggle ke Navbar */}
             <Navbar
+                eventId={eventId}
                 toggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 showToggleBtn={showSidebar}
             />

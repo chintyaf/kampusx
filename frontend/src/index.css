@@ -23,7 +23,7 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --color-text-muted: #212529bf;
 
     --color-border: #58657a39;
-    --color-border-mid: #c7cdd8;
+    --color-border-blue: #3a6ecf;
 
     --color-white: #fff;
 
@@ -34,7 +34,7 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
     --bahama-blue-300: #7bd6fe;
     --bahama-blue-400: #34c2fc;
     --bahama-blue-500: #0aabed;
-    --bahama-blue-600: #0089cb;
+    --bahama-blue-600: #3c84a8;
     --bahama-blue-700: #00699e; /* Primary / Locked */
     --bahama-blue-800: #055c87;
     --bahama-blue-900: #0a4c70;

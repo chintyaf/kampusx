@@ -96,7 +96,7 @@ const ProfileDropdown = () => {
 };
 
 // Terima props dari DashboardLayout
-const Navbar = ({ toggleSidebar, showToggleBtn }) => {
+const Navbar = ({ eventId, toggleSidebar, showToggleBtn }) => {
     const location = useLocation();
 
     const isAdmin = location.pathname.startsWith("/admin");
@@ -138,7 +138,7 @@ const Navbar = ({ toggleSidebar, showToggleBtn }) => {
 
                 <div className="d-flex align-items-center gap-3">
                     <NotificationDropdown />
-                    <EventStatusDropdown isInsideEvent={isInsideEvent} />
+                    <EventStatusDropdown eventId={eventId} isInsideEvent={isInsideEvent} />
 
                     {isOrganizer && !isInsideEvent && (
                         <NavLink

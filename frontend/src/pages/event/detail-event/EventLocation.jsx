@@ -157,7 +157,7 @@ const EventLocation = () => {
 
         try {
             await api.post(
-                `event-dashboard/${eventId}/info-utama/set-location`,
+                `event-dashboard/${eventId}/info-utama/location`,
                 payload,
                 {
                     headers: {

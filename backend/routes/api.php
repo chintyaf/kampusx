@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\EventDashboard\EventPublishController;
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
@@ -93,6 +94,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::post('/speaker', [EventSpeakerController::class, 'update']);
             });
         });
+
+    // Mengecek apa saja data yang masih kurang (GET)
+    Route::get('/events/{event}/publish-status', [EventPublishController::class, 'checkStatus']);
+
+    // Mengeksekusi aksi publish (POST)
+    Route::post('/events/{event}/publish', [EventPublishController::class, 'publish']);
 
     });
 
