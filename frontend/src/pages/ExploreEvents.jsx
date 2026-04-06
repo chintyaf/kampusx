@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import { Users, Wifi, Calendar, Ticket, MapPin, User, Filter, RotateCcw, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../api/axios';
 
 const ExploreEvents = () => {
     const [events, setEvents] = useState([]);
@@ -13,15 +14,28 @@ const ExploreEvents = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/events');
+                // 2. GUNAKAN API.GET DENGAN RELATIVE PATH
+                // Karena baseURL biasanya sudah disetting di instance 'api'
+                const response = await api.get('/events'); 
                 
-                // Ambil data (sesuaikan jika ada pagination)
-                const eventData = response.data.data || response.data;
-                setEvents(eventData);
+                const result = response.data;
+
+                // 3. SESUAIKAN DENGAN STRUKTUR PENGAMBILAN DATA
+                // Cek status success dan ambil isinya
+                if (result.status === "success" || result.data) {
+                    // Terkadang Laravel paginator membungkus data lagi di dalam 'data'
+                    // Jadi kita gunakan fallback agar aman
+                    const eventData = result.data.data || result.data; 
+                    setEvents(eventData);
+                } else {
+                    // Fallback jika API langsung mengembalikan array tanpa wrapper
+                    setEvents(result); 
+                }
+                
                 setIsLoading(false);
             } catch (err) {
-                console.error("Gagal mengambil data:", err);
-                setError("Terjadi kesalahan saat memuat data event. Pastikan server Laravel menyala.");
+                console.error("Gagal mengambil data event:", err);
+                setError("Terjadi kesalahan saat memuat data event. Pastikan server menyala.");
                 setIsLoading(false);
             }
         };
