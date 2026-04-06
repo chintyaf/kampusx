@@ -5,6 +5,7 @@ import RouteProgressBar from "../components/RouteProgressBar";
 import VisitorLayout from "../layouts/MainLayout";
 import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
+import MemberLayout from "../layouts/MemberLayout";
 
 // Import daftar rute
 import visitorRoutes from "./PublicRoutes";
@@ -43,6 +44,7 @@ import Checkout from "../pages/event/Checkout";
 import TicketDetail from "../pages/TicketDetail";
 import EventSpace from "../pages/member/EventSpace";
 import { useAuth } from "../context/AuthContext";
+import MyTickets from "../pages/member/MyTickets";
 
 const AppRoutes = () => {
     // const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -103,6 +105,11 @@ const AppRoutes = () => {
                     {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
                     <Route path="/ticket/:ticketCode" element={<TicketDetail />} />
                     <Route path="/event-space/:id" element={<EventSpace />} />
+                </Route>
+                <Route element={<MemberLayout />}>
+                    <Route path="/my-tickets" element={<MyTickets />} />
+                    {/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
+                    {/* Tambahkan halaman member lainnya di sini nanti */}
                 </Route>
 
                 {/* Group Dashboard */}
