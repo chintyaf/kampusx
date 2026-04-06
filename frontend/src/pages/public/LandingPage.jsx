@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../../api/axios";
 import {
   Carousel,
   Container,
@@ -195,10 +195,11 @@ const LandingPage = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/events");
+        const response = await api.get("events");
+        const result = response.data;
 
         // 1. Tambahkan baris ini persis seperti di halaman Explore
-        const eventData = response.data.data || response.data;
+        const eventData = result.data || result;
 
         // 2. Ganti response.data.map menjadi eventData.map
         const formattedEvents = eventData.map((ev) => {
