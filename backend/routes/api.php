@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\PasswordResetController; 
 
 // Organizer Dashboard
 use App\Http\Controllers\Api\EventDashboardController;
@@ -20,7 +21,9 @@ use App\Http\Controllers\Api\EventDas\EventSpeakerController;
 // ==========================================
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
+Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 // Landing Page & Explore Event
 Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi index() di EventController
 Route::get('/events/explore', [EventController::class, 'explore']);

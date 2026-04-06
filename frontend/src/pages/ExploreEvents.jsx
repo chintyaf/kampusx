@@ -98,7 +98,7 @@ const ExploreEvents = () => {
                                     </Form.Group>
 
                                     <Form.Group className="mb-4">
-                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Online Type</Form.Label>
+                                        <Form.Label className="fw-semibold" style={{ fontSize: 'var(--font-sm)' }}>Location Type</Form.Label>
                                         <Form.Check type="checkbox" label="Online" id="online-1" style={{ fontSize: 'var(--font-sm)' }} />
                                         <Form.Check type="checkbox" label="In-Person" id="online-2" style={{ fontSize: 'var(--font-sm)' }} />
                                     </Form.Group>
