@@ -105,7 +105,35 @@ const ProfileDropdown = () => {
 };
 
 const Navbar = () => {
+    const { user } = useAuth();
     const location = useLocation();
+
+    if (user?.role !== "admin" && user?.role !== "organizer") {
+        return (
+            <nav className="navbar">
+                <div className="nav-content w-100 d-flex justify-content-between align-items-center" style={{ padding: "10px 60px 10px 40px" }}>
+                    
+                    {/* Logo arahkan ke home / dashboard member */}
+                    <NavLink to="/" className="link-dark text-decoration-none">
+                        <img src={LogoKampusX} alt="KampusX" style={{ width: "130px" }} />
+                    </NavLink>
+
+                    <div className="d-flex align-items-center gap-3">
+                        {/* Menu Khusus Member */}
+                        <NavLink to="/explore-events" className="text-decoration-none text-dark fw-semibold me-3">
+                            Eksplor Event
+                        </NavLink>
+                        <NavLink to="/member/tiket-saya" className="text-decoration-none text-dark fw-semibold me-3">
+                            Tiket Saya
+                        </NavLink>
+                        
+                        <NotificationDropdown />
+                        <ProfileDropdown />
+                    </div>
+                </div>
+            </nav>
+        );
+    }
 
     const isAdmin = location.pathname.startsWith("/admin");
     const isOrganizer = location.pathname.startsWith("/organizer");
