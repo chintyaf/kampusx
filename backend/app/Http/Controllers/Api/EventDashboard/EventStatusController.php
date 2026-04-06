@@ -10,10 +10,42 @@ use Illuminate\Validation\Rule;
 
 class EventStatusController extends Controller
 {
+    public function index(Event $event)
+    {
+        // Ambil daftar error dari model
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Event sudah lengkap dan siap dipublish!',
+            'data' => [
+                'status' => $event->status,
+            ]
+        ], 200);
+    }
+
+    public function update(Request $request, Event $event)
+    {
+        // Cek apakah status yang dikirim memang 'draft'
+        if ($request->status === 'draft') {
+            $event->update([
+                'status' => 'draft'
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Event berhasil diubah menjadi draft!',
+            ], 200);
+        }
+
+        // Tangani kondisi jika status bukan draft atau tidak ada perubahan
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Tidak ada perubahan yang dilakukan.',
+        ], 400);
+    }
     /**
      * Melihat status kelayakan event untuk dipublish (apa saja yang kurang)
      */
-    public function checkStatus(Event $event)
+    public function getMissingData(Event $event)
     {
         // Ambil daftar error dari model
         $missingData = $event->getPublishErrors();
@@ -36,7 +68,7 @@ class EventStatusController extends Controller
     /**
      * Action ketika user menekan tombol "Publish"
      */
-    public function publish(Request $request, Event $event)
+    public function updatePublish(Request $request, Event $event)
     {
         // ... (Kode publish yang sudah kita buat sebelumnya tetap sama) ...
         $errors = $event->getPublishErrors();
@@ -53,7 +85,7 @@ class EventStatusController extends Controller
         $errors = $event->getPublishErrors();
         if (count($errors) > 0) {
             return response()->json([
-                'success' => false,
+                'status' => `false`,
             'message' => 'Tidak dapat mem-publish event karena data belum lengkap.',
                 'errors'  => $errors
             ], 422);
@@ -77,4 +109,47 @@ class EventStatusController extends Controller
             'message' => 'Event berhasil dipublish!',
         ], 200);
     }
+
+    public function updateDraft(Request $request, Event $event)
+    {
+     // Cek apakah status yang dikirim memang 'draft'
+        if ($request->status === 'draft') {
+            $event->update([
+                'status' => 'draft'
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Event berhasil diubah menjadi draft!',
+            ], 200);
+        }
+
+        // Tangani kondisi jika status bukan draft atau tidak ada perubahan
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Tidak ada perubahan yang dilakukan.',
+        ], 400);
+    }
+
+    public function updateArchive(Request $request, Event $event)
+    {
+     // Cek apakah status yang dikirim memang 'draft'
+        if ($request->status === 'draft') {
+            $event->update([
+                'status' => 'draft'
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Event berhasil diubah menjadi draft!',
+            ], 200);
+        }
+
+        // Tangani kondisi jika status bukan draft atau tidak ada perubahan
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Tidak ada perubahan yang dilakukan.',
+        ], 400);
+    }
+
 }

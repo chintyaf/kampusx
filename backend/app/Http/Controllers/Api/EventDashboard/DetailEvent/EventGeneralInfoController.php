@@ -70,7 +70,9 @@ class EventGeneralInfoController extends Controller
             'kategori_ids.*'     => 'nullable|exists:categories,id',
             'event_type_ids'     => 'nullable|array',
             'event_type_ids.*'   => 'nullable|exists:event_types,id',
-            'banner'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048' // Max 2MB
+            'banner'             => $request->hasFile('banner')
+                            ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
+                            : 'nullable',
         ]);
 
         try {
@@ -82,15 +84,24 @@ class EventGeneralInfoController extends Controller
                     'description' => $validated['description'] ?? null,
                 ];
 
-                // 2. Handle Upload Banner Jika Ada
+              // Di dalam method update(Request $request, $eventId)
                 if ($request->hasFile('banner')) {
-                    // Hapus banner lama jika ada
-                    if ($event->banner_path && Storage::disk('public')->exists($event->banner_path)) {
-                        Storage::disk('public')->delete($event->banner_path);
+                    // 1. Ambil data event untuk cek file lama
+                    // Pastikan menggunakan kolom yang konsisten (image_path)
+                    if ($event->image_path && Storage::disk('public')->exists($event->image_path)) {
+                        Storage::disk('public')->delete($event->image_path);
                     }
 
-                    // Simpan banner baru
-                    $path = $request->file('banner')->store('event-banners', 'public');
+                    // 2. Simpan file baru dengan path berdasarkan eventId
+                    // Opsi A: Folder berdasarkan eventId, nama file random (Direkomendasikan)
+                    // $path = $request->file('banner')->store("events/{$event->id}/banner", 'public');
+
+                    // /* Opsi B: Jika ingin nama filenya juga mengandung ID, misal: banner_123.jpg
+                    $extension = $request->file('banner')->getClientOriginalExtension();
+                    $fileName = "banner_" . time() . "." . $extension;
+                    $path = $request->file('banner')->storeAs("events/{$event->id}", $fileName, 'public');
+
+
                     $updateData['image_path'] = $path;
                 }
 

@@ -97,8 +97,15 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
     // Mengecek apa saja data yang masih kurang (GET)
-    Route::get('/events/{event}/check-status', [EventStatusController::class, 'checkStatus']);
-    Route::post('/events/{event}/publish', [EventStatusController::class, 'publish']);
+    Route::get('/events/{event}/status', [EventStatusController::class, 'index']);
+    Route::post('/events/{event}/status', [EventStatusController::class, 'update']);
+
+    Route::get('/events/{event}/check-status', [EventStatusController::class, 'getMissingData']);
+
+    Route::post('/events/{event}/publish', [EventStatusController::class, 'updatePublish']);
+    Route::post('/events/{event}/draft', [EventStatusController::class, 'updateDraft']);
+    Route::post('/events/{event}/artchived', [EventStatusController::class, 'updateArchive']);
+
 
     });
 

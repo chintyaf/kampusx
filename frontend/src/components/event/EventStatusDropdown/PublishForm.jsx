@@ -14,7 +14,7 @@ const PublishForm = ({ onCancel, onConfirm, show }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const { eventId } = useParams();
 
-	const convertToSlug = text => {
+	const convertToSlug = (text) => {
 		return text
 			.toLowerCase()
 			.trim()
@@ -24,7 +24,7 @@ const PublishForm = ({ onCancel, onConfirm, show }) => {
 	};
 
 	// Fungsi Helper di dalam komponen (atau pindahkan ke file utils)
-	const handleSlugChange = value => {
+	const handleSlugChange = (value) => {
 		setSlug(convertToSlug(value));
 	};
 
@@ -89,12 +89,12 @@ const PublishForm = ({ onCancel, onConfirm, show }) => {
 			const result = response.data;
 
 			if (result.status === 'success') {
-				notify('Event berhasil dipublish!', 'success');
-				onConfirm(slug); // Kirim slug ke parent saat confirm
+				notify('success', 'Berhasil', result.message);
+				onConfirm();
 			}
 		} catch (error) {
 			console.error('Error saat publish event:', error);
-			notify('Gagal mempublish event. Coba lagi nanti.', 'error');
+			notify('error', 'Terdapata salah', 'Gagal mempublish event. Coba lagi nanti.');
 		}
 	};
 
@@ -198,7 +198,7 @@ const PublishForm = ({ onCancel, onConfirm, show }) => {
 							backgroundColor: '#fff',
 							color: '#0f172a',
 						}}
-						onChange={e => handleSlugChange(e.target.value)}
+						onChange={(e) => handleSlugChange(e.target.value)}
 						disabled={isLoading}
 						isInvalid={showSlugErr}
 						required
