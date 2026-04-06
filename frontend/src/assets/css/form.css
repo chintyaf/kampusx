@@ -38,13 +38,16 @@ form {
 }
 
 .form-control::placeholder,
-.form-select::placeholder {
+.form-select::placeholder,
+.form-select__placeholder {
+    font-size: var(--font-md);
+
     color: #64748ba4 !important;
 }
 
 .form-control:focus,
 .form-select__control--is-focused {
-    border-color: var(--bahama-blue-700) !important;
+    /* border-color: var(--bahama-blue-700) !important; */
     box-shadow: 0 0 0 0.3rem var(--color-focus) !important;
     background-color: #f4f7fc50;
     outline: 0;
@@ -116,4 +119,22 @@ form {
 .custom-input-group .form-control:focus {
     box-shadow: none;
     border-color: #dee2e6; /* Kembalikan ke warna default karena sudah dihandle parent */
+}
+
+/* Multi selesct */
+/* Menargetkan container tempat teks & placeholder berada */
+.select.form-select__value-container {
+    padding: 0 !important;
+}
+
+/* Biasanya ada margin juga di container input yang bikin gak sejajar */
+.select.form-select__input-container {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Menyamakan font-size placeholder agar konsisten */
+.select.form-select__placeholder {
+    font-size: 1rem; /* Sesuaikan dengan input lainnya */
+    margin-left: 0 !important;
 }

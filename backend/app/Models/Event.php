@@ -119,7 +119,9 @@ class Event extends Model
                 if (empty($location->meeting_link)) {
                     $errors[] = 'Link meeting belum dicantumkan.';
                 }
-                if ($location->online_quota <= 0) {
+                // Gunakan null coalescing (??) untuk memastikan angka saat perbandingan
+                // Hanya validasi jika online_quota TIDAK null
+                if ($location?->online_quota !== null && $location->online_quota <= 0) {
                     $errors[] = 'Kuota peserta online harus lebih dari 0.';
                 }
             }
@@ -135,7 +137,7 @@ class Event extends Model
                 if (empty($location->address_detail)) {
                     $errors[] = 'Alamat lengkap (jalan/nomor) lokasi offline wajib diisi.';
                 }
-                if ($location->offline_quota <= 0) {
+                if ($location?->offline_quota !== null && $location->offline_quota <= 0) {
                     $errors[] = 'Kuota peserta offline harus lebih dari 0.';
                 }
 

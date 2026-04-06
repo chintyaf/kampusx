@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\EventDashboard\EventPublishController;
+use App\Http\Controllers\Api\EventDashboard\EventStatusController;
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
@@ -96,10 +97,8 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
     // Mengecek apa saja data yang masih kurang (GET)
-    Route::get('/events/{event}/publish-status', [EventPublishController::class, 'checkStatus']);
-
-    // Mengeksekusi aksi publish (POST)
-    Route::post('/events/{event}/publish', [EventPublishController::class, 'publish']);
+    Route::get('/events/{event}/check-status', [EventStatusController::class, 'checkStatus']);
+    Route::post('/events/{event}/publish', [EventStatusController::class, 'publish']);
 
     });
 

@@ -1,14 +1,22 @@
 {
-    "printWidth": 80,
-    "tabWidth": 4,
-    "useTabs": false,
-    "semi": true,
-    "overrides": [
-        {
-            "files": ["frontend/src/routes/index.jsx"],
-            "options": {
-                "printWidth": 300
-            }
-        }
-    ]
+	"printWidth": 100,
+	"tabWidth": 4,
+	"useTabs": true,
+	"singleQuote": true,
+	"bracketSameLine": true,
+	"jsxSingleQuote": false,
+	"trailingComma": "all",
+	"bracketSpacing": true,
+	"arrowParens": "avoid",
+	"semi": true,
+	"endOfLine": "lf",
+	"quoteProps": "as-needed",
+	"overrides": [
+		{
+			"files": ["frontend/src/routes/index.jsx"],
+			"options": {
+				"printWidth": 300
+			}
+		}
+	]
 }

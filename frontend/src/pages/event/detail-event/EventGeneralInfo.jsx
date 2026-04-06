@@ -116,7 +116,7 @@ const EventGeneralInfo = () => {
                     `event-dashboard/${eventId}/info-utama`,
                 );
                 const result = response.data;
-                console.log("Data event yang di-fetch:", result); // Debug log
+                // console.log("Data event yang di-fetch:", result); // Debug log
 
                 if (result.status === "success") {
                     const data = result.data;
@@ -235,7 +235,7 @@ const EventGeneralInfo = () => {
                         onMenuOpen={fetchEventTypes} // Trigger API saat dropdown diklik
                         placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
                         className="basic-multi-select"
-                        classNamePrefix="select form-select"
+                        classNamePrefix="select test"
                         onChange={(selected) =>
                             handleSelectChange("eventType", selected)
                         }

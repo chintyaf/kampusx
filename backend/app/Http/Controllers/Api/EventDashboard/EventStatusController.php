@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\EventDashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
-class EventPublishController extends Controller
+class EventStatusController extends Controller
 {
     /**
      * Melihat status kelayakan event untuk dipublish (apa saja yang kurang)
@@ -18,10 +20,11 @@ class EventPublishController extends Controller
         $isReady = count($missingData) === 0;
 
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => $isReady ? 'Event sudah lengkap dan siap dipublish!' : 'Masih ada data yang perlu dilengkapi.',
             'data' => [
                 'event_id'            => $event->id,
+                'event_title'          => $event->title,
                 'status_saat_ini'     => $event->status,
                 'is_ready_to_publish' => $isReady,
                 'total_missing'       => count($missingData),
@@ -38,20 +41,40 @@ class EventPublishController extends Controller
         // ... (Kode publish yang sudah kita buat sebelumnya tetap sama) ...
         $errors = $event->getPublishErrors();
 
+        $request->validate([
+        'slug' => [
+            'nullable',
+            'string',
+            Rule::unique('events', 'slug')->ignore($event->id), // Pastikan unik kecuali untuk event ini sendiri
+            ],
+        ]);
+
+        // 2. Cek kelengkapan data (Logika kamu yang sudah ada)
+        $errors = $event->getPublishErrors();
         if (count($errors) > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat mem-publish event karena data belum lengkap.',
+            'message' => 'Tidak dapat mem-publish event karena data belum lengkap.',
                 'errors'  => $errors
             ], 422);
         }
 
-        $event->update(['status' => 'published']);
+        // 3. Tentukan Slug
+        // Jika user isi input 'slug', gunakan itu. Jika tidak, buat dari judul.
+        $finalSlug = $request->slug
+            ? Str::slug($request->slug)
+            : Str::slug($event->title);
+
+        // 4. Update Status dan Slug sekaligus
+        $event->update([
+            'status' => 'published',
+            'slug'   => $finalSlug,
+            'published_at' => now() // Opsional: untuk track kapan mulai live
+        ]);
 
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Event berhasil dipublish!',
-            'data'    => $event
         ], 200);
     }
 }
