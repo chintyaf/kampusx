@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('event_id')->constrained('events')->onDelete('cascade');
+            $table->foreignId('event_ticket_id')->constrained('event_tickets')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->decimal('total_price', 12, 2);
             $table->timestamp('paid_at')->nullable();

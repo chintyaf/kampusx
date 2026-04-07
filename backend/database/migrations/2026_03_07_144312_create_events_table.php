@@ -126,8 +126,8 @@ return new class extends Migration {
 
 
             // Hybird
-            $table->integer('online_quota')->nullable()->default(0);
-            $table->integer('offline_quota')->nullable()->default(0);
+            // $table->integer('online_quota')->nullable()->default(0);
+            // $table->integer('offline_quota')->nullable()->default(0);
 
             $table->timestamps();
         });
