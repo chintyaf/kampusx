@@ -10,7 +10,7 @@ class Speaker extends Model
     public $timestamps = false; // Migrasi tidak mencantumkan timestamps
 
     protected $fillable = [
-        'event_session_id', // Jika ingin pakai One-to-Many langsung
+        'event_id', // Jika ingin pakai One-to-Many langsung
         'name',
         'role',
         'bio',
@@ -20,7 +20,7 @@ class Speaker extends Model
 
     protected $casts = [
         'expertise' => 'array',
-        'social_links' => 'array',
+        'social_link' => 'array',
     ];
 
     // Relasi Many-to-Many ke Sessions

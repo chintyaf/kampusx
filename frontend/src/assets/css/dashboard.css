@@ -1,151 +1,181 @@
 main {
-    overflow-y: auto;
+	overflow-y: auto;
 }
 /* SIDEBAR */
 .sidebar-container {
-    max-width: 280px;
-    background-color: #ffffff;
-    padding-top: 1.5rem;
-    border-right: 1px solid var(--color-border);
+	max-width: 280px;
+	background-color: #ffffff;
+	padding-top: 1.5rem;
+	border-right: 1px solid var(--color-border);
 
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 }
 
 /* Sembunyikan untuk Chrome, Safari, dan Opera */
 .sidebar-container::-webkit-scrollbar {
-    display: none;
+	display: none;
 }
 .sidebar-container .nav-link {
-    padding: 10px 15px;
+	padding: 10px 15px;
 }
 
 .sidebar-logo {
-    margin-bottom: 1.5rem;
+	margin-bottom: 1.5rem;
 }
 
 .logo-text {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #1a3a63;
-    letter-spacing: -0.5px;
+	font-size: 1.5rem;
+	font-weight: 900;
+	color: #1a3a63;
+	letter-spacing: -0.5px;
 }
 
 .custom-menu-item {
-    background: transparent;
-    padding: 50px 100px;
-    border-radius: 12px;
-    margin-bottom: 0.25rem;
-    transition: all 0.2s ease;
-    text-align: left;
+	background: transparent;
+	padding: 10px 15px; /* Standar padding, jangan terlalu besar */
+	border-radius: 8px;
+	transition: all 0.2s ease;
+	text-align: left;
+	white-space: nowrap; /* Mencegah tulisan turun ke bawah saat transisi mengecil */
+	color: var(--color-text);
+}
+
+/* Pastikan margin di hilangkan saat mode collapsed supaya ikon persis ditengah */
+.sidebar-container.collapsed .custom-menu-item .me-2 {
+	margin-right: 0 !important;
+}
+.sidebar-container.collapsed .custom-menu-item .ms-2 {
+	margin-left: 0 !important;
+}
+
+/* Update .custom-menu-item padding, yg sebelumnya 50px 100px */
+.custom-menu-item {
+	background: transparent;
+	padding: 10px 15px; /* Standar padding agar tidak terlalu kebesaran */
+	border-radius: 12px; /* Dikembalikan ke 12px sesuai aslinya */
+	margin-bottom: 0.25rem;
+	transition: all 0.2s ease;
+	text-align: left;
+	white-space: nowrap; /* PENTING: Mencegah teks turun saat transisi mengecil */
 }
 
 .custom-menu-item .menu-icon {
-    color: #adb5bd; /* Warna ikon saat tidak aktif */
-    display: flex;
-    align-items: center;
+	color: #adb5bd; /* Warna ikon saat tidak aktif */
+	display: flex;
+	align-items: center;
 }
 
-/* State: HOVER */
+/* Dikembalikan ke margin 0 saat collapsed supaya ikon persis di tengah */
+.sidebar-container.collapsed .custom-menu-item .me-2 {
+	margin-right: 0 !important;
+}
+.sidebar-container.collapsed .custom-menu-item .ms-2 {
+	margin-left: 0 !important;
+}
+
+/* State: HOVER (Kembali ke kode asli) */
 .custom-menu-item:hover {
-    background-color: #f8f9fa;
-    color: #333;
+	background-color: #f8f9fa;
+	color: #333;
 }
 
+/* State: ACTIVE (Kembali menggunakan CSS variables asli) */
 .custom-menu-item.active {
-    background-color: var(--bahama-blue-50) !important;
-    color: var(--bahama-blue-700) !important;
-    font-weight: 600;
+	background-color: var(--bahama-blue-50) !important;
+	color: var(--bahama-blue-700) !important;
+	font-weight: 600;
 }
 
 .custom-menu-item.active .menu-text {
-    color: var(--bahama-blue-700);
+	color: var(--bahama-blue-700);
 }
 
 .custom-menu-item.active .menu-icon {
-    color: var(--bahama-blue-700);
+	color: var(--bahama-blue-700);
 }
 
 .menu-text,
 .sidebar-parent-menu {
-    font-size: var(--font-sm);
-    text-decoration: none;
-    color: var(--color-text);
+	font-size: var(--font-sm);
+	text-decoration: none;
+	color: var(--color-text); /* Kembali menggunakan var text aslinya */
 }
 
+/* --- (Animasi Submenu dan class lainnya di bawah ini biarkan persis seperti kode Anda) --- */
 /* Animasi Submenu */
 /* The wrapper for the submenu */
 .submenu-collapse {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.25s ease-out;
-    overflow: hidden;
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.25s ease-out;
+	overflow: hidden;
 }
 
 /* When the "show" class is added, expand the grid row to 1fr */
 .submenu-collapse.show {
-    grid-template-rows: 1fr;
+	grid-template-rows: 1fr;
 }
 
 /* The inner container needs min-height: 0 to work with the grid trick */
 .submenu-inner {
-    min-height: 0;
+	min-height: 0;
 }
 
 /*
     NAVBAR
 */
 .event-status {
-    transition: 0.1s;
+	transition: 0.1s;
 }
 
 .event-status:hover {
-    transition: 0.1s;
+	transition: 0.1s;
 }
 
 .event-status.draft {
-    border: 1px #cd9703 solid;
-    color: #a6784d;
+	border: 1px #cd9703 solid;
+	color: #a6784d;
 }
 
 .event-status.draft:hover {
-    border: 1px #b38300 solid;
-    background-color: #f7edc8;
+	border: 1px #b38300 solid;
+	background-color: #f7edc8;
 }
 
 .navbar {
-    background-color: white;
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 1020;
-    padding: 0px;
-    border-bottom: 1px var(--color-border) solid;
+	background-color: white;
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 1020;
+	padding: 0px;
+	border-bottom: 1px var(--color-border) solid;
 
-    min-height: 65px;
+	min-height: 65px;
 }
 
 /* Component */
 .card {
-    border-color: #e3e6ea;
+	border-color: #e3e6ea;
 }
 
 /* We target the specific profile-dropdown class to avoid breaking other menus */
 .profile-dropdown {
-    /* Override Bootstrap's default hiding logic */
-    display: block !important;
+	/* Override Bootstrap's default hiding logic */
+	display: block !important;
 
-    /* Initial hidden state */
-    opacity: 0;
-    visibility: hidden;
-    /* transform: translateY(-10px) scale(0.95); */
+	/* Initial hidden state */
+	opacity: 0;
+	visibility: hidden;
+	/* transform: translateY(-10px) scale(0.95); */
 
-    /* Animation settings */
-    /* transition:
+	/* Animation settings */
+	/* transition:
         opacity 0.1s ease-out,
         transform 0.2s ease-out,
         visibility 0.2s; */
-    pointer-events: none;
+	pointer-events: none;
 }
 
 /* State when the 'show' class is present */
@@ -158,8 +188,236 @@ main {
 
 /* Optional: Add a subtle shadow to make it pop */
 .profile-dropdown {
-    box-shadow:
-        0 10px 15px -3px rgba(0, 0, 0, 0.1),
-        0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+	box-shadow:
+		0 10px 15px -3px rgba(0, 0, 0, 0.1),
+		0 4px 6px -2px rgba(0, 0, 0, 0.05);
+	border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Context chip */
+.navbar-divider {
+	width: 2px;
+	height: 20px;
+	background-color: var(--color-border);
+	margin: 0 12px;
+}
+.ctx-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px 4px 7px;
+	border-radius: 999px;
+	border: 1.5px solid var(--chip-border);
+	background: var(--chip-bg);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--chip-color);
+	letter-spacing: -0.1px;
+	white-space: nowrap;
+	animation: chipFadeIn 0.2s ease;
+}
+
+@keyframes chipFadeIn {
+	from {
+		opacity: 0;
+		transform: scale(0.92) translateX(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateX(0);
+	}
+}
+
+.ctx-chip-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--chip-dot);
+	animation: dotPulse 2.5s ease infinite;
+	flex-shrink: 0;
+}
+
+@keyframes dotPulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.45;
+	}
+}
+
+.ctx-chip-icon-wrap {
+	width: 18px;
+	height: 18px;
+	border-radius: 5px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.05);
+	flex-shrink: 0;
+}
+
+/* Dashbaord */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
+
+:root {
+	--primary: #00699e;
+	--primary-mid: #3c84a8;
+	--primary-light: #dff3ff;
+	--primary-border: #b9e7fe;
+	--muted: #64748b;
+	--bg: #f1f5f9;
+	--card: #ffffff;
+	--text: #0f172a;
+	--text-muted: #64748b;
+	--border: rgba(55, 98, 167, 0.18);
+	--border-md: rgba(55, 98, 167, 0.28);
+	--radius: 10px;
+	--radius-sm: 6px;
+	--font: 'Plus Jakarta Sans', sans-serif;
+
+	/* Semantic */
+	--success-bg: #dcfce7;
+	--success-text: #166534;
+	--warning-bg: #fef3c7;
+	--warning-text: #92400e;
+	--danger-bg: #fee2e2;
+	--danger-text: #991b1b;
+	--info-bg: #dff3ff;
+	--info-text: #00699e;
+	--neutral-bg: #f1f5f9;
+	--neutral-text: #64748b;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: var(--font);
+}
+
+.dashboard-page {
+	background: var(--bg);
+	min-height: 100vh;
+	padding: 28px 32px;
+}
+
+/* ── Cards ── */
+.card {
+	background: var(--card);
+	border: 0.5px solid var(--border);
+	border-radius: var(--radius);
+	padding: 20px;
+}
+
+.card-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--text);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 14px;
+}
+
+.card-title .badge-count {
+	background: var(--danger-bg);
+	color: var(--danger-text);
+	font-size: 11px;
+	padding: 2px 8px;
+	border-radius: 20px;
+	font-weight: 600;
+}
+
+/* ── Tags / Chips ── */
+.tag {
+	display: inline-block;
+	font-size: 10px;
+	padding: 2px 8px;
+	border-radius: 20px;
+	font-weight: 600;
+}
+.tag-high {
+	background: var(--danger-bg);
+	color: var(--danger-text);
+}
+.tag-medium {
+	background: var(--warning-bg);
+	color: var(--warning-text);
+}
+.tag-low {
+	background: var(--info-bg);
+	color: var(--info-text);
+}
+.tag-cat {
+	background: var(--neutral-bg);
+	color: var(--neutral-text);
+	border: 0.5px solid var(--border);
+}
+.tag-primary {
+	background: var(--primary-light);
+	color: var(--primary);
+}
+.tag-success {
+	background: var(--success-bg);
+	color: var(--success-text);
+}
+.tag-warning {
+	background: var(--warning-bg);
+	color: var(--warning-text);
+}
+.tag-danger {
+	background: var(--danger-bg);
+	color: var(--danger-text);
+}
+.tag-neutral {
+	background: var(--neutral-bg);
+	color: var(--neutral-text);
+}
+
+/* ── Divider ── */
+.divider {
+	border: none;
+	border-top: 0.5px solid var(--border);
+	margin: 14px 0;
+}
+
+/* ── Buttons ── */
+.btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 12px;
+	font-weight: 500;
+	padding: 7px 14px;
+	border-radius: var(--radius-sm);
+	border: 0.5px solid var(--border);
+	background: var(--card);
+	color: var(--text);
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		color 0.15s,
+		border-color 0.15s;
+	font-family: var(--font);
+}
+.btn:hover {
+	background: var(--primary-light);
+	color: var(--primary);
+	border-color: var(--primary-border);
+}
+.btn-primary {
+	background: var(--primary);
+	color: #fff;
+	border-color: var(--primary);
+}
+.btn-primary:hover {
+	background: #005580;
+	border-color: #005580;
+	color: #fff;
+}
+.btn-sm {
+	font-size: 11px;
+	padding: 4px 10px;
 }
