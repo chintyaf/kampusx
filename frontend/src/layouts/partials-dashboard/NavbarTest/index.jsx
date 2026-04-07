@@ -1,88 +1,15 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 
-import userImg from '../../assets/images/user-placeholder.avif';
-import EventStatusDropdown from '../../components/event/EventStatusDropdown';
-import NotificationDropdown from '../../components/NotificationDropdown';
-import LogoKampusX from '../../assets/images/logo/Logo_KampusX.svg';
+import userImg from '../../../assets/images/user-placeholder.avif';
+import EventStatusDropdown from '../../../components/event/EventStatusDropdown';
+import NotificationDropdown from '../../../components/NotificationDropdown';
+import LogoKampusX from '../../../assets/images/logo/Logo_KampusX.svg';
 
 import { Menu, ShieldCheck, Building2, CalendarDays, LogOut } from 'lucide-react';
 
-// ... (Kode ProfileDropdown tetap sama persis)
-const ProfileDropdown = () => {
-	const { user, logout } = useAuth();
-	const navigate = useNavigate();
-
-	const handleLogout = async () => {
-		await logout();
-		navigate('/');
-		console.log('Logging out...');
-	};
-
-	if (!user) {
-		return null;
-	}
-
-	return (
-		<div className="dropdown">
-			<div
-				className="d-flex align-items-center"
-				style={{ cursor: 'pointer' }}
-				data-bs-toggle="dropdown"
-				aria-expanded="false">
-				<div>
-					<img
-						className="rounded-circle object-fit-cover"
-						src={userImg}
-						alt="User"
-						width="30px"
-						height="30px"
-					/>
-				</div>
-			</div>
-
-			<ul
-				className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
-				style={{ minWidth: '150px' }}>
-				<li>
-					<NavLink to="" className="dropdown-item d-flex align-items-center gap-2 py-2">
-						<LogOut size={16} />
-						<span>Halaman Utama</span>
-					</NavLink>
-				</li>
-				{(user.role === 'admin' || user.role === 'organizer') && (
-					<li>
-						<NavLink
-							to="/organizer/dashboard"
-							className="dropdown-item d-flex align-items-center gap-2 py-2">
-							<LogOut size={16} />
-							<span>Masuk Organizer</span>
-						</NavLink>
-					</li>
-				)}
-				{user.role === 'admin' && (
-					<li>
-						<NavLink
-							to="/admin/dashboard"
-							className="dropdown-item d-flex align-items-center gap-2 py-2">
-							<LogOut size={16} />
-							<span>Masuk Admin</span>
-						</NavLink>
-					</li>
-				)}
-				<li>
-					<button
-						className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
-						onClick={handleLogout}>
-						<LogOut size={16} />
-						<span>Logout</span>
-					</button>
-				</li>
-			</ul>
-		</div>
-	);
-};
+import ProfileDropdown from './ProfileDropdown';
 
 /* ─── Context chip config ─────────────────────────────── */
 const CONTEXT_CONFIG = {
