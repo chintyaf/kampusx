@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\TicketController;
-use App\Http\Controllers\Api\PasswordResetController; 
+use App\Http\Controllers\Api\PasswordResetController;
 
 // Organizer Dashboard
 // use App\Http\Controllers\Api\EventDashboardController;
@@ -21,7 +21,6 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\EventDashboard\EventPublishController;
 use App\Http\Controllers\Api\EventDashboard\EventStatusController;
 
 // ==========================================

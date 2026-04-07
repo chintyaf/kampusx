@@ -10,7 +10,7 @@ import MapVisualizer from "./MapVisualizer";
 import LocationSummary from "./LocationSummary";
 import NearbyCampuses from "./NearbyCampuses";
 
-const OfflineLocationInput = ({ onLocationChange, data }) => {
+const OfflineLocationInput = ({ data }) => {
     const [isManualMode, setIsManualMode] = useState(false);
     const [locationData, setLocationData] = useState({
         location_name: "",

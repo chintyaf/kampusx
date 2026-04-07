@@ -3,10 +3,6 @@ import { NavLink, useLocation, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 import userImg from "../../assets/images/user-placeholder.avif";
-import Button from "../../components/Button";
-import EventStatusDropdown from "../../components/event/EventStatusDropdown";
-import NotificationDropdown from "../../components/NotificationDropdown";
-import LogoKampusX from "../../assets/images/logo/Logo_KampusX.svg";
 // import LogOut from "../../assets/icons/LogOut.svg";
 import { Bell, BellDotIcon, SquarePen, ChevronDown, LogOut } from "lucide-react";
 
@@ -19,7 +15,7 @@ const ProfileDropdown = () => {
         navigate("/");
         console.log("Logging out...");
     };
- 
+
     return (
         <>
             <div className="dropdown">

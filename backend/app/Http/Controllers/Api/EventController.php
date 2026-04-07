@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Str;
+// use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +16,7 @@ class EventController extends Controller
     public function index()
     {
         // 1. UPDATE DI SINI: Gunakan with() dan panggil relasi 'location' sesuai nama di Model Event.php
-        $events = Event::with(['organizer', 'location'])->get();
+        $events = Event::with(['organizer', 'locationDetail'])->get();
 
         return response()->json([
             'success' => true,
@@ -28,7 +28,7 @@ class EventController extends Controller
     {
         // Cek autentikasi
         if (!$request->user()) {
-            return response()->json(['message' => 'Silakan login dulu'], 401);
+            return response()->json(['status' => 'error', 'message' => 'Silakan login dulu'], 401);
         }
 
         try {
@@ -109,7 +109,7 @@ class EventController extends Controller
     public function show(Request $request, $id)
     {
         // 2. UPDATE DI SINI: Ubah 'event_locations' menjadi 'location'
-        $event = Event::with(['organizer', 'location'])->findOrFail($id);
+        $event = Event::with(['organizer', 'locationDetail'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
