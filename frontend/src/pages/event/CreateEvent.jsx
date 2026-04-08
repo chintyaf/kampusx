@@ -1,196 +1,276 @@
-import { useState } from "react";
-import { Form, Container, Button, InputGroup } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Form, Row, Col } from "react-bootstrap"; // Tambahkan Row dan Col
 import Select from "react-select";
-import "../../assets/css/form.css";
-import { Image } from "lucide-react";
-import axios from "axios";
-
+import api from "../../api/axios";
 import { notify } from "../../utils/notify";
 
-const Create = () => {
-    const [title, setTitle] = useState("");
-    const [slug, setSlug] = useState("");
-    const [description, setDescription] = useState("");
-    const [categories, setCategories] = useState([]);
-    const [banner, setBanner] = useState(null);
+import FormHeading from "../../components/dashboard/FormHeading";
 
-    const formatToSlug = (text) => {
-        // 1. Convert to Lowercase
-        // 2. Replace spaces with hyphens
-        // 3. Remove special characters (keep only letters, numbers, and hyphens)
-        return text
-            .toLowerCase()
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-]/g, "");
-    };
+// ICON
+import { Image } from "lucide-react";
 
-    const handleTitleChange = (e) => {
-        const newTitle = e.target.value;
-        setTitle(newTitle);
-        setSlug(formatToSlug(newTitle));
-    };
-
-    const handleSlugChange = (e) => {
-        setSlug(formatToSlug(e.target.value));
-    };
-
-    const kategori_options = [
-        { value: "1", label: "One" },
-        { value: "2", label: "Two" },
-        { value: "3", label: "Three" },
-    ];
-
+const CreateEvent = () => {
     const navigate = useNavigate();
 
-    const handleSaveAndContinue = async (e) => {
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        banner: null,
+        kategori: [],
+        eventType: [],
+    });
+
+    const [kategoriOptions, setKategoriOptions] = useState([]);
+    const [eventTypeOptions, setEventTypeOptions] = useState([]);
+
+    const handleTextChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (field, selectedOptions) => {
+        setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setFormData((prev) => ({ ...prev, banner: file }));
+    };
+
+    // Ambil opsi kategori dan tipe event saat komponen pertama kali dimuat
+    useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const [kategoriRes, eventTypeRes] = await Promise.all([
+                    api.get("/categories"),
+                    api.get("/event-types"),
+                ]);
+
+                if (kategoriRes.data.success) {
+                    setKategoriOptions(
+                        kategoriRes.data.data.map((cat) => ({
+                            value: cat.id.toString(),
+                            label: cat.name,
+                        })),
+                    );
+                }
+
+                if (eventTypeRes.data.success) {
+                    setEventTypeOptions(
+                        eventTypeRes.data.data.map((type) => ({
+                            value: type.id.toString(),
+                            label: type.name,
+                        })),
+                    );
+                }
+            } catch (error) {
+                console.error("Gagal mengambil opsi data:", error);
+            }
+        };
+
+        fetchOptions();
+    }, []);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem("token");
 
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("slug", slug);
-        formData.append("description", description);
-        // Convert category objects to simple values if needed by backend
-        const selectedCategories = categories.map((cat) => cat.value);
-        formData.append("categories", JSON.stringify(selectedCategories));
-
-        if (banner) {
-            formData.append("banner", banner);
-        }
-
-        // Save Form
         try {
-            const response = await axios.post(
-                "http://127.0.0.1:8000/api/events",
-                formData,
-                {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                        Accept: "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
+            const submitData = new FormData();
+
+            // Mapping data dari state ke FormData
+            submitData.append("title", formData.title);
+            submitData.append("description", formData.description);
+
+            formData.kategori.forEach((cat) =>
+                submitData.append("kategori_ids[]", cat.value),
             );
 
-            if (response.status === 200 || response.status === 201) {
-                navigate("/organizer/dashboard");
-                notify("success", "Congratulations!", "Event berhasil dibuat.");
+            formData.eventType.forEach((type) =>
+                submitData.append("event_type_ids[]", type.value),
+            );
+
+            if (formData.banner) {
+                submitData.append("banner", formData.banner);
             }
+
+            // Langsung tembak ke endpoint create /events
+            const response = await api.post(`/events`, submitData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            const newEventId = response.data.data.id;
+
+            console.log("Sukses:", response.data);
+
+            // Pesan sukses dari backend (message: "Event baru berhasil dibuat!")
+            notify(
+                "success",
+                "Berhasil!",
+                response.data.message || "Event baru berhasil dibuat.",
+            );
+
+            // Langsung redirect ke dashboard event yang baru dibuat
+            navigate(`/organizer/${newEventId}/event-dashboard`);
+
+            return response;
         } catch (error) {
-            notify("danger", "Something went wrong!", "Gagal menyimpan data.");
+            console.error("Gagal menyimpan event:", error);
+
+            const errorMessage =
+                error.response?.data?.error_detail ||
+                error.response?.data?.message ||
+                "Terjadi kesalahan saat menyimpan event.";
+
+            notify("error", "Gagal!", errorMessage);
         }
     };
 
     return (
-        <>
+        <div className="container-fluid p-0 col-11">
+            {" "}
+            {/* Bisa pakai container agar layout aman */}
+            <FormHeading
+                heading="Buat Event Baru"
+                subheading="Isi informasi berikut untuk membuat event baru"
+            />
             <Form>
-                <div className="">
-                    <p className="mb-4 form-title">
-                        {" "}
-                        Informasi Utama Event - General{" "}
-                    </p>
-                </div>
+                <Row>
+                    {/* Judul Event - Full width di semua layar */}
+                    <Col xs={12}>
+                        <Form.Group className="mb-4" controlId="formTitle">
+                            <Form.Label>
+                                Nama Event{" "}
+                                <span className="text-danger">*</span>
+                            </Form.Label>
+                            <Form.Control
+                                required
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleTextChange}
+                                placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
+                            />
+                        </Form.Group>
+                    </Col>
 
-                {/* Judul Event */}
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Judul Event</Form.Label>
-                    <Form.Control
-                        required
-                        type="text"
-                        value={title}
-                        onChange={handleTitleChange}
-                        placeholder="Contoh: KampusX Xtra Xplore Xperience"
-                    />
-                    <Form.Text className="text-muted">
-                        We'll never share your email with anyone else.
-                    </Form.Text>
-                </Form.Group>
-
-                {/* Link Event */}
-                {/* <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Link Event</Form.Label>
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text id="basic-addon1">
-                            kampusx.com/events/
-                        </InputGroup.Text>
-                        <Form.Control
-                            value={slug}
-                            onChange={handleSlugChange}
-                            placeholder="kampusx-xtra-xplore-xperience"
-                            aria-label="Username"
-                            aria-describedby="basic-addon1"
-                        />
-                    </InputGroup>
-                </Form.Group> */}
-
-                {/* Deskripsi Event */}
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Deskripsi Event</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                </Form.Group>
-
-                {/* Kategori -- Tipe Event */}
-                <Form.Group className="mb-3">
-                    <Form.Label>Kategori</Form.Label>
-                    <Select
-                        isMulti
-                        options={kategori_options}
-                        value={categories}
-                        onChange={(selected) => setCategories(selected)}
-                        className="basic-multi-select"
-                        classNamePrefix="select form-select"
-                    />
-                </Form.Group>
-
-                {/* Upload Banner */}
-                {/* <Form.Group className="mb-3">
-                    <Form.Label className="fw-bold">Upload Banner</Form.Label>
-                    <div className="upload-box-wrapper">
-                        <input
-                            type="file"
-                            id="bannerUpload"
-                            className="hidden-input"
-                            accept="image/*"
-                            onChange={(e) => setBanner(e.target.files[0])}
-                        />
-                        <label
-                            htmlFor="bannerUpload"
-                            className="upload-box-label"
+                    {/* Deskripsi - Full width di semua layar */}
+                    <Col xs={12}>
+                        <Form.Group
+                            className="mb-4"
+                            controlId="formDescription"
                         >
-                            <div className="text-center">
-                                <Image
-                                    size={32}
-                                    color={banner ? "#28a745" : "#a1a1a1"}
-                                />
-                                <p className="mb-0 text-muted mt-2">
-                                    {banner
-                                        ? banner.name
-                                        : "Rekomendasi 1280×720 px, Max 2MB"}
-                                </p>
-                            </div>
-                        </label>
-                    </div>
-                </Form.Group> */}
-            </Form>
+                            <Form.Label>
+                                Deskripsi Lengkap{" "}
+                                <span className="text-danger">*</span>
+                            </Form.Label>
+                            <Form.Control
+                                required
+                                as="textarea"
+                                rows={5}
+                                name="description"
+                                value={formData.description}
+                                onChange={handleTextChange}
+                                placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
+                            />
+                        </Form.Group>
+                    </Col>
 
-            {/* Button Save  */}
-            <div className="w-100 d-flex justify-content-end mt-4 gap-4">
-                <Button
-                    variant="dark"
-                    type="button"
-                    onClick={handleSaveAndContinue}
-                >
-                    Simpan & Lanjut
-                </Button>
+                    {/* Tipe Event - Setengah lebar di laptop (md=6), full di HP (xs=12) */}
+                    <Col xs={12}>
+                        <Form.Group className="mb-4">
+                            <Form.Label>
+                                Tipe Event{" "}
+                                <span className="text-danger">*</span>
+                            </Form.Label>
+                            <Select
+                                isMulti
+                                value={formData.eventType}
+                                options={eventTypeOptions}
+                                placeholder="Pilih Tipe Event..."
+                                className="basic-multi-select"
+                                classNamePrefix="select form-select"
+                                onChange={(selected) =>
+                                    handleSelectChange("eventType", selected)
+                                }
+                            />
+                        </Form.Group>
+                    </Col>
+
+                    {/* Kategori - Setengah lebar di laptop (md=6), full di HP (xs=12) */}
+                    <Col xs={12}>
+                        <Form.Group className="mb-4">
+                            <Form.Label>
+                                Kategori Event{" "}
+                                <span className="text-danger">*</span>
+                            </Form.Label>
+                            <Select
+                                isMulti
+                                value={formData.kategori}
+                                options={kategoriOptions}
+                                placeholder="Pilih kategori..."
+                                className="basic-multi-select"
+                                classNamePrefix="select form-select"
+                                onChange={(selected) =>
+                                    handleSelectChange("kategori", selected)
+                                }
+                            />
+                        </Form.Group>
+                    </Col>
+
+                    {/* Banner - Full width di semua layar */}
+                    <Col xs={12}>
+                        <Form.Group className="mb-4">
+                            <Form.Label>
+                                Banner Event
+                                {/* <span className="text-danger">*</span> */}
+                            </Form.Label>
+                            <div className="upload-box-wrapper w-100">
+                                <input
+                                    required
+                                    type="file"
+                                    id="bannerUpload"
+                                    className="hidden-input"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    style={{ display: "none" }} // Pastikan input aslinya sembunyi
+                                />
+                                <label
+                                    htmlFor="bannerUpload"
+                                    className="upload-box-label w-100 d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded"
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#f8f9fa",
+                                    }}
+                                >
+                                    <div className="text-center">
+                                        <Image size={32} color="#a1a1a1" />
+                                        <p className="mb-0 text-muted mt-2">
+                                            {formData.banner
+                                                ? formData.banner.name
+                                                : "Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)"}
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+                        </Form.Group>
+                    </Col>
+                </Row>
+            </Form>
+            {/* Button Container */}
+            <div className="d-flex justify-content-end  wgap-2 py-0">
+                <div className="justify-content-end gap-2 py-4">
+                    <button
+                        type="submit"
+                        className="btn btn-primary w-100 w-md-auto"
+                        onClick={handleSubmit}
+                    >
+                        Buat Event
+                    </button>
+                </div>
             </div>
-        </>
+        </div>
     );
 };
 
-export default Create;
+export default CreateEvent;

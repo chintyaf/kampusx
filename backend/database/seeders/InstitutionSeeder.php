@@ -65,4 +65,6 @@ class InstitutionSeeder extends Seeder
             ]);
         }
     }
+
+
 }

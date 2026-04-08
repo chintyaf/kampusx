@@ -11,10 +11,11 @@ return new class extends Migration {
             $table->id();
 
             $table->foreignId('organizer_id')->nullable()->constrained('users')->nullOnDelete();
+            // Asosiasi or smth
             $table->foreignId('institution_id')->nullable()->constrained('institutions')->cascadeOnDelete();
 
             $table->string('title', 200);
-            $table->string('slug', 200)->unique()->index();
+            $table->string('slug', 200)->nullable()->unique()->index();
             $table->text('description')->nullable();
             $table->string('image_path')->nullable(); // Untuk poster event
 
@@ -82,7 +83,7 @@ return new class extends Migration {
             $table->string('role')->nullable();
             $table->text('bio')->nullable();
             $table->json('social_link')->nullable();
-            $table->string('expertise')->nullable();
+            $table->json('expertise')->nullable();
         });
 
         Schema::create('event_session_speakers', function (Blueprint $table) {
@@ -90,7 +91,7 @@ return new class extends Migration {
 
             $table->foreignId('session_id')->constrained('event_sessions')->cascadeOnDelete();
             $table->foreignId('speaker_id')->constrained('speakers')->cascadeOnDelete();
-            $table->unique(['session_id', 'speaker_id']);
+             $table->unique(['session_id', 'speaker_id']);
         });
 
         Schema::create('event_locations', function (Blueprint $table) {
@@ -106,17 +107,27 @@ return new class extends Migration {
             $table->text('meeting_link')->nullable();
             $table->text('online_instruction')->nullable();
 
-
             // --- Field untuk Offline ---
-            $table->string('location')->nullable();
+            $table->string('location_name')->nullable();
             $table->string('location_detail')->nullable();
             $table->text('maps_url')->nullable();
+
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+
+            // --- Hierarki Alamat ---
+            $table->string('country')->nullable();
+            $table->string('province')->nullable();     // Contoh: "Jawa Barat"
+            $table->string('city')->nullable();         // Contoh: "Kota Bandung"
+            $table->string('district')->nullable();     // Contoh: "Sukajadi" (Kecamatan/Daerah)
+            $table->string('address_detail')->nullable(); // Contoh: "Jl. Surya Sumantri No. 65"
+
             $table->text('offline_instruction')->nullable();
 
 
             // Hybird
-            $table->integer('online_quota')->nullable();
-            $table->integer('offline_quota')->nullable();
+            // $table->integer('online_quota')->nullable()->default(0);
+            // $table->integer('offline_quota')->nullable()->default(0);
 
             $table->timestamps();
         });

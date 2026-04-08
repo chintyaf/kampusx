@@ -1,20 +1,27 @@
 <?php
 
 use Illuminate\Http\Request;
-use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\TicketController;
-use App\Http\Controllers\Api\PasswordResetController; 
+use App\Http\Controllers\Api\PasswordResetController;
 
 // Organizer Dashboard
-use App\Http\Controllers\Api\EventDashboardController;
+// use App\Http\Controllers\Api\EventDashboardController;
 use App\Http\Controllers\Api\OrganizerEventController;
-use App\Http\Controllers\Api\EventDas\EventDetailController;
-use App\Http\Controllers\Api\EventDas\EventSessionController;
-use App\Http\Controllers\Api\EventDas\EventSpeakerController;
+
+// use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventDetailController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
+
+use App\Http\Controllers\Api\EventTypeController;
+use App\Http\Controllers\Api\InstitutionController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\EventDashboard\EventStatusController;
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
@@ -38,12 +45,12 @@ Route::get('/test', function () {
 // 2. PROTECTED ROUTES (Harus Login Sanctum)
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     Route::post('/logout', [AuthController::class, 'logout']);
-    
+
     // Ambil data user yang sedang login
     Route::get('/user/profile', function (Request $request) {
-        return $request->user(); 
+        return $request->user();
     });
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -66,29 +73,41 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('organizer')->group(function () {
             Route::get('/events-list', [OrganizerEventController::class, 'getOrgEvents']);
             // Untuk melihat detail spesifik milik organizer
-            Route::get('/events/{id}', [OrganizerEventController::class, 'show']); 
+            Route::get('/events/{id}', [OrganizerEventController::class, 'show']);
         });
 
         // Group: Event Dashboard (Manage Detail Event)
         Route::prefix('event-dashboard/{eventId}')->group(function () {
+            // Detail Event
             Route::prefix('info-utama')->group(function () {
                 // General Info
-                Route::get('/', [EventDashboardController::class, 'getGeneralInfo']);
-                Route::post('/update', [EventDashboardController::class, 'updateGeneralInfo']);
+                Route::get('/', [EventGeneralInfoController::class, 'index']);
+                Route::post('/update', [EventGeneralInfoController::class, 'update']);
 
                 // Location
-                Route::get('/set-location', [EventDetailController::class, 'getLocation']);
-                Route::post('/set-location', [EventDetailController::class, 'setLocation']);
+                Route::get('/location', [EventLocationController::class, 'index']);
+                Route::post('/location', [EventLocationController::class, 'update']);
 
                 // Session
                 Route::get('/session', [EventSessionController::class, 'getSession']);
                 Route::post('/session', [EventSessionController::class, 'setSession']);
 
                 // Speaker
-                Route::get('/speaker', [EventSpeakerController::class, 'getSpeakers']);
-                Route::post('/speaker', [EventSpeakerController::class, 'setSpeakers']);
+                Route::get('/speaker', [EventSpeakerController::class, 'index']);
+                Route::post('/speaker', [EventSpeakerController::class, 'update']);
             });
         });
+
+    // Mengecek apa saja data yang masih kurang (GET)
+    Route::get('/events/{event}/status', [EventStatusController::class, 'index']);
+    Route::post('/events/{event}/status', [EventStatusController::class, 'update']);
+
+    Route::get('/events/{event}/check-status', [EventStatusController::class, 'getMissingData']);
+
+    Route::post('/events/{event}/publish', [EventStatusController::class, 'updatePublish']);
+    Route::post('/events/{event}/draft', [EventStatusController::class, 'updateDraft']);
+    Route::post('/events/{event}/artchived', [EventStatusController::class, 'updateArchive']);
+
 
     });
 
@@ -103,3 +122,13 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::post('/admin/suspend-user/{id}', [AdminController::class, 'suspendUser']);
     });
 });
+
+
+// Category
+Route::get('/categories', [CategoryController::class, 'index']);
+
+// Event Type
+Route::get('/event-types', [EventTypeController::class, 'index']);
+
+// Institution
+Route::get('/institutions', [InstitutionController::class, 'index']);
