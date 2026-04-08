@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Card, Row, Col, Spinner, Button } from 'react-bootstrap';
 import { CheckCircle, Calendar, MapPin, Download } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../api/axios';
 import QRCode from 'react-qr-code'; // <-- Pakai library yang baru diinstall
 import { useAuth } from '../context/AuthContext';
 
@@ -16,14 +17,21 @@ const TicketDetail = () => {
         const fetchTicket = async () => {
             try {
                 // Ambil data tiket dari backend
-                const response = await axios.get(`http://localhost:8000/api/tickets/${ticketCode}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setTicket(response.data.data);
+                // const response = await axios.get(`http://localhost:8000/api/tickets/${ticketCode}`, {
+                //     headers: { Authorization: `Bearer ${token}` }
+                // });
+                const response = await api.get(`tickets/${ticketCode}`);
+                const result = response.data;
+                if (result.status === "success" || result.data) {
+                    setTicket(result.data || result);
+                } else {
+                    setTicket(result);
+                }
+                // setTicket(response.data.data);
                 setIsLoading(false);
             } catch (err) {
                 console.error(err);
-                alert("Gagal memuat tiket.");
+                alert(err.response?.data?.message || "Gagal memuat tiket.");
                 setIsLoading(false);
             }
         };
@@ -39,7 +47,7 @@ const TicketDetail = () => {
     }
 
     // Ambil detail event dari relasi yang dikirim backend
-    const event = ticket.order_item.order.event;
+    const event = ticket?.order_item?.order?.event || {};
 
     return (
         <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', padding: '50px 0' }}>

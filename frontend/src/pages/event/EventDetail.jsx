@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Badge, Form, Accordion, Spinner, Alert } from 'react-bootstrap';
 import { Calendar, MapPin, Clock, Share2, Heart, User, Info, Wifi, Users, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
 
@@ -21,7 +22,8 @@ const EventDetail = () => {
         const fetchSingleEvent = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8000/api/events/${id}`);                
+                // const response = await axios.get(`http://localhost:8000/api/events/${id}`);                
+                const response = await api.get(`events/${id}`);
                 const data = response.data.data || response.data;
                 setEventDetails(data);
                 setIsLoading(false);
