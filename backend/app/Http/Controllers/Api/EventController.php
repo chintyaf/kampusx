@@ -117,6 +117,37 @@ class EventController extends Controller
         ]);
     }
 
+    public function getNearest(Request $request)
+    {
+        // 1. Ambil latitude dan longitude langsung dari request parameters
+        $userLat = $request->query('latitude', 0);
+        $userLng = $request->query('longitude', 0);
+        $range = $request->query('range', 10);
+
+        // Jika koordinat masih 0 (belum dapat lokasi), bisa di-handle di sini
+        // dengan mereturn event default atau array kosong.
+
+        $event = Event::with(['organizer', 'locationDetail'])
+            ->join('event_locations', 'events.id', '=', 'event_locations.event_id')
+            ->select('events.*')
+            ->whereNotNull('event_locations.latitude')
+            ->whereNotNull('event_locations.longitude')
+            ->selectRaw(
+                '( 6371 * acos( cos( radians(?) ) * cos( radians( event_locations.latitude ) ) * cos( radians( event_locations.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( event_locations.latitude ) ) ) ) AS distance',
+                [$userLat, $userLng, $userLat]
+            )
+            // 2. TAMBAHKAN HAVING UNTUK FILTER JARAK MAKSIMAL
+            ->having('distance', '<=', $range)
+            ->orderBy('distance', 'asc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $event
+        ]);
+    }
+
+
     public function update(Request $request, $id)
     {
         $event = Event::findOrFail($id);

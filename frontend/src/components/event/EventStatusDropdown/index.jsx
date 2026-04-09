@@ -117,7 +117,6 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 	};
 
 	const handleConfirm = async () => {
-	
 		setStatus(pendingStatus);
 		setShowModal(false);
 	};
@@ -131,7 +130,7 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
                 Tambahkan drop="down" agar menu dipaksa selalu terbuka ke bawah,
                 menyelesaikan isu menu pop-up berada di atas.
             */}
-			<Dropdown drop="down">
+			<Dropdown drop="down" align="end">
 				<Dropdown.Toggle
 					as={CustomToggle}
 					style={{
@@ -156,65 +155,76 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 
 				<Dropdown.Menu
 					className="p-0 border-0 mt-2"
-					style={{ borderRadius: 12, shadowColor: 'none' }}>
+					style={{ borderRadius: 7, shadowColor: 'none' }}>
 					<div
-						className="border pop-down"
-						style={{ borderRadius: 12, overflow: 'hidden' }}>
-						<div
-							className="px-3 py-2 text-uppercase fw-bold text-secondary border-bottom bg-light"
-							style={{ fontSize: 10, letterSpacing: '0.7px' }}>
-							Ubah Status
-						</div>
+						className="shadow-sm pop-down"
+						style={{
+							borderRadius: 7,
+							overflow: 'hidden',
+							border: '1.2px solid var(--border-md)',
+						}}>
+						<div className="nav-dropdown ">
+							<div
+								className="px-3 py-2 text-uppercase fw-bold text-secondary border-bottom "
+								style={{
+									backgroundColor: 'var(--color-bg-2)',
+									// background: 'linear-gradient(135deg, var(--bahama-blue-50) 0%, var(--bahama-blue-100) 100%)',
+									fontSize: 10,
+									letterSpacing: '0.7px',
+								}}>
+								Ubah Status
+							</div>
 
-						{ALL_STATUSES.map((s) => {
-							const cfg = STATUS_CONFIG[s];
-							const isActive = s === status;
+							{ALL_STATUSES.map((s) => {
+								const cfg = STATUS_CONFIG[s];
+								const isActive = s === status;
 
-							return (
-								<Dropdown.Item
-									key={s}
-									onClick={() => handleSelectStatus(s)}
-									className="d-flex align-items-center gap-2 px-3 py-2 border-bottom"
-									style={{
-										backgroundColor: isActive ? '#f0f9ff' : 'transparent',
-										transition: 'background 0.12s ease',
-									}}>
-									<div
-										className="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+								return (
+									<Dropdown.Item
+										key={s}
+										onClick={() => handleSelectStatus(s)}
+										className="d-flex align-items-center gap-2 px-3 py-2 border-bottom"
 										style={{
-											width: 32,
-											height: 32,
-											border: `1.5px solid ${cfg.border}`,
-											backgroundColor: cfg.bg,
+											backgroundColor: isActive ? '#f0f9ff' : 'transparent',
+											transition: 'background 0.12s ease',
 										}}>
-										<cfg.icon size={15} color={cfg.color} strokeWidth={2} />
-									</div>
-									<div className="flex-grow-1 ms-1">
 										<div
-											className="fw-semibold text-dark"
+											className="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
 											style={{
-												fontSize: 13,
-												lineHeight: 1.2,
+												width: 32,
+												height: 32,
+												border: `1.5px solid ${cfg.border}`,
+												backgroundColor: cfg.bg,
 											}}>
-											{cfg.label}
+											<cfg.icon size={15} color={cfg.color} strokeWidth={2} />
 										</div>
-										<div
-											className="text-secondary mt-1"
-											style={{ fontSize: 11 }}>
-											{cfg.desc}
+										<div className="flex-grow-1 ms-1">
+											<div
+												className="fw-semibold text-dark"
+												style={{
+													fontSize: 13,
+													lineHeight: 1.2,
+												}}>
+												{cfg.label}
+											</div>
+											<div
+												className="text-secondary mt-1"
+												style={{ fontSize: 11 }}>
+												{cfg.desc}
+											</div>
 										</div>
-									</div>
-									{isActive && (
-										<Check
-											size={14}
-											color="#0089cb"
-											strokeWidth={2.5}
-											className="flex-shrink-0 ms-2"
-										/>
-									)}
-								</Dropdown.Item>
-							);
-						})}
+										{isActive && (
+											<Check
+												size={14}
+												color="#0089cb"
+												strokeWidth={2.5}
+												className="flex-shrink-0 ms-2"
+											/>
+										)}
+									</Dropdown.Item>
+								);
+							})}
+						</div>
 					</div>
 				</Dropdown.Menu>
 			</Dropdown>

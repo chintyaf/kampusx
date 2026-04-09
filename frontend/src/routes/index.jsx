@@ -2,10 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import React, { Suspense, lazy, useState } from 'react';
 import RouteProgressBar from '../components/RouteProgressBar';
 
-import VisitorLayout from "../layouts/MainLayout";
-import AuthLayout from "../layouts/AuthLayout";
-import DashboardLayout from "../layouts/DashboardLayout";
-import MemberLayout from "../layouts/MemberLayout";
+import VisitorLayout from '../layouts/MainLayout';
+import AuthLayout from '../layouts/AuthLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
+import MemberLayout from '../layouts/MemberLayout';
 
 // Import daftar rute
 import visitorRoutes from './PublicRoutes';
@@ -42,13 +42,15 @@ import SignIn from '../pages/auth/SignIn';
 import SignUp from '../pages/auth/SignUp';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
-import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
-import LandingPage from "../pages/public/LandingPage";
-import Checkout from "../pages/event/Checkout";
-import TicketDetail from "../pages/TicketDetail";
-import EventSpace from "../pages/member/EventSpace";
-import { useAuth } from "../context/AuthContext";
-import MyTickets from "../pages/member/MyTickets";
+import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
+import LandingPage from '../pages/public/LandingPage';
+import Checkout from '../pages/event/Checkout';
+import TicketDetail from '../pages/TicketDetail';
+import EventSpace from '../pages/member/EventSpace';
+import { useAuth } from '../context/AuthContext';
+import MyTickets from '../pages/member/MyTickets';
+
+import NearestEventTest from '../pages/public/NearestEventTest';
 
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -60,6 +62,11 @@ const AppRoutes = () => {
 		<Suspense fallback={<RouteProgressBar />}>
 			<Routes>
 				{/* 1. Jika BELUM login: Jadikan '/' sebagai Landing Page dengan VisitorLayout */}
+				<Route element={<MemberLayout />}>
+					<Route path="/test-location" />
+					<Route path="/nearest-event" element={<NearestEventTest />} />
+				</Route>
+
 				{!isAuthenticated && (
 					<Route element={<VisitorLayout />}>
 						<Route path="/" element={<LandingPage />} />
@@ -96,19 +103,19 @@ const AppRoutes = () => {
 					<Route path="/forgot-password" element={<ForgotPassword />} />
 				</Route>
 
-                {/* MEMBER */}
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/checkout/:id" element={<Checkout />} />
-                    {/* Nanti bisa tambah rute profil peserta di sini: */}
-                    {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
-                    <Route path="/ticket/:ticketCode" element={<TicketDetail />} />
-                    <Route path="/event-space/:id" element={<EventSpace />} />
-                </Route>
-                <Route element={<MemberLayout />}>
-                    <Route path="/my-tickets" element={<MyTickets />} />
-                    {/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
-                    {/* Tambahkan halaman member lainnya di sini nanti */}
-                </Route>
+				{/* MEMBER */}
+				<Route element={<ProtectedRoute />}>
+					<Route path="/checkout/:id" element={<Checkout />} />
+					{/* Nanti bisa tambah rute profil peserta di sini: */}
+					{/* <Route path="/my-tickets" element={<MyTickets />} /> */}
+					<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
+					<Route path="/event-space/:id" element={<EventSpace />} />
+				</Route>
+				<Route element={<MemberLayout />}>
+					<Route path="/my-tickets" element={<MyTickets />} />
+					{/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
+					{/* Tambahkan halaman member lainnya di sini nanti */}
+				</Route>
 
 				{/* Group Dashboard */}
 				<Route element={<DashboardLayout />}>

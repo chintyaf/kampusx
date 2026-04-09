@@ -1,3 +1,40 @@
+/* Dashbaord */
+
+:root {
+	--primary: #00699e;
+	--primary-mid: #3c84a8;
+	--primary-light: #dff3ff;
+	--primary-border: #b9e7fe;
+	--muted: #64748b;
+	--bg: #f1f5f9;
+	--card: #ffffff;
+	--text: #0f172a;
+	--text-muted: #64748b;
+	--border: #3762a72e;
+	--border-md: #3762a747;
+	--radius: 10px;
+	--radius-sm: 6px;
+
+	/* Semantic */
+	--success-bg: #dcfce7;
+	--success-text: #166534;
+	--warning-bg: #fef3c7;
+	--warning-text: #92400e;
+	--danger-bg: #fee2e2;
+	--danger-text: #991b1b;
+	--info-bg: #dff3ff;
+	--info-text: #00699e;
+	--neutral-bg: #f1f5f9;
+	--neutral-text: #64748b;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	font-family: var(--font);
+}
+
 main {
 	overflow-y: auto;
 }
@@ -155,6 +192,22 @@ main {
 	min-height: 65px;
 }
 
+.nav-dropdown {
+	border: #000;
+}
+
+/* Menghilangkan warna biru bawaan Bootstrap saat menu sedang aktif */
+.profile-menu-item.active {
+    background-color: transparent !important;
+    color: var(--color-text, #0f172a) !important;
+}
+
+/* Memastikan efek hover tetap sama persis meskipun item tersebut sedang aktif */
+.profile-menu-item.active:hover {
+    background-color: #f8fafc !important; /* Sesuaikan dengan warna hover item lain */
+    color: var(--color-text, #0f172a) !important;
+}
+
 /* Component */
 .card {
 	border-color: #e3e6ea;
@@ -192,6 +245,140 @@ main {
 		0 10px 15px -3px rgba(0, 0, 0, 0.1),
 		0 4px 6px -2px rgba(0, 0, 0, 0.05);
 	border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* =========================================
+   PROFILE DROPDOWN STYLES
+========================================= */
+
+/* Trigger Button */
+.profile-toggle {
+	gap: 8px;
+	padding: 4px 10px 4px 4px;
+	border-radius: 999px;
+	border: 1.5px solid #c7cdd8;
+	background-color: #fff;
+	cursor: pointer;
+	user-select: none;
+	transition: all 0.15s ease;
+}
+
+.profile-toggle.open {
+	border-color: #0089cb;
+	background-color: #f0f9ff;
+	box-shadow: 0 0 0 3px rgba(0, 105, 158, 0.13);
+}
+
+/* Avatars */
+.profile-avatar {
+	border-radius: 50%;
+	object-fit: cover;
+	flex-shrink: 0;
+}
+
+.profile-avatar-sm {
+	width: 28px;
+	height: 28px;
+	border: 1.5px solid #c7cdd8;
+}
+
+.profile-avatar-md {
+	width: 40px;
+	height: 40px;
+	/* border: 2px solid var(--bahama-blue-500); */
+}
+
+/* Avatar Fallbacks */
+.profile-fallback {
+	background-color: #dff3ff;
+	color: var(--color-primary);
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.profile-fallback-sm {
+	width: 28px;
+	height: 28px;
+	border: 1.5px solid var(--bahama-blue-700);
+}
+
+.profile-fallback-md {
+	width: 40px;
+	height: 40px;
+	border: 2px solid #b9e7fe;
+}
+
+/* Menu Panel */
+.profile-menu-panel {
+	width: 240px;
+	border-radius: 14px !important;
+	margin-top: 8px !important;
+	box-shadow:
+		0 20px 40px -8px rgba(7, 48, 74, 0.18),
+		0 4px 10px -2px rgba(0, 0, 0, 0.08) !important;
+	border: 1.5px solid #c7cdd8 !important;
+}
+
+/* Menu Items */
+.profile-menu-item {
+	gap: 9px;
+	padding: 8px 10px;
+	font-size: 14px;
+	font-weight: 500;
+	color: #0f172a !important; /* Timpa default Bootstrap a tag */
+	transition:
+		background-color 0.15s ease,
+		color 0.15s ease;
+	text-decoration: none;
+}
+
+.profile-menu-item:hover,
+.profile-menu-item:focus {
+	background-color: #f8fafc;
+	color: #0f172a;
+}
+
+.profile-menu-item.danger {
+	color: #dc2626 !important;
+}
+
+.profile-menu-item.danger:hover {
+	background-color: #fff5f5;
+	color: #b91c1c !important;
+}
+
+/* Icon Box */
+.profile-icon-box {
+	width: 28px;
+	height: 28px;
+	border-radius: 7px;
+	flex-shrink: 0;
+}
+
+/* Role Badges */
+.profile-role-badge {
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: capitalize;
+	gap: 3px;
+}
+
+.badge-admin {
+	background-color: #fef3c7 !important;
+	color: #92400e !important;
+	border: 1px solid #fde68a;
+}
+
+.badge-organizer {
+	background-color: #f0f9ff !important;
+	color: var(--color-primary) !important;
+	border: 1px solid #b9e7fe;
+}
+
+.badge-user {
+	background-color: #f1f5f9 !important;
+	color: #475569 !important;
+	border: 1px solid #cbd5e1;
 }
 
 /* Context chip */
@@ -256,45 +443,6 @@ main {
 	justify-content: center;
 	background: rgba(0, 0, 0, 0.05);
 	flex-shrink: 0;
-}
-
-/* Dashbaord */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
-
-:root {
-	--primary: #00699e;
-	--primary-mid: #3c84a8;
-	--primary-light: #dff3ff;
-	--primary-border: #b9e7fe;
-	--muted: #64748b;
-	--bg: #f1f5f9;
-	--card: #ffffff;
-	--text: #0f172a;
-	--text-muted: #64748b;
-	--border: rgba(55, 98, 167, 0.18);
-	--border-md: rgba(55, 98, 167, 0.28);
-	--radius: 10px;
-	--radius-sm: 6px;
-	--font: 'Plus Jakarta Sans', sans-serif;
-
-	/* Semantic */
-	--success-bg: #dcfce7;
-	--success-text: #166534;
-	--warning-bg: #fef3c7;
-	--warning-text: #92400e;
-	--danger-bg: #fee2e2;
-	--danger-text: #991b1b;
-	--info-bg: #dff3ff;
-	--info-text: #00699e;
-	--neutral-bg: #f1f5f9;
-	--neutral-text: #64748b;
-}
-
-* {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-	font-family: var(--font);
 }
 
 .dashboard-page {
