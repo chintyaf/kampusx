@@ -61,10 +61,10 @@ const AppRoutes = () => {
 	return (
 		<Suspense fallback={<RouteProgressBar />}>
 			<Routes>
+				<Route path="/nearest-event" element={<NearestEventTest />} />
 				{/* 1. Jika BELUM login: Jadikan '/' sebagai Landing Page dengan VisitorLayout */}
 				<Route element={<MemberLayout />}>
 					<Route path="/test-location" />
-					<Route path="/nearest-event" element={<NearestEventTest />} />
 				</Route>
 
 				{!isAuthenticated && (
