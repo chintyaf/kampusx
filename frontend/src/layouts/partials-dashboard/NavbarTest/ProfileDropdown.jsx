@@ -125,13 +125,14 @@ const ProfileDropdown = () => {
 			{/* Panel Menu */}
 			<Dropdown.Menu
 				className="p-0 border-0 mt-2"
-				style={{ borderRadius: 7, shadowColor: 'none' }}>
+				style={{ borderRadius: 7, shadowColor: 'none', backgroundColor: 'transparent' }}>
 				<div
 					className={`shadow-sm pop-down ${isClosing ? 'pop-out' : 'pop-down'}`}
 					style={{
 						borderRadius: 7,
 						overflow: 'hidden',
 						border: '1.2px solid var(--border-md)',
+						backgroundColor: '#fff',
 					}}>
 					{/* User Card Header */}
 					<div

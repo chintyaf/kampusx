@@ -32,6 +32,11 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 // Landing Page & Explore Event
+
+
+Route::get('/events/nearest', [EventController::class, 'getNearest']);
+
+
 Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi index() di EventController
 Route::get('/events/explore', [EventController::class, 'explore']);
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
@@ -55,6 +60,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // Event
+
 
     // --- ROLE: PARTICIPANT / UMUM ---
     Route::post('/checkout', [CheckoutController::class, 'store']);
