@@ -51,7 +51,7 @@ const SignUp = () => {
                 <h3 className="fw-bold" style={{ color: 'var(--color-text)' }}>Create a new account</h3>
                 <p className="text-muted" style={{ fontSize: 'var(--font-sm)' }}>
                     or{' '}
-                    <Link to="/signin" className="text-decoration-none fw-semibold" style={{ color: 'var(--color-primary)' }}>
+                    <Link to="/login" className="text-decoration-none fw-semibold" style={{ color: 'var(--color-primary)' }}>
                         sign in to your account
                     </Link>
                 </p>
@@ -100,7 +100,7 @@ const SignUp = () => {
 
             <div className="text-center">
                 <span style={{ fontSize: 'var(--font-sm)', color: 'var(--color-secondary)' }}>Sudah punya akun? </span>
-                <Link to="/signin" className="text-decoration-none fw-semibold" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-primary)' }}>
+                <Link to="/login" className="text-decoration-none fw-semibold" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-primary)' }}>
                     Sign In di sini
                 </Link>
             </div>

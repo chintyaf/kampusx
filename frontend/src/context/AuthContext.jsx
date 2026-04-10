@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import axios from 'axios';
-
+// import axios from 'axios';
+import api from '../api/axios';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -13,19 +13,21 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
 
     useEffect(() => {
         const fetchUser = async () => {
             if (token) {
                 try {
-                    const response = await axios.get('http://localhost:8000/api/user');
+                    const response = await api.get('/user');
+                    // const response = await axios.get('http://localhost:8000/api/user');
                     setUser(response.data);
-                    // Update juga di localStorage biar sinkron
                     localStorage.setItem('user', JSON.stringify(response.data));
                 } catch (error) {
                     logout();
+                } finally {
+                    setLoading(false);
                 }
             }
             setLoading(false);
@@ -34,19 +36,18 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     const login = (newToken, userData) => {
-        // Simpan ke localStorage
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(userData)); // INI YANG BIKIN JALAN!
         
-        // Simpan ke state
         setToken(newToken);
         setUser(userData);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+        api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     };
 
     const logout = async () => {
         try {
-            await axios.post('http://localhost:8000/api/logout');
+            await api.post('/logout');
+            // await axios.post('http://localhost:8000/api/logout');
         } catch (e) {
             console.error("Logout di server gagal, tapi tetap bersihkan data lokal");
         }
@@ -58,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         // Bersihkan state
         setToken(null);
         setUser(null);
-        delete axios.defaults.headers.common['Authorization'];
+        delete api.defaults.headers.common['Authorization'];
     };
 
     return (
