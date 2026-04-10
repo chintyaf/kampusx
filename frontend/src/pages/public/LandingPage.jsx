@@ -189,6 +189,8 @@ const LandingPage = () => {
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Button
+              as={Link}
+              to="/explore-events"
               onClick={() => navigate("/explore-events")}
               style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "10px 28px", fontWeight: 700, fontSize: "var(--font-md)", display: "flex", alignItems: "center", gap: 6 }}
             >
@@ -241,7 +243,9 @@ const LandingPage = () => {
           </Row>
           <div style={{ textAlign: "center", marginTop: 36 }}>
             <Button
-              onClick={() => navigate("/explore-events")}
+              as={Link} 
+              to="/explore-events"
+              // onClick={() => navigate("/explore-events")}
               style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "9px 24px", fontWeight: 600, fontSize: "var(--font-sm)", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               Lihat Semua Kategori <ChevronRight size={15} />
@@ -258,7 +262,10 @@ const LandingPage = () => {
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terpopuler</h2>
               <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Paling banyak diminati minggu ini</p>
             </div>
-            <button onClick={() => navigate("/explore-events?sort=popular")}
+            <button 
+              as={Link}
+              to="/explore-events?sort=popular"
+              // onClick={() => navigate("/explore-events?sort=popular")}
               style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
               Lihat Semua <ChevronRight size={14} />
             </button>
@@ -289,7 +296,9 @@ const LandingPage = () => {
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terbaru</h2>
               <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Baru saja ditambahkan</p>
             </div>
-            <button onClick={() => navigate("/explore?sort=newest")}
+            <button 
+              as={Link}
+              to="/explore-events?sort=newest"
               style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
               Lihat Semua <ChevronRight size={14} />
             </button>
@@ -392,7 +401,8 @@ const LandingPage = () => {
                   style={{ border: "none", fontSize: "var(--font-sm)" }}
                 />
                 <Button
-                  onClick={() => navigate(`/register?email=${email}`)}
+                  as={Link}
+                  to={`/register?email=${email}`}
                   style={{ background: "var(--color-primary)", border: "none", fontWeight: 700, fontSize: "var(--font-sm)", padding: "0 24px" }}
                 >
                   Mulai &rarr;
