@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext'; 
 
 const SignUp = () => {
@@ -20,18 +21,14 @@ const SignUp = () => {
         e.preventDefault();
         setErrorMsg('');
         try {
-            const response = await axios.post('http://localhost:8000/api/register', {
+            const response = await api.post('/register', {
                 name: name,
                 email: email,
                 password: password
-                // Jika ingin kirim nomor HP, tambahkan state phone juga di atas
             }, {
                 headers: { 'Accept': 'application/json' }
             });
 
-            // Simpan token otomatis setelah register (karena di controller register kita juga return token)
-            // localStorage.setItem('token', response.data.access_token);
-            // localStorage.setItem('user', JSON.stringify(response.data.data));
             login(response.data.access_token, response.data.data);
 
             alert("Registrasi Berhasil!");
