@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Facebook, Twitter, Github } from 'lucide-react';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
 const SignIn = () => {
@@ -20,8 +21,8 @@ const SignIn = () => {
         e.preventDefault();
         setErrorMsg('');
         try {
-            const response = await axios.post(
-                "http://localhost:8000/api/login",
+            const response = await api.post(
+                "/login",
                 {
                     email: email,
                     password: password,
