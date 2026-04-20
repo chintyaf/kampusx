@@ -58,10 +58,37 @@ const ScheduleForm = ({
             prereqOptions.some((opt) => opt.value === id)
         );
 
+        // ENFORCE CONSTRAINT PRASYARAT
+        const currentDay = parseInt(formData.day, 10) || 1;
+        const currentStartTime = formData.startTime;
+
+        if (currentStartTime && validPrerequisites.length > 0) {
+            for (let reqId of validPrerequisites) {
+                const reqSession = allSessions.find(s => s.id === reqId);
+                if (reqSession) {
+                    const reqDay = parseInt(reqSession.day, 10) || 1;
+                    
+                    // Jika Prasyarat di hari yang sama, pastikan prasyarat dimulai LEBIH AWAL
+                    if (reqDay === currentDay && reqSession.startTime) {
+                        if (reqSession.startTime >= currentStartTime) {
+                            alert(`Validasi Gagal: Sesi prasyarat "${reqSession.title || 'Tanpa Judul'}" (Mulai: ${reqSession.startTime}) diagendakan lebih lambat atau bersamaan dengan sesi ini (Mulai: ${currentStartTime}).\nSolusi: Jadwalkan prasyarat lebih awal, sesuaikan waktu sesi ini, atau hapus prasyaratnya.`);
+                            return; // Batalkan proses simpan
+                        }
+                    }
+                    
+                    // Jika Prasyarat di hari yang BEDA, tapi harinya LEBIH BESAR, batalkan
+                    if (reqDay > currentDay) {
+                         alert(`Validasi Gagal: Sesi prasyarat "${reqSession.title || 'Tanpa Judul'}" diagendakan di hari ke-${reqDay}, sedangkan sesi ini ada di hari ke-${currentDay}. Harap perbaiki urutan harinya.`);
+                         return; // Batalkan proses simpan
+                    }
+                }
+            }
+        }
+
         // Ensure day is an integer
         const updatedSession = {
             ...formData,
-            day: parseInt(formData.day, 10),
+            day: currentDay,
             title: formData.title.trim() || "Sesi Tanpa Judul",
             prerequisites: validPrerequisites,
             // Note: 'time' string generation is now handled cleanly in the parent (ScheduleTable)
@@ -77,32 +104,34 @@ const ScheduleForm = ({
             // 1. Tidak boleh memilih diri sendiri
             if (s.id === formData.id) return false;
 
+            // 2. PENTING: Jika sesi ini SEBELUMNYA SUDAH DIPILIH sebagai prasyarat, TAMPILKAN SAJA.
+            // Gunanya agar bila waktu sesi diubah menjadi tidak linear, pilihan tersebut tidak hilang diam-diam.
+            // Errornya nanti dicegat dan di-enforce saat pengguna menekan handleSubmit.
+            if (formData.prerequisites.includes(s.id)) return true;
+
             const prereqDay = parseInt(s.day, 10) || 1;
             const currentDay = parseInt(formData.day, 10) || 1;
 
-            // 2. Jika harinya sebelum hari ini, BOLEH
+            // 3. Jika harinya sebelum hari ini, BOLEH
             if (prereqDay < currentDay) return true;
 
-            // 3. Jika harinya setelah hari ini, TIDAK BOLEH
+            // 4. Jika harinya setelah hari ini, MUTLAK TIDAK BOLEH
             if (prereqDay > currentDay) return false;
 
-            // 4. Jika harinya SAMA, cek waktu mulai atau nomor urutan sesinya
+            // 5. Jika harinya SAMA
             if (prereqDay === currentDay) {
-                // Jika memiliki format waktu (HH:mm), bandingkan string-nya
+                // Jika KEDUANYA memiliki format waktu, evaluasi secara matematis teksnya (HH:mm)
                 if (s.startTime && formData.startTime) {
                     return s.startTime < formData.startTime;
                 }
 
-                // Fallback jika belum ada waktu: bandingkan nomor/urutan sesi
-                const prereqSeq = parseInt(s.session, 10);
-                const currentSeq = parseInt(formData.session, 10);
-
-                if (!isNaN(prereqSeq) && !isNaN(currentSeq)) {
-                    return prereqSeq < currentSeq;
-                }
+                // Jika SALAH SATU atau KEDUANYA belum punya waktu, izinkan muncul agar user bisa 
+                // memilih sesi tersebut, karena jadwal mungkin baru akan diisi nanti. 
+                // Jika nantinya jadwal diisi tidak logis, akan ditolak keras pada saat alert 'handleSubmit'.
+                return true;
             }
 
-            return false; // Default: Jika tidak bisa dipastikan lebih awal, sembunyikan.
+            return false;
         })
         .map((s) => ({
             value: s.id,

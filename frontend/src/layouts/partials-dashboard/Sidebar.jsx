@@ -81,6 +81,7 @@ const MENU_ITEMS = {
 				{ name: 'Susunan Acara', path: 'sesi' },
 				{ name: 'Daftar Pembicara', path: 'pembicara' },
 				{ name: 'Formulir Registrasi', path: 'formulir' },
+				{ name: 'Tiket', path: 'tiket' },
 			],
 		},
 		{
@@ -122,26 +123,6 @@ const MENU_ITEMS = {
 	],
 };
 
-const ACCOUNT_ITEMS = [
-	{
-		id: 'admin-account',
-		name: 'Admin',
-		path: 'admin/dashboard',
-		icon: <UserCheck size={16} className="me-2" />,
-	},
-	{
-		id: 'organizer-account',
-		name: 'Organizer',
-		path: 'organizer/dashboard',
-		icon: <UserCheck size={16} className="me-2" />,
-	},
-	{
-		id: 'event-account',
-		name: 'Event',
-		path: 'organizer/event/dashboard',
-		icon: <UserCheck size={16} className="me-2" />,
-	},
-];
 
 const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 	const [openMenu, setOpenMenu] = useState(null);

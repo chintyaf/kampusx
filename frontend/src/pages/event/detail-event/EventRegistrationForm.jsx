@@ -19,7 +19,7 @@ const EventRegistrationForm = () => {
         <EventLayout
             heading={"Custom Checkout Questions"}
             subheading={"Buat pertanyaan tambahan saat peserta checkout."}
-            nextPath={"preview"}
+            nextPath={"tiket"}
             prevPath={"pembicara"}
         >
             <Form className="py-4">

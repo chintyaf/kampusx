@@ -23,6 +23,7 @@ import EventScheduleLocation from '../pages/event/detail-event/EventLocation';
 import EventSession from '../pages/event/detail-event/EventSession';
 import EventSpeaker from '../pages/event/detail-event/EventSpeaker';
 import EventRegistrationForm from '../pages/event/detail-event/EventRegistrationForm';
+import EventTicket from '../pages/event/detail-event/EventTicket';
 import EventStaffManagement from '../pages/event/EventStaffManagement';
 
 import EventParticipantList from '../pages/event/EventParticipantListPage';
@@ -38,8 +39,8 @@ import NotFound from '../pages/NotFoundPage';
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
 // import ExploreEvents from "../pages/ExploreEvents";
-import SignIn from '../pages/auth/SignIn';
-import SignUp from '../pages/auth/SignUp';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
 import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
@@ -98,8 +99,8 @@ const AppRoutes = () => {
 
 				{/* AUTH */}
 				<Route element={<AuthLayout />}>
-					<Route path="/login" element={<SignIn />} />
-					<Route path="/signup" element={<SignUp />} />
+					<Route path="/login" element={<LoginPage />} />
+					<Route path="/register" element={<RegisterPage />} />
 					<Route path="/forgot-password" element={<ForgotPassword />} />
 				</Route>
 
@@ -145,6 +146,7 @@ const AppRoutes = () => {
 									<Route path="sesi" element={<EventSession />} />
 									<Route path="pembicara" element={<EventSpeaker />} />
 									<Route path="formulir" element={<EventRegistrationForm />} />
+									<Route path="tiket" element={<EventTicket />} />
 								</Route>
 								<Route path="kelola-staff" element={<EventStaffManagement />} />
 

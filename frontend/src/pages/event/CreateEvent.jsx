@@ -1,21 +1,19 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Form, Row, Col } from "react-bootstrap"; // Tambahkan Row dan Col
-import Select from "react-select";
-import api from "../../api/axios";
-import { notify } from "../../utils/notify";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Form, Row, Col, Spinner } from 'react-bootstrap';
+import Select from 'react-select';
+import api from '../../api/axios';
+import { notify } from '../../utils/notify';
 
-import FormHeading from "../../components/dashboard/FormHeading";
-
-// ICON
-import { Image } from "lucide-react";
+import FormHeading from '../../components/dashboard/FormHeading';
+import { Image } from 'lucide-react';
 
 const CreateEvent = () => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        title: "",
-        description: "",
+        title: '',
+        description: '',
         banner: null,
         kategori: [],
         eventType: [],
@@ -23,10 +21,16 @@ const CreateEvent = () => {
 
     const [kategoriOptions, setKategoriOptions] = useState([]);
     const [eventTypeOptions, setEventTypeOptions] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleTextChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+
+        // Logika untuk mengubah huruf pertama dan huruf setelah spasi menjadi Kapital
+        // Catatan: Jika kamu HANYA ingin berlaku di 'title', kamu bisa bungkus dengan if (name === 'title')
+        const capitalizedValue = value.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+
+        setFormData((prev) => ({ ...prev, [name]: capitalizedValue }));
     };
 
     const handleSelectChange = (field, selectedOptions) => {
@@ -35,16 +39,26 @@ const CreateEvent = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        setFormData((prev) => ({ ...prev, banner: file }));
+        if (file) {
+            file.preview = URL.createObjectURL(file);
+            setFormData((prev) => ({ ...prev, banner: file }));
+        }
     };
 
-    // Ambil opsi kategori dan tipe event saat komponen pertama kali dimuat
+    useEffect(() => {
+        return () => {
+            if (formData.banner && formData.banner.preview) {
+                URL.revokeObjectURL(formData.banner.preview);
+            }
+        };
+    }, [formData.banner]);
+
     useEffect(() => {
         const fetchOptions = async () => {
             try {
                 const [kategoriRes, eventTypeRes] = await Promise.all([
-                    api.get("/categories"),
-                    api.get("/event-types"),
+                    api.get('/categories'),
+                    api.get('/event-types'),
                 ]);
 
                 if (kategoriRes.data.success) {
@@ -65,7 +79,8 @@ const CreateEvent = () => {
                     );
                 }
             } catch (error) {
-                console.error("Gagal mengambil opsi data:", error);
+                console.error('Gagal mengambil opsi data:', error);
+                notify('error', 'Gagal', 'Tidak dapat memuat opsi kategori atau tipe event.');
             }
         };
 
@@ -75,73 +90,68 @@ const CreateEvent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (formData.eventType.length === 0 || formData.kategori.length === 0) {
+            notify('warning', 'Perhatian', 'Tipe event dan kategori wajib diisi!');
+            return;
+        }
+
+        setIsLoading(true);
+
         try {
             const submitData = new FormData();
 
-            // Mapping data dari state ke FormData
-            submitData.append("title", formData.title);
-            submitData.append("description", formData.description);
+            submitData.append('title', formData.title);
+            submitData.append('description', formData.description);
 
-            formData.kategori.forEach((cat) =>
-                submitData.append("kategori_ids[]", cat.value),
-            );
-
-            formData.eventType.forEach((type) =>
-                submitData.append("event_type_ids[]", type.value),
-            );
+            formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
+            formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
 
             if (formData.banner) {
-                submitData.append("banner", formData.banner);
+                submitData.append('banner', formData.banner);
             }
 
-            // Langsung tembak ke endpoint create /events
             const response = await api.post(`/events`, submitData, {
-                headers: { "Content-Type": "multipart/form-data" },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
             const newEventId = response.data.data.id;
 
-            console.log("Sukses:", response.data);
-
-            // Pesan sukses dari backend (message: "Event baru berhasil dibuat!")
-            notify(
-                "success",
-                "Berhasil!",
-                response.data.message || "Event baru berhasil dibuat.",
-            );
-
-            // Langsung redirect ke dashboard event yang baru dibuat
+            notify('success', 'Berhasil!', response.data.message || 'Event baru berhasil dibuat.');
             navigate(`/organizer/${newEventId}/event-dashboard`);
-
-            return response;
         } catch (error) {
-            console.error("Gagal menyimpan event:", error);
+            console.error('Gagal menyimpan event:', error);
 
-            const errorMessage =
-                error.response?.data?.error_detail ||
-                error.response?.data?.message ||
-                "Terjadi kesalahan saat menyimpan event.";
+            if (error.response && error.response.status === 422) {
+                const validationErrors = error.response.data.errors;
+                console.log('Detail Error Validasi:', validationErrors);
+                const firstErrorMessage = Object.values(validationErrors)[0][0];
 
-            notify("error", "Gagal!", errorMessage);
+                notify('error', 'Validasi Gagal!', firstErrorMessage);
+            } else {
+                const errorMessage =
+                    error.response?.data?.error_detail ||
+                    error.response?.data?.message ||
+                    'Terjadi kesalahan saat menyimpan event.';
+
+                notify('error', 'Gagal!', errorMessage);
+            }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="container-fluid p-0 col-11">
-            {" "}
-            {/* Bisa pakai container agar layout aman */}
+        <div className="container-fluid p-0 col-10">
             <FormHeading
                 heading="Buat Event Baru"
                 subheading="Isi informasi berikut untuk membuat event baru"
             />
-            <Form>
+            <Form onSubmit={handleSubmit}>
                 <Row>
-                    {/* Judul Event - Full width di semua layar */}
                     <Col xs={12}>
                         <Form.Group className="mb-4" controlId="formTitle">
                             <Form.Label>
-                                Nama Event{" "}
-                                <span className="text-danger">*</span>
+                                Nama Event <span className="text-danger">*</span>
                             </Form.Label>
                             <Form.Control
                                 required
@@ -154,15 +164,10 @@ const CreateEvent = () => {
                         </Form.Group>
                     </Col>
 
-                    {/* Deskripsi - Full width di semua layar */}
                     <Col xs={12}>
-                        <Form.Group
-                            className="mb-4"
-                            controlId="formDescription"
-                        >
+                        <Form.Group className="mb-4" controlId="formDescription">
                             <Form.Label>
-                                Deskripsi Lengkap{" "}
-                                <span className="text-danger">*</span>
+                                Deskripsi Lengkap <span className="text-danger">*</span>
                             </Form.Label>
                             <Form.Control
                                 required
@@ -176,12 +181,10 @@ const CreateEvent = () => {
                         </Form.Group>
                     </Col>
 
-                    {/* Tipe Event - Setengah lebar di laptop (md=6), full di HP (xs=12) */}
-                    <Col xs={12}>
+                    <Col xs={12} md={12}>
                         <Form.Group className="mb-4">
                             <Form.Label>
-                                Tipe Event{" "}
-                                <span className="text-danger">*</span>
+                                Tipe Event <span className="text-danger">*</span>
                             </Form.Label>
                             <Select
                                 isMulti
@@ -190,19 +193,15 @@ const CreateEvent = () => {
                                 placeholder="Pilih Tipe Event..."
                                 className="basic-multi-select"
                                 classNamePrefix="select form-select"
-                                onChange={(selected) =>
-                                    handleSelectChange("eventType", selected)
-                                }
+                                onChange={(selected) => handleSelectChange('eventType', selected)}
                             />
                         </Form.Group>
                     </Col>
 
-                    {/* Kategori - Setengah lebar di laptop (md=6), full di HP (xs=12) */}
-                    <Col xs={12}>
+                    <Col xs={12} md={12}>
                         <Form.Group className="mb-4">
                             <Form.Label>
-                                Kategori Event{" "}
-                                <span className="text-danger">*</span>
+                                Kategori Event <span className="text-danger">*</span>
                             </Form.Label>
                             <Select
                                 isMulti
@@ -211,19 +210,15 @@ const CreateEvent = () => {
                                 placeholder="Pilih kategori..."
                                 className="basic-multi-select"
                                 classNamePrefix="select form-select"
-                                onChange={(selected) =>
-                                    handleSelectChange("kategori", selected)
-                                }
+                                onChange={(selected) => handleSelectChange('kategori', selected)}
                             />
                         </Form.Group>
                     </Col>
 
-                    {/* Banner - Full width di semua layar */}
                     <Col xs={12}>
                         <Form.Group className="mb-4">
                             <Form.Label>
-                                Banner Event
-                                {/* <span className="text-danger">*</span> */}
+                                Banner Event <span className="text-danger">*</span>
                             </Form.Label>
                             <div className="upload-box-wrapper w-100">
                                 <input
@@ -233,42 +228,66 @@ const CreateEvent = () => {
                                     className="hidden-input"
                                     accept="image/*"
                                     onChange={handleFileChange}
-                                    style={{ display: "none" }} // Pastikan input aslinya sembunyi
+                                    style={{ display: 'none' }}
                                 />
                                 <label
                                     htmlFor="bannerUpload"
                                     className="upload-box-label w-100 d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded"
-                                    style={{
-                                        cursor: "pointer",
-                                        backgroundColor: "#f8f9fa",
-                                    }}
-                                >
+                                    style={{ cursor: 'pointer', backgroundColor: '#f8f9fa' }}>
                                     <div className="text-center">
                                         <Image size={32} color="#a1a1a1" />
                                         <p className="mb-0 text-muted mt-2">
                                             {formData.banner
                                                 ? formData.banner.name
-                                                : "Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)"}
+                                                : 'Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)'}
                                         </p>
                                     </div>
                                 </label>
                             </div>
                         </Form.Group>
+
+                        {formData.banner && (
+                            <div
+                                className="w-100 border mt-3"
+                                style={{
+                                    height: '200px',
+                                    overflow: 'hidden',
+                                    borderRadius: '8px',
+                                }}>
+                                <img
+                                    src={
+                                        formData.banner instanceof File
+                                            ? formData.banner.preview
+                                            : formData.banner
+                                    }
+                                    alt="Banner Preview"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            </div>
+                        )}
                     </Col>
                 </Row>
-            </Form>
-            {/* Button Container */}
-            <div className="d-flex justify-content-end  wgap-2 py-0">
-                <div className="justify-content-end gap-2 py-4">
-                    <button
-                        type="submit"
-                        className="btn btn-primary w-100 w-md-auto"
-                        onClick={handleSubmit}
-                    >
-                        Buat Event
+
+                <div className="d-flex justify-content-end py-4 gap-2">
+                    <button type="submit" className="btn btn-primary px-4" disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Menyimpan...
+                            </>
+                        ) : (
+                            'Buat Event'
+                        )}
                     </button>
                 </div>
-            </div>
+            </Form>
         </div>
     );
 };

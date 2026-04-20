@@ -92,6 +92,11 @@ const EventSpeaker = () => {
     };
 
     const handleSave = async () => {
+        if (speakers.length === 0) {
+            notify("error", "Wajib Diisi!", "Sebuah event setidaknya harus memiliki 1 pembicara (Speaker). Silakan tambah pembicara terlebih dahulu.");
+            throw new Error("Speaker wajib diisi");
+        }
+
         // 3. Bersihkan payload: ubah ID temporary menjadi null sebelum dikirim ke backend
         const cleanSpeakers = speakers.map((speaker) => ({
             ...speaker,
@@ -139,11 +144,13 @@ const EventSpeaker = () => {
 
     return (
         <EventLayout
-            heading="Manajemen Pembicara & Narasumber"
+            heading="Manajemen Pembicara & Narasumber *"
             subheading="Kelola profil pengisi acara dan hubungkan mereka dengan sesi yang relevan."
             nextPath={"formulir"}
             onSave={handleSave}
             prevPath={"sesi"}
+            isFormDirty={showAddForm || editingSpeakerId !== null}
+            formDirtyMessage="Terdapat form speaker yang belum disimpan atau dibatalkan. Harap selesaikan terlebih dahulu."
         >
             <Form>
                 {speakers.length > 0 ? (

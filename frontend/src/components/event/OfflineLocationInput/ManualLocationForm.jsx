@@ -17,12 +17,6 @@ const ManualLocationForm = ({ locationData, setLocationData }) => {
         //     type: "text",
         // },
         {
-            label: "Nama Lokasi",
-            name: "location_name",
-            placeholder: "Cth: Gedung Utama",
-            type: "text",
-        },
-        {
             label: "Kecamatan",
             name: "district",
             placeholder: "Cth: Sukajadi",

@@ -129,16 +129,16 @@ const EventLocation = () => {
 
         if (selectedType === "online" || selectedType === "hybrid") {
             payload.platform = formData.platform;
-            payload.meeting_link = formData.meeting_link;
-            payload.online_instruction = formData.online_instruction;
+            payload.meeting_link = formData.meeting_link !== "" ? formData.meeting_link : null;
+            payload.online_instruction = formData.online_instruction !== "" ? formData.online_instruction : null;
         }
 
         if (selectedType === "offline" || selectedType === "hybrid") {
             // --- Field Utama Offline ---
             payload.location_name = formData.location_name; // Diperbarui dari 'location'
             payload.location_detail = formData.location_detail;
-            payload.maps_url = formData.maps_url;
-            payload.offline_instruction = formData.offline_instruction;
+            payload.maps_url = formData.maps_url !== "" ? formData.maps_url : null;
+            payload.offline_instruction = formData.offline_instruction !== "" ? formData.offline_instruction : null;
 
             // --- Field Koordinat ---
             // Konversi string kosong ke null agar tidak error di field database bertipe decimal

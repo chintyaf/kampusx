@@ -105,9 +105,10 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 		};
 
 		if (eventId) {
+			setStatus('loading');
 			fetchStatus();
 		}
-	}, []);
+	}, [eventId]);
 
 	const handleSelectStatus = (newStatus) => {
 		console.log(status, newStatus);

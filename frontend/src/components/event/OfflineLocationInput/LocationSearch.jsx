@@ -4,7 +4,7 @@ import { Form, ListGroup, Spinner } from "react-bootstrap";
 
 const LocationSearch = ({ setLocationData, initialValue = "" }) => {
     // 1. Inisialisasi searchQuery dengan initialValue jika ada
-    const [searchQuery, setSearchQuery] = useState(initialValue);
+    const [searchQuery, setSearchQuery] = useState(initialValue || "");
     const [suggestions, setSuggestions] = useState([]);
     const [isTyping, setIsTyping] = useState(false);
     const searchRef = useRef(null);
@@ -26,7 +26,8 @@ const LocationSearch = ({ setLocationData, initialValue = "" }) => {
         // JANGAN lakukan fetch jika:
         // - Karakter < 3
         // - State 'selected' bernilai true (data sudah ada/baru dipilih)
-        if (searchQuery.length < 3 || selected) {
+        const currentQuery = searchQuery || "";
+        if (currentQuery.length < 3 || selected) {
             setSuggestions([]);
             return;
         }
@@ -53,7 +54,6 @@ const LocationSearch = ({ setLocationData, initialValue = "" }) => {
         const displayName = place.display_name;
 
         setLocationData({
-            location_name: place.name || searchQuery,
             address_detail: addr.road
                 ? `${addr.road} ${addr.house_number || ""}`.trim()
                 : displayName,
@@ -85,7 +85,7 @@ const LocationSearch = ({ setLocationData, initialValue = "" }) => {
         <div className="position-relative mb-3" ref={searchRef}>
             <Form.Control
                 type="text"
-                value={searchQuery}
+                value={searchQuery || ""}
                 onChange={handleInputChange}
                 placeholder="Cari tempat (Cth: Paris Van Java)"
             />

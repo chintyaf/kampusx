@@ -16,6 +16,8 @@ return new class extends Migration
             ->nullable()
             ->constrained('institutions')
             ->nullOnDelete();
+            
+            $table->integer('points')->default(0);
         });
     }
 
@@ -24,6 +26,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['university_id']);
+            $table->dropColumn(['university_id', 'points']);
+        });
     }
 };

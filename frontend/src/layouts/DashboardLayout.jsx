@@ -14,9 +14,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const DashboardLayout = () => {
-	const { eventId } = useParams();
+	var { eventId } = useParams();
 	const location = useLocation();
-	const path = location.pathname;
+	var path = location.pathname;
 
 	// State untuk collapse sidebar
 	const [isPageLoading, setIsPageLoading] = useState(false);
@@ -83,7 +83,7 @@ const DashboardLayout = () => {
 				<main
 					style={{
 						padding: '30px 60px',
-						backgroundColor: '#F7F8F9',
+						backgroundColor: '#f4f6f8',	
 						flex: 1,
 						overflowY: 'auto',
 						position: 'relative',

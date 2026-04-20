@@ -54,7 +54,7 @@ const LocationSummary = ({ locationData }) => (
                         color: "var(--color-text)",
                     }}
                 >
-                    {locationData.location_name || "(Tanpa Nama Lokasi)"}
+                    {locationData.address_detail || "(Pilih Lokasi Di Peta)"}
                 </h5>
                 <p
                     className="mb-0"
@@ -65,7 +65,6 @@ const LocationSummary = ({ locationData }) => (
                     }}
                 >
                     {[
-                        locationData.address_detail,
                         locationData.district,
                         locationData.city,
                     ]

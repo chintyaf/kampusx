@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class Event extends Model
 {
     use HasFactory;
@@ -171,5 +173,8 @@ class Event extends Model
         return $errors;
     }
 
-
+    public function materials(): HasMany
+    {
+        return $this->hasMany(EventMaterial::class);
+    }
 }

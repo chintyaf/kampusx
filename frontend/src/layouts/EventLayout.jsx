@@ -13,10 +13,17 @@ const EventLayout = ({
     nextPath,
     prevPath,
     onSave,
+    isFormDirty = false,
+    formDirtyMessage = "Mohon simpan atau batalkan perubahan yang sedang Anda lakukan sebelum pindah halaman.",
 }) => { 
     const navigate = useNavigate();
     const [isSaving, setIsSaving] = useState(false);
     const handleSaveAndContinue = async () => {
+        if (isFormDirty) {
+            alert(formDirtyMessage);
+            return;
+        }
+
         if (isSaving) return;
         setIsSaving(true);
 
@@ -84,7 +91,13 @@ const EventLayout = ({
                     <Button
                         variant="dark"
                         disabled={isSaving}
-                        onClick={() => navigate(`../${prevPath}`)}
+                        onClick={() => {
+                            if (isFormDirty) {
+                                alert(formDirtyMessage);
+                                return;
+                            }
+                            navigate(`../${prevPath}`);
+                        }}
                     >
                         Back
                     </Button>

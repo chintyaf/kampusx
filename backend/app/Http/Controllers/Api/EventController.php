@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 // use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+// use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Validation\ValidationException;
 
 use App\Models\Event;
@@ -32,47 +34,57 @@ class EventController extends Controller
         }
 
         try {
-            // 1. Validasi manual di dalam Controller
-            $validatedData = $request->validate([
-                'title'          => 'required|string|max:255',
-                'description'    => 'nullable|string',
-                'kategori_ids'   => 'nullable|array',
-                'event_type_ids' => 'nullable|array',
-                'banner'         => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            // 1. Validasi
+            $validated = $request->validate([
+                'title'              => 'required|string|max:255',
+                'description'        => 'nullable|string',
+                'kategori_ids'       => 'nullable|array',
+                'kategori_ids.*'     => 'nullable|exists:categories,id',
+                'event_type_ids'     => 'nullable|array',
+                'event_type_ids.*'   => 'nullable|exists:event_types,id',
+                'banner'             => $request->hasFile('banner')
+                                        ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
+                                        : 'nullable',
             ]);
 
-            return DB::transaction(function () use ($request, $validatedData) {
+            return DB::transaction(function () use ($request, $validated) {
 
-                // 2. Persiapkan data utama
+                // 2. Persiapkan array data utama (Gunakan nama $eventData)
                 $eventData = [
                     'organizer_id'  => $request->user()->id,
-                    'title'         => $validatedData['title'],
+                    'title'         => $validated['title'],
                     'status'        => 'draft',
-                    'description'   => $validatedData['description'] ?? null,
-
-                    // Set null untuk data yang belum dikirim dari frontend
-                    'location_type' => null,
-                    'start_date'    => null,
-                    'end_date'      => null,
+                    'description'   => $validated['description'] ?? null,
                 ];
 
-                // 3. Handle Upload Banner Jika Ada
+                // 3. Handle Upload File (Tanpa cek file lama karena ini data baru)
                 if ($request->hasFile('banner')) {
-                    $eventData['banner_path'] = $request->file('banner')->store('event-banners', 'public');
+                    $extension = $request->file('banner')->getClientOriginalExtension();
+                    // Gunakan nama unik karena ID event belum ada
+                    $fileName = "banner_" . time() . "_" . uniqid() . "." . $extension;
+
+                    // Simpan di folder general events/banners
+                    $path = $request->file('banner')->storeAs("events/banners", $fileName, 'public');
+
+                    // Masukkan ke array data yang akan di-insert
+                    $eventData['image_path'] = $path;
                 }
 
                 // 4. Buat Event Utama
                 $event = Event::create($eventData);
 
-                // 5. Relasi Kategori (Many to Many)
-                if (!empty($validatedData['kategori_ids'])) {
-                    $event->categories()->sync($validatedData['kategori_ids']);
+                // 5. Relasi Kategori (Many to Many) - Gunakan $validated, bukan $validatedData
+                if (!empty($validated['kategori_ids'])) {
+                    $event->categories()->sync($validated['kategori_ids']);
                 }
 
                 // 6. Relasi Event Types (Many to Many)
-                if (!empty($validatedData['event_type_ids'])) {
-                    $event->eventTypes()->sync($validatedData['event_type_ids']);
+                if (!empty($validated['event_type_ids'])) {
+                    $event->eventTypes()->sync($validated['event_type_ids']);
                 }
+
+                // Load relasi agar data yang dikembalikan ke frontend lebih lengkap
+                $event->load(['categories', 'eventTypes']);
 
                 return response()->json([
                     'status'  => 'success',
@@ -82,7 +94,6 @@ class EventController extends Controller
             });
 
         } catch (ValidationException $e) {
-            // Error dari $request->validate() akan ditangkap di sini
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Data yang dikirim tidak valid.',
@@ -90,13 +101,11 @@ class EventController extends Controller
             ], 422);
 
         } catch (\Exception $e) {
-            // Log error asli untuk internal developer
             Log::error("Store Event Error: " . $e->getMessage(), [
                 'user_id' => $request->user()->id,
                 'trace'   => $e->getTraceAsString()
             ]);
 
-            // Kirim pesan error ke frontend
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Terjadi kesalahan saat menyimpan event.',

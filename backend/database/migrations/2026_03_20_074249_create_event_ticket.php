@@ -16,7 +16,10 @@ return new class extends Migration
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
             $table->string('name'); // Contoh: "Early Bird", "General Admission"
 
+
             $table->enum('type', ['online', 'offline'])->default('offline');
+
+            $table->boolean('is_free')->default(true); // True = Gratis, False = Berbayar
             $table->decimal('price', 12, 2)->default(0);
 
             $table->integer('capacity')->nullable(); // Kuota per jenis tiket

@@ -6,7 +6,7 @@
 	--primary-light: #dff3ff;
 	--primary-border: #b9e7fe;
 	--muted: #64748b;
-	--bg: #f1f5f9;
+	--bg: #e4e7eb;
 	--card: #ffffff;
 	--text: #0f172a;
 	--text-muted: #64748b;
@@ -198,14 +198,14 @@ main {
 
 /* Menghilangkan warna biru bawaan Bootstrap saat menu sedang aktif */
 .profile-menu-item.active {
-    background-color: transparent !important;
-    color: var(--color-text, #0f172a) !important;
+	background-color: transparent !important;
+	color: var(--color-text, #0f172a) !important;
 }
 
 /* Memastikan efek hover tetap sama persis meskipun item tersebut sedang aktif */
 .profile-menu-item.active:hover {
-    background-color: #f8fafc !important; /* Sesuaikan dengan warna hover item lain */
-    color: var(--color-text, #0f172a) !important;
+	background-color: #f8fafc !important; /* Sesuaikan dengan warna hover item lain */
+	color: var(--color-text, #0f172a) !important;
 }
 
 /* Component */
