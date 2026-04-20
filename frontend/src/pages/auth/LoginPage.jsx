@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Facebook, Twitter, Github } from 'lucide-react';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
-const LoginPage = () => {
+const SignIn = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [errorMsg, setErrorMsg] = useState('');
@@ -22,8 +23,8 @@ const LoginPage = () => {
 		setErrorMsg('');
 		setLoading(true);
 		try {
-			const response = await axios.post(
-				'http://localhost:8000/api/login',
+			const response = await api.post(
+				'/login',
 				{
 					email: email,
 					password: password,
@@ -55,12 +56,12 @@ const LoginPage = () => {
 		<div className="w-100 mt-5 pt-5" style={{ maxWidth: '400px' }}>
 			<div className="text-center mb-4">
 				<h3 className="fw-bold" style={{ color: 'var(--color-text)' }}>
-					Enter your info to login
+					Enter your info to sign in
 				</h3>
 				<p className="text-muted" style={{ fontSize: 'var(--font-sm)' }}>
 					or{' '}
 					<Link
-						to="/register"
+						to="/signup"
 						className="text-decoration-none fw-semibold"
 						style={{ color: 'var(--color-primary)' }}>
 						get started with a new account
@@ -202,7 +203,7 @@ const LoginPage = () => {
 
 			<div className="text-center">
 				<Link
-					to="/register"
+					to="/signup"
 					className="text-decoration-none"
 					style={{
 						fontSize: 'var(--font-sm)',
@@ -215,4 +216,4 @@ const LoginPage = () => {
 	);
 };
 
-export default LoginPage;
+export default SignIn;

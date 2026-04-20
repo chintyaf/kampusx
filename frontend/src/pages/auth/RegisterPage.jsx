@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
-const RegisterPage = () => {
+const SignUp = () => {
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
@@ -20,25 +21,19 @@ const RegisterPage = () => {
 	const handleRegister = async (e) => {
 		e.preventDefault();
 		setErrorMsg('');
-		setLoading(true);
-
 		try {
-			const response = await axios.post(
-				'http://localhost:8000/api/register',
+			const response = await api.post(
+				'/register',
 				{
 					name: name,
 					email: email,
 					password: password,
-					// Jika ingin kirim nomor HP, tambahkan state phone juga di atas
 				},
 				{
 					headers: { Accept: 'application/json' },
 				},
 			);
 
-			// Simpan token otomatis setelah register (karena di controller register kita juga return token)
-			// localStorage.setItem('token', response.data.access_token);
-			// localStorage.setItem('user', JSON.stringify(response.data.data));
 			login(response.data.access_token, response.data.data);
 
 			// alert('Registrasi Berhasil!');
@@ -52,6 +47,8 @@ const RegisterPage = () => {
 			} else {
 				setErrorMsg('Gagal melakukan registrasi.');
 			}
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -67,7 +64,7 @@ const RegisterPage = () => {
 						to="/login"
 						className="text-decoration-none fw-semibold"
 						style={{ color: 'var(--color-primary)' }}>
-						Login to your account
+						sign in to your account
 					</Link>
 				</p>
 			</div>
@@ -107,6 +104,7 @@ const RegisterPage = () => {
 						required
 					/>
 				</Form.Group>
+
 				<button
 					disabled={loading}
 					type="submit"
@@ -124,11 +122,11 @@ const RegisterPage = () => {
 					to="/login"
 					className="text-decoration-none fw-semibold"
 					style={{ fontSize: 'var(--font-sm)', color: 'var(--color-primary)' }}>
-					Login di sini
+					Sign In di sini
 				</Link>
 			</div>
 		</div>
 	);
 };
 
-export default RegisterPage;
+export default SignUp;

@@ -3,7 +3,7 @@ import { Card, Row, Col, Button } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
 import { Target, Users, CheckCircle2, Sparkles } from 'lucide-react';
 
-const DashboardNoEvent = () => {
+const NoEvent = () => {
 	const steps = [
 		{
 			number: 1,
@@ -162,4 +162,4 @@ const DashboardNoEvent = () => {
 	);
 };
 
-export default DashboardNoEvent;
+export default NoEvent;

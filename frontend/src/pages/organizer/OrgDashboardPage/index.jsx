@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Container, Spinner } from 'react-bootstrap';
 
 import api from '../../../api/axios';
-import NoEvent from './DashboardNoEvent';
-import EventList from './DashboardEventList';
+import NoEvent from './NoEvent';
+import EventList from './EventList';
 
 const OrgDashboardPage = () => {
 	const [events, setEvents] = useState([]);
@@ -29,7 +29,7 @@ const OrgDashboardPage = () => {
 	}, []);
 
 	return (
-		<div style={{minHeight: '100vh', fontFamily: 'var(--font)' }}>
+		<div style={{ minHeight: '100vh', fontFamily: 'var(--font)' }}>
 			<Container className="py-4">
 				{isLoading ? (
 					<div className="text-center mt-5">

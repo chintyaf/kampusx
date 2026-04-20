@@ -536,25 +536,24 @@ main {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	font-size: 12px;
+	font-size: var(--font-sm);
 	font-weight: 500;
 	padding: 7px 14px;
-	border-radius: var(--radius-sm);
-	border: 0.5px solid var(--border);
-	background: var(--card);
-	color: var(--text);
+	/* border-radius: var(--radius-sm); */
+	/* border: 0.5px solid var(--border); */
+	/* background: var(--card); */
+	/* color: var(--text); */
 	cursor: pointer;
 	transition:
 		background 0.15s,
 		color 0.15s,
 		border-color 0.15s;
-	font-family: var(--font);
 }
-.btn:hover {
+/* .btn:hover {
 	background: var(--primary-light);
 	color: var(--primary);
 	border-color: var(--primary-border);
-}
+} */
 .btn-primary {
 	background: var(--primary);
 	color: #fff;
