@@ -110,9 +110,8 @@ const CreateEvent = () => {
                 submitData.append('banner', formData.banner);
             }
 
-            const response = await api.post(`/events`, submitData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+      
+            const response = await api.post(`/events`, submitData);
 
             const newEventId = response.data.data.id;
 
