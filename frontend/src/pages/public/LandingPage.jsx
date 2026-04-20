@@ -1,619 +1,286 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import {
-  Carousel,
-  Container,
-  Row,
-  Col,
-  Card,
-  Button,
-  InputGroup,
-  Form,
-  Spinner,
+  Carousel, Container, Row, Col, Card, Button,
+  InputGroup, Form, Spinner,
 } from "react-bootstrap";
-// import { Carousel, Container, Row, Col, Card, Button, InputGroup, Form } from 'react-bootstrap';
 import {
-  Megaphone,
-  Laptop,
-  Trophy,
-  GraduationCap,
-  Building2,
-  ShieldCheck,
-  Wallet,
-  FileText,
-  Search,
-  CreditCard,
-  Ticket,
-  Calendar,
-  MapPin,
-  User,
-  Wifi,
-  Cat,
-  Briefcase,
-  BookOpen,
-  Cpu,
-  Scale,
-  Stethoscope,
-  Calculator,
-  FlaskConical,
-  Globe,
-  Users,
-  Palette,
-  Music,
+  ShieldCheck, Wallet, FileText, Users, Search, CreditCard,
+  Ticket, Calendar, MapPin, User, Wifi, Briefcase, BookOpen,
+  Cpu, Scale, Stethoscope, Calculator, FlaskConical, Globe,
+  Palette, Music, Cat, ChevronRight, ArrowRight,
 } from "lucide-react";
 
+// ── Kategori ──────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id: 1,  name: "Sains Hewan",       Icon: Cat,          color: "#ef4444", bg: "#fee2e2" },
+  { id: 2,  name: "Bisnis & Ekonomi",  Icon: Briefcase,    color: "#52525b", bg: "#f4f4f5" },
+  { id: 3,  name: "Pendidikan",        Icon: BookOpen,     color: "#eab308", bg: "#fef9c3" },
+  { id: 4,  name: "Teknik & Tech",     Icon: Cpu,          color: "#22c55e", bg: "#dcfce7" },
+  { id: 5,  name: "Hukum",             Icon: Scale,        color: "#ca8a04", bg: "#fef9c3" },
+  { id: 6,  name: "Kesehatan",         Icon: Stethoscope,  color: "#3b82f6", bg: "#dbeafe" },
+  { id: 7,  name: "Matematika",        Icon: Calculator,   color: "#06b6d4", bg: "#cffafe" },
+  { id: 8,  name: "Sains Fisik",       Icon: FlaskConical, color: "#00699e", bg: "#dff3ff" },
+  { id: 9,  name: "Studi Regional",    Icon: Globe,        color: "#f59e0b", bg: "#fef3c7" },
+  { id: 10, name: "Ilmu Sosial",       Icon: Users,        color: "#ec4899", bg: "#fce7f3" },
+  { id: 11, name: "Seni & Desain",     Icon: Palette,      color: "#f43f5e", bg: "#ffe4e6" },
+  { id: 12, name: "Musik & Hiburan",   Icon: Music,        color: "#6366f1", bg: "#e0e7ff" },
+];
+
+const FEATURES = [
+  { id: 1, title: "Event Terverifikasi", desc: "Semua event dijamin resmi dari instansi terpercaya.",      Icon: ShieldCheck },
+  { id: 2, title: "Pembayaran Aman",     desc: "Transaksi tiket dijamin aman dan mudah.",                  Icon: Wallet      },
+  { id: 3, title: "E-Sertifikat",        desc: "Dapatkan e-sertifikat otomatis setelah event selesai.",   Icon: FileText    },
+  { id: 4, title: "Jaringan Luas",       desc: "Perluas relasi profesionalmu bersama ribuan mahasiswa.",   Icon: Users       },
+];
+
+const STEPS = [
+  { id: 1, title: "Cari Event",     desc: "Temukan event sesuai minat & kampusmu.",      Icon: Search    },
+  { id: 2, title: "Daftar & Bayar", desc: "Registrasi cepat, bayar lewat berbagai metode.", Icon: CreditCard },
+  { id: 3, title: "Hadir & Nikmati",desc: "Ikuti event & dapatkan sertifikat otomatis.", Icon: Ticket    },
+];
+
+const PARTNERS = [
+  { id: 1, name: "Kampus A", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+A" },
+  { id: 2, name: "Kampus B", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+B" },
+  { id: 3, name: "Kampus C", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+C" },
+  { id: 4, name: "Kampus D", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+D" },
+];
+
+// ── EventCard ─────────────────────────────────────────────────────────────────
+const EventCard = ({ ev, onClick }) => (
+  <Card
+    onClick={onClick}
+    className="h-100 shadow-sm"
+    style={{ borderRadius: 12, border: "1px solid var(--color-border)", cursor: "pointer", transition: "transform .15s, box-shadow .15s", overflow: "hidden" }}
+    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,105,158,0.12)"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)";    e.currentTarget.style.boxShadow = ""; }}
+  >
+    {/* Badges baris atas */}
+    <div style={{ padding: "12px 12px 0", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: 36 }}>
+      <div style={{ display: "flex", gap: 6 }}>
+        {ev.isInPerson && (
+          <span style={{ fontSize: 11, color: "var(--color-primary)", border: "1px solid var(--color-primary)", borderRadius: 99, padding: "2px 8px", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+            <Users size={11} /> In-Person
+          </span>
+        )}
+        {ev.isOnline && (
+          <span style={{ fontSize: 11, color: "var(--color-primary)", border: "1px solid var(--color-primary)", borderRadius: 99, padding: "2px 8px", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+            <Wifi size={11} /> Online
+          </span>
+        )}
+      </div>
+      {ev.isFeatured && (
+        <span style={{ fontSize: 11, background: "var(--bahama-blue-500)", color: "#fff", borderRadius: 99, padding: "2px 10px", fontWeight: 700 }}>
+          Featured
+        </span>
+      )}
+    </div>
+
+    {/* Gambar */}
+    <img src={ev.image} alt={ev.title}
+      style={{ width: "100%", height: 170, objectFit: "cover", marginTop: 10 }} />
+
+    <Card.Body style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column" }}>
+      {/* Tanggal & harga */}
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--font-sm)", color: "var(--color-primary)", fontWeight: 600, marginBottom: 8 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Calendar size={14} />{ev.date}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Ticket size={14} />{ev.price}</span>
+      </div>
+
+      {/* Judul */}
+      <Card.Title style={{ fontSize: "var(--font-md)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.4, marginBottom: "auto" }}>
+        {ev.title}
+      </Card.Title>
+
+      <hr style={{ margin: "10px 0", borderColor: "var(--color-border)", opacity: 1 }} />
+
+      {/* Lokasi & organizer */}
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--font-sm)", color: "var(--color-primary)", fontWeight: 500 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden", maxWidth: "60%" }}>
+          <MapPin size={14} style={{ flexShrink: 0 }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.location}</span>
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden", maxWidth: "40%" }}>
+          <User size={14} style={{ flexShrink: 0 }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.org}</span>
+        </span>
+      </div>
+    </Card.Body>
+  </Card>
+);
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 const LandingPage = () => {
-  // === DATA HARDCODE ===
-
-  const banners = [
-    {
-      id: 1,
-      title: "Konser Musik Tahunan",
-      image:
-        "https://placehold.co/1200x500/e2e8f0/64748b?text=Banner+Konser+Musik",
-    },
-    {
-      id: 2,
-      title: "Seminar Nasional Teknologi",
-      image:
-        "https://placehold.co/1200x500/e2e8f0/64748b?text=Banner+Seminar+Nasional",
-    },
-    {
-      id: 3,
-      title: "Workshop Persiapan Karir",
-      image:
-        "https://placehold.co/1200x500/e2e8f0/64748b?text=Banner+Workshop+Karir",
-    },
-  ];
-
-  // 2. MASUKKAN KOMPONEN IKON KE DALAM DATA
-  // const categories = [
-  //     { id: 1, name: "Seminar", Icon: Megaphone },
-  //     { id: 2, name: "Workshop", Icon: Laptop },
-  //     { id: 3, name: "Konser", Icon: Music },
-  //     { id: 4, name: "Kompetisi", Icon: Trophy },
-  //     { id: 5, name: "Beasiswa", Icon: GraduationCap },
-  //     { id: 6, name: "Webinar", Icon: Globe },
-  // ];
-
-  // const popularEvents = [
-  //     {
-  //         id: 1,
-  //         title: "8th International Conference on New Trends in Management, Business and Economics",
-  //         org: "Logan Grubber",
-  //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+1",
-  //         date: "March 26, 2026",
-  //         price: "Rp 150.000",
-  //         location: "Czech Republic",
-  //         isOnline: true,
-  //         isInPerson: true,
-  //         isFeatured: true
-  //     },
-  //     {
-  //         id: 2,
-  //         title: "Workshop UI/UX Design: Creating Accessible Interfaces for Everyone",
-  //         org: "Design Club ID",
-  //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+2",
-  //         date: "April 10, 2026",
-  //         price: "Gratis",
-  //         location: "Bandung, ID",
-  //         isOnline: false,
-  //         isInPerson: true,
-  //         isFeatured: false
-  //     },
-  //     {
-  //         id: 3,
-  //         title: "Tech Startup Conference 2026: Future of AI in Education",
-  //         org: "HIMA TI KampusX",
-  //         image: "https://placehold.co/600x300/e2e8f0/64748b?text=Event+3",
-  //         date: "May 15, 2026",
-  //         price: "Rp 75.000",
-  //         location: "Zoom Meeting",
-  //         isOnline: true,
-  //         isInPerson: false,
-  //         isFeatured: true
-  //     },
-  // ];
-
-  // const [popularEvents, setPopularEvents] = useState([]);
+  const navigate = useNavigate();
   const [allEvents, setAllEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail]         = useState("");
 
-  const features = [
-    {
-      id: 1,
-      title: "Event Terverifikasi",
-      desc: "Semua event dijamin resmi dari instansi terpercaya.",
-      Icon: ShieldCheck,
-    },
-    {
-      id: 2,
-      title: "Pembayaran Aman",
-      desc: "Transaksi tiket dijamin aman dan mudah.",
-      Icon: Wallet,
-    },
-    {
-      id: 3,
-      title: "E-Sertifikat",
-      desc: "Dapatkan e-sertifikat langsung setelah event.",
-      Icon: FileText,
-    },
-    {
-      id: 4,
-      title: "Jaringan Luas",
-      desc: "Perluas relasi profesionalmu di sini.",
-      Icon: Users,
-    },
+  const banners = [
+    { id: 1, image: "https://placehold.co/1200x420/00699e/ffffff?text=Konser+Musik+Tahunan"        },
+    { id: 2, image: "https://placehold.co/1200x420/0aabed/ffffff?text=Seminar+Nasional+Teknologi"  },
+    { id: 3, image: "https://placehold.co/1200x420/055c87/ffffff?text=Workshop+Persiapan+Karir"    },
   ];
 
-  const steps = [
-    {
-      id: 1,
-      title: "Cari Event",
-      desc: "Temukan event sesuai minatmu.",
-      Icon: Search,
-    },
-    {
-      id: 2,
-      title: "Daftar & Bayar",
-      desc: "Registrasi cepat dan bayar tiket.",
-      Icon: CreditCard,
-    },
-    {
-      id: 3,
-      title: "Hadir & Nikmati",
-      desc: "Ikuti event secara langsung/online.",
-      Icon: Ticket,
-    },
-  ];
-
-  const partners = [
-    {
-      id: 1,
-      name: "Kampus A",
-      logo: "https://placehold.co/150x60/ffffff/000000?text=Logo+Kampus+A",
-    },
-    {
-      id: 2,
-      name: "Kampus B",
-      logo: "https://placehold.co/150x60/ffffff/000000?text=Logo+Kampus+B",
-    },
-    {
-      id: 3,
-      name: "Kampus C",
-      logo: "https://placehold.co/150x60/ffffff/000000?text=Logo+Kampus+C",
-    },
-    {
-      id: 4,
-      name: "Kampus D",
-      logo: "https://placehold.co/150x60/ffffff/000000?text=Logo+Kampus+D",
-    },
-  ];
-
-  // === MENGAMBIL DATA DARI LARAVEL SAAT HALAMAN DIMUAT ===
   useEffect(() => {
-    const fetchEvents = async () => {
+    (async () => {
       try {
-        const response = await api.get("events");
-        const result = response.data;
-
-        // 1. Tambahkan baris ini persis seperti di halaman Explore
-        const eventData = result.data || result;
-
-        // 2. Ganti response.data.map menjadi eventData.map
-        const formattedEvents = eventData.map((ev) => {
-          // Tangkap data relasi lokasi yang dikirim Laravel
-          const loc = ev.location || {}; 
-          
-          // Cek tipe event (prioritaskan data dari relasi jika ada)
-          const eventType = loc.type || ev.location_type || "offline";
-
-          // Format teks lokasi agar dinamis (muncul nama kota atau nama platform)
-          let displayLocation = "Lokasi Belum Ditentukan";
-          if (eventType === "online") {
-             displayLocation = loc.platform ? `Online (${loc.platform})` : "Online Meeting";
-          } else {
-             displayLocation = loc.location || "Offline Venue";
-          }
-
-          return {
-            id: ev.id,
-            title: ev.title,
-            org: ev.organizer ? ev.organizer.name : "Unknown Organizer",
-            image: `https://placehold.co/600x300/e2e8f0/64748b?text=Event+${ev.id}`,
-            date: ev.start_date
-              ? new Date(ev.start_date).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })
-              : "Tanggal Belum Ditentukan",
-            price: "Cek Detail",
-            
-            // --- BAGIAN YANG DIUPDATE ---
-            location: displayLocation,
-            isOnline: eventType === "online" || eventType === "hybrid",
-            isInPerson: eventType === "offline" || eventType === "hybrid",
-            isFeatured: ev.id % 2 === 0,
-          };
-        });
-
-        // Simpan semua data ke allEvents
-        setAllEvents(formattedEvents);
-      } catch (error) {
-        console.error("Gagal mengambil data event:", error);
+        const res  = await api.get("events");
+        const data = res.data?.data ?? res.data;
+        setAllEvents(
+          data.map((ev) => {
+            const loc       = ev.location || {};
+            const eventType = loc.type || ev.location_type || "offline";
+            const display   = eventType === "online"
+              ? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
+              : (loc.location || "Offline Venue");
+            return {
+              id:         ev.id,
+              title:      ev.title,
+              org:        ev.organizer?.name ?? "Unknown",
+              image:      `https://placehold.co/600x300/dff3ff/00699e?text=Event+${ev.id}`,
+              date:       ev.start_date
+                ? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+                : "Tanggal Belum Ditentukan",
+              price:      "Cek Detail",
+              location:   display,
+              isOnline:   ["online","hybrid"].includes(eventType),
+              isInPerson: ["offline","hybrid"].includes(eventType),
+              isFeatured: ev.id % 2 === 0,
+            };
+          })
+        );
+      } catch (err) {
+        console.error("Gagal fetch events:", err);
       } finally {
         setIsLoading(false);
       }
-    };
-
-    fetchEvents();
+    })();
   }, []);
 
-  // Terbaru: Urutkan ID dari terbesar ke terkecil, ambil 3 teratas
-  const eventTerbaru = [...allEvents].sort((a, b) => b.id - a.id).slice(0, 3);
-
-  // Terpopuler: Ambil event yang isFeatured-nya true, ambil 3 teratas
-  const eventTerpopuler = [...allEvents]
-    .filter((ev) => ev.isFeatured)
-    .slice(0, 3);
+  const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 3);
+  const eventTerbaru    = [...allEvents].sort((a, b) => b.id - a.id).slice(0, 3);
 
   return (
-    <div className="bg-white">
-      {/* 1. HERO SECTION */}
-      <section className="bg-light pb-5 border-bottom">
-        <Carousel
-          interval={3000}
-          pause="hover"
-          className="w-100 mb-5 custom-carousel"
-        >
-          {banners.map((banner) => (
-            <Carousel.Item key={banner.id}>
-              <img
-                src={banner.image}
-                alt={banner.title}
-                className="d-block w-100 object-fit-cover"
-                style={{ height: "300px" }}
-              />
+    <div style={{ background: "var(--color-white)" }}>
+
+      {/* ── 1. HERO ───────────────────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)" }}>
+        <Carousel interval={3500} pause="hover" controls={false}>
+          {banners.map((b) => (
+            <Carousel.Item key={b.id}>
+              <img src={b.image} alt="" className="d-block w-100"
+                style={{ height: "clamp(180px,30vw,380px)", objectFit: "cover" }} />
             </Carousel.Item>
           ))}
         </Carousel>
 
-        <Container className="text-center">
-          <h1 className="fw-bold mb-3">
-            Xplore Potensimu, Dapatkan Xperience Baru!
-          </h1>
-          <p className="lead mb-4 mx-auto" style={{ maxWidth: "700px" }}>
-            Lebih dari sekadar cari tiket. Di KampusX, setiap event yang kamu
-            ikuti akan otomatis menjadi portofolio profesionalmu. Mulai
-            perjalananmu hari ini!
+        <Container style={{ paddingTop: 48, paddingBottom: 56, textAlign: "center" }}>
+          <p style={{ fontSize: "var(--font-sm)", color: "var(--color-primary)", fontWeight: 600, marginBottom: 10, letterSpacing: "0.5px", textTransform: "uppercase" }}>
+            Platform Event Mahasiswa #1
           </p>
-          <Button
-            variant="dark"
-            size="lg"
-            className="px-5 rounded-pill shadow-sm btn btn-secondary"
-          >
-            Mulai Xplore Event
-          </Button>
+          <h1 style={{ fontSize: "clamp(24px,4vw,40px)", fontWeight: 800, color: "var(--color-text)", lineHeight: 1.25, marginBottom: 16, maxWidth: 620, margin: "0 auto 16px" }}>
+            Xplore Potensimu,<br />Dapatkan Xperience Baru!
+          </h1>
+          <p style={{ fontSize: "var(--font-md)", color: "var(--color-secondary)", maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}>
+            Lebih dari sekadar cari tiket. Setiap event yang kamu ikuti otomatis jadi portofolio profesionalmu.
+          </p>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <Button
+              as={Link}
+              to="/explore-events"
+              onClick={() => navigate("/explore-events")}
+              style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "10px 28px", fontWeight: 700, fontSize: "var(--font-md)", display: "flex", alignItems: "center", gap: 6 }}
+            >
+              Mulai Xplore <ArrowRight size={16} />
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => navigate("/register")}
+              style={{ borderRadius: 8, padding: "10px 28px", fontWeight: 600, fontSize: "var(--font-md)" }}
+            >
+              Daftar Gratis
+            </Button>
+          </div>
+
+          {/* Stats bar */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 40, marginTop: 44, flexWrap: "wrap" }}>
+            {[["500+","Event Aktif"], ["12.000+","Mahasiswa"], ["200+","Kampus"], ["95%","Puas"]].map(([num, lbl]) => (
+              <div key={lbl} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "var(--color-primary)" }}>{num}</div>
+                <div style={{ fontSize: "var(--font-xs)", color: "var(--color-secondary)", marginTop: 2 }}>{lbl}</div>
+              </div>
+            ))}
+          </div>
         </Container>
       </section>
 
-      {/* 2. KATEGORI EVENT */}
-      <section
-        className="py-5"
-        style={{ backgroundColor: "var(--color-white)" }}
-      >
+      {/* ── 2. KATEGORI ───────────────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-white)", padding: "56px 0" }}>
         <Container>
-          <div className="text-center mb-5">
-            <h2 className="fw-bold" style={{ color: "var(--color-text)" }}>
-              Kategori Event
-            </h2>
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", marginBottom: 8 }}>Kategori Event</h2>
+            <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: 0 }}>Temukan event sesuai bidang studimu</p>
           </div>
-
-          {/* Penjelasan Grid:
-                        xs={6}  : Di HP, 1 baris isi 2 (12/6 = 2)
-                        md={4}  : Di Tablet, 1 baris isi 3 (12/4 = 3) atau md={3} untuk isi 4
-                        lg={2}  : Di Layar Besar, 1 baris isi 6 (12/2 = 6)
-                    */}
-          <Row className="g-4 justify-content-center">
-            {[
-              {
-                id: 1,
-                name: "Sains Hewan",
-                icon: Cat,
-                color: "#ef4444",
-                bg: "#fee2e2",
-              }, // Merah
-              {
-                id: 2,
-                name: "Bisnis & Ekonomi",
-                icon: Briefcase,
-                color: "#52525b",
-                bg: "#f4f4f5",
-              }, // Abu
-              {
-                id: 3,
-                name: "Pendidikan",
-                icon: BookOpen,
-                color: "#eab308",
-                bg: "#fef9c3",
-              }, // Kuning
-              {
-                id: 4,
-                name: "Teknik & Tech",
-                icon: Cpu,
-                color: "#22c55e",
-                bg: "#dcfce3",
-              }, // Hijau
-              {
-                id: 5,
-                name: "Hukum",
-                icon: Scale,
-                color: "#ca8a04",
-                bg: "#fef08a",
-              }, // Emas
-              {
-                id: 6,
-                name: "Kesehatan",
-                icon: Stethoscope,
-                color: "#3b82f6",
-                bg: "#dbeafe",
-              }, // Biru
-              {
-                id: 7,
-                name: "Matematika",
-                icon: Calculator,
-                color: "#06b6d4",
-                bg: "#cffafe",
-              }, // Cyan
-              {
-                id: 8,
-                name: "Sains Fisik",
-                icon: FlaskConical,
-                color: "#a855f7",
-                bg: "#f3e8ff",
-              }, // Ungu
-              {
-                id: 9,
-                name: "Studi Regional",
-                icon: Globe,
-                color: "#f59e0b",
-                bg: "#fef3c7",
-              }, // Oranye
-              {
-                id: 10,
-                name: "Ilmu Sosial",
-                icon: Users,
-                color: "#ec4899",
-                bg: "#fce7f3",
-              }, // Pink
-              {
-                id: 11,
-                name: "Seni & Desain",
-                icon: Palette,
-                color: "#f43f5e",
-                bg: "#ffe4e6",
-              }, // Rose
-              {
-                id: 12,
-                name: "Musik & Hiburan",
-                icon: Music,
-                color: "#6366f1",
-                bg: "#e0e7ff",
-              }, // Indigo
-            ].map((cat) => (
-              <Col xs={6} md={3} lg={2} key={cat.id}>
-                <div className="d-flex flex-column align-items-center text-center cursor-pointer category-card">
-                  {/* LINGKARAN WARNA-WARNI */}
-                  <div
-                    className="rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm"
-                    style={{
-                      width: "80px",
-                      height: "80px",
-                      backgroundColor: cat.bg,
-                      transition: "transform 0.2s ease-in-out", // Animasi saat di-hover
-                    }}
-                  >
-                    <cat.icon size={32} color={cat.color} />
+          <Row className="g-3 justify-content-center">
+            {CATEGORIES.map((cat) => (
+              <Col xs={6} sm={4} md={3} lg={2} key={cat.id}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", cursor: "pointer", padding: "12px 8px", borderRadius: 12, transition: "background .15s" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-2)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  <div style={{ width: 68, height: 68, borderRadius: "50%", background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                    <cat.Icon size={28} color={cat.color} />
                   </div>
-
-                  {/* TEKS JUDUL & EXPLORE */}
-                  <h6
-                    className="fw-bold mb-1"
-                    style={{
-                      color: "var(--color-text)",
-                      fontSize: "var(--font-sm)",
-                    }}
-                  >
-                    {cat.name}
-                  </h6>
-                  <span
-                    style={{
-                      fontSize: "var(--font-xs)",
-                      color: "var(--color-secondary)",
-                    }}
-                  >
-                    Explore
-                  </span>
+                  <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>{cat.name}</span>
+                  <span style={{ fontSize: "var(--font-xs)", color: "var(--color-secondary)", marginTop: 2 }}>Explore</span>
                 </div>
               </Col>
             ))}
           </Row>
-
-          {/* TOMBOL LIHAT LEBIH BANYAK */}
-          <div className="text-center mt-5">
-            <Link>
-              <Button
-                className="px-4 py-2 fw-semibold border-0"
-                style={{
-                  backgroundColor: "var(--color-primary)",
-                  borderRadius: "8px",
-                }}
-              >
-                Lihat Semua Kategori
-              </Button>
-            </Link>
+          <div style={{ textAlign: "center", marginTop: 36 }}>
+            <Button
+              as={Link} 
+              to="/explore-events"
+              // onClick={() => navigate("/explore-events")}
+              style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "9px 24px", fontWeight: 600, fontSize: "var(--font-sm)", display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              Lihat Semua Kategori <ChevronRight size={15} />
+            </Button>
           </div>
         </Container>
       </section>
 
-      {/* 3. EVENT */}
-      {/* EVENT TERPOPULER*/}
-      <section
-        className="py-5"
-        style={{
-          backgroundColor: "var(--color-bg)",
-          borderTop: "1px solid var(--color-border)",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
+      {/* ── 3. EVENT TERPOPULER ───────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-bg)", borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)", padding: "56px 0" }}>
         <Container>
-          <h2
-            className="fw-bold mb-5 text-center"
-            style={{ color: "var(--color-text)" }}
-          >
-            Event Terpopuler
-          </h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+            <div>
+              <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terpopuler</h2>
+              <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Paling banyak diminati minggu ini</p>
+            </div>
+            <button 
+              as={Link}
+              to="/explore-events?sort=popular"
+              // onClick={() => navigate("/explore-events?sort=popular")}
+              style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+              Lihat Semua <ChevronRight size={14} />
+            </button>
+          </div>
+
           {isLoading ? (
-            <div className="text-center py-5">
-              <Spinner animation="border" variant="primary" />
-              <p className="mt-3 text-muted">
-                Mengambil data event dari server...
-              </p>
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <Spinner animation="border" style={{ color: "var(--color-primary)" }} />
+              <p style={{ marginTop: 12, color: "var(--color-secondary)", fontSize: "var(--font-sm)" }}>Memuat event…</p>
             </div>
           ) : (
             <Row className="g-4">
-              {/* SEKARANG .map() AKAN MEMBACA DATA DARI DATABASE */}
               {eventTerpopuler.map((ev) => (
                 <Col xs={12} md={4} key={ev.id}>
-                  <Card
-                    className="h-100 shadow-sm p-3 hover-lift"
-                    style={{
-                      borderRadius: "12px",
-                      backgroundColor: "var(--color-white)",
-                      border: "1px solid var(--color-border)",
-                    }}
-                  >
-                    {/* --- BADGES ATAS (In-Person, Online, Featured) --- */}
-                    {/* Ditambahkan minHeight: '28px' agar sejajar */}
-                    <div
-                      className="d-flex justify-content-between align-items-center mb-3"
-                      style={{ minHeight: "28px" }}
-                    >
-                      <div
-                        className="d-flex px-2 py-1 gap-2"
-                        style={{ fontSize: "var(--font-xs)" }}
-                      >
-                        {/* UBAH MENJADI: */}
-                        {ev.isInPerson ? (
-                          <div
-                            className="rounded-pill px-2 py-1 d-flex align-items-center fw-medium bg-white"
-                            style={{
-                              fontSize: "var(--font-xs)",
-                              color: "var(--color-primary)",
-                              border: "1px solid var(--color-primary)",
-                            }}
-                          >
-                            <Users size={14} className="me-2" /> In-Person
-                          </div>
-                        ) : null}
-                        {ev.isOnline ? (
-                          <div
-                            className="rounded-pill px-2 py-1 d-flex align-items-center fw-medium bg-white"
-                            style={{
-                              fontSize: "var(--font-xs)",
-                              color: "var(--color-primary)",
-                              border: "1px solid var(--color-primary)",
-                            }}
-                          >
-                            <Wifi size={14} className="me-2" /> Online
-                          </div>
-                        ) : null}
-                      </div>
-                      {ev.isFeatured ? (
-                        <div
-                          className="rounded-pill px-2 py-1 fw-medium"
-                          style={{
-                            fontSize: "var(--font-xs)",
-                            backgroundColor: "var(--bahama-blue-500)",
-                            color: "var(--color-white)",
-                          }}
-                        >
-                          Featured
-                        </div>
-                      ) : null}
-                    </div>
-
-                    {/* --- GAMBAR EVENT --- */}
-                    <img
-                      src={ev.image}
-                      alt={ev.title}
-                      className="w-100 object-fit-cover rounded mb-3"
-                      style={{ height: "180px" }}
-                    />
-
-                    <Card.Body className="p-0 d-flex flex-column">
-                      {/* --- INFO TANGGAL & HARGA --- */}
-                      <div
-                        className="d-flex justify-content-between mb-3 fw-medium"
-                        style={{
-                          color: "var(--color-primary)",
-                          fontSize: "var(--font-sm)",
-                        }}
-                      >
-                        <div className="d-flex align-items-center">
-                          <Calendar size={18} className="me-2" /> {ev.date}
-                        </div>
-                        <div className="d-flex align-items-center">
-                          <Ticket size={18} className="me-2" /> {ev.price}
-                        </div>
-                      </div>
-
-                      {/* --- JUDUL EVENT --- */}
-                      <Card.Title
-                        className="fw-bold mb-auto"
-                        style={{
-                          color: "var(--color-text)",
-                          fontSize: "var(--font-lg)",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {ev.title}
-                      </Card.Title>
-
-                      {/* --- GARIS PEMISAH --- */}
-                      <hr
-                        className="opacity-100 my-3"
-                        style={{ color: "var(--color-border)" }}
-                      />
-
-                      {/* --- INFO LOKASI & PENYELENGGARA --- */}
-                      {/* Ditambahkan text-truncate agar teks yang panjang tidak merusak layout */}
-                      <div
-                        className="d-flex justify-content-between fw-medium"
-                        style={{
-                          color: "var(--color-primary)",
-                          fontSize: "var(--font-sm)",
-                        }}
-                      >
-                        <div
-                          className="d-flex align-items-center text-truncate"
-                          style={{ maxWidth: "60%" }}
-                        >
-                          <MapPin size={18} className="me-2 flex-shrink-0" />{" "}
-                          <span className="text-truncate">{ev.location}</span>
-                        </div>
-                        <div
-                          className="d-flex align-items-center text-truncate ms-2"
-                          style={{ maxWidth: "40%" }}
-                        >
-                          <User size={18} className="me-2 flex-shrink-0" />{" "}
-                          <span className="text-truncate">{ev.org}</span>
-                        </div>
-                      </div>
-                    </Card.Body>
-                  </Card>
+                  <EventCard ev={ev} onClick={() => navigate(`/event/${ev.id}`)} />
                 </Col>
               ))}
             </Row>
@@ -621,235 +288,135 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* EVENT TERBARU */}
-      <section
-        className="py-5"
-        style={{
-          backgroundColor: "var(--color-bg)",
-          borderTop: "1px solid var(--color-border)",
-          borderBottom: "1px solid var(--color-border)",
-        }}
-      >
+      {/* ── 4. EVENT TERBARU ──────────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-white)", padding: "56px 0" }}>
         <Container>
-          <h2
-            className="fw-bold mb-5 text-center"
-            style={{ color: "var(--color-text)" }}
-          >
-            Event Terbaru
-          </h2>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
+            <div>
+              <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terbaru</h2>
+              <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Baru saja ditambahkan</p>
+            </div>
+            <button 
+              as={Link}
+              to="/explore-events?sort=newest"
+              style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+              Lihat Semua <ChevronRight size={14} />
+            </button>
+          </div>
           <Row className="g-4">
-            {eventTerbaru.map((ev) => (
-              <Col xs={12} md={4} key={ev.id}>
-                <Card
-                  className="h-100 shadow-sm p-3"
-                  style={{
-                    borderRadius: "12px",
-                    backgroundColor: "var(--color-white)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  {/* --- BADGES ATAS (In-Person, Online, Featured) --- */}
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <div className="d-flex gap-2">
-                      {ev.isInPerson && (
-                        <div
-                          className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium"
-                          style={{
-                            fontSize: "var(--font-xs)",
-                            color: "var(--color-primary)",
-                            border: "1px solid var(--color-primary)",
-                          }}
-                        >
-                          <Users size={14} className="me-2" /> In-Person
-                        </div>
-                      )}
-                      {ev.isOnline && (
-                        <div
-                          className="rounded-pill px-3 py-1 d-flex align-items-center fw-medium"
-                          style={{
-                            fontSize: "var(--font-xs)",
-                            color: "var(--color-primary)",
-                            border: "1px solid var(--color-primary)",
-                          }}
-                        >
-                          <Wifi size={14} className="me-2" /> Online
-                        </div>
-                      )}
-                    </div>
-                    {ev.isFeatured && (
-                      <div
-                        className="rounded-pill px-3 py-1 fw-medium"
-                        style={{
-                          fontSize: "var(--font-xs)",
-                          backgroundColor: "var(--bahama-blue-500)",
-                          color: "var(--color-white)",
-                        }}
-                      >
-                        Featured
-                      </div>
-                    )}
+            {isLoading
+              ? <div style={{ textAlign: "center", padding: "40px 0", width: "100%" }}><Spinner animation="border" style={{ color: "var(--color-primary)" }} /></div>
+              : eventTerbaru.map((ev) => (
+                  <Col xs={12} md={4} key={ev.id}>
+                    <EventCard ev={ev} onClick={() => navigate(`/event/${ev.id}`)} />
+                  </Col>
+                ))
+            }
+          </Row>
+        </Container>
+      </section>
+
+      {/* ── 5. KENAPA KAMPUSX? ────────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-bg)", borderTop: "1px solid var(--color-border)", padding: "56px 0" }}>
+        <Container>
+          <div style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", marginBottom: 8 }}>Mengapa Memilih KampusX?</h2>
+            <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: 0 }}>Dibuat khusus untuk ekosistem mahasiswa Indonesia</p>
+          </div>
+          <Row className="g-4">
+            {FEATURES.map((f) => (
+              <Col xs={12} sm={6} md={3} key={f.id}>
+                <div style={{ background: "var(--color-white)", borderRadius: 12, padding: "28px 20px", textAlign: "center", height: "100%", border: "1px solid var(--color-border)", boxShadow: "0 2px 8px rgba(0,105,158,0.05)" }}>
+                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--bahama-blue-50)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                    <f.Icon size={26} color="#00699e" strokeWidth={1.5} />
                   </div>
-
-                  {/* --- GAMBAR EVENT --- */}
-                  <img
-                    src={ev.image}
-                    alt={ev.title}
-                    className="w-100 object-fit-cover rounded mb-3"
-                    style={{ height: "180px" }}
-                  />
-
-                  <Card.Body className="p-0 d-flex flex-column">
-                    {/* --- INFO TANGGAL & HARGA --- */}
-                    <div
-                      className="d-flex justify-content-between mb-3 fw-medium"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "var(--font-sm)",
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <Calendar size={18} className="me-2" /> {ev.date}
-                      </div>
-                      <div className="d-flex align-items-center">
-                        <Ticket size={18} className="me-2" /> {ev.price}
-                      </div>
-                    </div>
-
-                    {/* --- JUDUL EVENT --- */}
-                    <Card.Title
-                      className="fw-bold mb-auto"
-                      style={{
-                        color: "var(--color-text)",
-                        fontSize: "var(--font-lg)",
-                        lineHeight: "1.4",
-                      }}
-                    >
-                      {ev.title}
-                    </Card.Title>
-
-                    {/* --- GARIS PEMISAH --- */}
-                    <hr
-                      className="opacity-100 my-3"
-                      style={{ color: "var(--color-border)" }}
-                    />
-
-                    {/* --- INFO LOKASI & PENYELENGGARA --- */}
-                    <div
-                      className="d-flex justify-content-between fw-medium"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "var(--font-sm)",
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <MapPin size={18} className="me-2" /> {ev.location}
-                      </div>
-                      <div className="d-flex align-items-center text-truncate ms-3">
-                        <User size={18} className="me-2" /> {ev.org}
-                      </div>
-                    </div>
-                  </Card.Body>
-                </Card>
+                  <h5 style={{ fontWeight: 700, color: "var(--color-text)", fontSize: "var(--font-md)", marginBottom: 8 }}>{f.title}</h5>
+                  <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: 0 }}>{f.desc}</p>
+                </div>
               </Col>
             ))}
           </Row>
         </Container>
       </section>
 
-      {/* 4. MENGAPA MEMILIH KAMPUSX? */}
-      <Container className="py-5">
-        <h2 className="fw-bold mb-5 text-center">Mengapa memilih KampusX?</h2>
-        <Row className="g-4">
-          {features.map((feat) => (
-            <Col xs={12} md={3} key={feat.id}>
-              <Card className="h-100 shadow-sm border-light p-4 text-center">
-                <div
-                  className="mb-3 d-flex justify-content-center"
-                  style={{
-                    color: "var(--color-primary)",
-                    fontSize: "var(--font-sm)",
-                  }}
-                >
-                  <feat.Icon size={48} strokeWidth={1.5} className="me-2" />
+      {/* ── 6. CARA KERJA ─────────────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-white)", padding: "56px 0" }}>
+        <Container style={{ textAlign: "center" }}>
+          <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", marginBottom: 8 }}>Cara Kerja</h2>
+          <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", marginBottom: 48 }}>Tiga langkah mudah untuk mulai</p>
+          <Row className="justify-content-center g-4">
+            {STEPS.map((s, i) => (
+              <Col xs={12} md={4} key={s.id}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                  <div style={{ position: "relative", marginBottom: 16 }}>
+                    <div style={{ width: 80, height: 80, borderRadius: "50%", background: "var(--bahama-blue-50)", border: "2px dashed var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <s.Icon size={34} color="#00699e" strokeWidth={1.5} />
+                    </div>
+                    <span style={{ position: "absolute", top: -4, right: -4, width: 24, height: 24, borderRadius: "50%", background: "var(--color-primary)", color: "#fff", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {s.id}
+                    </span>
+                  </div>
+                  <h5 style={{ fontWeight: 700, color: "var(--color-text)", marginBottom: 6 }}>{s.title}</h5>
+                  <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", maxWidth: 200, margin: 0 }}>{s.desc}</p>
                 </div>
-                <h5 className="fw-bold">{feat.title}</h5>
-                <p className="text-muted small mb-0">{feat.desc}</p>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-
-      {/* 5. CARA KERJA */}
-      <section className="bg-light border-top border-bottom py-5">
-        <Container className="text-center py-4">
-          <h2 className="fw-bold mb-5">Cara Kerja</h2>
-          <div className="d-flex flex-column flex-md-row justify-content-center align-items-center gap-5">
-            {steps.map((step) => (
-              <div
-                key={step.id}
-                className="d-flex flex-column align-items-center"
-                style={{ maxWidth: "200px" }}
-              >
-                <div
-                  className="bg-white border border-secondary border-dashed rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm"
-                  style={{
-                    width: "100px",
-                    height: "100px",
-                    color: "var(--color-primary)",
-                    fontSize: "var(--font-sm)",
-                  }}
-                >
-                  <step.Icon size={40} strokeWidth={1.5} className="me-2" />
-                </div>
-                <h5 className="fw-bold">{step.title}</h5>
-                <p className="text-muted small">{step.desc}</p>
-              </div>
+              </Col>
             ))}
-          </div>
+          </Row>
         </Container>
       </section>
 
-      {/* 6. PARTNER & 7. CTA (Tetap sama seperti sebelumnya) */}
-      <Container className="py-5 text-center">
-        <h2 className="fw-bold mb-5">Kampus / Partner Kreator Terpopuler</h2>
-        <Row className="g-4 justify-content-center">
-          {partners.map((partner) => (
-            <Col xs={6} md={3} key={partner.id}>
-              <div
-                className="border rounded p-3 bg-white shadow-sm d-flex align-items-center justify-content-center"
-                style={{ height: "90px" }}
-              >
-                <img
-                  src={partner.logo}
-                  alt={partner.name}
-                  className="img-fluid"
-                  style={{ maxHeight: "100%" }}
-                />
-              </div>
-            </Col>
-          ))}
-        </Row>
-      </Container>
+      {/* ── 7. PARTNER ────────────────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-bg)", borderTop: "1px solid var(--color-border)", padding: "56px 0" }}>
+        <Container style={{ textAlign: "center" }}>
+          <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", marginBottom: 8 }}>Kampus & Partner Terpopuler</h2>
+          <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", marginBottom: 40 }}>Bergabung bersama ratusan institusi terpercaya</p>
+          <Row className="g-3 justify-content-center">
+            {PARTNERS.map((p) => (
+              <Col xs={6} md={3} key={p.id}>
+                <div style={{ background: "var(--color-white)", borderRadius: 10, border: "1px solid var(--color-border)", height: 80, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+                  <img src={p.logo} alt={p.name} style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }} />
+                </div>
+              </Col>
+            ))}
+          </Row>
+        </Container>
+      </section>
 
-      <section className="bg-dark py-5 text-white text-center">
-        <Container className="py-4">
-          <h2 className="fw-bold mb-4">Siap menjadi mahasiswa Xtra?</h2>
+      {/* ── 8. CTA ────────────────────────────────────────────────────────── */}
+      <section style={{ background: "var(--bahama-blue-950)", padding: "72px 0" }}>
+        <Container style={{ textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(22px,3vw,34px)", fontWeight: 800, color: "#fff", marginBottom: 12 }}>
+            Siap Jadi Mahasiswa Xtra?
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "var(--font-md)", marginBottom: 36, maxWidth: 480, margin: "0 auto 36px" }}>
+            Daftar sekarang dan mulai bangun portofolio event-mu hari ini. Gratis!
+          </p>
           <Row className="justify-content-center">
-            <Col xs={12} md={6}>
-              <InputGroup size="lg" className="shadow">
+            <Col xs={12} md={6} lg={5}>
+              <InputGroup size="lg" style={{ borderRadius: 10, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>
                 <Form.Control
-                  placeholder="Alamat Email Anda"
-                  className="border-0"
+                  placeholder="Masukkan email kamu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ border: "none", fontSize: "var(--font-sm)" }}
                 />
-                <Button variant="primary" className="px-4 fw-bold">
-                  Mulai &gt;
+                <Button
+                  as={Link}
+                  to={`/register?email=${email}`}
+                  style={{ background: "var(--color-primary)", border: "none", fontWeight: 700, fontSize: "var(--font-sm)", padding: "0 24px" }}
+                >
+                  Mulai &rarr;
                 </Button>
               </InputGroup>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "var(--font-xs)", marginTop: 12 }}>
+                Sudah punya akun?{" "}
+                <Link to="/login" style={{ color: "rgba(255,255,255,0.75)", fontWeight: 600 }}>Masuk di sini</Link>
+              </p>
             </Col>
           </Row>
         </Container>
       </section>
+
     </div>
   );
 };
