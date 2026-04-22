@@ -9,8 +9,8 @@ import {
     Mail,
     CheckCircle2,
 } from "lucide-react";
-import EventLayout from "../../layouts/EventLayout";
-import FormHeading from "../../components/dashboard/FormHeading";
+import EventLayout from "../../../layouts/EventLayout";
+import FormHeading from "../../../components/dashboard/FormHeading";
 
 /* ── Avatar ─────────────────────────────────────────────────── */
 const AVATAR_PALETTE = [
@@ -182,7 +182,7 @@ const StatusBadge = ({ status }) => {
 };
 
 /* ── Main ────────────────────────────────────────────────────── */
-const EventStaffManagement = () => {
+const EventStaffManagementPage = () => {
     const [staffList, setStaffList] = useState([
         {
             id: 1,
@@ -557,4 +557,4 @@ const EventStaffManagement = () => {
     );
 };
 
-export default EventStaffManagement;
+export default EventStaffManagementPage;

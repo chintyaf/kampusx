@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import api from '../../../api/axios';
+import { Row, Col, Spinner } from 'react-bootstrap';
 import { Ticket, DollarSign, UserCheck, UserMinus } from 'lucide-react';
 import '../../../assets/css/dashboard.css';
 
@@ -150,9 +152,59 @@ const TICKETS = [
 /* ─── Page Component ──────────────────────────────────────────────────────── */
 
 export default function EventDashboardPage() {
+	const { eventId } = useParams();
 	const handleUpload = () => alert('Upload poster');
-	const handleFix = issue => alert(`Perbaiki: ${issue.message}`);
+	const handleFix = (issue) => alert(`Perbaiki: ${issue.message}`);
 	const [eventStatus, setEventStatus] = useState('draft'); // 'draft', 'published', 'ongoing', 'completed'
+	const [eventData, setEventData] = useState(null);
+	const [issues, setIssues] = useState(ISSUES);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		if (!eventId) return;
+		const fetchOverview = async () => {
+			try {
+				setLoading(true);
+				// Execute parallel requests
+				const [overviewRes, statusRes] = await Promise.all([
+					api.get(`/event-dashboard/${eventId}/overview`),
+					api.get(`/events/${eventId}/check-status`)
+				]);
+
+				// Handle Overview
+				if (overviewRes.data?.status === 'success') {
+					setEventData(overviewRes.data.data);
+					setEventStatus(overviewRes.data.data.status || 'draft');
+				}
+
+				// Handle Status & Missing Data
+				if (statusRes.data?.status === 'success') {
+					const missing = statusRes.data.data.missing_data || [];
+					const mappedIssues = missing.map(msg => ({
+						severity: 'HIGH',
+						category: 'System', // General category
+						message: msg
+					}));
+					setIssues(mappedIssues);
+				}
+			} catch (error) {
+				console.error('Gagal mengambil event overview', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchOverview();
+	}, [eventId]);
+
+	if (loading || !eventData) {
+		return (
+			<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+				<Spinner animation="border" variant="primary" />
+				<span className="mt-3 text-muted">Memuat data dashboard...</span>
+			</div>
+		);
+	}
+
 	return (
 		<div className="">
 			{/* 1. Header */}
@@ -168,7 +220,7 @@ export default function EventDashboardPage() {
 
 			{/* 3. Event Info */}
 			<EventInfoCard
-				event={EVENT}
+				event={eventData}
 				onEdit={() => alert('Edit')}
 				onFormulir={() => alert('Formulir')}
 				onExport={() => alert('Export')}
@@ -179,7 +231,7 @@ export default function EventDashboardPage() {
 			<EventTimeline steps={TIMELINE} />
 
 			{/* 5. Readiness + Missing Info */}
-			<MissingInformation issues={ISSUES} onFix={handleFix} />
+			<MissingInformation issues={issues} onFix={handleFix} />
 
 			{/* 6. Session Table */}
 			<SessionTable sessions={SESSIONS} />

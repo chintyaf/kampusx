@@ -16,6 +16,7 @@ const OrgDashboardPage = () => {
 				const result = response.data;
 
 				if (result.status === 'success' && Array.isArray(result.data)) {
+					console.log('Fetched events:', result.data);
 					setEvents(result.data);
 				}
 			} catch (error) {

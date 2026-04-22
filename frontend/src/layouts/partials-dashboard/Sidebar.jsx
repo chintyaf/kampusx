@@ -98,15 +98,21 @@ const MENU_ITEMS = {
 		},
 		{
 			id: '8',
-			name: 'Sertifikat',
+			name: 'Cetak Sertifikat',
 			icon: <UserRoundPen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/upload-sertifikat',
+			path: '/organizer/:eventId/event-dashboard/cetak-sertifikat',
 		},
 		{
 			id: '4',
 			name: 'Distribusi Materi',
 			icon: <FolderOpen size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/distribusi-materi',
+		},
+		{
+			id: '4b',
+			name: 'Materi After-Event',
+			icon: <FolderOpen size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/upload-materi-after',
 		},
 		{
 			id: '5',

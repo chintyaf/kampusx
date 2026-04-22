@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
+use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
 
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
@@ -122,6 +123,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::get('/speaker', [EventSpeakerController::class, 'index']);
                 Route::post('/speaker', [EventSpeakerController::class, 'update']);
             });
+
+            // Dashboard Overview
+            Route::get('/overview', [\App\Http\Controllers\Api\EventDashboardController::class, 'getOverview']);
+
+            // Participant / Ticket holders route
+            Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
         });
 
     // Mengecek apa saja data yang masih kurang (GET)

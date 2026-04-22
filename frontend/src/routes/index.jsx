@@ -24,17 +24,31 @@ import EventSession from '../pages/event/detail-event/EventSession';
 import EventSpeaker from '../pages/event/detail-event/EventSpeaker';
 import EventRegistrationForm from '../pages/event/detail-event/EventRegistrationForm';
 import EventTicket from '../pages/event/detail-event/EventTicket';
-import EventStaffManagement from '../pages/event/EventStaffManagement';
+import EventStaffManagement from '../pages/event/EventStaffManagementPage';
 
 import EventParticipantList from '../pages/event/EventParticipantListPage';
 import EventMaterialDistributionPage from '../pages/event/EventMaterialDistributionPage';
 import EventStatistics from '../pages/event/EventStatisticsPage';
 import EventPromotion from '../pages/event/EventPromotionPage';
+import EventSurveyPage from '../pages/event/EventSurveyPage';
 // END CREATE EVENT PAGES
 
 import EventLocationTest from '../pages/event/EventLocationTest';
 
 import NotFound from '../pages/NotFoundPage';
+
+// Session Changelog Pages
+import AdminMasterDataPage from '../pages/admin/AdminMasterDataPage';
+import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
+import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
+import OrganizerMaterialsManagePage from '../pages/event/OrganizerMaterialsManagePage';
+import ScannerPage from '../pages/organizer/ScannerPage';
+
+// NEW: CERTIFICATES & AFTER EVENT MOCKUP
+import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
+import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
+import CertificateToolPage from '../pages/event/CertificateToolPage';
+import PostEventContentUploadPage from '../pages/event/PostEventContentUploadPage';
 
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
@@ -97,6 +111,12 @@ const AppRoutes = () => {
                     // ))} */}
 				</Route>
 
+				{/* TEST CHIN UI ROUTES (Tampilan Peserta - Tidak perlu login utuk testing) */}
+				<Route element={<VisitorLayout />}>
+					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
+					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
+				</Route>
+
 				{/* AUTH */}
 				<Route element={<AuthLayout />}>
 					<Route path="/login" element={<LoginPage />} />
@@ -111,6 +131,7 @@ const AppRoutes = () => {
 					{/* <Route path="/my-tickets" element={<MyTickets />} /> */}
 					<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
 					<Route path="/event-space/:id" element={<EventSpace />} />
+					<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 				</Route>
 				<Route element={<MemberLayout />}>
 					<Route path="/my-tickets" element={<MyTickets />} />
@@ -124,6 +145,7 @@ const AppRoutes = () => {
 					<Route element={<ProtectedRoute allowedRole={['admin']} />}>
 						<Route path="admin">
 							<Route path="dashboard" element={<Dashboard />} />
+							<Route path="kelola-data-master" element={<AdminMasterDataPage />} />
 							<Route path="verifikasi-organizer" element={<Test />} />
 							<Route path="kelola-pengguna" element={<Test />} />
 							<Route path="pantau-acara" element={<Test />} />
@@ -134,6 +156,7 @@ const AppRoutes = () => {
 					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
 						<Route path="organizer">
 							<Route path="dashboard" element={<OrgDashboardPage />} />
+							<Route path="kelola-tim-institusi" element={<ManageInstitutionTeamPage />} />
 							<Route path="daftar-acara" element={<CreateEvent />} />
 							<Route path="buat-acara" element={<CreateEvent />} />
 
@@ -152,10 +175,18 @@ const AppRoutes = () => {
 
 								<Route path="daftar-peserta" element={<EventParticipantList />} />
 								<Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
+								<Route path="kelola-materi" element={<OrganizerMaterialsManagePage />} />
+								<Route path="scanner" element={<ScannerPage />} />
 								<Route path="upload-sertifikat" element={<EventStaffManagement />} />
 
 								<Route path="statistik" element={<EventStatistics />} />
 								<Route path="promosi" element={<EventPromotion />} />
+								<Route path="survey" element={<EventSurveyPage />} />
+								
+								{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
+								<Route path="cetak-sertifikat" element={<CertificateToolPage />} />
+								<Route path="upload-materi-after" element={<PostEventContentUploadPage />} />
+								
 								<Route path="event-location-test" element={<EventLocationTest />} />
 							</Route>
 						</Route>
