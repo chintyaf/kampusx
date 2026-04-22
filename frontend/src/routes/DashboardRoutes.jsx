@@ -1,6 +1,6 @@
 import Dashboard from "../pages/dashboard/Dashboard";
 import Test from "../pages/dashboard/Test";
-import CreateEvent from "../pages/event/CreateEvent";
+import CreateEvent from "../pages/event/creation/CreateEvent/index";
 
 const dashboardRoutes = [
     // ADMIN ROUTES

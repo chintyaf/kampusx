@@ -15,40 +15,18 @@ import Dashboard from '../pages/dashboard/Dashboard';
 import MemberDashboard from '../pages/member/MemberDashboard';
 import Test from '../pages/dashboard/Test';
 
-// CREATE EVENT PAGES
-import CreateEvent from '../pages/event/CreateEvent';
-import EventDashboardPage from '../pages/event/EventDashboardPage';
-import EventGeneralInfo from '../pages/event/detail-event/EventGeneralInfo';
-import EventScheduleLocation from '../pages/event/detail-event/EventLocation';
-import EventSession from '../pages/event/detail-event/EventSession';
-import EventSpeaker from '../pages/event/detail-event/EventSpeaker';
-import EventRegistrationForm from '../pages/event/detail-event/EventRegistrationForm';
-import EventTicket from '../pages/event/detail-event/EventTicket';
-import EventStaffManagement from '../pages/event/EventStaffManagementPage';
-
-import EventParticipantList from '../pages/event/EventParticipantListPage';
-import EventMaterialDistributionPage from '../pages/event/EventMaterialDistributionPage';
-import EventStatistics from '../pages/event/EventStatisticsPage';
-import EventPromotion from '../pages/event/EventPromotionPage';
-import EventSurveyPage from '../pages/event/EventSurveyPage';
-// END CREATE EVENT PAGES
-
-import EventLocationTest from '../pages/event/EventLocationTest';
+// Organizer dan Event Routes diimpor secara terpisah
+import { OrganizerRoutes } from './OrganizerRoutes';
 
 import NotFound from '../pages/NotFoundPage';
 
 // Session Changelog Pages
 import AdminMasterDataPage from '../pages/admin/AdminMasterDataPage';
-import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
 import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
-import OrganizerMaterialsManagePage from '../pages/event/OrganizerMaterialsManagePage';
-import ScannerPage from '../pages/organizer/ScannerPage';
 
 // NEW: CERTIFICATES & AFTER EVENT MOCKUP
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
 import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
-import CertificateToolPage from '../pages/event/CertificateToolPage';
-import PostEventContentUploadPage from '../pages/event/PostEventContentUploadPage';
 
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
@@ -57,9 +35,8 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
-import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import LandingPage from '../pages/public/LandingPage';
-import Checkout from '../pages/event/Checkout';
+import Checkout from '../pages/event/public/Checkout/index';
 import TicketDetail from '../pages/TicketDetail';
 import EventSpace from '../pages/member/EventSpace';
 import { useAuth } from '../context/AuthContext';
@@ -154,42 +131,7 @@ const AppRoutes = () => {
 					</Route>
 
 					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
-						<Route path="organizer">
-							<Route path="dashboard" element={<OrgDashboardPage />} />
-							<Route path="kelola-tim-institusi" element={<ManageInstitutionTeamPage />} />
-							<Route path="daftar-acara" element={<CreateEvent />} />
-							<Route path="buat-acara" element={<CreateEvent />} />
-
-							{/* Event Routes untuk Detail Event */}
-							<Route path=":eventId/event-dashboard">
-								<Route path="" element={<EventDashboardPage />} />
-								<Route path="detail">
-									<Route path="info" element={<EventGeneralInfo />} />
-									<Route path="tempat" element={<EventScheduleLocation />} />
-									<Route path="sesi" element={<EventSession />} />
-									<Route path="pembicara" element={<EventSpeaker />} />
-									<Route path="formulir" element={<EventRegistrationForm />} />
-									<Route path="tiket" element={<EventTicket />} />
-								</Route>
-								<Route path="kelola-staff" element={<EventStaffManagement />} />
-
-								<Route path="daftar-peserta" element={<EventParticipantList />} />
-								<Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
-								<Route path="kelola-materi" element={<OrganizerMaterialsManagePage />} />
-								<Route path="scanner" element={<ScannerPage />} />
-								<Route path="upload-sertifikat" element={<EventStaffManagement />} />
-
-								<Route path="statistik" element={<EventStatistics />} />
-								<Route path="promosi" element={<EventPromotion />} />
-								<Route path="survey" element={<EventSurveyPage />} />
-								
-								{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
-								<Route path="cetak-sertifikat" element={<CertificateToolPage />} />
-								<Route path="upload-materi-after" element={<PostEventContentUploadPage />} />
-								
-								<Route path="event-location-test" element={<EventLocationTest />} />
-							</Route>
-						</Route>
+						{OrganizerRoutes}
 					</Route>
 
 					{/* <Route

@@ -1,0 +1,608 @@
+/* =====================================================
+   CERTIFICATE BUILDER PAGE
+   Tambahkan blok CSS ini ke dashboard.css
+   ===================================================== */
+
+/* ── Page layout ───────────────────────────────────── */
+.cert-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 80px);
+    /* fill viewport under navbar */
+}
+
+.cert-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr 220px;
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #111;
+}
+
+/* ── Panels ─────────────────────────────────────────── */
+.cert-panel {
+    background: #1a1d23;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+}
+
+.cert-panel--left {
+    border-right: 1px solid #2a2e38;
+}
+
+.cert-panel--right {
+    border-left: 1px solid #2a2e38;
+}
+
+.cert-panel-section {
+    padding: 14px 14px;
+}
+
+.cert-panel-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5a6075;
+    margin: 0 0 10px;
+}
+
+.cert-hint {
+    font-size: 11px;
+    color: #4a5060;
+    line-height: 1.5;
+    margin: 0 0 10px;
+}
+
+.cert-divider {
+    height: 1px;
+    background: #2a2e38;
+    margin: 0;
+}
+
+/* ── Upload zone ────────────────────────────────────── */
+.cert-upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 100px;
+    border: 1.5px dashed #2e3340;
+    border-radius: 8px;
+    background: #151820;
+    color: #4a5060;
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    text-align: center;
+    padding: 16px;
+}
+
+.cert-upload-zone:hover {
+    border-color: #3b82f6;
+    background: #161c2d;
+    color: #6ea8fe;
+}
+
+.cert-upload-zone__preview {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.cert-upload-zone__hint {
+    font-size: 10px;
+    color: #3a4050;
+}
+
+/* ── Variable chips ─────────────────────────────────── */
+.cert-var-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cert-var-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: #12151e;
+    border: 1px solid #252932;
+    border-radius: 7px;
+    cursor: grab;
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+}
+
+.cert-var-chip:hover {
+    border-color: var(--chip-color, #3b82f6);
+    background: #161c2d;
+}
+
+.cert-var-chip:active {
+    cursor: grabbing;
+}
+
+.cert-var-chip__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--chip-color, #3b82f6);
+    flex-shrink: 0;
+}
+
+.cert-var-chip__label {
+    flex: 1;
+    font-size: 11px;
+    color: #9aa0b0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.cert-var-chip__grip {
+    color: #3a4050;
+    flex-shrink: 0;
+}
+
+/* Selected chip (right panel) */
+.cert-selected-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    background: #12151e;
+    border: 1px solid var(--chip-color, #3b82f6);
+    border-radius: 7px;
+    font-size: 11.5px;
+    color: var(--chip-color, #3b82f6);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    width: 100%;
+}
+
+/* ── Layer list ─────────────────────────────────────── */
+.cert-layer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cert-layer-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1px solid transparent;
+}
+
+.cert-layer-item:hover {
+    background: #12151e;
+}
+
+.cert-layer-item--active {
+    background: #12151e;
+    border-color: #2a2e38;
+}
+
+.cert-layer-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cert-layer-label {
+    flex: 1;
+    font-size: 10.5px;
+    color: #7a8090;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cert-layer-lock {
+    background: transparent;
+    border: none;
+    color: #3a4050;
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.cert-layer-lock:hover {
+    color: #9aa0b0;
+}
+
+/* ── Toolbar ─────────────────────────────────────────── */
+.cert-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    background: #181b22;
+    border-bottom: 1px solid #2a2e38;
+    gap: 12px;
+}
+
+.cert-toolbar-divider {
+    width: 1px;
+    height: 18px;
+    background: #2a2e38;
+}
+
+.cert-zoom-label {
+    font-size: 12px;
+    color: #5a6075;
+    min-width: 38px;
+    text-align: center;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.cert-canvas-meta {
+    font-size: 11px;
+    color: #3a4050;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.cert-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.cert-btn--sm {
+    padding: 5px 10px;
+}
+
+.cert-btn--ghost {
+    background: transparent;
+    color: #6a7080;
+    border: 1px solid #2a2e38;
+}
+
+.cert-btn--ghost:hover {
+    background: #1e2230;
+    color: #9aa0b0;
+}
+
+.cert-btn--ghost.cert-btn--active {
+    background: #1e2a40;
+    color: #6ea8fe;
+    border-color: #3b5a8a;
+}
+
+.cert-btn--primary {
+    background: #00699e;
+    color: #fff;
+    border: 1px solid #005580;
+}
+
+.cert-btn--primary:hover {
+    background: #005580;
+}
+
+.cert-btn--danger {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #3a1e1e;
+}
+
+.cert-btn--danger:hover {
+    background: #200e0e;
+}
+
+.cert-btn.w-100 {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ── Canvas outer ────────────────────────────────────── */
+.cert-workspace {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.cert-canvas-outer {
+    flex: 1;
+    overflow: auto;
+    background:
+        radial-gradient(circle at 1px 1px, #2a2e38 1px, transparent 0);
+    background-size: 24px 24px;
+    background-color: #0e1016;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px;
+}
+
+.cert-canvas-scroll {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: fit-content;
+    width: 100%;
+}
+
+/* ── Canvas ──────────────────────────────────────────── */
+.cert-canvas {
+    position: relative;
+    width: 840px;
+    height: 594px;
+    /* A4 landscape ratio */
+    background-color: #fff;
+    background-size: cover;
+    background-position: center;
+    box-shadow:
+        0 0 0 1px #2a2e38,
+        0 20px 60px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Grid overlay */
+.cert-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Empty state inside canvas */
+.cert-canvas-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #c0c8d8;
+    text-align: center;
+    pointer-events: none;
+}
+
+.cert-canvas-empty p {
+    font-size: 14px;
+    margin: 0;
+    color: #a0a8b8;
+}
+
+.cert-canvas-empty__sub {
+    font-size: 12px !important;
+    color: #6a7080 !important;
+}
+
+/* ── Draggable elements ──────────────────────────────── */
+.cert-element {
+    position: absolute;
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 3px;
+    line-height: 1.2;
+    white-space: nowrap;
+    z-index: 10;
+    transition: outline 0.1s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.cert-element:not(.cert-element--locked):hover {
+    outline: 1.5px dashed rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.cert-element--selected {
+    outline: 2px solid #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.08) !important;
+}
+
+.cert-element--locked {
+    opacity: 0.7;
+}
+
+/* Resize handles */
+.cert-element-handles {
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+}
+
+.cert-element-handle {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: #fff;
+    border: 1.5px solid #3b82f6;
+    border-radius: 2px;
+}
+
+.cert-element-handle--tl {
+    top: -4px;
+    left: -4px;
+}
+
+.cert-element-handle--tr {
+    top: -4px;
+    right: -4px;
+}
+
+.cert-element-handle--bl {
+    bottom: -4px;
+    left: -4px;
+}
+
+.cert-element-handle--br {
+    bottom: -4px;
+    right: -4px;
+}
+
+/* ── Right panel properties ──────────────────────────── */
+.cert-prop-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+.cert-prop-row label {
+    font-size: 11px;
+    color: #5a6075;
+    flex-shrink: 0;
+}
+
+.cert-number-input {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid #2a2e38;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.cert-number-input button {
+    width: 24px;
+    height: 26px;
+    background: #12151e;
+    border: none;
+    color: #6a7080;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cert-number-input button:hover {
+    background: #1e2230;
+    color: #9aa0b0;
+}
+
+.cert-number-input span {
+    padding: 0 8px;
+    font-size: 11px;
+    color: #9aa0b0;
+    background: #0e1016;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    min-width: 50px;
+    justify-content: center;
+}
+
+.cert-toggle-group {
+    display: flex;
+    border: 1px solid #2a2e38;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.cert-toggle-group button {
+    width: 30px;
+    height: 26px;
+    background: #12151e;
+    border: none;
+    color: #4a5060;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.cert-toggle-group button+button {
+    border-left: 1px solid #2a2e38;
+}
+
+.cert-toggle-group button:hover {
+    background: #1e2230;
+    color: #9aa0b0;
+}
+
+.cert-toggle-group button.active {
+    background: #1e2a40;
+    color: #6ea8fe;
+}
+
+.cert-pos-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid #2a2e38;
+    border-radius: 6px;
+    overflow: hidden;
+    max-width: 100px;
+}
+
+.cert-pos-input input {
+    width: 60px;
+    background: #0e1016;
+    border: none;
+    color: #9aa0b0;
+    font-size: 11px;
+    padding: 4px 7px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    outline: none;
+}
+
+.cert-pos-input input:focus {
+    background: #12151e;
+}
+
+.cert-pos-input span {
+    padding: 0 7px;
+    font-size: 10px;
+    color: #3a4050;
+    background: #12151e;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid #2a2e38;
+}
+
+/* ── Right panel empty state ─────────────────────────── */
+.cert-panel-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 200px;
+    padding: 24px;
+    text-align: center;
+    color: #3a4050;
+}
+
+.cert-panel-empty p {
+    font-size: 11px;
+    color: #3a4050;
+    line-height: 1.5;
+    margin: 0;
+}
