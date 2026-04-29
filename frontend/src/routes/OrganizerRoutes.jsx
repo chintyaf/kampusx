@@ -25,6 +25,7 @@ import EventPromotion from '../pages/event/management/EventPromotionPage/index';
 import EventSurveyPage from '../pages/event/management/EventSurveyPage/index';
 
 import CertificateListPage from '../pages/event/post-event/certificate/CertificateListPage';
+import CreateCertificatePage from '../pages/event/post-event/certificate/CreateCertificatePage';
 import PostEventContentUploadPage from '../pages/event/post-event/PostEventContentUploadPage/index';
 // import { Certificate } from 'node:crypto';
 
@@ -59,7 +60,10 @@ export const OrganizerRoutes = (
 			<Route path="survey" element={<EventSurveyPage />} />
 
 			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
-			<Route path="cetak-sertifikat" element={<CertificateListPage />} />
+			<Route path="sertifikat">
+				<Route path="atur-template" element={<CreateCertificatePage />} />
+				<Route path="kirim-sertifikat" element={<CertificateListPage />} />
+			</Route>
 			<Route path="upload-materi-after" element={<PostEventContentUploadPage />} />
 
 			<Route path="event-location-test" element={<EventLocationTest />} />

@@ -63,14 +63,14 @@ export const MENU_ITEMS = {
 	],
 	event_detail: [
 		{
-			id: '1',
+			id: 'event-dashboard',
 			name: 'Dashboard',
 			icon: <LayoutDashboard size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard',
 		},
 		{
-			id: '2',
-			name: 'Detil Event',
+			id: 'detil-event',
+			name: 'Detail Event',
 			icon: <Form size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/detail',
 			submenu: [
@@ -83,25 +83,35 @@ export const MENU_ITEMS = {
 			],
 		},
 		{
-			id: '7',
+			id: 'staff-administrasi',
 			name: 'Staff Administrasi',
 			icon: <UserRoundPen size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/kelola-staff',
 		},
 		{
-			id: '3',
+			id: 'daftar-peserta-event',
 			name: 'Daftar Peserta',
 			icon: <UsersRound size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
 		},
 		{
-			id: '8',
-			name: 'Cetak Sertifikat',
-			icon: <UserRoundPen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/cetak-sertifikat',
+			id: 'sertifikat-event',
+			name: 'Sertifikat',
+			icon: <Form size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/sertifikat',
+			submenu: [
+				{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
+				{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
+			],
 		},
+		// {
+		// 	id: '8',
+		// 	name: 'Cetak Sertifikat',
+		// 	icon: <UserRoundPen size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/cetak-sertifikat',
+		// },
 		{
-			id: '4',
+			id: 'distribusi-materi',
 			name: 'Distribusi Materi',
 			icon: <FolderOpen size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/distribusi-materi',

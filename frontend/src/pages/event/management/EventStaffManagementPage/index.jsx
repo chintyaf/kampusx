@@ -52,10 +52,10 @@ const EventStaffManagementPage = () => {
 
 			{/* ── Stat Cards ── */}
 			<Row className="g-3">
-				<Col xs={12} sm={4}>
+				<Col xs={12} sm={3}>
 					<StatCard Icon={Users} label="Total Panitia" value={`${staffList.length}`} />
 				</Col>
-				<Col xs={12} sm={4}>
+				<Col xs={12} sm={3}>
 					<StatCard
 						Icon={CheckCircle2}
 						label="Staf Aktif"
@@ -63,13 +63,16 @@ const EventStaffManagementPage = () => {
 						type="green"
 					/>
 				</Col>
-				<Col xs={12} sm={4}>
+				<Col xs={12} sm={3}>
 					<StatCard
 						Icon={Clock}
 						label="Undangan Pending"
 						value={`${pendingCount}`}
 						type="yellow"
 					/>
+				</Col>
+				<Col xs={12} sm={3}>
+					<StatCard Icon={Clock} label="Gagal" value={`${pendingCount}`} type="red" />
 				</Col>
 			</Row>
 

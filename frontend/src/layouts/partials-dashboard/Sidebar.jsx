@@ -53,9 +53,6 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 				if (isActive) setOpenMenu(item.id);
 			}
 
-			// 2. Logika Tambahan: Jika path persis sama dengan item.path, tandai sebagai aktif
-			// Ini memastikan jika user di '/admin/dashboard', maka item dashboard terbuka/aktif
-
 			if (currentPath === `/${item.path}` || currentPath === item.path) {
 				activeMenuId = item.id;
 			}
