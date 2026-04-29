@@ -1,9 +1,8 @@
-import React from 'react'
+import React from 'react';
+import EventLayout from '@/layouts/EventLayout';
 
 const EventPromotionPage = () => {
-  return (
-    <div>EventPromotionPage</div>
-  )
-}
+	return <EventLayout>EventPromotionPage</EventLayout>;
+};
 
-export default EventPromotionPage
+export default EventPromotionPage;

@@ -3,7 +3,7 @@ import React from "react";
 const FormHeading = ({ heading, subheading }) => {
     return (
         <>
-            <div className="mb-4 d-flex align-items-start">
+            <div className="d-flex align-items-start">
                 <div>
                     <h5 className="fw-bold mb-1" style={{ fontSize: "1.1rem" }}>
                         {heading}

@@ -1,23 +1,14 @@
 import { useState, useMemo } from 'react';
-import {
-	Search,
-	Filter,
-	Download,
-	Plus,
-	ArrowUpDown,
-	CheckCircle2,
-	XCircle,
-	Users,
-} from 'lucide-react';
+import { Search, Filter, Download, Plus, CheckCircle2, XCircle, Users } from 'lucide-react';
 
 import FormHeading from '@/components/dashboard/FormHeading';
 
-// Imports dari features
+// Pastikan import path ini disesuaikan dengan struktur folder Anda
+import Table from '@/components/table/Table';
 import { USERS } from '@/features/users/data/mockUsers';
 import StatCard from '@/features/users/components/StatCard';
 import UserRow from '@/features/users/components/UserRow';
 import Pagination from '@/features/users/components/Pagination';
-// import '@/features/users/styles/manageUsers.css'; // Pastikan path CSS sesuai
 
 const ManageUserPage = () => {
 	const [search, setSearch] = useState('');
@@ -86,6 +77,17 @@ const ManageUserPage = () => {
 			iconBg: 'var(--danger-bg)',
 			iconColor: 'var(--danger-text)',
 		},
+	];
+
+	// Konfigurasi Kolom untuk Reusable Table
+	const tableColumns = [
+		{ label: 'Name', sortable: true },
+		{ label: 'Phone', sortable: false },
+		{ label: 'Role', sortable: true },
+		{ label: 'Status', sortable: true },
+		{ label: 'Verified', sortable: false },
+		{ label: 'Joined', sortable: true },
+		{ label: 'Action', sortable: false },
 	];
 
 	return (
@@ -160,53 +162,20 @@ const ManageUserPage = () => {
 					</button>
 				</div>
 
-				{/* Table */}
-				<div className="table-wrap">
-					<table>
-						<thead>
-							<tr>
-								{[
-									'Name',
-									'Phone',
-									'Role',
-									'Status',
-									'Verified',
-									'Joined',
-									'Action',
-								].map((col) => (
-									<th key={col}>
-										<div className="th-inner">
-											{col}
-											{col !== 'Action' &&
-												col !== 'Phone' &&
-												col !== 'Verified' && <ArrowUpDown size={11} />}
-										</div>
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody>
-							{pageData.length === 0 ? (
-								<tr>
-									<td colSpan={7}>
-										<div className="empty-state">
-											No users found matching your filters.
-										</div>
-									</td>
-								</tr>
-							) : (
-								pageData.map((u) => (
-									<UserRow
-										key={u.id}
-										user={u}
-										onEdit={(u) => alert(`Edit user: ${u.name}`)}
-										onDelete={(u) => alert(`Delete user: ${u.name}`)}
-									/>
-								))
-							)}
-						</tbody>
-					</table>
-				</div>
+				{/* Menggunakan Reusable Table Component */}
+				<Table
+					columns={tableColumns}
+					data={pageData}
+					emptyMessage="No users found matching your filters."
+					renderRow={(u) => (
+						<UserRow
+							key={u.id}
+							user={u}
+							onEdit={(u) => alert(`Edit user: ${u.name}`)}
+							onDelete={(u) => alert(`Delete user: ${u.name}`)}
+						/>
+					)}
+				/>
 
 				{/* Pagination */}
 				<Pagination

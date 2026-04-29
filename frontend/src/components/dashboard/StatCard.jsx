@@ -1,48 +1,26 @@
-import React from "react";
+import React from 'react';
 
-const StatCard = ({ title, content, subcontent }) => {
-    return (
-        <div
-            className="card border-grey p-3 d-flex flex-fill"
-            style={{ borderRadius: "7px" }}
-        >
-            <div className="card-body ">
-                <div className="d-flex justify-content-between align-items-start">
-                    <div>
-                        <p
-                            className="mb-1 fs-6 text-body-tertiary"
-                            style={{ fontSize: "var(--font-sm)" }}
-                        >
-                            {title}
-                        </p>
-                        <h2
-                            className="fw-bold mb-0"
-                            style={{ fontSize: "var(--font-xl)" }}
-                        >
-                            {content}
-                        </h2>
-                    </div>
+const iconStyles = {
+	blue: { backgroundColor: '#dff3ff', color: '#00699e' },
+	green: { backgroundColor: '#dcfce7', color: '#166534' },
+	yellow: { backgroundColor: '#fef3c7', color: '#92400e' },
+	red: { backgroundColor: '#fee2e2', color: '#991b1b' },
+};
 
-                    {/* Icon placeholder using Bootstrap colors */}
-                    <div
-                        className="bg-primary p-3 rounded-2"
-                        style={{ width: "40px", height: "40px" }}
-                    >
-                        <i className="bi bi-ticket-perforated text-primary fs-1"></i>
-                    </div>
-                </div>
+const StatCard = ({ Icon, label, value, type }) => {
+	const style = iconStyles[type] || iconStyles.blue;
 
-                <div className="mt-2">
-                    <p
-                        className="text-body-tertiary small mb-0"
-                        style={{ fontSize: "var(--font-xs)" }}
-                    >
-                        {subcontent}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
+	return (
+		<div className="stat-card">
+			<div style={style} className="stat-card__icon">
+				{Icon ? <Icon size={17} /> : <div className="placeholder-icon" />}
+			</div>
+			<div>
+				<p className="stat-card__label">{label}</p>
+				<p className="stat-card__value">{value}</p>
+			</div>
+		</div>
+	);
 };
 
 export default StatCard;

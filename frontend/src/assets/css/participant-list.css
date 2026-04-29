@@ -35,7 +35,7 @@
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 12px;
 }
-
+/* 
 .stat-card {
     display: flex;
     align-items: center;
@@ -44,7 +44,7 @@
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
     padding: 14px 16px;
-}
+} */
 
 .stat-card__icon {
     width: 36px;
