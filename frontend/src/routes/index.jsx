@@ -10,7 +10,7 @@ import MemberLayout from '../layouts/MemberLayout';
 // Import daftar rute
 import visitorRoutes from './PublicRoutes';
 import ProtectedRoute from './ProtectedRoute';
-import dashboardRoutes from './DashboardRoutes';
+import AdminRoutes from './AdminRoutes';
 import Dashboard from '../pages/dashboard/Dashboard';
 import MemberDashboard from '../pages/member/MemberDashboard';
 import Test from '../pages/dashboard/Test';
@@ -119,20 +119,9 @@ const AppRoutes = () => {
 				{/* Group Dashboard */}
 				<Route element={<DashboardLayout />}>
 					{/* Admin */}
-					<Route element={<ProtectedRoute allowedRole={['admin']} />}>
-						<Route path="admin">
-							<Route path="dashboard" element={<Dashboard />} />
-							<Route path="kelola-data-master" element={<AdminMasterDataPage />} />
-							<Route path="verifikasi-organizer" element={<Test />} />
-							<Route path="kelola-pengguna" element={<Test />} />
-							<Route path="pantau-acara" element={<Test />} />
-							<Route path="kontrol-promosi" element={<Test />} />
-						</Route>
-					</Route>
+					<Route element={<ProtectedRoute allowedRole={['admin']} />}>{AdminRoutes}</Route>
 
-					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
-						{OrganizerRoutes}
-					</Route>
+					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>{OrganizerRoutes}</Route>
 
 					{/* <Route
                     path="*"

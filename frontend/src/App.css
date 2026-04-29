@@ -4,6 +4,14 @@ Layouting tingkat atas (misalnya setting Flexbox untuk seluruh aplikasi).
 Animasi global (seperti logo React yang berputar).
 */
 
+/* ── Divider ── */
+.divider {
+	border: none;
+	border-top: 0.5px solid var(--border);
+	margin: 14px 0;
+}
+
+
 /* Animasi popup untuk Alert Message */
 /* Definisikan Keyframes Animasi Popup (Masuk) */
 @keyframes hotToastEnter {

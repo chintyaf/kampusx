@@ -606,3 +606,27 @@
     line-height: 1.5;
     margin: 0;
 }
+
+/* Card Hover Effect */
+.cert-card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.cert-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dashed Card for "Create New" */
+.dashed-create-card {
+    border-style: dashed !important;
+    border-width: 2px !important;
+    border-color: #bfdbfe;
+    background-color: #fff;
+    cursor: pointer;
+    min-height: 220px;
+    border-radius: 16px;
+    transition: background-color 0.2s ease;
+}
+.dashed-create-card:hover {
+    background-color: #f8fafc;
+}

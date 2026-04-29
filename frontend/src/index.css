@@ -10,6 +10,7 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
 
 :root {
+	/* --- INDEX CSS (ORIGINAL) --- */
 	--font: 'Plus Jakarta Sans', sans-serif;
 
 	/* FONT */
@@ -55,6 +56,38 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	--warning-border: #d9c266;
 	--warning-heading: #92400e;
 	--warning-text: #a16207;
+
+	/* --- TAMBAHAN (PRIORITY EXTENSION) --- */
+	--primary: #00699e;
+	--primary-mid: #3c84a8;
+	--primary-light: #dff3ff;
+	--primary-border: #b9e7fe;
+	--muted: #64748b;
+	--bg: #e4e7eb;
+	--card: #ffffff;
+	--text: #0f172a;
+	--text-muted: #64748b;
+	--border: #3762a72e;
+	--border-md: #3762a747;
+	--radius: 10px;
+	--radius-sm: 6px;
+
+	/* Semantic */
+	--success-bg: #dcfce7;
+	--success-text: #166534;
+	--warning-bg: #fef3c7; /* Overrides original warning-bg if used as --warning-bg */
+	--warning-text: #92400e; /* Overrides original warning-text if used as --warning-text */
+	--danger-bg: #fee2e2;
+	--danger-text: #991b1b;
+	--info-bg: #dff3ff;
+	--info-text: #00699e;
+	--neutral-bg: #f1f5f9;
+	--neutral-text: #64748b;
+
+	--purple-bg: #ede9fe;
+	--purple-text: #5b21b6;
+	--pink-bg: #fce7f3;
+	--pink-text: #9d174d;
 }
 
 * {
@@ -93,13 +126,13 @@ p {
 } */
 
 .btn-primary {
-	background-color: var(--bahama-blue-600) !important;
-	border-color: var(--bahama-blue-600) !important;
+	background-color: var(--color-primary) !important;
+	border-color: var(--color-primary) !important;
 }
 
 .btn-primary:hover {
-	background-color: #0c5ea1 !important;
-	border-color: #007eb0 !important;
+	background-color: var(--bahama-blue-900) !important;
+	border-color: var(--bahama-blue-900) !important;
 }
 
 .btn-secondary {

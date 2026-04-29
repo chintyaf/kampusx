@@ -24,44 +24,45 @@ import EventStatistics from '../pages/event/management/EventStatisticsPage/index
 import EventPromotion from '../pages/event/management/EventPromotionPage/index';
 import EventSurveyPage from '../pages/event/management/EventSurveyPage/index';
 
-import CertificateToolPage from '../pages/event/post-event/CertificateToolPage/index';
+import CertificateListPage from '../pages/event/post-event/certificate/CertificateListPage';
 import PostEventContentUploadPage from '../pages/event/post-event/PostEventContentUploadPage/index';
+// import { Certificate } from 'node:crypto';
 
 export const OrganizerRoutes = (
-    <Route path="organizer">
-        <Route path="dashboard" element={<OrgDashboardPage />} />
-        <Route path="kelola-tim-institusi" element={<ManageInstitutionTeamPage />} />
-        <Route path="daftar-acara" element={<CreateEvent />} />
-        <Route path="buat-acara" element={<CreateEvent />} />
+	<Route path="organizer">
+		<Route path="dashboard" element={<OrgDashboardPage />} />
+		<Route path="kelola-tim-institusi" element={<ManageInstitutionTeamPage />} />
+		<Route path="daftar-acara" element={<CreateEvent />} />
+		<Route path="buat-acara" element={<CreateEvent />} />
 
-        {/* Event Routes untuk Detail Event */}
-        <Route path=":eventId/event-dashboard">
-            <Route path="" element={<EventDashboardPage />} />
-            <Route path="detail">
-                <Route path="info" element={<EventGeneralInfo />} />
-                <Route path="tempat" element={<EventScheduleLocation />} />
-                <Route path="sesi" element={<EventSession />} />
-                <Route path="pembicara" element={<EventSpeaker />} />
-                <Route path="formulir" element={<EventRegistrationForm />} />
-                <Route path="tiket" element={<EventTicket />} />
-            </Route>
-            <Route path="kelola-staff" element={<EventStaffManagement />} />
+		{/* Event Routes untuk Detail Event */}
+		<Route path=":eventId/event-dashboard">
+			<Route path="" element={<EventDashboardPage />} />
+			<Route path="detail">
+				<Route path="info" element={<EventGeneralInfo />} />
+				<Route path="tempat" element={<EventScheduleLocation />} />
+				<Route path="sesi" element={<EventSession />} />
+				<Route path="pembicara" element={<EventSpeaker />} />
+				<Route path="formulir" element={<EventRegistrationForm />} />
+				<Route path="tiket" element={<EventTicket />} />
+			</Route>
+			<Route path="kelola-staff" element={<EventStaffManagement />} />
 
-            <Route path="daftar-peserta" element={<EventParticipantList />} />
-            <Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
-            <Route path="kelola-materi" element={<OrganizerMaterialsManagePage />} />
-            <Route path="scanner" element={<ScannerPage />} />
-            <Route path="upload-sertifikat" element={<EventStaffManagement />} />
+			<Route path="daftar-peserta" element={<EventParticipantList />} />
+			<Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
+			<Route path="kelola-materi" element={<OrganizerMaterialsManagePage />} />
+			<Route path="scanner" element={<ScannerPage />} />
+			<Route path="upload-sertifikat" element={<EventStaffManagement />} />
 
-            <Route path="statistik" element={<EventStatistics />} />
-            <Route path="promosi" element={<EventPromotion />} />
-            <Route path="survey" element={<EventSurveyPage />} />
+			<Route path="statistik" element={<EventStatistics />} />
+			<Route path="promosi" element={<EventPromotion />} />
+			<Route path="survey" element={<EventSurveyPage />} />
 
-            {/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
-            <Route path="cetak-sertifikat" element={<CertificateToolPage />} />
-            <Route path="upload-materi-after" element={<PostEventContentUploadPage />} />
+			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
+			<Route path="cetak-sertifikat" element={<CertificateListPage />} />
+			<Route path="upload-materi-after" element={<PostEventContentUploadPage />} />
 
-            <Route path="event-location-test" element={<EventLocationTest />} />
-        </Route>
-    </Route>
+			<Route path="event-location-test" element={<EventLocationTest />} />
+		</Route>
+	</Route>
 );
