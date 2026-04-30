@@ -1,12 +1,12 @@
 /* ── StatCard ─────────────────────────── */
-.stat-card {
+/* .stat-card {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 18px 16px;
   text-align: center;
   transition: border-color 0.2s, transform 0.2s;
-}
+} */
 .stat-card:hover { border-color: var(--subtle); transform: translateY(-2px); }
 .stat-card-icon { margin-bottom: 8px; display: flex; justify-content: center; }
 .stat-num  { font-size: 30px; font-weight: 800; line-height: 1; }

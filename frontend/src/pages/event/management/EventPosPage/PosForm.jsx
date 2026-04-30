@@ -3,7 +3,7 @@ import { Form, Button, InputGroup, Alert, Badge } from 'react-bootstrap';
 import { UserPlus, Search, QrCode, Edit3, Mail, CheckCircle2 } from 'lucide-react';
 import ModalBox from '@/components/dashboard/ModalBox';
 
-const StaffForm = ({ show, onHide }) => {
+const PosForm = ({ show, onHide }) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [isUserFound, setIsUserFound] = useState(null); // null: idle, true: found, false: not found
 	const [permissions, setPermissions] = useState({
@@ -165,4 +165,4 @@ const StaffForm = ({ show, onHide }) => {
 	);
 };
 
-export default StaffForm;
+export default PosForm;

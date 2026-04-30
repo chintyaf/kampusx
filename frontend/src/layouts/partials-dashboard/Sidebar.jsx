@@ -1,48 +1,44 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import {
-	LayoutDashboard,
-	UserCheck,
-	ChevronDown,
-	Plus,
-	UsersRound,
-	FolderOpen,
-	ChartColumn,
-	Star,
-	Form,
-	UserRoundPen,
-} from 'lucide-react';
+import { Star } from 'lucide-react';
 
 import { SidebarItem, EventCard } from '@/features/sidebar';
 import { MENU_ITEMS } from '@/features/sidebar/data/route';
 
 const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
-	const [openMenu, setOpenMenu] = useState(null);
+	// State menampung array berisi ID menu yang sedang terbuka
+	const [openMenus, setOpenMenus] = useState([]);
 	const location = useLocation();
 
+	// Mendapatkan eventId dari URL
 	const eventIdMatch = location.pathname.match(/\/organizer\/([^/]+)\/event-dashboard/);
 	const currentEventId = eventIdMatch ? eventIdMatch[1] : '';
 
 	const baseMenu = MENU_ITEMS[type] || [];
-	const currentMenu = baseMenu.map((item) => ({
-		...item,
-		path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
-	}));
+
+	// Menggunakan useMemo agar referensi currentMenu tidak berubah setiap kali render
+	const currentMenu = useMemo(() => {
+		return baseMenu.map((item) => ({
+			...item,
+			path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
+		}));
+	}, [baseMenu, currentEventId]);
 
 	const handleToggle = (id) => {
 		if (isSidebarCollapsed) {
-			// Jika sidebar sedang mengecil, otomatis lebarkan dan buka submenunya
+			// Lebarkan sidebar dan pastikan menu ini masuk ke daftar terbuka
 			setIsSidebarCollapsed(false);
-			setOpenMenu(id);
+			setOpenMenus((prev) => (prev.includes(id) ? prev : [...prev, id]));
 		} else {
-			// Perilaku normal saat sidebar sudah lebar
-			setOpenMenu(openMenu === id ? null : id);
+			// Tambah atau hapus ID menu dari array openMenus
+			setOpenMenus((prev) =>
+				prev.includes(id) ? prev.filter((menuId) => menuId !== id) : [...prev, id],
+			);
 		}
 	};
 
 	useEffect(() => {
 		const currentPath = location.pathname;
-		let activeMenuId = null;
 
 		currentMenu.forEach((item) => {
 			if (item.submenu) {
@@ -50,11 +46,16 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 					const fullPath = `${item.path}/${sub.path}`.replace(/\/+/g, '/');
 					return currentPath.startsWith(fullPath);
 				});
-				if (isActive) setOpenMenu(item.id);
-			}
 
-			if (currentPath === `/${item.path}` || currentPath === item.path) {
-				activeMenuId = item.id;
+				// Jika path aktif, pastikan ID menu masuk ke daftar terbuka
+				if (isActive) {
+					setOpenMenus((prev) => {
+						if (!prev.includes(item.id)) {
+							return [...prev, item.id];
+						}
+						return prev;
+					});
+				}
 			}
 		});
 	}, [location.pathname, currentMenu]);
@@ -64,7 +65,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 			<div
 				className={`sidebar-container flex-shrink-0 bg-white border-end d-flex flex-column justify-content-between ${isSidebarCollapsed ? 'collapsed' : ''}`}
 				style={{
-					width: isSidebarCollapsed ? '80px' : '240px', // Animasi Lebar disini
+					width: isSidebarCollapsed ? '80px' : '240px',
 					transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 					height: '100%',
 					overflowY: 'auto',
@@ -77,7 +78,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 							<li className="mb-2" key={item.id}>
 								<SidebarItem
 									item={item}
-									isOpen={openMenu === item.id}
+									isOpen={openMenus.includes(item.id)}
 									toggle={handleToggle}
 									isSidebarCollapsed={isSidebarCollapsed}
 								/>

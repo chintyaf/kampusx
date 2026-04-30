@@ -1,185 +1,490 @@
-import React, { useState } from "react";
-import { Form, Button, InputGroup, Table, Card } from "react-bootstrap";
-import { useParams } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { useState, useCallback } from 'react';
+import {
+	Row,
+	Col,
+	Card,
+	Form,
+	Button,
+	Badge,
+	InputGroup,
+	ProgressBar,
+	Alert,
+} from 'react-bootstrap';
+import {
+	MapPin,
+	Globe,
+	Shuffle,
+	Star,
+	Users,
+	PlusCircle,
+	Trash2,
+	Info,
+	CheckCircle,
+	Zap,
+} from 'lucide-react';
+import EventLayout from '@/layouts/EventLayout';
 
-import EventLayout from "../../../../layouts/EventLayout";
-import api from "../../../../api/axios"; 
-import { notify } from "../../../../utils/notify";
+/* ─────────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────────── */
+const PLATFORM_FEE = 0.05;
 
-let _id = 0;
-const newTicket = () => ({
-    id: ++_id,
-    name: "",
-    is_free: true,
-    price: "",
-    capacity: "",
-    sale_start: "",
-    sale_end: "",
+const FORMAT_OPTIONS = [
+	{
+		key: 'offline',
+		label: 'Offline (Luring)',
+		desc: 'Tiket fisik + Geofencing & QR Onsite',
+		icon: MapPin,
+		color: '#c2185b',
+		bg: '#fce4ec',
+		techTags: ['Geofencing GPS', 'Dynamic QR Onsite', 'Strict 1-to-1'],
+	},
+	{
+		key: 'online',
+		label: 'Online (Daring)',
+		desc: 'Akses virtual + Zoom/Streaming otomatis',
+		icon: Globe,
+		color: '#00796b',
+		bg: '#e0f2f1',
+		techTags: ['Zoom/Streaming Auto', 'Pop-up Checkpoint', 'Strict 1-to-1'],
+	},
+	{
+		key: 'hybrid',
+		label: 'Hybrid',
+		desc: 'Tiket fisik & virtual dalam satu acara',
+		icon: Shuffle,
+		color: '#5e35b1',
+		bg: '#ede7f6',
+		techTags: [
+			'Geofencing (Offline)',
+			'Zoom/Streaming (Online)',
+			'Dynamic QR',
+			'Strict 1-to-1',
+		],
+	},
+];
+
+// Helper untuk membuat struktur awal tiket menyesuaikan migration
+const makeTier = (id, isOnline = false) => ({
+	id,
+	name: 'General Admission',
+	type: isOnline ? 'online' : 'offline',
+	is_free: false,
+	price: isOnline ? 65000 : 150000,
+	capacity: 100,
+	sale_start: '',
+	sale_end: '',
 });
 
-const EventTicket = () => {
-    const { eventId } = useParams();
-    const [tickets, setTickets] = useState([newTicket()]);
+const initTiers = (isOnline = false) => [
+	{
+		id: 1,
+		name: 'Early Bird',
+		type: isOnline ? 'online' : 'offline',
+		is_free: false,
+		price: isOnline ? 35000 : 75000,
+		capacity: 50,
+		sale_start: '',
+		sale_end: '',
+	},
+	{
+		id: 2,
+		name: 'General Admission',
+		type: isOnline ? 'online' : 'offline',
+		is_free: false,
+		price: isOnline ? 65000 : 150000,
+		capacity: 200,
+		sale_start: '',
+		sale_end: '',
+	},
+];
 
-    const add = () => setTickets((p) => [...p, newTicket()]);
-    const remove = (id) => setTickets((p) => p.filter((t) => t.id !== id));
-    const update = (id, field, value) => {
-        setTickets((p) =>
-            p.map((t) => (t.id === id ? { ...t, [field]: value } : t))
-        );
-    };
+/* ─────────────────────────────────────────────
+   TECH TAG PILL
+───────────────────────────────────────────── */
+function TechTag({ label }) {
+	return (
+		<span
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: 5,
+				fontSize: 11,
+				fontWeight: 500,
+				background: '#ede7f6',
+				color: '#4527a0',
+				border: '0.5px solid #b39ddb',
+				borderRadius: 20,
+				padding: '3px 10px',
+			}}>
+			<Zap size={10} />
+			{label}
+		</span>
+	);
+}
 
-    const handleSave = async () => {
-        // Filter out empty tickets
-        const valid = tickets.filter((t) => t.name.trim());
-        
-        console.log("Menyimpan tiket untuk event:", eventId, valid);
+/* ─────────────────────────────────────────────
+   SECTION HEADER
+───────────────────────────────────────────── */
+function SectionHeader({ icon: Icon, title, subtitle }) {
+	return (
+		<div className="mb-3">
+			<h6
+				className="d-flex align-items-center gap-2 mb-1"
+				style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>
+				<div
+					style={{
+						width: 28,
+						height: 28,
+						borderRadius: 8,
+						background: '#ede7f6',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						flexShrink: 0,
+					}}>
+					<Icon size={14} color="#5e35b1" />
+				</div>
+				{title}
+			</h6>
+			{subtitle && (
+				<p style={{ fontSize: 12, color: '#999', margin: 0, paddingLeft: 36 }}>
+					{subtitle}
+				</p>
+			)}
+		</div>
+	);
+}
 
-        if (valid.length === 0) {
-             // Optional: warn the user that they haven't set up tickets?
-             // But for now, we'll allow an empty list depending on business rules.
-        }
+/* ─────────────────────────────────────────────
+   TIER ROW (Sesuai Migration)
+───────────────────────────────────────────── */
+function TierRow({ tier, isOnline, onUpdate, onDelete, canDelete }) {
+	const isFree = tier.is_free;
 
-        // TBD: Logic Simpan ke Backend diletakkan di sini
-        // try {
-        //     await api.post(`event-dashboard/${eventId}/info-utama/ticket`, { tickets: valid });
-        //     notify("success", "Berhasil!", "Data tiket telah disimpan.");
-        // } catch (error) {
-        //     notify("error", "Gagal menyimpan", "Cek tabel dan form kembali.");
-        //     throw error;
-        // }
-        
-        return Promise.resolve();
-    };
+	return (
+		<Card
+			className="mb-3"
+			style={{
+				border: '0.5px solid rgba(0,0,0,.12)',
+				borderRadius: 12,
+				background: '#fafafa',
+				boxShadow: 'none',
+			}}>
+			<Card.Body className="p-3">
+				{/* Header Row */}
+				<div className="d-flex align-items-center justify-content-between mb-3">
+					<div className="d-flex align-items-center gap-2">
+						<h6 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+							{tier.name || 'Nama Tiket'}
+						</h6>
+						<Badge
+							bg={isOnline ? 'success' : 'danger'}
+							style={{ fontSize: 10, fontWeight: 500, borderRadius: 20 }}>
+							{isOnline ? 'Online' : 'Offline'}
+						</Badge>
+						{isFree && (
+							<Badge
+								bg="primary"
+								style={{ fontSize: 10, fontWeight: 500, borderRadius: 20 }}>
+								Gratis
+							</Badge>
+						)}
+					</div>
+					<Button
+						variant="link"
+						size="sm"
+						disabled={!canDelete}
+						onClick={() => onDelete(tier.id)}
+						style={{ color: canDelete ? '#e53935' : '#ccc', padding: 4 }}>
+						<Trash2 size={15} />
+					</Button>
+				</div>
 
-    return (
-        <EventLayout
-            heading="Jenis Tiket"
-            subheading="Tambahkan satu atau beberapa jenis tiket untuk event ini."
-            nextPath="preview"
-            prevPath="formulir"
-            onSave={handleSave}
-        >
-            <Card className="border rounded-4 shadow-sm mb-4">
-                <Card.Body className="p-0 table-responsive">
-                    {tickets.length === 0 ? (
-                        <div className="text-center p-5 text-muted">
-                            <p className="mb-0 small">Belum ada tiket. Klik "+ Tambah Jenis Tiket" untuk mulai.</p>
-                        </div>
-                    ) : (
-                        <Table borderless responsive hover className="m-0 align-middle" style={{ minWidth: "800px" }}>
-                            <thead className="bg-light border-bottom">
-                                <tr>
-                                    <th className="text-muted small fw-semibold text-uppercase px-3 py-2" style={{ width: '22%', letterSpacing: "0.04em" }}>Nama Tiket</th>
-                                    <th className="text-muted small fw-semibold text-uppercase px-3 py-2" style={{ width: '12%', letterSpacing: "0.04em" }}>Kuota</th>
-                                    <th className="text-muted small fw-semibold text-uppercase px-3 py-2" style={{ width: '25%', letterSpacing: "0.04em" }}>Tipe & Harga</th>
-                                    <th className="text-muted small fw-semibold text-uppercase px-3 py-2" style={{ width: '18%', letterSpacing: "0.04em" }}>Mulai Jual</th>
-                                    <th className="text-muted small fw-semibold text-uppercase px-3 py-2" style={{ width: '18%', letterSpacing: "0.04em" }}>Akhir Jual</th>
-                                    <th className="text-muted small fw-semibold text-uppercase px-3 py-2 text-center" style={{ width: '5%', letterSpacing: "0.04em" }}></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {tickets.map((t, i) => (
-                                    <tr key={t.id} className={i !== tickets.length - 1 ? "border-bottom" : ""}>
-                                        <td className="px-3 py-3">
-                                            <Form.Control
-                                                type="text"
-                                                size="sm"
-                                                placeholder="Contoh: Early Bird"
-                                                value={t.name}
-                                                onChange={(e) => update(t.id, "name", e.target.value)}
-                                            />
-                                        </td>
-                                        <td className="px-3 py-3">
-                                            <Form.Control
-                                                type="number"
-                                                size="sm"
-                                                placeholder="∞"
-                                                min={1}
-                                                value={t.capacity}
-                                                onChange={(e) => update(t.id, "capacity", e.target.value)}
-                                            />
-                                        </td>
-                                        <td className="px-3 py-3">
-                                            <div className="d-flex gap-2 align-items-center">
-                                                <Form.Select
-                                                    size="sm"
-                                                    style={{ width: t.is_free ? '100%' : '100px', flexShrink: 0 }}
-                                                    value={t.is_free ? "true" : "false"}
-                                                    onChange={(e) => update(t.id, "is_free", e.target.value === "true")}
-                                                >
-                                                    <option value="true">Gratis</option>
-                                                    <option value="false">Berbayar</option>
-                                                </Form.Select>
-                                                
-                                                {!t.is_free && (
-                                                    <InputGroup size="sm" className="flex-grow-1">
-                                                        <InputGroup.Text className="bg-light text-muted border-end-0">Rp</InputGroup.Text>
-                                                        <Form.Control
-                                                            type="number"
-                                                            placeholder="50000"
-                                                            min={0}
-                                                            step={1000}
-                                                            value={t.price}
-                                                            onChange={(e) => update(t.id, "price", e.target.value)}
-                                                            className="border-start-0 ps-0"
-                                                        />
-                                                    </InputGroup>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-3 py-3">
-                                            <Form.Control
-                                                type="datetime-local"
-                                                size="sm"
-                                                value={t.sale_start}
-                                                onChange={(e) => update(t.id, "sale_start", e.target.value)}
-                                                className="text-muted"
-                                            />
-                                        </td>
-                                        <td className="px-3 py-3">
-                                            <Form.Control
-                                                type="datetime-local"
-                                                size="sm"
-                                                value={t.sale_end}
-                                                onChange={(e) => update(t.id, "sale_end", e.target.value)}
-                                                className="text-muted"
-                                            />
-                                        </td>
-                                        <td className="px-3 py-3 text-center">
-                                            <Button 
-                                                variant="outline-danger" 
-                                                size="sm" 
-                                                className="d-inline-flex align-items-center justify-content-center p-1 border-0 rounded"
-                                                style={{ background: "#fff5f5" }}
-                                                onClick={() => remove(t.id)}
-                                                title="Hapus Tiket"
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    )}
-                </Card.Body>
-                <Card.Footer className="bg-white border-0 px-4 py-3 d-flex align-items-center justify-content-between rounded-bottom-4">
-                    <Button 
-                        variant="link" 
-                        className="text-decoration-none fw-semibold p-0 d-flex align-items-center gap-2" 
-                        onClick={add}
-                    >
-                        <Plus size={16} /> Tambah Jenis Tiket
-                    </Button>
-                    {tickets.length > 0 && (
-                        <span className="text-muted small fw-medium">{tickets.length} tiket</span>
-                    )}
-                </Card.Footer>
-            </Card>
-        </EventLayout>
-    );
-};
+				{/* Fields */}
+				<Row className="g-3">
+					{/* Name */}
+					<Col xs={12} sm={6} lg={4}>
+						<Form.Label style={{ fontSize: 11, color: '#777', marginBottom: 3 }}>
+							Nama Tiket <span className="text-danger">*</span>
+						</Form.Label>
+						<Form.Control
+							size="sm"
+							value={tier.name}
+							placeholder='Misal: "Early Bird", "VIP"'
+							style={{ borderRadius: 8, fontSize: 13 }}
+							onChange={(e) => onUpdate(tier.id, { name: e.target.value })}
+						/>
+					</Col>
 
-export default EventTicket;
+					{/* Price & Free Toggle */}
+					<Col xs={12} sm={6} lg={4}>
+						<div className="d-flex justify-content-between align-items-end mb-1">
+							<Form.Label style={{ fontSize: 11, color: '#777', marginBottom: 0 }}>
+								Harga (Rp)
+							</Form.Label>
+							<Form.Check
+								type="switch"
+								id={`free-switch-${tier.id}`}
+								label="Gratis?"
+								checked={isFree}
+								onChange={(e) => {
+									const val = e.target.checked;
+									onUpdate(tier.id, {
+										is_free: val,
+										price: val ? 0 : tier.price,
+									});
+								}}
+								style={{ fontSize: 11, color: '#555' }}
+							/>
+						</div>
+						<InputGroup size="sm">
+							<InputGroup.Text style={{ fontSize: 12, borderRadius: '8px 0 0 8px' }}>
+								Rp
+							</InputGroup.Text>
+							<Form.Control
+								type="number"
+								min={0}
+								step={5000}
+								value={tier.price}
+								disabled={isFree}
+								style={{
+									borderRadius: '0 8px 8px 0',
+									fontSize: 13,
+									backgroundColor: isFree ? '#e9ecef' : '#fff',
+								}}
+								onChange={(e) =>
+									onUpdate(tier.id, { price: Number(e.target.value) })
+								}
+							/>
+						</InputGroup>
+					</Col>
+
+					{/* Capacity */}
+					<Col xs={12} sm={6} lg={4}>
+						<Form.Label style={{ fontSize: 11, color: '#777', marginBottom: 3 }}>
+							Kapasitas (Kuota)
+						</Form.Label>
+						<InputGroup size="sm">
+							<Form.Control
+								type="number"
+								min={1}
+								step={10}
+								value={tier.capacity}
+								style={{ borderRadius: '8px 0 0 8px', fontSize: 13 }}
+								onChange={(e) =>
+									onUpdate(tier.id, { capacity: Number(e.target.value) })
+								}
+							/>
+							<InputGroup.Text style={{ fontSize: 11, borderRadius: '0 8px 8px 0' }}>
+								<Users size={11} className="me-1" />
+								peserta
+							</InputGroup.Text>
+						</InputGroup>
+					</Col>
+
+					{/* Sale Start */}
+					<Col xs={12} sm={6}>
+						<Form.Label style={{ fontSize: 11, color: '#777', marginBottom: 3 }}>
+							Mulai Penjualan
+						</Form.Label>
+						<Form.Control
+							type="datetime-local"
+							size="sm"
+							value={tier.sale_start || ''}
+							style={{ borderRadius: 8, fontSize: 13 }}
+							onChange={(e) => onUpdate(tier.id, { sale_start: e.target.value })}
+						/>
+					</Col>
+
+					{/* Sale End */}
+					<Col xs={12} sm={6}>
+						<Form.Label style={{ fontSize: 11, color: '#777', marginBottom: 3 }}>
+							Akhir Penjualan
+						</Form.Label>
+						<Form.Control
+							type="datetime-local"
+							size="sm"
+							value={tier.sale_end || ''}
+							style={{ borderRadius: 8, fontSize: 13 }}
+							onChange={(e) => onUpdate(tier.id, { sale_end: e.target.value })}
+						/>
+					</Col>
+				</Row>
+			</Card.Body>
+		</Card>
+	);
+}
+
+/* ─────────────────────────────────────────────
+   MAIN PAGE
+───────────────────────────────────────────── */
+export default function EventTicket() {
+	const [format, setFormat] = useState('offline');
+	const [hybridTab, setHybridTab] = useState('offline');
+	const [tiersOff, setTiersOff] = useState(initTiers(false));
+	const [tiersOn, setTiersOn] = useState(initTiers(true));
+	const [waitlist, setWaitlist] = useState(true);
+	const [published, setPublished] = useState(false);
+	const [idCounter, setIdCounter] = useState(10);
+
+	/* helpers */
+	const nextId = useCallback(() => {
+		const id = idCounter + 1;
+		setIdCounter(id);
+		return id;
+	}, [idCounter]);
+
+	const isOnlineTab = format === 'online' || (format === 'hybrid' && hybridTab === 'online');
+
+	const activeTiers = isOnlineTab ? tiersOn : tiersOff;
+	const setActiveTiers = isOnlineTab ? setTiersOn : setTiersOff;
+
+	const updateTier = (id, patch) =>
+		setActiveTiers((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+	const deleteTier = (id) => setActiveTiers((prev) => prev.filter((t) => t.id !== id));
+	const addTier = () => {
+		const id = nextId();
+		setActiveTiers((prev) => [...prev, makeTier(id, isOnlineTab)]);
+	};
+
+	/* financial */
+	const calcFinancial = () => {
+		let cap = 0,
+			gross = 0;
+		const process = (arr) =>
+			arr.forEach((t) => {
+				cap += Number(t.capacity) || 0;
+				gross += (Number(t.capacity) || 0) * (Number(t.price) || 0);
+			});
+		if (format !== 'online') process(tiersOff);
+		if (format !== 'offline') process(tiersOn);
+		return { cap, gross, net: gross * (1 - PLATFORM_FEE) };
+	};
+	const { cap, gross, net } = calcFinancial();
+
+	const fmtConfig = FORMAT_OPTIONS.find((f) => f.key === format);
+
+	/* all tiers for summary */
+	const allTiers = [
+		...(format !== 'online' ? tiersOff.map((t) => ({ ...t, isOnline: false })) : []),
+		...(format !== 'offline' ? tiersOn.map((t) => ({ ...t, isOnline: true })) : []),
+	];
+
+	const handlePublish = () => {
+		setPublished(true);
+		setTimeout(() => setPublished(false), 3000);
+	};
+
+	/* ── RENDER ── */
+	return (
+		<EventLayout
+			heading="Harga & Tipe Tiket"
+			subheading="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan acara Anda."
+			onSave={handlePublish}
+			isFormDirty={false}>
+			{published && (
+				<Alert
+					variant="success"
+					className="d-flex align-items-center gap-2 mb-4"
+					style={{ borderRadius: 10, fontSize: 13 }}>
+					<CheckCircle size={15} />
+					Tiket berhasil disimpan ke database (Schema `event_tickets`).
+				</Alert>
+			)}
+
+			<Row className="g-4">
+				<Col xs={12} lg={12}>
+					{/* ── 2. TIER & HARGA ── */}
+					<Card
+						className="mb-4"
+						style={{
+							border: '0.5px solid rgba(0,0,0,.1)',
+							borderRadius: 14,
+							boxShadow: 'none',
+						}}>
+						<Card.Body className="p-4">
+							<SectionHeader icon={Star} title="Penjadwalan & Harga Tiket" />
+
+							{/* Hybrid tab switcher */}
+							{format === 'hybrid' && (
+								<div className="mb-3">
+									<div
+										className="d-inline-flex"
+										style={{
+											background: '#f0edf8',
+											borderRadius: 10,
+											padding: 4,
+											gap: 4,
+										}}>
+										{[
+											{
+												key: 'offline',
+												icon: MapPin,
+												label: 'Offline',
+											},
+											{ key: 'online', icon: Globe, label: 'Online' },
+										].map((tab) => {
+											const TIcon = tab.icon;
+											const active = hybridTab === tab.key;
+											return (
+												<button
+													key={tab.key}
+													onClick={() => setHybridTab(tab.key)}
+													style={{
+														border: 'none',
+														borderRadius: 8,
+														padding: '6px 18px',
+														fontSize: 12,
+														fontWeight: 500,
+														cursor: 'pointer',
+														transition: 'all .15s',
+														background: active
+															? '#5e35b1'
+															: 'transparent',
+														color: active ? '#fff' : '#888',
+														display: 'flex',
+														alignItems: 'center',
+														gap: 5,
+													}}>
+													<TIcon size={11} />
+													{tab.label}
+												</button>
+											);
+										})}
+									</div>
+								</div>
+							)}
+
+							{activeTiers.map((tier) => (
+								<TierRow
+									key={tier.id}
+									tier={tier}
+									isOnline={isOnlineTab}
+									onUpdate={updateTier}
+									onDelete={deleteTier}
+									canDelete={activeTiers.length > 1}
+								/>
+							))}
+
+							<Button
+								variant="outline-secondary"
+								className="w-100 d-flex align-items-center justify-content-center gap-2"
+								style={{
+									borderRadius: 10,
+									fontSize: 13,
+									borderStyle: 'dashed',
+									padding: '10px',
+									color: '#888',
+								}}
+								onClick={addTier}>
+								<PlusCircle size={15} />
+								Tambah Tiket Baru
+							</Button>
+						</Card.Body>
+					</Card>
+				</Col>
+			</Row>
+		</EventLayout>
+	);
+}

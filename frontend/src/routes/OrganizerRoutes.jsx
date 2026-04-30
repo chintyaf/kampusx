@@ -16,7 +16,7 @@ import EventTicket from '../pages/event/creation/detail-event/EventTicket';
 import EventLocationTest from '../pages/event/creation/EventLocationTest/index';
 
 import EventDashboardPage from '../pages/event/management/EventDashboardPage';
-import EventStaffManagement from '../pages/event/management/EventStaffManagementPage/index';
+import EventPosPage from '../pages/event/management/EventPosPage/index';
 import EventParticipantList from '../pages/event/management/EventParticipantListPage/index';
 import EventMaterialDistributionPage from '../pages/event/management/EventMaterialDistributionPage/index';
 import OrganizerMaterialsManagePage from '../pages/event/management/OrganizerMaterialsManagePage/index';
@@ -47,13 +47,14 @@ export const OrganizerRoutes = (
 				<Route path="formulir" element={<EventRegistrationForm />} />
 				<Route path="tiket" element={<EventTicket />} />
 			</Route>
-			<Route path="kelola-staff" element={<EventStaffManagement />} />
+
+			<Route path="event-pos" element={<EventPosPage />} />
 
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
 			<Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
 			<Route path="kelola-materi" element={<OrganizerMaterialsManagePage />} />
 			<Route path="scanner" element={<ScannerPage />} />
-			<Route path="upload-sertifikat" element={<EventStaffManagement />} />
+			<Route path="upload-sertifikat" element={<EventPosPage />} />
 
 			<Route path="statistik" element={<EventStatistics />} />
 			<Route path="promosi" element={<EventPromotion />} />

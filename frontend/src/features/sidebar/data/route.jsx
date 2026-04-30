@@ -83,10 +83,10 @@ export const MENU_ITEMS = {
 			],
 		},
 		{
-			id: 'staff-administrasi',
-			name: 'Staff Administrasi',
+			id: 'event-pos',
+			name: 'Manajemen Pos',
 			icon: <UserRoundPen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/kelola-staff',
+			path: '/organizer/:eventId/event-dashboard/event-pos',
 		},
 		{
 			id: 'daftar-peserta-event',
