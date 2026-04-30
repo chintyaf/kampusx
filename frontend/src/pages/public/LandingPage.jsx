@@ -243,7 +243,7 @@ const LandingPage = () => {
           </Row>
           <div style={{ textAlign: "center", marginTop: 36 }}>
             <Button
-              as={Link} 
+              as={Link}
               to="/explore-events"
               // onClick={() => navigate("/explore-events")}
               style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "9px 24px", fontWeight: 600, fontSize: "var(--font-sm)", display: "inline-flex", alignItems: "center", gap: 6 }}
@@ -262,7 +262,7 @@ const LandingPage = () => {
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terpopuler</h2>
               <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Paling banyak diminati minggu ini</p>
             </div>
-            <button 
+            <button
               as={Link}
               to="/explore-events?sort=popular"
               // onClick={() => navigate("/explore-events?sort=popular")}
@@ -296,7 +296,7 @@ const LandingPage = () => {
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terbaru</h2>
               <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Baru saja ditambahkan</p>
             </div>
-            <button 
+            <button
               as={Link}
               to="/explore-events?sort=newest"
               style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>

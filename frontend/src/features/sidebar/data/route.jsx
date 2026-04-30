@@ -75,8 +75,8 @@ export const MENU_ITEMS = {
 			path: '/organizer/:eventId/event-dashboard/detail',
 			submenu: [
 				{ name: 'Info Utama', path: 'info', isCompleted: true },
-				{ name: 'Tempat Acara', path: 'tempat', isCompleted: true  },
-				{ name: 'Susunan Acara', path: 'sesi', isCompleted: true  },
+				{ name: 'Tempat Acara', path: 'tempat', isCompleted: true },
+				{ name: 'Susunan Acara', path: 'sesi', isCompleted: true },
 				{ name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
 				{ name: 'Formulir Registrasi', path: 'formulir', isCompleted: false },
 				{ name: 'Tiket', path: 'tiket', isCompleted: false },
@@ -103,6 +103,13 @@ export const MENU_ITEMS = {
 				{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
 				{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
 			],
+		},
+		{
+			id: 'event',
+			name: 'Materi',
+			icon: <Form size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/detail',
+			submenu: [{ name: '???', path: 'info', isCompleted: true }],
 		},
 		// {
 		// 	id: '8',

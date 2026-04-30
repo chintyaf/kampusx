@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import React, { Suspense, lazy, useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import RouteProgressBar from '../components/RouteProgressBar';
 
 import VisitorLayout from '../layouts/MainLayout';
@@ -12,7 +12,7 @@ import visitorRoutes from './PublicRoutes';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoutes from './AdminRoutes';
 import Dashboard from '../pages/dashboard/Dashboard';
-import MemberDashboard from '../pages/member/MemberDashboard';
+import MemberDashboard from '../pages/member/MemberDashboard/index.jsx';
 import Test from '../pages/dashboard/Test';
 
 // Organizer dan Event Routes diimpor secara terpisah
@@ -43,10 +43,20 @@ import { useAuth } from '../context/AuthContext';
 import MyTickets from '../pages/member/MyTickets';
 
 import NearestEventTest from '../pages/public/NearestEventTest';
+import ExploreEvents from '../pages/ExploreEvents';
 
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
 	const { isAuthenticated, loading } = useAuth();
+	const location = useLocation();
+
+	// FIX: Membersihkan orphaned Bootstrap modal backdrop saat pindah halaman
+	useEffect(() => {
+		document.body.classList.remove('modal-open');
+		const backdrops = document.querySelectorAll('.modal-backdrop');
+		backdrops.forEach((b) => b.remove());
+	}, [location.pathname]);
+
 	if (loading) {
 		return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
 	}

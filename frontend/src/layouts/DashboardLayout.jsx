@@ -4,8 +4,7 @@ import { useState } from 'react'; // Tambahkan useState
 import { useParams } from 'react-router-dom';
 
 import Sidebar from './partials-dashboard/Sidebar.jsx';
-// import Navbar from './partials-dashboard/Navbarl';
-import Navbar from './partials-dashboard/NavbarTest/index.jsx';
+import Navbar from './partials-dashboard/Navbar';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -16,25 +15,32 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 const DashboardLayout = () => {
 	var { eventId } = useParams();
 	const location = useLocation();
-	var path = location.pathname;
+	var pathname = location.pathname;
 
 	// State untuk collapse sidebar
 	const [isPageLoading, setIsPageLoading] = useState(false);
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-	const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(location.pathname);
+	// 1. Definisikan kondisi (Sama dengan di Navbar)
+	const isAdmin = pathname.startsWith('/admin');
+	const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(pathname);
+	const isOrganizer = pathname.startsWith('/organizer') && !isInsideEvent;
 
-	let sidebarType = 'organizer';
+	// 2. Tentukan sidebarType secara aman
+	let sidebarType = null; // Default null jika di luar area dashboard
 
-	if (path.includes('/admin')) {
+	if (isAdmin) {
 		sidebarType = 'admin';
 	} else if (isInsideEvent) {
 		sidebarType = 'event_detail';
+	} else if (isOrganizer) {
+		sidebarType = 'organizer';
 	}
-
 	// Kondisi kapan sidebar benar-benar dirender
 	const showSidebar =
-		path !== '/' && !path.includes('buat-acara') && !path.includes('organizer/dashboard');
+		pathname !== '/' &&
+		!pathname.includes('buat-acara') &&
+		!pathname.includes('organizer/dashboard');
 
 	return (
 		<div
@@ -83,7 +89,7 @@ const DashboardLayout = () => {
 				<main
 					style={{
 						padding: '30px 60px',
-						backgroundColor: '#fcfeff',
+						backgroundColor: '#F9FAFB',
 						flex: 1,
 						overflowY: 'auto',
 						position: 'relative',

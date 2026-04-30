@@ -6,73 +6,39 @@ import userImg from '../../../assets/images/user-placeholder.avif';
 import EventStatusDropdown from '../../../components/event/EventStatusDropdown';
 import NotificationDropdown from '../../../components/NotificationDropdown';
 import LogoKampusX from '../../../assets/images/logo/Logo_KampusX.svg';
-
 import { Menu, ShieldCheck, Building2, CalendarDays, LogOut } from 'lucide-react';
 
+import ContextChip from './ContextChip';
 import ProfileDropdown from './ProfileDropdown';
-
-/* ─── Context chip config ─────────────────────────────── */
-const CONTEXT_CONFIG = {
-	admin: {
-		label: 'Admin',
-		icon: ShieldCheck,
-		color: '#92400e',
-		bg: '#fef3c7',
-		border: '#fde68a',
-		dot: '#d97706',
-	},
-	organizer: {
-		label: 'Organizer',
-		icon: Building2,
-		color: 'var(--bahama-blue-700, #00699e)',
-		bg: 'var(--bahama-blue-50, #f0f9ff)',
-		border: 'var(--bahama-blue-200, #b9e7fe)',
-		dot: 'var(--bahama-blue-500, #0aabed)',
-	},
-	event: {
-		label: 'Event Dashboard',
-		icon: CalendarDays,
-		color: '#5b21b6',
-		bg: '#f5f3ff',
-		border: '#ddd6fe',
-		dot: '#7c3aed',
-	},
-};
-
-const ContextChip = ({ configKey }) => {
-	const cfg = CONTEXT_CONFIG[configKey];
-	if (!cfg) return null;
-	const Icon = cfg.icon;
-	return (
-		<div
-			className="ctx-chip"
-			style={{
-				'--chip-bg': cfg.bg,
-				'--chip-border': cfg.border,
-				'--chip-color': cfg.color,
-				'--chip-dot': cfg.dot,
-			}}>
-			<span className="ctx-chip-dot" />
-			<span className="ctx-chip-icon-wrap">
-				<Icon size={11} strokeWidth={2.5} color={cfg.color} />
-			</span>
-			{cfg.label}
-		</div>
-	);
-};
 
 // Terima props dari DashboardLayout
 const Navbar = ({ eventId, toggleSidebar, showToggleBtn }) => {
 	const location = useLocation();
+	const { pathname } = location;
 
-	const isAdmin = location.pathname.startsWith('/admin');
-	const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(location.pathname);
-	const isOrganizer = location.pathname.startsWith('/organizer') && !isInsideEvent;
+	// 1. Tentukan posisi berdasarkan path URL yang sedang dibuka
+	const isAdmin = pathname.startsWith('/admin');
+	const isInsideEvent = /^\/organizer\/[^/]+\/event-dashboard/.test(pathname);
+	const isOrganizer = pathname.startsWith('/organizer') && !isInsideEvent;
 
-	const navLink = isAdmin ? 'admin/dashboard' : 'organizer/dashboard';
+	// 2. Tentukan contextKey (Chip mana yang muncul)
+	let contextKey = null;
+	if (isAdmin) {
+		contextKey = 'admin';
+	} else if (isInsideEvent) {
+		contextKey = 'event';
+	} else if (isOrganizer) {
+		contextKey = 'organizer';
+	} else if (pathname === '/') {
+		contextKey = null;
+	}
 
-	const contextKey = isAdmin ? 'admin' : isInsideEvent ? 'event' : 'organizer';
-
+	// 3. Tentukan arah Logo ditekan
+	const navLink = isAdmin
+		? '/admin/dashboard'
+		: isOrganizer || isInsideEvent
+			? '/organizer/dashboard'
+			: '/';
 	return (
 		<nav className="navbar">
 			<div
@@ -96,9 +62,12 @@ const Navbar = ({ eventId, toggleSidebar, showToggleBtn }) => {
 						/>
 					</NavLink>
 
-					<div className="navbar-divider" />
-
-					<ContextChip configKey={contextKey} />
+					{contextKey && (
+						<>
+							<div className="navbar-divider" />
+							<ContextChip configKey={contextKey} />
+						</>
+					)}
 				</div>
 
 				<div className="d-flex align-items-center gap-3">
