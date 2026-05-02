@@ -49,6 +49,11 @@ main {
 	color: var(--color-text);
 }
 
+/* Ganti .collapse-menu-class dengan class yang membungkus sub-menu Anda */
+.collapse-menu-class {
+	transform-origin: top !important;
+}
+
 /* Pastikan margin di hilangkan saat mode collapsed supaya ikon persis ditengah */
 .sidebar-container.collapsed .custom-menu-item .me-2 {
 	margin-right: 0 !important;

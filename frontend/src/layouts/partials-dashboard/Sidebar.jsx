@@ -63,13 +63,14 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 	return (
 		<>
 			<div
-				className={`sidebar-container flex-shrink-0 bg-white border-end d-flex flex-column justify-content-between ${isSidebarCollapsed ? 'collapsed' : ''}`}
+				className={`sidebar-container flex-shrink-0 border-end d-flex flex-column justify-content-between ${isSidebarCollapsed ? 'collapsed' : ''}`}
 				style={{
 					width: isSidebarCollapsed ? '80px' : '240px',
 					transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 					height: '100%',
 					overflowY: 'auto',
 					overflowX: 'hidden',
+					overflowAnchor: 'none', // Tambahkan baris ini
 				}}>
 				{/* List  */}
 				<div>

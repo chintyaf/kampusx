@@ -12,4 +12,9 @@ export default defineConfig({
 			'@': path.resolve(__dirname, './src'),
 		},
 	},
+	server: {
+		watch: {
+			usePolling: true, // Ini memaksa Vite mengecek perubahan secara berkala
+		},
+	},
 });

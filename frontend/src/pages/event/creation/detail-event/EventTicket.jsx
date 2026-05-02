@@ -1,126 +1,187 @@
-import { useState, useCallback } from 'react';
-import { Row, Col, Card, Button, Alert, Form } from 'react-bootstrap';
-import { MapPin, Globe, Star, PlusCircle, CheckCircle } from 'lucide-react';
-import EventLayout from '@/layouts/EventLayout';
-
+import React, { useState } from 'react';
+import { Plus, Trash2, ChevronDown, Tag, Users, Calendar, DollarSign, Ticket } from 'lucide-react';
 import {
-	PLATFORM_FEE,
-	FORMAT_OPTIONS,
-	makeTier,
-	initTiers,
-} from './sections/event-ticket/constants';
-import TechTag from './sections/event-ticket/TechTag';
-import SectionHeader from './sections/event-ticket/SectionHeader';
-import TierRow from './sections/event-ticket/TierRow';
+	Container,
+	Row,
+	Col,
+	Card,
+	Form,
+	Button,
+	Badge,
+	InputGroup,
+	ProgressBar,
+	Collapse,
+} from 'react-bootstrap';
+import EventLayout from '@/layouts/EventLayout';
 import FormHeading from '@/components/dashboard/FormHeading';
+import TicketCard from '@/pages/event/creation/detail-event/sections/event-ticket/TicketCard';
+import TicketSummary from '@/pages/event/creation/detail-event/sections/event-ticket/TicketSummary';
 
-/* ─────────────────────────────────────────────
-   MAIN PAGE
-───────────────────────────────────────────── */
+// ── Seed data ─────────────────────────────────────────────────────────────────
+
+const SEED = [
+	{
+		id: 't1',
+		name: 'Online',
+		isFree: false,
+		price: '75000',
+		capacity: '300',
+		unlimited: false,
+		saleStart: '2026-06-01T08:00',
+		saleEnd: '2026-07-19T23:59',
+		description: '',
+		sold: 225,
+	},
+	{
+		id: 't2',
+		name: 'Offline',
+		isFree: false,
+		price: '150000',
+		capacity: '200',
+		unlimited: false,
+		saleStart: '2026-06-01T08:00',
+		saleEnd: '2026-07-10T23:59',
+		description: '',
+		sold: 94,
+	},
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatRp(val) {
+	if (!val) return '';
+	const n = parseInt(String(val).replace(/\D/g, ''), 10);
+	if (isNaN(n)) return '';
+	return n.toLocaleString('id-ID');
+}
+
+function parsePriceNum(val) {
+	if (!val) return 0;
+	return parseInt(String(val).replace(/\D/g, ''), 10) || 0;
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
 export default function EventTicket() {
-	const [format, setFormat] = useState('offline');
-	const [hybridTab, setHybridTab] = useState('offline');
-	const [tiersOff, setTiersOff] = useState(initTiers(false));
-	const [tiersOn, setTiersOn] = useState(initTiers(true));
-	const [waitlist, setWaitlist] = useState(true);
-	const [published, setPublished] = useState(false);
-	const [idCounter, setIdCounter] = useState(10);
+	const [tickets, setTickets] = useState(SEED);
+	const [saved, setSaved] = useState(true);
 
-	/* helpers */
-	const nextId = useCallback(() => {
-		const id = idCounter + 1;
-		setIdCounter(id);
-		return id;
-	}, [idCounter]);
-
-	const isOnlineTab = format === 'online' || (format === 'hybrid' && hybridTab === 'online');
-
-	const activeTiers = isOnlineTab ? tiersOn : tiersOff;
-	const setActiveTiers = isOnlineTab ? setTiersOn : setTiersOff;
-
-	const updateTier = (id, patch) =>
-		setActiveTiers((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
-	const deleteTier = (id) => setActiveTiers((prev) => prev.filter((t) => t.id !== id));
-	const addTier = () => {
-		const id = nextId();
-		setActiveTiers((prev) => [...prev, makeTier(id, isOnlineTab)]);
+	const update = (id, patch) => {
+		setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+		setSaved(false);
 	};
 
-	/* financial */
-	const calcFinancial = () => {
-		let cap = 0,
-			gross = 0;
-		const process = (arr) =>
-			arr.forEach((t) => {
-				cap += Number(t.capacity) || 0;
-				gross += (Number(t.capacity) || 0) * (Number(t.price) || 0);
-			});
-		if (format !== 'online') process(tiersOff);
-		if (format !== 'offline') process(tiersOn);
-		return { cap, gross, net: gross * (1 - PLATFORM_FEE) };
-	};
-	const { cap, gross, net } = calcFinancial();
-
-	const fmtConfig = FORMAT_OPTIONS.find((f) => f.key === format);
-
-	/* all tiers for summary */
-	const allTiers = [
-		...(format !== 'online' ? tiersOff.map((t) => ({ ...t, isOnline: false })) : []),
-		...(format !== 'offline' ? tiersOn.map((t) => ({ ...t, isOnline: true })) : []),
-	];
-
-	const handlePublish = () => {
-		setPublished(true);
-		setTimeout(() => setPublished(false), 3000);
+	const addTicket = () => {
+		const newT = {
+			id: `t${Date.now()}`,
+			name: '',
+			isFree: false,
+			price: '',
+			capacity: '',
+			unlimited: false,
+			saleStart: '',
+			saleEnd: '',
+			description: '',
+			sold: 0,
+		};
+		setTickets((ts) => [...ts, newT]);
+		setSaved(false);
 	};
 
-	/* ── RENDER ── */
+	const remove = (id) => {
+		setTickets((ts) => ts.filter((t) => t.id !== id));
+		setSaved(false);
+	};
+
+	// Summary stats
+	const totalCap = tickets.reduce((s, t) => s + (t.unlimited ? 0 : parseInt(t.capacity) || 0), 0);
+	const hasUnlimited = tickets.some((t) => t.unlimited);
+	const totalSold = tickets.reduce((s, t) => s + t.sold, 0);
+	const revenue = tickets.reduce(
+		(s, t) => s + (t.isFree ? 0 : parsePriceNum(t.price) * t.sold),
+		0,
+	);
+
 	return (
 		<EventLayout
 			heading="Harga & Tipe Tiket"
-			subheading="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan acara Anda."
-			onSave={handlePublish}
-			isFormDirty={false}>
-			{published && (
-				<Alert
-					variant="success"
-					className="d-flex align-items-center gap-2 mb-4"
-					style={{ borderRadius: 10, fontSize: 13 }}>
-					<CheckCircle size={15} />
-					Tiket berhasil disimpan ke database (Schema `event_tickets`).
-				</Alert>
-			)}
+			subheading="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan."
+			sidebar={
+				<TicketSummary
+					tickets={tickets}
+					hasUnlimited={hasUnlimited}
+					totalCap={totalCap}
+					totalSold={totalSold}
+					revenue={revenue}
+				/>
+			}>
+			{/* Ticket cards */}
+			<div className="d-flex flex-column gap-3 w-100">
+				{tickets.map((t, idx) => (
+					<TicketCard
+						key={t.id}
+						ticket={t}
+						index={idx}
+						onChange={(patch) => update(t.id, patch)}
+						onDelete={() => remove(t.id)}
+						canDelete={tickets.length > 1}
+					/>
+				))}
+			</div>
 
-			<Form>
-				<FormHeading heading="Tipe Kehadiran" subheading="asdasd" className="mb-3" />
-				<div>
-					{activeTiers.map((tier) => (
-						<TierRow
-							key={tier.id}
-							tier={tier}
-							isOnline={isOnlineTab}
-							onUpdate={updateTier}
-							onDelete={deleteTier}
-							canDelete={activeTiers.length > 1}
-						/>
-					))}
+			{/* <div className="flex-grow-1 overflow-auto">
+					<div style={{ maxWidth: '680px' }}>
+						{/* Section label */}
+			{/* <p
+							className="text-uppercase text-muted fw-bold mb-3"
+							style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+							Tipe Kehadiran
+						</p> */}
+
+			{/* Ticket cards */}
+			<div className="d-flex flex-column gap-2">
+				{tickets.map((t, idx) => (
+					<TicketCard
+						key={t.id}
+						ticket={t}
+						index={idx}
+						onChange={(patch) => update(t.id, patch)}
+						onDelete={() => remove(t.id)}
+						canDelete={tickets.length > 1}
+					/>
+				))}
+			</div>
+
+			{/* Add ticket */}
+			{/* <Button
+							variant="outline-secondary"
+							onClick={addTicket}
+							className="w-100 mt-3 d-flex align-items-center justify-content-center gap-2"
+							style={{ borderStyle: 'dashed' }}>
+							<Plus size={16} /> Tambah tipe tiket
+						</Button> */}
+
+			{/* Save bar */}
+			{/* <div className="d-flex justify-content-end gap-2 mt-2 pt-3 border-top">
+							<Button variant="light" className="border text-muted">
+								Batal
+							</Button>
+							<Button variant="dark" onClick={() => setSaved(true)}>
+								Simpan
+							</Button>
+						</div> */}
+			{/* </div>
 				</div>
+			</div> */}
 
-				{/* <Button
-					variant="outline-secondary"
-					className="w-100 d-flex align-items-center justify-content-center gap-2"
-					style={{
-						borderRadius: 10,
-						fontSize: 13,
-						borderStyle: 'dashed',
-						padding: '10px',
-						color: '#888',
-					}}
-					onClick={addTier}>
-					<PlusCircle size={15} />
-					Tambah Tiket Baru
-				</Button> */}
-			</Form>
+			{/* ── Right: Summary ── */}
+			{/* <TicketSummary
+				tickets={tickets}
+				hasUnlimited={hasUnlimited}
+				totalCap={totalCap}
+				totalSold={totalSold}
+				revenue={revenue}
+			/> */}
 		</EventLayout>
 	);
 }

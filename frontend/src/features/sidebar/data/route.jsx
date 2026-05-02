@@ -11,8 +11,15 @@ import {
 	Star,
 	Form,
 	UserRoundPen,
+	BookOpen,
+	Megaphone,
+	Award,
+	ClipboardList,
+	MapPin,
+	CalendarDays,
 } from 'lucide-react';
 
+// ... (kode lainnya)
 // --- Configuration Data ---
 export const MENU_ITEMS = {
 	admin: [
@@ -61,6 +68,7 @@ export const MENU_ITEMS = {
 			path: 'organizer/daftar-acara',
 		},
 	],
+
 	event_detail: [
 		{
 			id: 'event-dashboard',
@@ -71,75 +79,69 @@ export const MENU_ITEMS = {
 		{
 			id: 'detil-event',
 			name: 'Detail Event',
-			icon: <Form size={16} className="me-2" />,
+			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
 			path: '/organizer/:eventId/event-dashboard/detail',
 			submenu: [
 				{ name: 'Info Utama', path: 'info', isCompleted: true },
 				{ name: 'Tempat Acara', path: 'tempat', isCompleted: true },
 				{ name: 'Susunan Acara', path: 'sesi', isCompleted: true },
 				{ name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
-				{ name: 'Formulir Registrasi', path: 'formulir', isCompleted: false },
+				// { name: 'Form Pendaftaran', path: 'formulir', isCompleted: false }, // Diganti agar lebih pas
 				{ name: 'Tiket', path: 'tiket', isCompleted: false },
 			],
 		},
 		{
 			id: 'event-pos',
-			name: 'Manajemen Pos',
-			icon: <UserRoundPen size={16} className="me-2" />,
+			name: 'Pos Check-in', // Lebih spesifik sesuai fungsinya
+			icon: <MapPin size={16} className="me-2" />, // Pin map merepresentasikan titik/lokasi pos
 			path: '/organizer/:eventId/event-dashboard/event-pos',
 		},
 		{
-			id: 'daftar-peserta-event',
+			id: 'daftar-peserta',
 			name: 'Daftar Peserta',
 			icon: <UsersRound size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
 		},
+		// --- GRUP LEARNING & FEEDBACK ---
 		{
-			id: 'sertifikat-event',
-			name: 'Sertifikat',
-			icon: <Form size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/sertifikat',
+			id: 'modul-belajar',
+			name: 'Modul Belajar',
+			icon: <BookOpen size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/modul-belajar',
 			submenu: [
-				{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
-				{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
+				{ name: 'Materi Acara', path: 'materi-acara', isCompleted: true },
+				{ name: 'Materi Pasca-Acara', path: 'materi-after', isCompleted: false },
+				{ name: 'Kelola Kuis', path: 'kuis', isCompleted: false },
 			],
 		},
 		{
-			id: 'event',
-			name: 'Materi',
-			icon: <Form size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/detail',
-			submenu: [{ name: '???', path: 'info', isCompleted: true }],
-		},
-		// {
-		// 	id: '8',
-		// 	name: 'Cetak Sertifikat',
-		// 	icon: <UserRoundPen size={16} className="me-2" />,
-		// 	path: '/organizer/:eventId/event-dashboard/cetak-sertifikat',
-		// },
-		{
-			id: 'distribusi-materi',
-			name: 'Distribusi Materi',
-			icon: <FolderOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/distribusi-materi',
+			id: 'survey-form',
+			name: 'Kelola Survei',
+			icon: <ClipboardList size={16} className="me-2" />, // Icon clipboard cocok untuk form/kuesioner
+			path: '/organizer/:eventId/event-dashboard/survey-form',
 		},
 		{
-			id: '4b',
-			name: 'Materi After-Event',
-			icon: <FolderOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/upload-materi-after',
+			id: 'sertifikat-event',
+			name: 'Sertifikat',
+			icon: <Award size={16} className="me-2" />, // Icon medali/penghargaan sangat pas untuk sertifikat
+			path: '/organizer/:eventId/event-dashboard/sertifikat/atur-template',
+			// submenu: [
+			// 	{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
+			// 	{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
+			// ],
+		},
+		// --- GRUP MARKETING & REPORT ---
+		{
+			id: 'promosi-event',
+			name: 'Promosi',
+			icon: <Megaphone size={16} className="me-2" />, // Megaphone adalah standar industri untuk marketing/promosi
+			path: '/organizer/:eventId/event-dashboard/promosi',
 		},
 		{
-			id: '5',
+			id: 'statistik-event',
 			name: 'Statistik',
 			icon: <ChartColumn size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/statistik',
-		},
-		{
-			id: '6',
-			name: 'Promosi',
-			icon: <Star size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/promosi',
 		},
 	],
 };

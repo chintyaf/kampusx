@@ -110,14 +110,14 @@ const EventAgenda = () => {
             nextPath={"pembicara"}
             prevPath={"tempat"}
         >
-            <Form>
-                <SessionDateForm
-                    formData={formData}
-                    totalDays={totalDays}
-                    onSetTotalDays={setTotalDays}
-                    onChange={handleChange}
-                />
-            </Form>
+                <Form>
+                    <SessionDateForm
+                        formData={formData}
+                        totalDays={totalDays}
+                        onSetTotalDays={setTotalDays}
+                        onChange={handleChange}
+                    />
+                </Form>
 
             <Form className="mt-4">
                 <ScheduleTable

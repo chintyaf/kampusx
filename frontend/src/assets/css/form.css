@@ -1,140 +1,261 @@
 :root {
-    --color-focus: #c4ddff90;
+	--color-focus: #c4ddff90;
+	--color-border: #e2e8f0;
+	--color-bg-input: #f8fafc;
+	--color-text-label: #64748b;
+	--color-text: #334155;
 }
+
 form {
-    background-color: #ffffff;
-    padding: 25px;
-    border: 1.25px solid var(--color-border);
-    border-radius: 8px;
+	background-color: #ffffff;
+	padding: 25px;
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
 }
 
 .form-title {
-    color: #484848;
-    font-size: 21px;
-    font-style: normal;
-    font-weight: 400;
-    line-height: normal;
+	color: #0f172a;
+	font-size: 21px;
+	font-weight: 500;
 }
 
+/* Diperbaiki agar sesuai gambar: tidak uppercase, warna lebih soft */
 .form-label {
-    font-weight: 800;
-    /* text-transform: uppercase; */
-    font-size: 14px;
-    color: #484848;
+	font-weight: 500;
+	font-size: 14px;
+	color: var(--color-text-label);
+	margin-bottom: 8px;
 }
 
 .form-control,
 .form-select,
-.form-select__control,
 .info-group {
-    /* background-color: #f8fafc; */
-    font-weight: 400;
-    padding: 7px 12px;
-    font-size: var(--font-md);
-    color: var(--color-text) !important;
-    /* border-color: var(--color-border); */
-    /* border-radius: var(--bs-border-radius) !important; */
-    border: 1.5px solid var(--color-border) !important;
+	background-color: var(--color-bg-input);
+	font-weight: 400;
+	padding: 10px 16px;
+	font-size: 15px;
+	color: var(--color-text) !important;
+	border: 1px solid var(--color-border) !important;
+	border-radius: 8px !important;
+	transition: all 0.2s ease-in-out;
 }
 
 .form-control::placeholder,
-.form-select::placeholder,
-.form-select__placeholder {
-    font-size: var(--font-md);
-
-    color: #64748ba4 !important;
+.form-select::placeholder {
+	color: #94a3b8 !important;
 }
 
 .form-control:focus,
-.form-select__control--is-focused {
-    /* border-color: var(--bahama-blue-700) !important; */
-    box-shadow: 0 0 0 0.3rem var(--color-focus) !important;
-    background-color: #f4f7fc50;
-    outline: 0;
-    /* box-shadow: 0 0 0 0.25rem rgba(255, 0, 0, 0.25); */
+.form-select:focus {
+	box-shadow: 0 0 0 4px var(--color-focus) !important;
+	background-color: #ffffff;
+	border-color: #93c5fd !important;
+	outline: 0;
 }
 
 .form-text {
-    font-size: 12px;
-    color: var(--bahama-blue-600);
-}
-
-/* Hide the ugly default file input button */
-.hidden-input {
-    display: none;
-}
-
-/* Style the label to look like the dashed box */
-.upload-box-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 150px;
-    border: 2px dashed var(--color-border); /* Bootstrap grey-400 */
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    background-color: #fcfcfd;
-}
-
-/* Hover effect to make it feel interactive */
-.upload-box-label:hover {
-    border-color: var(--color-border); /* Bootstrap Primary blue */
-    background-color: #f9fafc;
-}
-
-.upload-box-label p {
-    font-size: 14px;
-}
-
-/* Table */
-.form-table {
-    border-radius: 20px !important;
-}
-
-.form-table th {
-    font-weight: 700;
-    text-transform: uppercase;
-    font-size: var(--font-xs);
-    color: var(--color-text-muted);
-}
-
-.form-table td {
-    font-size: var(--font-sm);
+	font-size: 13px;
+	color: var(--color-text-label);
 }
 
 /* Menyatukan focus effect agar satu kotak bercahaya semua */
+.custom-input-group {
+	border-radius: 8px;
+}
+
+.custom-input-group .form-control {
+	background-color: var(--color-bg-input);
+}
+
+.custom-input-group .input-group-text {
+	background-color: var(--color-bg-input);
+	border: 1px solid var(--color-border);
+	color: var(--color-text-label);
+	font-size: 15px;
+}
+
+/* Hilangkan border tengah agar Rp dan input menyatu */
+.custom-input-group.left-addon .input-group-text {
+	border-right: none;
+	padding-right: 8px;
+}
+.custom-input-group.left-addon .form-control {
+	border-left: none;
+	padding-left: 0;
+}
+
+.custom-input-group.right-addon .form-control {
+	border-right: none;
+}
+.custom-input-group.right-addon .input-group-text {
+	border-left: none;
+	padding-left: 8px;
+}
+
 .custom-input-group:focus-within {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Warna biru bootstrap */
-    border-radius: 0.375rem;
+	box-shadow: 0 0 0 4px var(--color-focus);
+	border-radius: 8px;
 }
 
 .custom-input-group:focus-within .form-control,
 .custom-input-group:focus-within .input-group-text {
-    border-color: #86b7fe; /* Warna border focus bootstrap */
+	border-color: #93c5fd !important;
+	background-color: #ffffff;
 }
 
-/* Biar gak ada double outline */
 .custom-input-group .form-control:focus {
-    box-shadow: none;
-    border-color: #dee2e6; /* Kembalikan ke warna default karena sudah dihandle parent */
+	box-shadow: none !important;
 }
 
-/* Multi selesct */
-/* Menargetkan container tempat teks & placeholder berada */
-.select.form-select__value-container {
-    padding: 0 !important;
+/* Container Utama */
+.custom-ticket-card {
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background-color: #ffffff;
+	margin-bottom: 1.5rem;
 }
 
-/* Biasanya ada margin juga di container input yang bikin gak sejajar */
-.select.form-select__input-container {
-    margin: 0 !important;
-    padding: 0 !important;
+/* Badge Nomor (1, 2, dst) */
+.custom-badge-number {
+	background-color: #f1f5f9;
+	color: #475569;
+	border-radius: 8px;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 500;
+	font-size: 14px;
 }
 
-/* Menyamakan font-size placeholder agar konsisten */
-.select.form-select__placeholder {
-    font-size: 1rem; /* Sesuaikan dengan input lainnya */
-    margin-left: 0 !important;
+/* Label Input */
+.custom-form-label {
+	color: #64748b;
+	font-size: 14px;
+	margin-bottom: 8px;
+	font-weight: 400;
+}
+
+/* Styling Input Standard (Text, Date, Textarea) */
+.custom-soft-input {
+	background-color: #f4f6f9 !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 10px !important;
+	color: #1e293b !important;
+	padding: 0.6rem 1rem;
+	font-size: 15px;
+	box-shadow: none !important;
+	transition: border-color 0.2s;
+}
+.custom-soft-input::placeholder {
+	color: #94a3b8 !important;
+}
+.custom-soft-input:focus {
+	border-color: #cbd5e1 !important;
+	outline: none;
+}
+/* Menyamarkan icon kalender bawaan browser agar warnanya nyambung */
+.custom-soft-input::-webkit-calendar-picker-indicator {
+	opacity: 0.5;
+}
+
+/* Styling Input Menyatu (Untuk Rp dan Peserta) */
+.custom-unified-wrapper {
+	background-color: #f4f6f9;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	transition: border-color 0.2s;
+}
+.custom-unified-wrapper:focus-within {
+	border-color: #cbd5e1;
+}
+.custom-unified-wrapper input {
+	flex: 1;
+	background: transparent;
+	border: none;
+	padding: 0.6rem 1rem;
+	color: #1e293b;
+	font-size: 15px;
+	outline: none;
+	width: 100%;
+}
+.custom-unified-wrapper input::placeholder {
+	color: #94a3b8;
+}
+.custom-unified-prefix {
+	color: #94a3b8;
+	padding-left: 1rem;
+	font-size: 15px;
+	white-space: nowrap;
+}
+.custom-unified-suffix {
+	color: #94a3b8;
+	padding-right: 1rem;
+	font-size: 15px;
+	white-space: nowrap;
+}
+
+/* Custom Switch Toggle */
+.custom-soft-switch .form-check-input {
+	width: 38px;
+	height: 22px;
+	margin-top: 0;
+	border: none;
+	background-color: #cbd5e1;
+	cursor: pointer;
+}
+.custom-soft-switch .form-check-input:checked {
+	background-color: #cbd5e1; /* Bisa diganti warna biru jika ingin toggle aktif berwarna */
+}
+.custom-soft-switch .form-check-label {
+	color: #64748b;
+	font-size: 14px;
+	margin-left: 8px;
+	cursor: pointer;
+}
+
+/* Tampilan default (Tidak aktif) */
+.custom-soft-switch .form-check-input {
+	width: 40px;
+	height: 22px;
+	background-color: #e2e8f0; /* Background abu-abu muda */
+	border: 2px solid #e2e8f0; /* Border menyatu dengan background */
+	cursor: pointer;
+
+	/* Mengubah lingkaran menjadi PUTIH (#ffffff) */
+	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e") !important;
+
+	transition:
+		background-color 0.2s,
+		border-color 0.2s,
+		box-shadow 0.2s;
+}
+
+/* Tampilan saat diklik/fokus (Efek Ring/Halo) */
+.custom-soft-switch .form-check-input:focus {
+	outline: none;
+	border-color: #93c5fd; /* Warna border biru muda */
+	/* Membuat ring biru transparan di sekeliling switch */
+	box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Tampilan saat aktif (Checked) */
+.custom-soft-switch .form-check-input:checked {
+	background-color: #3b82f6; /* Background menjadi biru */
+	border-color: #3b82f6;
+
+	/* Lingkaran tetap PUTIH saat aktif */
+	background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e") !important;
+}
+
+/* Jarak label agar rapi */
+.custom-soft-switch .form-check-label {
+	color: #64748b;
+	font-size: 14px;
+	margin-left: 10px;
+	cursor: pointer;
 }

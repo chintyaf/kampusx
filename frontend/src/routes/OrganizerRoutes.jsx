@@ -13,6 +13,9 @@ import EventSession from '../pages/event/creation/detail-event/EventSession';
 import EventSpeaker from '../pages/event/creation/detail-event/EventSpeaker';
 import EventRegistrationForm from '../pages/event/creation/detail-event/EventRegistrationForm';
 import EventTicket from '../pages/event/creation/detail-event/EventTicket';
+import EventMaterial from '../pages/event/management/EventMaterialPage/index';
+import EventPostMaterial from '../pages/event/post-event/EventPostMaterialPage/index';
+import EventQuiz from '../pages/event/management/EventQuizPage/index';
 import EventLocationTest from '../pages/event/creation/EventLocationTest/index';
 
 import EventDashboardPage from '../pages/event/management/EventDashboardPage';
@@ -51,21 +54,26 @@ export const OrganizerRoutes = (
 			<Route path="event-pos" element={<EventPosPage />} />
 
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
-			<Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
-			<Route path="kelola-materi" element={<OrganizerMaterialsManagePage />} />
+			
+			{/* Modul Belajar */}
+			<Route path="modul-belajar">
+				<Route path="materi-acara" element={<EventMaterial />} />
+				<Route path="materi-after" element={<EventPostMaterial />} />
+				<Route path="kuis" element={<EventQuiz />} />
+			</Route>
+
 			<Route path="scanner" element={<ScannerPage />} />
 			<Route path="upload-sertifikat" element={<EventPosPage />} />
 
 			<Route path="statistik" element={<EventStatistics />} />
 			<Route path="promosi" element={<EventPromotion />} />
-			<Route path="survey" element={<EventSurveyPage />} />
+			<Route path="survey-form" element={<EventSurveyPage />} />
 
 			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
 			<Route path="sertifikat">
 				<Route path="atur-template" element={<CreateCertificatePage />} />
 				<Route path="kirim-sertifikat" element={<CertificateListPage />} />
 			</Route>
-			<Route path="upload-materi-after" element={<PostEventContentUploadPage />} />
 
 			<Route path="event-location-test" element={<EventLocationTest />} />
 		</Route>

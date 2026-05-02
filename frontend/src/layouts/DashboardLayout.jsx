@@ -89,7 +89,8 @@ const DashboardLayout = () => {
 				<main
 					style={{
 						padding: '30px 60px',
-						backgroundColor: '#F9FAFB',
+						backgroundColor: '#F8FAFC',
+						// backgroundColor: 'white',
 						flex: 1,
 						overflowY: 'auto',
 						position: 'relative',

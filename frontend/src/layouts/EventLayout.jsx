@@ -10,6 +10,7 @@ const EventLayout = ({
 	heading,
 	subheading,
 	children,
+	sidebar,
 	nextPath,
 	prevPath,
 	onSave,
@@ -49,59 +50,71 @@ const EventLayout = ({
 
 	return (
 		<>
-			{/* Header Section */}
-			<div className="mb-4 d-flex align-items-start">
-				<div>
-					<h5 className="fw-bold mb-1" style={{ fontSize: '1.1rem' }}>
-						{heading}
-					</h5>
-					<p className="text-muted small mb-0">{subheading}</p>
-				</div>
-			</div>
-
-			{/* Children Container with Loading State */}
-			<div className="position-relative">
-				{isSaving && (
-					<div
-						className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
-						style={{
-							background: 'rgba(255, 255, 255, 0.7)',
-							zIndex: 10,
-							borderRadius: '8px',
-						}}>
-						<Spinner animation="border" variant="dark" />
+			<div className="d-flex align-items-start gap-4">
+				{/* ── KOLOM KIRI: Konten Utama (Grows to fill space) ── */}
+				{/* minWidth: 0 penting agar form tidak meluber ke luar container */}
+				<div className="flex-grow-1 position-relative" style={{ minWidth: 0 }}>
+					{/* Header Section */}
+					<div className="mb-4 d-flex align-items-start">
+						<div>
+							<h5 className="fw-bold mb-1" style={{ fontSize: '1.1rem' }}>
+								{heading}
+							</h5>
+							<p className="text-muted small mb-0">{subheading}</p>
+						</div>
 					</div>
-				)}
 
-				<div
-					className="d-flex flex-column gap-4"
-					style={{
-						opacity: isSaving ? 0.5 : 1,
-						pointerEvents: isSaving ? 'none' : 'auto',
-					}}>
-					{children}
+					{/* Children Container with Loading State */}
+					<div className="position-relative">
+						{isSaving && (
+							<div
+								className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
+								style={{
+									background: 'rgba(255, 255, 255, 0.7)',
+									zIndex: 10,
+									borderRadius: '8px',
+								}}>
+								<Spinner animation="border" variant="dark" />
+							</div>
+						)}
+
+						<div
+							className="d-flex flex-column gap-4"
+							style={{
+								opacity: isSaving ? 0.5 : 1,
+								pointerEvents: isSaving ? 'none' : 'auto',
+							}}>
+							{children}
+						</div>
+					</div>
+
+					{/* Footer Buttons */}
+					<div className="w-100 d-flex justify-content-end mt-5 pt-3 border-top gap-3">
+						{prevPath && (
+							<Button
+								variant="outline-secondary"
+								disabled={isSaving}
+								onClick={() => {
+									if (isFormDirty) {
+										alert(formDirtyMessage);
+										return;
+									}
+									navigate(`../${prevPath}`);
+								}}>
+								Back
+							</Button>
+						)}
+						<Button variant="primary" onClick={handleSaveAndContinue} disabled={isSaving}>
+							{isSaving ? 'Saving...' : 'Selanjutnya'}
+						</Button>
+					</div>
 				</div>
-			</div>
 
-			{/* Footer Buttons */}
-			<div className="w-100 d-flex justify-content-end mt-4 gap-4">
-				{prevPath && (
-					<Button
-						variant="dark"
-						disabled={isSaving}
-						onClick={() => {
-							if (isFormDirty) {
-								alert(formDirtyMessage);
-								return;
-							}
-							navigate(`../${prevPath}`);
-						}}>
-						Back
-					</Button>
+				{/* ── KOLOM KANAN: Sidebar Opsional ── */}
+				{/* Kalau prop sidebar diisi, dia akan dirender di sini dan diberi sifat sticky */}
+				{sidebar && (
+					<div style={{ position: 'sticky', top: '0px', flexShrink: 0}}>{sidebar}</div>
 				)}
-				<Button variant="dark" onClick={handleSaveAndContinue} disabled={isSaving}>
-					{isSaving ? 'Saving...' : 'Selanjutnya'}
-				</Button>
 			</div>
 		</>
 	);

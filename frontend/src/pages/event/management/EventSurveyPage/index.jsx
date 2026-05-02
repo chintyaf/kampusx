@@ -1,142 +1,202 @@
 import React, { useState } from 'react';
-import { Container, Card, Row, Col, Button, Form, Badge, ProgressBar } from 'react-bootstrap';
-import { ClipboardList, Plus, Trash2, Edit2, BarChart2, Star, MessageSquare, Send, CheckCircle } from 'lucide-react';
+import { Container, Row, Col, Card, Button, Form, Badge, InputGroup } from 'react-bootstrap';
+import {
+  Menu, Home, Calendar, Users, FileText, Award, Package, BarChart3,
+  Megaphone, ChevronDown, ChevronRight, Bell, Plus,
+  MessageSquare, CheckCircle2, Search, Star, CheckCheck
+} from 'lucide-react';
+import SurveyDetailPage from './SurveyDetailPage';
 
-const EventSurveyPage = () => {
-    const [isSurveyActive, setIsSurveyActive] = useState(true);
+const surveysData = [
+  { id: '1', title: 'Sesi 1 – UI/UX Basic', description: 'Rating pembicara dan materi untuk sesi UI/UX Basic', status: 'aktif', responses: 138, completionRate: 84, avgRating: 4.4, session: 'Sesi 1 – UI/UX Basic', createdAt: '15 Mar 2026' },
+  { id: '2', title: 'Sesi 2 – Advanced Prototyping', description: 'Feedback khusus untuk kualitas pembicara dan metode penyampaian', status: 'aktif', responses: 45, completionRate: 71, avgRating: 4.1, session: 'Sesi 2 – Advanced Prototyping', createdAt: '15 Mar 2026' },
+  { id: '3', title: 'Feedback Umum Event', description: 'Survei keseluruhan event dan pengalaman peserta secara umum', status: 'draft', responses: 0, completionRate: 0, avgRating: null, session: null, createdAt: '20 Mar 2026' },
+];
 
-    const surveyQuestions = [
-        { id: 1, type: 'rating', question: 'Seberapa puas Anda dengan materi acara ini?', required: true },
-        { id: 2, type: 'rating', question: 'Bagaimana penilaian Anda terhadap pembicara?', required: true },
-        { id: 3, type: 'text', question: 'Apa saran dan masukan Anda untuk acara selanjutnya?', required: false },
-    ];
+export default function SurveyManagementPage() {
+  const [filter, setFilter] = useState('semua');
+  const [search, setSearch] = useState('');
+  const [currentView, setCurrentView] = useState('list');
+  const [selectedSurveyId, setSelectedSurveyId] = useState(undefined);
 
+  const totalSurveys = surveysData.length;
+  const aktifCount = surveysData.filter(s => s.status === 'aktif').length;
+  const draftCount = surveysData.filter(s => s.status === 'draft').length;
+  const totalResponses = surveysData.reduce((a, s) => a + s.responses, 0);
+
+  const filtered = surveysData.filter(s => {
+    const matchFilter = filter === 'semua' || s.status === filter;
+    const matchSearch = s.title.toLowerCase().includes(search.toLowerCase()) ||
+      s.description.toLowerCase().includes(search.toLowerCase());
+    return matchFilter && matchSearch;
+  });
+
+  if (currentView === 'detail' || currentView === 'new') {
     return (
-        <Container fluid className="p-0">
-            {/* Header Section */}
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h3 className="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                        <ClipboardList className="text-primary" size={28} />
-                        Survei Pasca-Acara
-                    </h3>
-                    <p className="text-muted mb-0">Kelola kuesioner dan lihat umpan balik partisipan terkait acara Anda.</p>
-                </div>
-                <div className="d-flex gap-3 align-items-center bg-white px-4 py-2 rounded-pill shadow-sm border">
-                    <span className="fw-medium text-muted">Status Survei:</span>
-                    <Form.Check 
-                        type="switch"
-                        id="survey-status-switch"
-                        label={isSurveyActive ? 'Aktif' : 'Nonaktif'}
-                        checked={isSurveyActive}
-                        onChange={(e) => setIsSurveyActive(e.target.checked)}
-                        className={`fw-bold text-${isSurveyActive ? 'success' : 'secondary'} fs-6 m-0`}
-                    />
-                </div>
-            </div>
-
-            <Row className="g-4 mb-4">
-                {/* Statistics Cards */}
-                <Col md={4}>
-                    <Card className="border-0 shadow-sm rounded-4 h-100 bg-gradient text-white position-relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d6efd, #0b5ed7)' }}>
-                        <Card.Body className="p-4 z-1">
-                            <div className="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <p className="text-white-50 mb-1 fw-medium">Total Responden</p>
-                                    <h2 className="fw-bold mb-0">128</h2>
-                                </div>
-                                <div className="p-2 bg-white bg-opacity-25 rounded-3">
-                                    <MessageSquare size={24} className="text-white" />
-                                </div>
-                            </div>
-                            <div className="d-flex align-items-center gap-2 text-white-50 small">
-                                <CheckCircle size={14} className="text-success" />
-                                <span>85% dari total peserta yang hadir</span>
-                            </div>
-                        </Card.Body>
-                        <div className="position-absolute opacity-25" style={{ right: '-10%', bottom: '-20%' }}>
-                            <BarChart2 size={120} />
-                        </div>
-                    </Card>
-                </Col>
-
-                <Col md={4}>
-                    <Card className="border-0 shadow-sm rounded-4 h-100 bg-white">
-                        <Card.Body className="p-4 d-flex flex-column justify-content-center">
-                            <div className="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <p className="text-muted mb-1 fw-medium">Rata-rata Kepuasan</p>
-                                    <h2 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                        4.8 <span className="fs-5 text-warning"><Star fill="currentColor" /></span>
-                                    </h2>
-                                </div>
-                            </div>
-                            <ProgressBar now={96} variant="warning" className="rounded-pill" style={{ height: '8px' }} />
-                        </Card.Body>
-                    </Card>
-                </Col>
-
-                <Col md={4}>
-                    <Card className="border-0 shadow-sm rounded-4 h-100 bg-white d-flex align-items-center justify-content-center">
-                        <Card.Body className="p-4 w-100 text-center">
-                            <Button 
-                                variant={isSurveyActive ? 'outline-primary' : 'secondary'} 
-                                className="w-100 fw-bold py-3 rounded-3 d-flex flex-column align-items-center gap-2"
-                                disabled={!isSurveyActive}
-                            >
-                                <Send size={24} />
-                                Broadcast Pengingat Survei
-                            </Button>
-                            <p className="text-muted small mt-2 mb-0">Kirim ulang notifikasi ke peserta yang belum mengisi.</p>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Questions Management */}
-            <Card className="border-0 shadow-sm rounded-4 mb-4">
-                <Card.Header className="bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
-                    <h5 className="fw-bold mb-0">Daftar Pertanyaan</h5>
-                    <Button variant="primary" size="sm" className="rounded-pill px-3 d-flex align-items-center gap-1">
-                        <Plus size={16} /> Tambah Pertanyaan
-                    </Button>
-                </Card.Header>
-                <Card.Body className="p-4">
-                    <div className="d-flex flex-column gap-3">
-                        {surveyQuestions.map((q, idx) => (
-                            <div key={q.id} className="p-4 rounded-3 border bg-light d-flex justify-content-between align-items-center hover-shadow transition">
-                                <div>
-                                    <div className="d-flex align-items-center gap-2 mb-1">
-                                        <Badge bg={q.type === 'rating' ? 'warning' : 'info'} className="rounded-pill text-dark">
-                                            {q.type === 'rating' ? 'Rating Bintang' : 'Teks Bebas'}
-                                        </Badge>
-                                        {q.required && <Badge bg="danger" className="rounded-pill">Wajib Mengisi</Badge>}
-                                    </div>
-                                    <p className="fw-medium text-dark mb-0 fs-6">
-                                        <span className="text-primary me-2">{idx + 1}.</span>
-                                        {q.question}
-                                    </p>
-                                </div>
-                                <div className="d-flex gap-2">
-                                    <Button variant="outline-secondary" size="sm" className="rounded-circle p-2">
-                                        <Edit2 size={16} />
-                                    </Button>
-                                    <Button variant="outline-danger" size="sm" className="rounded-circle p-2">
-                                        <Trash2 size={16} />
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card.Body>
-            </Card>
-
-            <style>{`
-                .hover-shadow { transition: box-shadow 0.2s ease; }
-                .hover-shadow:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); background-color: #fff !important; border-color: #dee2e6; }
-            `}</style>
-        </Container>
+      <SurveyDetailPage
+        surveyId={currentView === 'detail' ? selectedSurveyId : undefined}
+        onBack={() => { setCurrentView('list'); setSelectedSurveyId(undefined); }}
+      />
     );
-};
+  }
 
-export default EventSurveyPage;
+  return (
+    <Container fluid className="py-4 bg-light" style={{ minHeight: '100vh' }}>
+      <div className="mb-4">
+        <div className="d-flex align-items-start justify-content-between mb-4">
+          <div>
+            <h2 className="text-dark fw-bold mb-1">Pengaturan Feedback & Survei</h2>
+            <p className="text-muted small mb-0">
+              Buat dan kelola form feedback untuk mengumpulkan penilaian peserta
+            </p>
+          </div>
+          <Button
+            variant="primary"
+            className="d-flex align-items-center gap-2 rounded-3"
+            onClick={() => { setSelectedSurveyId(undefined); setCurrentView('new'); }}
+          >
+            <Plus size={18} /> Buat Survei Baru
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <Row className="g-3 mb-4">
+          <Col md={4}>
+            <Card className="border-0 shadow-sm rounded-4 h-100 p-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-primary-subtle rounded-3 p-3 text-primary">
+                  <MessageSquare size={24} />
+                </div>
+                <div>
+                  <h3 className="mb-0 fw-bold">{totalSurveys}</h3>
+                  <div className="text-muted small">Total Survei</div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+          <Col md={4}>
+            <Card className="border-0 shadow-sm rounded-4 h-100 p-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-success-subtle rounded-3 p-3 text-success">
+                  <CheckCheck size={24} />
+                </div>
+                <div>
+                  <h3 className="mb-0 fw-bold">
+                    {aktifCount} <span className="fs-6 text-muted fw-normal">aktif</span> <span className="text-muted">/</span> {draftCount} <span className="fs-6 text-muted fw-normal">draft</span>
+                  </h3>
+                  <div className="text-muted small">Status Survei</div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+          <Col md={4}>
+            <Card className="border-0 shadow-sm rounded-4 h-100 p-3">
+              <div className="d-flex align-items-center gap-3">
+                <div className="bg-warning-subtle rounded-3 p-3 text-warning">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <h3 className="mb-0 fw-bold">{totalResponses}</h3>
+                  <div className="text-muted small">Total Respons Terkumpul</div>
+                </div>
+              </div>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Search & Filter */}
+        <div className="d-flex align-items-center gap-3 mb-4">
+          <InputGroup className="flex-grow-1 shadow-sm rounded-3 overflow-hidden">
+            <InputGroup.Text className="bg-white border-0 text-muted"><Search size={18} /></InputGroup.Text>
+            <Form.Control
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari survei..."
+              className="border-0 shadow-none bg-white"
+            />
+          </InputGroup>
+          <div className="d-flex bg-white rounded-3 shadow-sm overflow-hidden border">
+            {['semua', 'aktif', 'draft'].map((f) => (
+              <Button
+                key={f}
+                variant={filter === f ? 'primary' : 'light'}
+                className={`border-0 rounded-0 text-capitalize px-4 ${filter === f ? 'text-white' : 'text-muted bg-white'}`}
+                onClick={() => setFilter(f)}
+              >
+                {f}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Survey List */}
+        <div className="d-flex flex-column gap-3">
+          {filtered.map((survey) => (
+            <Card
+              key={survey.id}
+              className="border-0 shadow-sm rounded-4 overflow-hidden"
+              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => e.currentTarget.classList.add('shadow')}
+              onMouseLeave={(e) => e.currentTarget.classList.remove('shadow')}
+              onClick={() => { setSelectedSurveyId(survey.id); setCurrentView('detail'); }}
+            >
+              <Card.Body className="p-4">
+                <div className="d-flex align-items-start gap-3">
+                  <div className={`p-3 rounded-3 ${survey.status === 'aktif' ? 'bg-primary-subtle text-primary' : 'bg-light text-secondary'}`}>
+                    <MessageSquare size={20} />
+                  </div>
+                  <div className="flex-grow-1">
+                    <div className="d-flex align-items-center gap-2 mb-1">
+                      <h5 className="mb-0 text-dark fw-bold">{survey.title}</h5>
+                      {survey.status === 'aktif' ? (
+                        <Badge bg="success-subtle" className="text-success rounded-pill d-flex align-items-center gap-1">
+                          <CheckCircle2 size={12} /> Aktif
+                        </Badge>
+                      ) : (
+                        <Badge bg="light" className="text-secondary border rounded-pill text-dark">Draft</Badge>
+                      )}
+                    </div>
+                    <p className="text-muted small mb-3">{survey.description}</p>
+                    
+                    {survey.responses > 0 ? (
+                      <div className="d-flex align-items-center gap-3 small text-muted flex-wrap">
+                        <div className="d-flex align-items-center gap-1"><Users size={14} /> {survey.responses} respons</div>
+                        <div className="d-flex align-items-center gap-1"><CheckCircle2 size={14} /> {survey.completionRate}% selesai</div>
+                        {survey.avgRating !== null && (
+                          <div className="d-flex align-items-center gap-1 text-warning fw-medium"><Star size={14} className="fill-warning text-warning" /> {survey.avgRating} avg</div>
+                        )}
+                        {survey.session && (
+                          <Badge bg="primary-subtle" className="text-primary rounded-pill fw-normal">{survey.session}</Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="d-flex align-items-center gap-1 small text-muted"><Users size={14} /> 0 respons</div>
+                    )}
+                  </div>
+                  <div className="text-muted mt-2">
+                    <ChevronRight size={20} />
+                  </div>
+                </div>
+              </Card.Body>
+              <div className="bg-light px-4 py-2 border-top">
+                <span className="small text-muted">Dibuat {survey.createdAt}</span>
+              </div>
+            </Card>
+          ))}
+
+          {filtered.length === 0 && (
+            <Card className="border-0 shadow-sm rounded-4 text-center p-5">
+              <div className="d-flex justify-content-center mb-3">
+                <div className="p-3 bg-light rounded-circle text-muted">
+                  <MessageSquare size={32} />
+                </div>
+              </div>
+              <p className="text-muted mb-0">Tidak ada survei ditemukan</p>
+            </Card>
+          )}
+        </div>
+      </div>
+    </Container>
+  );
+}
