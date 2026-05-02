@@ -94,6 +94,10 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	font-family: var(--font);
 }
 
+.border {
+	border-color: var(--color-border) !important;
+}
+
 .border-c {
 	border-color: var(--color-border);
 }
@@ -123,11 +127,6 @@ p {
 	font-family: var(--font-md);
 	/* transition: 0.2s; */
 }
-/*
-.btn:hover {
-    transform: scale(1.1);
-    transition: 0.2s;
-} */
 
 .btn-primary {
 	background-color: var(--color-primary) !important;

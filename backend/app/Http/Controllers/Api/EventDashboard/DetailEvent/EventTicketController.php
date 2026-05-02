@@ -57,7 +57,7 @@ class EventTicketController extends Controller
                 'capacity' => $ticket->capacity,
                 'sale_start' => $ticket->sale_start,
                 'sale_end' => $ticket->sale_end,
-                'description' => '', // Tambahkan field deskripsi jika ada di model atau sesuai kebutuhan
+                'description' => $ticket->description,
             ];
         });
 
@@ -84,6 +84,7 @@ class EventTicketController extends Controller
             'tickets.*.capacity'     => 'nullable|integer|min:1', // Null berarti unlimited
             'tickets.*.sale_start'   => 'nullable|date',
             'tickets.*.sale_end'     => 'nullable|date|after_or_equal:tickets.*.sale_start',
+            'tickets.*.description'  => 'nullable|string',
         ]);
 
         try {
@@ -100,6 +101,7 @@ class EventTicketController extends Controller
                     'event_id'   => $eventId,
                     'name'       => $ticketData['name'],
                     'type'       => $ticketData['type'],
+                    'description'=> $ticketData['description'] ?? null,
                     'is_free'    => $isFree,
                     'price'      => $price,
                     'capacity'   => $ticketData['capacity'] ?? null,
@@ -155,6 +157,7 @@ class EventTicketController extends Controller
         return [
             'event_id'   => $eventId,
             'name'       => $name,
+            'description'=> null,
             'type'       => $type,
             'is_free'    => false, // Default tidak gratis, harga 0 (sesuai seed React Anda)
             'price'      => 0,

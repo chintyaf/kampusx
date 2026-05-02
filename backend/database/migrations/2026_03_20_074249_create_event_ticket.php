@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
             $table->string('name');
+            $table->text('description')->nullable();
 
             $table->enum('type', ['online', 'offline'])->default('offline')->index();
 
-            $table->boolean('is_free')->default(true)->index();
+            $table->boolean('is_free')->default(false)->index();
             // Menggunakan unsigned agar harga tidak bisa negatif
             $table->decimal('price', 15, 2)->unsigned()->default(0);
 
@@ -43,4 +44,3 @@ return new class extends Migration
         Schema::dropIfExists('event_tickets');
     }
 };
-    

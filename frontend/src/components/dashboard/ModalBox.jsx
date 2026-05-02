@@ -10,7 +10,7 @@ const ModalBox = ({ show, onHide, title, subtitle, children, ...props }) => {
 			onHide={onHide}
 			centered
 			contentClassName="border-0 shadow-lg rounded-4 overflow-hidden pop-down"
-			{...props} // ✅ Spread props di sini
+			{...props} 
 		>
 			<Modal.Header className="d-flex border border-bottom align-items-start justify-content-between gap-3 border-0 px-4 py-3">
 				<div className="d-flex align-items-center gap-2">

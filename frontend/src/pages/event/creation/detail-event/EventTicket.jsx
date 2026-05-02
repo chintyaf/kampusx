@@ -52,7 +52,6 @@ export default function EventTicket() {
 				const response = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
 				const result = response.data;
 				setTickets(result.data || []);
-				console.log('Fetched tickets:', result.data);
 			} catch (err) {
 				console.error('Error saving tickets:', err);
 			}
@@ -74,6 +73,7 @@ export default function EventTicket() {
 			capacity: t.unlimited ? null : parseInt(t.capacity) || null,
 			sale_start: t.saleStart ?? t.sale_start ?? null,
 			sale_end: t.saleEnd ?? t.sale_end ?? null,
+			description: t.description || null,
 		}));
 
 		// 2. Bungkus array ke dalam object dengan key 'tickets'
@@ -93,31 +93,14 @@ export default function EventTicket() {
 		} catch (error) {
 			// Log error dari response Laravel agar tahu persis kolom mana yang gagal validasi
 			console.error('Gagal update data:', error.response?.data?.errors || error.message);
-		} 
+		}
 	};
-
-	// Summary stats
-	const totalCap = tickets.reduce((s, t) => s + (t.unlimited ? 0 : parseInt(t.capacity) || 0), 0);
-	const hasUnlimited = tickets.some((t) => t.unlimited);
-	const totalSold = tickets.reduce((s, t) => s + t.sold, 0);
-	const revenue = tickets.reduce(
-		(s, t) => s + (t.isFree ? 0 : parsePriceNum(t.price) * t.sold),
-		0,
-	);
 
 	return (
 		<EventLayout
 			heading="Harga & Tipe Tiket"
 			subheading="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan."
-			sidebar={
-				<TicketSummary
-					tickets={tickets}
-					hasUnlimited={hasUnlimited}
-					totalCap={totalCap}
-					totalSold={totalSold}
-					revenue={revenue}
-				/>
-			}
+			sidebar={<TicketSummary tickets={tickets} />}
 			onSave={handleUpdate}>
 			{/* Ticket cards */}
 			<div className="d-flex flex-column gap-2">

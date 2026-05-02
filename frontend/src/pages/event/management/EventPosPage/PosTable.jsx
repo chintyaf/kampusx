@@ -1,7 +1,7 @@
 import React from 'react';
-import { Trash2, Search, Copy, RefreshCw, MapPin, Plus } from 'lucide-react';
+import { Trash2, Search, Copy, RefreshCw, MapPin, Plus, Pencil } from 'lucide-react';
 import Table from '@/components/table/Table';
-import { Button, Row, Col } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 
 /* ── Status Badge ────────────────────────────────────────────── */
 const StatusBadge = ({ status }) => {
@@ -25,8 +25,8 @@ const StatusBadge = ({ status }) => {
 					width: 6,
 					height: 6,
 					borderRadius: '50%',
-					backgroundColor: isActive ? '#10b981' : '#f59e0b',
 					flexShrink: 0,
+					backgroundColor: isActive ? '#10b981' : '#f59e0b',
 				}}
 			/>
 			{status}
@@ -34,34 +34,44 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
-/* ── Empty State ─────────────────────────────────────────────── */
-const emptyStateView = (
-	<div className="text-center py-5">
-		<div
-			style={{
-				width: 56,
-				height: 56,
-				borderRadius: '50%',
-				backgroundColor: 'var(--bahama-blue-50)',
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				margin: '0 auto 12px',
-			}}>
-			<MapPin size={26} style={{ color: 'var(--bahama-blue-300)' }} />
+/* ── Empty State (Huruf Kapital) ─────────────────────────────── */
+const EmptyStateView = ({ setShowForm }) => {
+	return (
+		<div className="text-center py-4 bg-white border rounded-2">
+			<div
+				style={{
+					width: 56,
+					height: 56,
+					borderRadius: '50%',
+					margin: '0 auto 12px',
+					backgroundColor: 'var(--bahama-blue-50)',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+				}}>
+				<MapPin size={26} style={{ color: 'var(--bahama-blue-300)' }} />
+			</div>
+			<div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>
+				Belum ada pos
+			</div>
+			<div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-muted)' }}>
+				Tambahkan pos pertama untuk memulai.
+			</div>
+			<div className="d-flex justify-content-center mt-4">
+				<Button
+					variant="primary"
+					className="d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
+					onClick={() => setShowForm(true)}
+					style={{ backgroundColor: '#000', border: 'none' }}>
+					<Plus size={18} /> Tambah Pos Baru
+				</Button>
+			</div>
 		</div>
-		<div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>
-			Belum ada pos
-		</div>
-		<div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-muted)' }}>
-			Tambahkan pos pertama untuk memulai.
-		</div>
-	</div>
-);
+	);
+};
 
 /* ── Pos Table Component ───────────────────────────────────── */
-const PosTable = ({ posList, handleDelete }) => {
-	// Menyesuaikan header tabel
+const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 	const tableColumns = [
 		{ label: 'NAMA POS', sortable: false },
 		{ label: 'KODE AKSES (PIN)', sortable: false },
@@ -70,19 +80,19 @@ const PosTable = ({ posList, handleDelete }) => {
 		{ label: 'AKSI', sortable: false },
 	];
 
+	// Gunakan huruf kapital di sini
+	if (posList.length === 0) return <EmptyStateView setShowForm={setShowForm} />;
+
 	return (
 		<div className="table-card">
 			{/* ── Table Toolbar ── */}
 			<div className="table-toolbar w-100 d-flex flex-row justify-content-between align-items-center">
-				{/* Search box dibuat full width */}
 				<div className="search-box d-flex align-items-center gap-2 px-3 py-2 border rounded bg-white">
 					<Search size={16} color="var(--text-muted)" />
 					<input
 						placeholder="Search name or email..."
 						className="border-0 w-100"
 						style={{ outline: 'none' }}
-						// value={search}
-						// onChange={(e) => handleSearch(e.target.value)}
 					/>
 				</div>
 				<Button
@@ -101,15 +111,12 @@ const PosTable = ({ posList, handleDelete }) => {
 				<Table
 					columns={tableColumns}
 					data={posList}
-					emptyMessage={emptyStateView}
 					renderRow={(pos, idx) => (
 						<tr key={pos.id} className="border-bottom">
-							{/* Nama Pos */}
 							<td className="px-4 py-3 align-middle">
 								<span className="fw-semibold text-dark">{pos.name}</span>
 							</td>
 
-							{/* Kode Akses (PIN) */}
 							<td className="py-3 align-middle">
 								<div className="d-flex align-items-center gap-2">
 									<span className="bg-light border px-2 py-1 rounded text-dark">
@@ -123,29 +130,34 @@ const PosTable = ({ posList, handleDelete }) => {
 								</div>
 							</td>
 
-							{/* Status */}
 							<td className="py-3 align-middle">
 								<StatusBadge status={pos.status} />
 							</td>
 
-							{/* Total Scan */}
 							<td className="py-3 align-middle">
 								<span className="fw-medium text-dark">{pos.totalScan} tiket</span>
 							</td>
 
-							{/* Aksi */}
 							<td className="py-3 align-middle">
 								<div className="d-flex align-items-center gap-2">
-									<button
+									{/* <button
 										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
 										title="Refresh">
 										<RefreshCw size={14} color="#555" />
+									</button> */}
+
+									<button
+										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
+										onClick={() => handleEdit(pos)}
+										title="Edit">
+										<Pencil size={14} color="#555" />
 									</button>
+
 									<button
 										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
 										onClick={() => handleDelete(pos.id)}
 										title="Delete">
-										<Trash2 size={14} color="#555" />
+										<Trash2 size={14} color="#dc3545" />
 									</button>
 								</div>
 							</td>

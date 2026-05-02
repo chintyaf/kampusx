@@ -13,21 +13,16 @@ return new class extends Migration
     {
         Schema::create('event_stations', function (Blueprint $table) {
             $table->id();
-
-            // Relasi ke tabel events (Pos ini milik event yang mana)
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
-
-            // Nama Pos, contoh: "Pos A" atau "Pintu Depan" (Sesuai Poin 1 & 2 di gambar)
             $table->string('name');
 
-            // PIN untuk login scanner (Sesuai Poin 1 & 3 di gambar)
-            // Menggunakan string karena PIN diawali angka 0 tetap terjaga,
-            // unique agar tidak ada PIN ganda di satu sistem.
-            $table->string('access_code', 6)->unique();
-
-            // Status apakah pos ini masih aktif atau tidak
-            $table->boolean('is_active')->default(true);
-
+            // KODE AKSES (PERBAIKAN)
+            // 1. Dibuat unique() secara global, BUKAN composite unique dengan event_id.
+            // Alasannya: Karena kita akan pakai format URL `kampusx.com/scan/X7B9Q`.
+            // Kalau kode X7B9Q ada di event lain, backend akan bingung ini pos event yang mana.
+            // 2. Panjang string dibiarkan default atau set misal 10, agar fleksibel kalau nanti butuh kode lebih panjang.
+            $table->string('access_code', 10)->unique();
+            $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
         });
     }

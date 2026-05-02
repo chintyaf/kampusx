@@ -1,7 +1,8 @@
 :root {
 	--color-focus: #c4ddff90;
-	--color-border: #e2e8f0;
-	--color-bg-input: #f4f6f9;
+	--color-border-input: #c2ccd8;
+	/* --color-bg-input: #f4f6f9; */
+	--color-bg-input: #f4f6f980;
 	--color-text-label: #64748b;
 	--color-text: #334155;
 }
@@ -9,7 +10,7 @@
 form {
 	background-color: #ffffff;
 	padding: 25px;
-	border: 1px solid var(--color-border);
+	border: 1px solid var(--color-border-input);
 	border-radius: 12px;
 }
 
@@ -35,7 +36,7 @@ form {
 	padding: 10px 16px;
 	font-size: 15px;
 	color: var(--color-text) !important;
-	border: 1px solid var(--color-border) !important;
+	border: 1px solid var(--color-border-input) !important;
 	border-radius: 8px !important;
 	transition: all 0.2s ease-in-out;
 }
@@ -48,7 +49,7 @@ form {
 .form-control:focus,
 .form-select:focus {
 	box-shadow: 0 0 0 4px var(--color-focus) !important;
-	background-color: #ffffff;
+	background-color:var(--color-bg-input);
 	border-color: #93c5fd !important;
 	outline: 0;
 }
@@ -69,7 +70,7 @@ form {
 
 .custom-input-group .input-group-text {
 	background-color: var(--color-bg-input);
-	border: 1px solid var(--color-border);
+	border: 1px solid var(--color-border-input);
 	color: var(--color-text-label);
 	font-size: 15px;
 }
@@ -139,8 +140,8 @@ form {
 
 /* Styling Input Standard (Text, Date, Textarea) */
 .custom-soft-input {
-	background-color: #f4f6f9 !important;
-	border: 1px solid #e2e8f0 !important;
+	background-color: var(--color-bg-input) !important;
+	border: 1px solid var(--color-border-input) !important;
 	border-radius: 10px !important;
 	color: #1e293b !important;
 	padding: 0.6rem 1rem;
@@ -162,8 +163,8 @@ form {
 
 /* Styling Input Menyatu (Untuk Rp dan Peserta) */
 .custom-unified-wrapper {
-	background-color: #f4f6f9;
-	border: 1px solid #e2e8f0;
+	background-color: var(--color-bg-input);
+	border: 1px solid var(--color-border-input);
 	border-radius: 10px;
 	display: flex;
 	align-items: center;

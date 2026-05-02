@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoControll
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
 use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
+use App\Http\Controllers\Api\EventDashboard\EventStationController;
 
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
@@ -134,6 +135,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // Participant / Ticket holders route
             Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
+
+            // Event Stations
+            Route::get('/stations', [EventStationController::class, 'index']);
+            Route::post('/stations', [EventStationController::class, 'store']);
+            Route::put('/stations/{id}', [EventStationController::class, 'update']);
+            Route::delete('/stations/{id}', [EventStationController::class, 'destroy']);
         });
 
     // Mengecek apa saja data yang masih kurang (GET)

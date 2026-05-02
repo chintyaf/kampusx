@@ -1,164 +1,169 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Button, InputGroup, Alert, Badge } from 'react-bootstrap';
-import { UserPlus, Search, QrCode, Edit3, Mail, CheckCircle2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Form, Button, InputGroup, Spinner } from 'react-bootstrap';
+import { CheckCircle2 } from 'lucide-react';
 import ModalBox from '@/components/dashboard/ModalBox';
+import api from '@/api/axios';
+import { notify } from '@/utils/notify';
 
-const PosForm = ({ show, onHide }) => {
-	const [searchQuery, setSearchQuery] = useState('');
-	const [isUserFound, setIsUserFound] = useState(null); // null: idle, true: found, false: not found
-	const [permissions, setPermissions] = useState({
-		qrScanner: true,
-		manualOverride: false,
+const PosForm = ({ show, onHide, onSave, posData }) => {
+	const { eventId } = useParams();
+
+	// State Loading
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	// State untuk menampung isian form
+	const [formData, setFormData] = useState({
+		namaPos: '',
+		isActive: true, // Default true saat tambah baru
 	});
 
-	// Simulasi pengecekan database saat mengetik email
-	useEffect(() => {
-		if (searchQuery.includes('@')) {
-			// Logika asli nantinya memanggil API di sini
-			const mockFound = searchQuery === 'chintya.elysia@gmail.com';
-			setIsUserFound(mockFound);
-		} else {
-			setIsUserFound(null);
-		}
-	}, [searchQuery]);
+	// Cek apakah form dalam mode Edit
+	const isEditMode = Boolean(posData);
 
-	const handleAssign = () => {
-		if (isUserFound) {
-			console.log('Skenario A: Langsung Assign User ID');
-		} else {
-			console.log('Skenario B: Kirim Undangan Eksternal');
-		}
-		onHide();
+	const handleChange = (e) => {
+		const { name, value, type, checked } = e.target;
+		setFormData((prev) => ({
+			...prev,
+			[name]: type === 'checkbox' ? checked : value,
+		}));
 	};
+
+	// Handle saat form disubmit
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		setIsSubmitting(true);
+
+		try {
+			const payload = {
+				name: formData.namaPos,
+				is_active: formData.isActive,
+			};
+
+			let response;
+			if (isEditMode) {
+				// Mode Edit: Gunakan PUT/PATCH (Sesuaikan dengan endpoint backend Anda)
+				response = await api.put(
+					`/event-dashboard/${eventId}/stations/${posData.id}`,
+					payload,
+				);
+				notify('success', 'Berhasil', 'Data pos berhasil diperbarui.');
+			} else {
+				// Mode Tambah: Gunakan POST
+				response = await api.post(`/event-dashboard/${eventId}/stations`, payload);
+				notify('success', 'Berhasil', 'Pos baru berhasil ditambahkan.');
+			}
+
+			if (onSave) onSave(formData); // Beritahu parent (EventPosPage) untuk refresh data
+			onHide(); // Tutup modal
+		} catch (err) {
+			console.error('Error:', err);
+			notify('error', 'Gagal', 'Terjadi kesalahan saat menyimpan data pos.');
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	useEffect(() => {
+		if (posData) {
+			// Mode Edit: Isi form dengan data yang diklik
+			setFormData({
+				namaPos: posData.name,
+				// Ubah string status "Aktif" / "Tidak Aktif" menjadi boolean untuk Switch
+				isActive: posData.status === 'Aktif',
+			});
+		} else {
+			// Mode Tambah: Reset form
+			setFormData({
+				namaPos: '',
+				isActive: true,
+			});
+		}
+	}, [posData]);
 
 	return (
 		<ModalBox
 			show={show}
 			onHide={onHide}
-			title="Tambah Staf Baru"
-			subtitle="Cari dan tugaskan member yang sudah terdaftar atau undang tim eksternal ke KampusX"
-			size="lg">
-			{/* Search Bar Section */}
-			<div className="mb-4">
-				<Form.Label className="form-label fw-bold">Cari Member</Form.Label>
-				<InputGroup
-					className={isUserFound === false ? 'border border-warning rounded-2' : ''}>
-					<InputGroup.Text className="bg-white border-end-0 text-muted">
-						<Search size={18} />
-					</InputGroup.Text>
+			title={isEditMode ? 'Edit Pos' : 'Tambah Pos Baru'}
+			subtitle={
+				isEditMode
+					? 'Perbarui nama dan status pos akses ini.'
+					: 'Buat pos baru dan atur kode akses (PIN) untuk petugas scan.'
+			}
+			size="md">
+			{/* ── Input NAMA POS ── */}
+			<Form.Group className="mb-4">
+				<Form.Label className="fw-bold">Nama Pos</Form.Label>
+				<InputGroup>
 					<Form.Control
-						type="email"
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						placeholder="Masukkan email calon staf..."
-						className="border-start-0 ps-2 shadow-none py-2"
+						type="text"
+						name="namaPos"
+						value={formData.namaPos}
+						onChange={handleChange}
+						placeholder="Contoh: Pintu Masuk Utama"
+						required
+						disabled={isSubmitting}
 					/>
 				</InputGroup>
+			</Form.Group>
 
-				{/* Feedback Skenario B (User Tidak Ditemukan) */}
-				{isUserFound === false && (
-					<div
-						className="mt-2 d-flex align-items-start gap-2 text-warning"
-						style={{ fontSize: '13px' }}>
-						<Mail size={16} className="mt-1" />
-						<span>
-							Email belum terdaftar. Sistem akan mengirimkan <b>undangan eksternal</b>{' '}
-							dan instruksi pendaftaran otomatis.
-						</span>
+			{/* ── Toggle STATUS POS ── */}
+			<Form.Group className="mb-4">
+				<Form.Label className="fw-bold">Status Pos</Form.Label>
+				<label
+					className="d-flex align-items-center justify-content-between p-3 bg-white border rounded-3 shadow-sm-hover transition-all"
+					style={{
+						cursor: isSubmitting ? 'not-allowed' : 'pointer',
+						opacity: isSubmitting ? 0.7 : 1,
+					}}>
+					<div>
+						<p className="mb-0 fw-bold text-dark" style={{ fontSize: '14px' }}>
+							Pos Aktif
+						</p>
+						<p className="mb-0 text-muted" style={{ fontSize: '12px' }}>
+							Jika dimatikan, petugas tidak bisa menggunakan pos ini.
+						</p>
 					</div>
-				)}
+					<Form.Check
+						type="switch"
+						name="isActive"
+						className="custom-soft-switch d-flex align-items-center m-0"
+						checked={formData.isActive}
+						onChange={handleChange}
+						id="status-switch"
+						disabled={isSubmitting}
+					/>
+				</label>
+			</Form.Group>
 
-				{/* Feedback Skenario A (User Ditemukan) */}
-				{isUserFound === true && (
-					<div
-						className="mt-2 d-flex align-items-center gap-2 text-success"
-						style={{ fontSize: '13px' }}>
-						<CheckCircle2 size={16} />
-						<span>
-							User ditemukan: <b>Chintya Elysia</b>{' '}
-							<Badge bg="success" className="ms-1">
-								Member KampusX
-							</Badge>
-						</span>
-					</div>
-				)}
-			</div>
-
-			{/* Hak Akses Section */}
-			<div className="mb-4">
-				<label className="form-label fw-bold">Hak Akses & Wewenang</label>
-				<div className="d-flex flex-column gap-3">
-					{/* Scanner QR */}
-					<label
-						className="d-flex align-items-center justify-content-between p-3 bg-white border rounded-3 shadow-sm-hover transition-all"
-						style={{ cursor: 'pointer' }}>
-						<div className="d-flex align-items-center gap-3">
-							<div className="p-2 rounded-2 bg-blue-light text-primary">
-								<QrCode size={20} />
-							</div>
-							<div>
-								<p className="mb-0 fw-bold text-dark" style={{ fontSize: '14px' }}>
-									Scanner QR
-								</p>
-								<p className="mb-0 text-muted" style={{ fontSize: '12px' }}>
-									Validasi tiket peserta secara real-time
-								</p>
-							</div>
-						</div>
-						<Form.Check
-							type="switch"
-							checked={permissions.qrScanner}
-							onChange={() =>
-								setPermissions({
-									...permissions,
-									qrScanner: !permissions.qrScanner,
-								})
-							}
-						/>
-					</label>
-
-					{/* Manual Override */}
-					<label
-						className="d-flex align-items-center justify-content-between p-3 bg-white border rounded-3 shadow-sm-hover transition-all"
-						style={{ cursor: 'pointer' }}>
-						<div className="d-flex align-items-center gap-3">
-							<div className="p-2 rounded-2 bg-orange-light text-orange">
-								<Edit3 size={20} />
-							</div>
-							<div>
-								<p className="mb-0 fw-bold text-dark" style={{ fontSize: '14px' }}>
-									Manual Override
-								</p>
-								<p className="mb-0 text-muted" style={{ fontSize: '12px' }}>
-									Ubah status kehadiran secara manual
-								</p>
-							</div>
-						</div>
-						<Form.Check
-							type="switch"
-							checked={permissions.manualOverride}
-							onChange={() =>
-								setPermissions({
-									...permissions,
-									manualOverride: !permissions.manualOverride,
-								})
-							}
-						/>
-					</label>
-				</div>
-			</div>
-
-			{/* Footer */}
+			{/* ── Footer / Aksi ── */}
 			<div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-				<Button variant="light" onClick={onHide} className="px-4 text-secondary border">
+				<Button
+					variant="light"
+					onClick={onHide}
+					className="px-4 text-secondary border"
+					disabled={isSubmitting}>
 					Batal
 				</Button>
 				<Button
-					variant={isUserFound === false ? 'warning' : 'primary'}
-					onClick={handleAssign}
-					className="d-flex align-items-center gap-2 px-4 fw-bold shadow-sm">
-					{isUserFound === false ? <Mail size={18} /> : <UserPlus size={18} />}
-					{isUserFound === false ? 'Kirim Undangan' : 'Assign Staff'}
+					type="submit"
+					variant="primary"
+					onClick={handleSubmit}
+					disabled={isSubmitting || !formData.namaPos.trim()} // Validasi jika nama kosong
+					className="d-flex align-items-center gap-2 px-4 fw-bold shadow-sm"
+					style={{ backgroundColor: '#000', border: 'none' }}>
+					{isSubmitting ? (
+						<>
+							<Spinner animation="border" size="sm" />
+							Menyimpan...
+						</>
+					) : (
+						<>
+							<CheckCircle2 size={18} />
+							Simpan Pos
+						</>
+					)}
 				</Button>
 			</div>
 		</ModalBox>
