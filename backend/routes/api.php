@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
 use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
 
 use App\Http\Controllers\Api\EventTypeController;
@@ -122,6 +123,10 @@ Route::middleware('auth:sanctum')->group(function () {
                 // Speaker
                 Route::get('/speaker', [EventSpeakerController::class, 'index']);
                 Route::post('/speaker', [EventSpeakerController::class, 'update']);
+
+                Route::get('/tickets', [EventTicketController::class, 'index']);
+                Route::post('/tickets', [EventTicketController::class, 'update']);
+
             });
 
             // Dashboard Overview
@@ -165,13 +170,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin')->group(function () {
         // 1. Organizer Management
         Route::post('/admin/organizer-requests/{id}/approve', [\App\Http\Controllers\Api\AdminController::class, 'approveOrganizer']);
-        
+
         // 2. User Status Management
         Route::post('/admin/users/{id}/status', [\App\Http\Controllers\Api\AdminController::class, 'changeUserStatus']);
-        
+
         // 3. Event Monitoring
         Route::get('/admin/events', [\App\Http\Controllers\Api\AdminController::class, 'getEvents']);
-        
+
         // 4. Featured/Boost Event
         // 4. Featured/Boost Event
         Route::post('/admin/events/{id}/feature', [\App\Http\Controllers\Api\AdminController::class, 'toggleFeatureEvent']);

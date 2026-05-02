@@ -1,7 +1,7 @@
 :root {
 	--color-focus: #c4ddff90;
 	--color-border: #e2e8f0;
-	--color-bg-input: #f8fafc;
+	--color-bg-input: #f4f6f9;
 	--color-text-label: #64748b;
 	--color-text: #334155;
 }
@@ -258,4 +258,62 @@ form {
 	font-size: 14px;
 	margin-left: 10px;
 	cursor: pointer;
+}
+
+.custom-soft-switch .form-check-input:checked {
+	background-color: var(--bahama-blue-200) !important;
+	border-color: var(--bahama-blue-300) !important;
+}
+
+.custom-soft-switch .form-check-input:focus {
+    outline: none;
+    border-color: var(--bahama-blue-300) !important;
+
+    box-shadow: 0 0 0 4px rgba(231, 238, 239, 0.25) !important;
+}
+
+/* Custom Soft Switch Toggle */
+
+/* 1. Tampilan Default (Tidak aktif) */
+.custom-soft-switch .form-check-input {
+    width: 40px;
+    height: 22px;
+    margin-top: 0;
+    background-color: #e2e8f0; /* Background abu-abu muda */
+    border: 2px solid #e2e8f0; /* Border menyatu dengan background */
+    cursor: pointer;
+
+    /* Lingkaran (Thumb) warna putih */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e") !important;
+
+    /* 👇 KUNCI ANIMASI: tambahkan 'background-position' untuk efek geser */
+    transition:
+        background-color 0.25s ease-in-out,
+        border-color 0.25s ease-in-out,
+        box-shadow 0.25s ease-in-out,
+        background-position 0.25s ease-in-out;
+}
+
+/* 2. Tampilan saat Aktif (Checked) */
+.custom-soft-switch .form-check-input:checked {
+    background-color: var(--color-secondary) !important;
+    border-color: var(--color-secondary) !important;
+
+    /* Lingkaran tetap putih saat aktif */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23ffffff'/%3e%3c/svg%3e") !important;
+}
+
+/* 3. Tampilan saat Fokus/Diklik (Efek Glow Ring) */
+.custom-soft-switch .form-check-input:focus {
+    outline: none;
+    border-color: var(--color-secondary) !important;
+    box-shadow: 0 0 0 4px rgba(239, 248, 250, 0.25) !important;
+}
+
+/* 4. Style Label */
+.custom-soft-switch .form-check-label {
+    color: #64748b;
+    font-size: 14px;
+    margin-left: 10px;
+    cursor: pointer;
 }

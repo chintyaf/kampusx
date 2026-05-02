@@ -32,17 +32,17 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	--color-white: #fff;
 
 	/* Bahama Blue Color Palette */
-	--bahama-blue-50: #f0f9ff;
-	--bahama-blue-100: #dff3ff;
-	--bahama-blue-200: #b9e7fe;
-	--bahama-blue-300: #7bd6fe;
-	--bahama-blue-400: #34c2fc;
-	--bahama-blue-500: #21b3ed;
-	--bahama-blue-600: #3c84a8;
-	--bahama-blue-700: #00699e; /* Primary / Locked */
-	--bahama-blue-800: #055c87;
-	--bahama-blue-900: #0a4c70;
-	--bahama-blue-950: #07304a;
+	--bahama-blue-50: #f0f9ff; /* The very light background of the button */
+	--bahama-blue-100: #e0f2fe; /* Light hover state */
+	--bahama-blue-200: #bae6fd; /* Soft border/active state */
+	--bahama-blue-300: #7dd3fc; /* The "Electric" accent */
+	--bahama-blue-400: #38bdf8; /* Vibrant icon color */
+	--bahama-blue-500: #0ea5e9; /* Mid-action blue */
+	--bahama-blue-600: #0284c7; /* Strong focus state */
+	--bahama-blue-700: #0369a1; /* The deep blue in the "Published" text */
+	--bahama-blue-800: #075985; /* Darker heading blue */
+	--bahama-blue-900: #0c4a6e; /* Deepest contrast */
+	--bahama-blue-950: #082f49; /* Deep navy base */
 
 	--color-bg-2: #f1f5f9;
 

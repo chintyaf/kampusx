@@ -30,11 +30,9 @@ const TicketSummary = ({ tickets, hasUnlimited, totalCap, totalSold, revenue }) 
 	return (
 		<>
 			<div
-				className="border bg-white"
+				className="border bg-white rounded-3 "
 				style={{
 					width: '300px',
-					// height: '80vh',
-					// overflowY: 'auto'
 				}}>
 				<div className="p-4">
 					<p

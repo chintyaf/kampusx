@@ -45,11 +45,38 @@ const EventLayout = ({
 			if (onSave) await onSave();
 		} catch (error) {
 			notify('Failed to save', 'error');
+		} finally {
+			setIsSaving(false);
+			notify('success', 'Berhasil Disimpan', 'Data Anda telah diperbarui ke dalam sistem');
 		}
 	};
 
 	return (
 		<>
+			{/* Children Container with Loading State
+			<div className="position-relative">
+				{isSaving && (
+					<div
+						className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
+						style={{
+							background: 'rgba(255, 255, 255, 0.7)',
+							zIndex: 10,
+							borderRadius: '8px',
+						}}>
+						<Spinner animation="border" variant="dark" />
+					</div>
+				)}
+
+				<div
+					className="d-flex flex-column gap-4"
+					style={{
+						opacity: isSaving ? 0.5 : 1,
+						pointerEvents: isSaving ? 'none' : 'auto',
+					}}>
+					{children}
+				</div>
+			</div> */}
+
 			<div className="d-flex align-items-start gap-4">
 				{/* ── KOLOM KIRI: Konten Utama (Grows to fill space) ── */}
 				{/* minWidth: 0 penting agar form tidak meluber ke luar container */}
@@ -64,20 +91,7 @@ const EventLayout = ({
 						</div>
 					</div>
 
-					{/* Children Container with Loading State */}
 					<div className="position-relative">
-						{isSaving && (
-							<div
-								className="position-absolute w-100 h-100 d-flex justify-content-center align-items-center"
-								style={{
-									background: 'rgba(255, 255, 255, 0.7)',
-									zIndex: 10,
-									borderRadius: '8px',
-								}}>
-								<Spinner animation="border" variant="dark" />
-							</div>
-						)}
-
 						<div
 							className="d-flex flex-column gap-4"
 							style={{
@@ -104,16 +118,26 @@ const EventLayout = ({
 								Back
 							</Button>
 						)}
-						<Button variant="primary" onClick={handleSaveAndContinue} disabled={isSaving}>
-							{isSaving ? 'Saving...' : 'Selanjutnya'}
-						</Button>
+
+						{nextPath ? (
+							<Button
+								variant="primary"
+								onClick={handleSaveAndContinue}
+								disabled={isSaving}>
+								{isSaving ? 'Saving...' : 'Selanjutnya'}
+							</Button>
+						) : (
+							<Button variant="primary" onClick={handleSave} disabled={isSaving}>
+								{isSaving ? 'Saving...' : 'Simpan'}
+							</Button>
+						)}
 					</div>
 				</div>
 
 				{/* ── KOLOM KANAN: Sidebar Opsional ── */}
 				{/* Kalau prop sidebar diisi, dia akan dirender di sini dan diberi sifat sticky */}
 				{sidebar && (
-					<div style={{ position: 'sticky', top: '0px', flexShrink: 0}}>{sidebar}</div>
+					<div style={{ position: 'sticky', top: '0px', flexShrink: 0 }}>{sidebar}</div>
 				)}
 			</div>
 		</>
