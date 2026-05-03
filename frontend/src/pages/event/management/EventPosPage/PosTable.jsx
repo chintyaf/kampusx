@@ -74,7 +74,6 @@ const EmptyStateView = ({ setShowForm }) => {
 const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 	const tableColumns = [
 		{ label: 'NAMA POS', sortable: false },
-		{ label: 'KODE AKSES (PIN)', sortable: false },
 		{ label: 'STATUS', sortable: false },
 		{ label: 'TOTAL SCAN', sortable: false },
 		{ label: 'AKSI', sortable: false },
@@ -114,22 +113,9 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 					renderRow={(pos, idx) => (
 						<tr key={pos.id} className="border-bottom">
 							<td className="px-4 py-3 align-middle">
-								<span className="fw-semibold text-dark">{pos.name}</span>
+								<span className="fw-semibold text-dark">{pos.name}</span> <br />
+								<span className="text-muted">{pos.description}</span>
 							</td>
-
-							<td className="py-3 align-middle">
-								<div className="d-flex align-items-center gap-2">
-									<span className="bg-light border px-2 py-1 rounded text-dark">
-										{pos.pin}
-									</span>
-									<button
-										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
-										title="Copy PIN">
-										<Copy size={14} color="#555" />
-									</button>
-								</div>
-							</td>
-
 							<td className="py-3 align-middle">
 								<StatusBadge status={pos.status} />
 							</td>

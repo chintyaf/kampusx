@@ -15,6 +15,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 	// State untuk menampung isian form
 	const [formData, setFormData] = useState({
 		namaPos: '',
+		description: '',
 		isActive: true, // Default true saat tambah baru
 	});
 
@@ -37,8 +38,10 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 		try {
 			const payload = {
 				name: formData.namaPos,
+				description: formData.description,
 				is_active: formData.isActive,
 			};
+			console.log(payload);
 
 			let response;
 			if (isEditMode) {
@@ -69,6 +72,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 			// Mode Edit: Isi form dengan data yang diklik
 			setFormData({
 				namaPos: posData.name,
+				description: posData.description,
 				// Ubah string status "Aktif" / "Tidak Aktif" menjadi boolean untuk Switch
 				isActive: posData.status === 'Aktif',
 			});
@@ -76,6 +80,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 			// Mode Tambah: Reset form
 			setFormData({
 				namaPos: '',
+				description: '',
 				isActive: true,
 			});
 		}
@@ -102,6 +107,22 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 						value={formData.namaPos}
 						onChange={handleChange}
 						placeholder="Contoh: Pintu Masuk Utama"
+						required
+						disabled={isSubmitting}
+					/>
+				</InputGroup>
+			</Form.Group>
+
+			<Form.Group className="mb-4">
+				<Form.Label className="fw-bold">Deskripsi</Form.Label>
+				<InputGroup>
+					<Form.Control
+						as="textarea"
+						rows={3}
+						name="description"
+						value={formData.description}
+						onChange={handleChange}
+						// placeholder="Contoh: Pintu Masuk Utama"
 						required
 						disabled={isSubmitting}
 					/>

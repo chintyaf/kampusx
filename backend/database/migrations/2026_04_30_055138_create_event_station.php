@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->string('name');
+            $table->string('description')->nullable();
 
             // KODE AKSES (PERBAIKAN)
             // 1. Dibuat unique() secara global, BUKAN composite unique dengan event_id.
             // Alasannya: Karena kita akan pakai format URL `kampusx.com/scan/X7B9Q`.
             // Kalau kode X7B9Q ada di event lain, backend akan bingung ini pos event yang mana.
             // 2. Panjang string dibiarkan default atau set misal 10, agar fleksibel kalau nanti butuh kode lebih panjang.
-            $table->string('access_code', 10)->unique();
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
         });

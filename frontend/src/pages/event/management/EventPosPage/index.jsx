@@ -9,7 +9,7 @@ import PosForm from './PosForm';
 // Import Trash2 untuk icon modal, dan pastikan path ConfirmationModal sesuai dengan struktur folder Anda
 import { Users, CheckCircle2, Box, Ticket, Plus, MapPin, Trash2 } from 'lucide-react';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
-
+import PosPinHeader from './PosPinHeader';
 /* ── Main ────────────────────────────────────────────────────── */
 const EventPosPage = () => {
 	const { eventId } = useParams();
@@ -25,10 +25,11 @@ const EventPosPage = () => {
 	const fetchPosList = async () => {
 		try {
 			const response = await api.get(`/event-dashboard/${eventId}/stations`);
+			console.log('Response Data:', response.data.data)
 			const mappedData = response.data.data.map((station) => ({
 				id: station.id,
 				name: station.name,
-				pin: station.access_code,
+				description: station.description,
 				status: station.is_active ? 'Aktif' : 'Tidak Aktif',
 				totalScan: 0, // Placeholder
 			}));
@@ -90,6 +91,8 @@ const EventPosPage = () => {
 					subheading="Kelola akses dan peran tim panitia Anda di sini."
 				/>
 			</div>
+
+			<PosPinHeader />
 
 			{/* ── Stat Cards ── */}
 			<Row className="g-3">

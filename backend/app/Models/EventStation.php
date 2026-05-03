@@ -12,7 +12,7 @@ class EventStation extends Model
     protected $fillable = [
         'event_id',
         'name',
-        'access_code',
+        'description',
         'is_active',
     ];
 

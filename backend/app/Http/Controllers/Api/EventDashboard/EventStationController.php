@@ -13,10 +13,10 @@ class EventStationController extends Controller
     /**
      * Menampilkan daftar station (pos) untuk suatu event.
      */
-    public function index($eventId)
+    public function index(int $eventId)
     {
         $stations = EventStation::where('event_id', $eventId)->get(
-            ['id', 'name', 'access_code', 'is_active']
+            ['id', 'name', 'description', 'is_active']
         );
 
         return response()->json([
@@ -28,22 +28,18 @@ class EventStationController extends Controller
     /**
      * Menyimpan station baru.
      */
-    public function store(Request $request, $eventId)
+    public function store(Request $request, int $eventId)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'string|max:255',
             'is_active' => 'boolean',
         ]);
-
-        // Generate kode unik
-        do {
-            $accessCode = strtoupper(Str::random(6));
-        } while (EventStation::where('access_code', $accessCode)->exists());
 
         $station = EventStation::create([
             'event_id' => $eventId,
             'name' => $request->name,
-            'access_code' => $accessCode,
+            'description' => $request->description,
             'is_active' => $request->is_active ?? true,
         ]);
 
@@ -58,10 +54,11 @@ class EventStationController extends Controller
     /**
      * Memperbarui data station. (Edit)
      */
-    public function update(Request $request, $eventId, $id)
+    public function update(Request $request, int $eventId, int $id)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'string|max:255',
             'is_active' => 'boolean',
         ]);
 
@@ -71,6 +68,7 @@ class EventStationController extends Controller
 
         $station->update([
             'name' => $request->name,
+            'description' => $request->description,
             'is_active' => $request->is_active ?? true,
         ]);
 
@@ -78,14 +76,13 @@ class EventStationController extends Controller
             'success' => true,
             'status' => 'success',
             'message' => 'Data station berhasil diperbarui.',
-            'data' => $station
         ]);
     }
 
     /**
      * Menghapus data station.
      */
-    public function destroy($eventId, $id)
+    public function destroy(int $eventId, int $id)
     {
         $station = EventStation::where('id', $id)
             ->where('event_id', $eventId)
