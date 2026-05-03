@@ -1,0 +1,61 @@
+/* Container pembungkus tab */
+.segmented-tabs-wrapper {
+	display: inline-flex;
+	align-items: center;
+	border: 1.5px solid #cbd5e1; /* Warna border abu-abu kebiruan */
+	border-radius: 10px;
+	overflow: hidden; /* Penting agar background tab aktif tidak keluar dari border radius */
+	background-color: #ffffff;
+}
+
+/* Tombol tab individual */
+.segmented-tab-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 20px;
+	border: none;
+	background-color: transparent;
+	color: #64748b; /* Warna teks tidak aktif (Slate 500) */
+	font-size: 0.95rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+}
+
+/* Efek hover untuk tab yang tidak aktif */
+.segmented-tab-btn:hover:not(.active) {
+	background-color: #f8fafc;
+}
+
+/* Styling khusus untuk tab yang sedang aktif */
+.segmented-tab-btn.active {
+	background-color: #e6f2fd; /* Biru muda sesuai gambar */
+	color: #1a629b; /* Biru gelap untuk teks dan icon */
+}
+
+/* Styling untuk Icon */
+.tab-icon {
+	flex-shrink: 0;
+	stroke-width: 2px;
+}
+
+/* Styling untuk Badge (seperti "2/3") */
+.tab-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2px 10px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	border-radius: 20px;
+	border: 1.5px solid #cbd5e1;
+	margin-left: 4px;
+	color: inherit; /* Akan mengikuti warna teks dari parent (.active / inactive) */
+}
+
+/* Saat aktif, border badge juga ikut berubah warna */
+.segmented-tab-btn.active .tab-badge {
+	border-color: #93c5fd;
+	background-color: #ffffff;
+}

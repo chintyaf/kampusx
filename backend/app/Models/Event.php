@@ -84,6 +84,12 @@ class Event extends Model
     {
         return $this->belongsToMany(EventType::class, 'event_types_event', 'event_id', 'event_types_id');
     }
+    
+    public function stations(): BelongsToMany
+    {
+        return $this->belongsToMany(EventStation::class, 'event_session_station')
+                    ->withTimestamps();
+    }
 
     public function getPublishErrors(): array
     {

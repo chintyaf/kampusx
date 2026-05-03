@@ -137,6 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
 
             // Event Stations
+            Route::get('/days-summary', [EventStationController::class, 'getDaysSummary']);
             Route::get('/stations', [EventStationController::class, 'index']);
             Route::post('/stations', [EventStationController::class, 'store']);
             Route::put('/stations/{id}', [EventStationController::class, 'update']);

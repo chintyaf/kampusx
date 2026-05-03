@@ -73,11 +73,11 @@ const EmptyStateView = ({ setShowForm }) => {
 /* ── Pos Table Component ───────────────────────────────────── */
 const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 	const tableColumns = [
-		{ label: 'NAMA POS', sortable: false },
-		{ label: 'KODE AKSES (PIN)', sortable: false },
-		{ label: 'STATUS', sortable: false },
-		{ label: 'TOTAL SCAN', sortable: false },
-		{ label: 'AKSI', sortable: false },
+		{ label: 'Nama Pos', sortable: false },
+		{ label: 'Berlaku Pada', sortable: false },
+		{ label: 'Status', sortable: false },
+		{ label: 'Total Scan', sortable: false },
+		{ label: 'Aksi', sortable: false },
 	];
 
 	// Gunakan huruf kapital di sini

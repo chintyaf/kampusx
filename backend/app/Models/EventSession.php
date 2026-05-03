@@ -34,4 +34,12 @@ class EventSession extends Model
         );
     }
 
+    public function stations(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            EventStation::class,
+            'event_session_station'
+        )->withTimestamps();
+    }
+
 }

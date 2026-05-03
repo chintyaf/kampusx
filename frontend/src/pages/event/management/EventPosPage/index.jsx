@@ -2,13 +2,31 @@ import React, { useState, useEffect } from 'react';
 import { Button, Row, Col } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import api from '@/api/axios';
-import FormHeading from '../../../../components/dashboard/FormHeading';
+import FormHeading from '@/components/dashboard/FormHeading';
 import StatCard from '@/components/dashboard/StatCard';
 import PosTable from './PosTable';
 import PosForm from './PosForm';
+import PosPinHeader from './PosPinHeader';
 // Import Trash2 untuk icon modal, dan pastikan path ConfirmationModal sesuai dengan struktur folder Anda
-import { Users, CheckCircle2, Box, Ticket, Plus, MapPin, Trash2 } from 'lucide-react';
+import { Users, CheckCircle2, Box, Ticket, Plus, MapPin, Trash2, Calendar } from 'lucide-react';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
+import SegmentedTabs from '@/components/form/SegmentedTabs';
+import PosDays from './PosDays';
+
+// Definisi data tab (bersifat dinamis)
+const tabsData = [
+	{
+		id: 'pos',
+		label: 'Manajemen Pos',
+		icon: MapPin,
+	},
+	{
+		id: 'days',
+		label: 'Hari & Sesi',
+		icon: Calendar,
+		badge: '2/3',
+	},
+];
 
 /* ── Main ────────────────────────────────────────────────────── */
 const EventPosPage = () => {
@@ -22,9 +40,12 @@ const EventPosPage = () => {
 	const [posToDelete, setPosToDelete] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
+	const [activeTab, setActiveTab] = useState('pos');
+
 	const fetchPosList = async () => {
 		try {
 			const response = await api.get(`/event-dashboard/${eventId}/stations`);
+			console.log('Response Data:', response.data.data)
 			const mappedData = response.data.data.map((station) => ({
 				id: station.id,
 				name: station.name,
@@ -91,6 +112,9 @@ const EventPosPage = () => {
 				/>
 			</div>
 
+			{/* ── Panggil komponen dengan nama baru ── */}
+			<PosPinHeader />
+
 			{/* ── Stat Cards ── */}
 			<Row className="g-3">
 				<Col xs={12} sm={3}>
@@ -123,45 +147,65 @@ const EventPosPage = () => {
 			</Row>
 
 			{/* ── Konten Utama ── */}
-			{posList.length === 0 ? (
-				<div className="text-center py-4 bg-white border rounded-2">
-					<div
-						style={{
-							width: 56,
-							height: 56,
-							borderRadius: '50%',
-							backgroundColor: 'var(--bahama-blue-50)',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							margin: '0 auto 12px',
-						}}>
-						<MapPin size={26} style={{ color: 'var(--bahama-blue-300)' }} />
-					</div>
-					<div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>
-						Belum ada pos
-					</div>
-					<div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-muted)' }}>
-						Tambahkan pos pertama untuk memulai.
-					</div>
-					<div className="d-flex justify-content-center mt-3">
-						<Button
-							variant="primary"
-							className="d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
-							onClick={handleAdd}
-							style={{ backgroundColor: '#000', border: 'none' }}>
-							<Plus size={18} /> Tambah Pos Baru
-						</Button>
-					</div>
-				</div>
-			) : (
-				<PosTable
-					posList={posList}
-					handleDelete={handleDeleteClick} // Oper fungsi buka modal ke sini
-					handleEdit={handleEdit}
-					setShowForm={handleAdd}
-				/>
+			{/* Pemanggilan komponen generic */}
+			<SegmentedTabs tabs={tabsData} activeTab={activeTab} onChange={setActiveTab} />
+
+			{/* ── TAB: MANAJEMEN POS ── */}
+			{activeTab === 'pos' && (
+				<>
+					{posList.length === 0 ? (
+						<div className="text-center py-4 bg-white border rounded-2">
+							<div
+								style={{
+									width: 56,
+									height: 56,
+									borderRadius: '50%',
+									backgroundColor: 'var(--bahama-blue-50)',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									margin: '0 auto 12px',
+								}}>
+								<MapPin size={26} style={{ color: 'var(--bahama-blue-300)' }} />
+							</div>
+							<div
+								style={{
+									fontWeight: 600,
+									color: 'var(--color-text)',
+									marginBottom: 4,
+								}}>
+								Belum ada pos
+							</div>
+							<div
+								style={{
+									fontSize: 'var(--font-sm)',
+									color: 'var(--color-text-muted)',
+								}}>
+								Tambahkan pos pertama untuk memulai.
+							</div>
+							<div className="d-flex justify-content-center mt-3">
+								<Button
+									variant="primary"
+									className="d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
+									onClick={handleAdd}
+									style={{ backgroundColor: '#000', border: 'none' }}>
+									<Plus size={18} /> Tambah Pos Baru
+								</Button>
+							</div>
+						</div>
+					) : (
+						<PosTable
+							posList={posList}
+							handleDelete={handleDeleteClick}
+							handleEdit={handleEdit}
+							setShowForm={handleAdd}
+						/>
+					)}
+				</>
 			)}
+
+			{/* ── TAB: HARI & SESI ── */}
+			{activeTab === 'days' && <PosDays />}
 
 			{/* ── Form Modal (Add/Edit) ── */}
 			<PosForm

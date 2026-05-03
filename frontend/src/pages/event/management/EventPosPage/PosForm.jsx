@@ -1,167 +1,234 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Form, Button, InputGroup, Spinner } from 'react-bootstrap';
-import { CheckCircle2 } from 'lucide-react';
+import { Form, Button, Spinner, Row, Col } from 'react-bootstrap';
+import { MapPin, Check } from 'lucide-react';
 import ModalBox from '@/components/dashboard/ModalBox';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
+import DaySelectionGroup from './DaySelectionGroup';
 
 const PosForm = ({ show, onHide, onSave, posData }) => {
 	const { eventId } = useParams();
-
-	// State Loading
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	// State untuk menampung isian form
+	// Mock data hari (Sesuaikan dengan data dari API Event Anda nantinya)
+	const availableDays = [
+		{ id: 1, label: 'Hari 1', date: 'Senin, 18 Agu 2025', isAvailable: true },
+		{ id: 2, label: 'Hari 2', date: 'Selasa, 19 Agu 2025', isAvailable: true },
+		{ id: 3, label: 'Hari 3', date: 'Rabu, 20 Agu 2025', isAvailable: false },
+	];
+
 	const [formData, setFormData] = useState({
 		namaPos: '',
-		isActive: true, // Default true saat tambah baru
+		deskripsi: '',
+		selectedDays: [],
+		isActive: true,
 	});
 
-	// Cek apakah form dalam mode Edit
 	const isEditMode = Boolean(posData);
 
 	const handleChange = (e) => {
-		const { name, value, type, checked } = e.target;
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const handleDayToggle = (dayId) => {
 		setFormData((prev) => ({
 			...prev,
-			[name]: type === 'checkbox' ? checked : value,
+			selectedDays: prev.selectedDays.includes(dayId)
+				? prev.selectedDays.filter((id) => id !== dayId)
+				: [...prev.selectedDays, dayId],
 		}));
 	};
 
-	// Handle saat form disubmit
+	const handleSelectAllDays = () => {
+		const allActiveDayIds = availableDays.filter((d) => d.isAvailable).map((d) => d.id);
+
+		setFormData((prev) => ({ ...prev, selectedDays: allActiveDayIds }));
+	};
+
 	const handleSubmit = async (e) => {
-		e.preventDefault();
+		if (e) e.preventDefault();
 		setIsSubmitting(true);
 
 		try {
 			const payload = {
 				name: formData.namaPos,
+				description: formData.deskripsi,
+				days: formData.selectedDays,
 				is_active: formData.isActive,
 			};
 
-			let response;
 			if (isEditMode) {
-				// Mode Edit: Gunakan PUT/PATCH (Sesuaikan dengan endpoint backend Anda)
-				response = await api.put(
-					`/event-dashboard/${eventId}/stations/${posData.id}`,
-					payload,
-				);
+				await api.put(`/event-dashboard/${eventId}/stations/${posData.id}`, payload);
 				notify('success', 'Berhasil', 'Data pos berhasil diperbarui.');
 			} else {
-				// Mode Tambah: Gunakan POST
-				response = await api.post(`/event-dashboard/${eventId}/stations`, payload);
+				await api.post(`/event-dashboard/${eventId}/stations`, payload);
 				notify('success', 'Berhasil', 'Pos baru berhasil ditambahkan.');
 			}
 
-			if (onSave) onSave(formData); // Beritahu parent (EventPosPage) untuk refresh data
-			onHide(); // Tutup modal
+			if (onSave) onSave();
+			onHide();
 		} catch (err) {
-			console.error('Error:', err);
 			notify('error', 'Gagal', 'Terjadi kesalahan saat menyimpan data pos.');
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
+	const handleChangeDays = (newDaysArray) => {
+		setFormData((prev) => ({ ...prev, selectedDays: newDaysArray }));
+	};
+
 	useEffect(() => {
 		if (posData) {
-			// Mode Edit: Isi form dengan data yang diklik
 			setFormData({
-				namaPos: posData.name,
-				// Ubah string status "Aktif" / "Tidak Aktif" menjadi boolean untuk Switch
+				namaPos: posData.name || '',
+				deskripsi: posData.description || '',
+				selectedDays: posData.days || [],
 				isActive: posData.status === 'Aktif',
 			});
 		} else {
-			// Mode Tambah: Reset form
 			setFormData({
 				namaPos: '',
+				deskripsi: '',
+				selectedDays: [],
 				isActive: true,
 			});
 		}
-	}, [posData]);
+	}, [posData, show]);
+
+	// Derived state untuk validasi tombol submit
+	const isFormValid = formData.namaPos.trim() !== '' && formData.selectedDays.length > 0;
 
 	return (
 		<ModalBox
 			show={show}
 			onHide={onHide}
 			title={isEditMode ? 'Edit Pos' : 'Tambah Pos Baru'}
-			subtitle={
-				isEditMode
-					? 'Perbarui nama dan status pos akses ini.'
-					: 'Buat pos baru dan atur kode akses (PIN) untuk petugas scan.'
-			}
+			icon={MapPin} // Menggunakan icon MapPin di header modal sesuai gambar
 			size="md">
-			{/* ── Input NAMA POS ── */}
-			<Form.Group className="mb-4">
-				<Form.Label className="fw-bold">Nama Pos</Form.Label>
-				<InputGroup>
-					<Form.Control
-						type="text"
-						name="namaPos"
-						value={formData.namaPos}
-						onChange={handleChange}
-						placeholder="Contoh: Pintu Masuk Utama"
-						required
-						disabled={isSubmitting}
-					/>
-				</InputGroup>
+			{/* ── NAMA POS ── */}
+			<Form.Group className="mb-3">
+				<Form.Label className="fw-bold small">
+					Nama Pos <span className="text-danger">*</span>
+				</Form.Label>
+				<Form.Control
+					type="text"
+					name="namaPos"
+					value={formData.namaPos}
+					onChange={handleChange}
+					placeholder="cth. Meja Registrasi Auditorium, Check-in Lab A..."
+					className="bg-light"
+					required
+				/>
 			</Form.Group>
 
-			{/* ── Toggle STATUS POS ── */}
-			<Form.Group className="mb-4">
-				<Form.Label className="fw-bold">Status Pos</Form.Label>
-				<label
-					className="d-flex align-items-center justify-content-between p-3 bg-white border rounded-3 shadow-sm-hover transition-all"
-					style={{
-						cursor: isSubmitting ? 'not-allowed' : 'pointer',
-						opacity: isSubmitting ? 0.7 : 1,
-					}}>
-					<div>
-						<p className="mb-0 fw-bold text-dark" style={{ fontSize: '14px' }}>
-							Pos Aktif
-						</p>
-						<p className="mb-0 text-muted" style={{ fontSize: '12px' }}>
-							Jika dimatikan, petugas tidak bisa menggunakan pos ini.
-						</p>
-					</div>
-					<Form.Check
-						type="switch"
-						name="isActive"
-						className="custom-soft-switch d-flex align-items-center m-0"
-						checked={formData.isActive}
-						onChange={handleChange}
-						id="status-switch"
-						disabled={isSubmitting}
-					/>
-				</label>
+			{/* ── DESKRIPSI ── */}
+			<Form.Group className="mb-3">
+				<Form.Label className="fw-bold small text-muted">
+					Deskripsi <span className="fw-normal">(opsional)</span>
+				</Form.Label>
+				<Form.Control
+					as="textarea"
+					rows={3}
+					name="deskripsi"
+					value={formData.deskripsi}
+					onChange={handleChange}
+					placeholder="Keterangan lokasi atau fungsi pos ini..."
+					className="bg-light"
+					style={{ resize: 'none' }}
+				/>
 			</Form.Group>
 
-			{/* ── Footer / Aksi ── */}
-			<div className="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+			{/* ── BERLAKU PADA HARI ── */}
+			<DaySelectionGroup
+				eventId={eventId}
+				selectedDays={formData.selectedDays}
+				onChange={handleChangeDays}
+			/>
+
+			{/* ── STATUS ── */}
+			<Form.Group className="mb-4">
+				<Form.Label className="fw-bold small">Status</Form.Label>
+				<Row className="g-2">
+					<Col>
+						<div
+							onClick={() => setFormData((prev) => ({ ...prev, isActive: true }))}
+							style={{
+								cursor: 'pointer',
+								padding: '12px',
+								textAlign: 'center',
+								borderRadius: '10px',
+								fontWeight: '600',
+								fontSize: '14px',
+								transition: 'all 0.2s',
+								// Style saat Aktif dipilih
+								backgroundColor: formData.isActive ? '#e8f5e9' : '#ffffff',
+								color: formData.isActive ? '#2e7d32' : '#64748b',
+								border: formData.isActive
+									? '2px solid #4caf50'
+									: '1px solid #e2e8f0',
+							}}>
+							Aktif
+						</div>
+					</Col>
+					<Col>
+						<div
+							onClick={() => setFormData((prev) => ({ ...prev, isActive: false }))}
+							style={{
+								cursor: 'pointer',
+								padding: '12px',
+								textAlign: 'center',
+								borderRadius: '10px',
+								fontWeight: '600',
+								fontSize: '14px',
+								transition: 'all 0.2s',
+								// Style saat Tidak Aktif dipilih
+								backgroundColor: !formData.isActive ? '#f8fafc' : '#ffffff',
+								color: !formData.isActive ? '#1e293b' : '#64748b',
+								border: !formData.isActive
+									? '2px solid #94a3b8'
+									: '1px solid #e2e8f0',
+							}}>
+							Tidak Aktif
+						</div>
+					</Col>
+				</Row>
+			</Form.Group>
+
+			{/* ── FOOTER BUTTONS ── */}
+			<div className="d-flex gap-2 pt-3 border-top">
 				<Button
-					variant="light"
+					variant="outline-secondary"
+					className="w-100 py-2 fw-bold"
 					onClick={onHide}
-					className="px-4 text-secondary border"
-					disabled={isSubmitting}>
+					style={{
+						borderRadius: '12px',
+						border: '1.5px solid #e2e8f0',
+						color: '#64748b',
+						backgroundColor: '#ffffff',
+					}}>
 					Batal
 				</Button>
 				<Button
-					type="submit"
 					variant="primary"
+					className="w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2"
 					onClick={handleSubmit}
-					disabled={isSubmitting || !formData.namaPos.trim()} // Validasi jika nama kosong
-					className="d-flex align-items-center gap-2 px-4 fw-bold shadow-sm"
-					style={{ backgroundColor: '#000', border: 'none' }}>
+					disabled={isSubmitting || !isFormValid}
+					style={{
+						borderRadius: '12px',
+						border: 'none',
+						// Warna biru pudar jika belum valid (sesuai gambar)
+						backgroundColor: isSubmitting || !isFormValid ? '#cbd5e1' : '#1e3a8a',
+						color: '#ffffff',
+					}}>
 					{isSubmitting ? (
-						<>
-							<Spinner animation="border" size="sm" />
-							Menyimpan...
-						</>
+						<Spinner size="sm" />
 					) : (
 						<>
-							<CheckCircle2 size={18} />
-							Simpan Pos
+							<Check size={18} strokeWidth={3} />
+							{isEditMode ? 'Simpan Perubahan' : 'Tambah Pos'}
 						</>
 					)}
 				</Button>

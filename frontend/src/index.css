@@ -75,8 +75,7 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	/* Semantic */
 	--success-bg: #dcfce7;
 	--success-text: #166534;
-	--warning-bg: #fef3c7; /* Overrides original warning-bg if used as --warning-bg */
-	--warning-text: #92400e; /* Overrides original warning-text if used as --warning-text */
+	--success-border: #5eb27d;
 	--danger-bg: #fee2e2;
 	--danger-text: #991b1b;
 	--info-bg: #dff3ff;

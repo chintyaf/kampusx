@@ -23,9 +23,12 @@ return new class extends Migration {
             $table->dateTime('end_date')->nullable();
             $table->string('timezone', 50)->nullable();
 
+            $table->string('staff_access_pin', 10)->unique()->nullable();
+
             $table->enum('status', ['draft', 'published', 'cancelled'])->default('draft');
             $table->softDeletes(); // Tambahan fitur restore
             $table->timestamps();
+
 
             $table->boolean('is_featured')->default(false);
         });
@@ -131,11 +134,24 @@ return new class extends Migration {
             $table->timestamps();
         });
 
+                // 1. BUAT TABEL PARENT: `event_stations` (Pos / Titik Check-in)
+        Schema::create('event_stations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('description')->nullable(); // Ditambah nullable() karena opsional
+
+            // is_active sebagai saklar master per pos
+            $table->boolean('is_active')->default(true)->index();
+            $table->timestamps();
+        });
+
     }
 
     public function down(): void
     {
         // Hapus child/pivot tables dulu
+        Schema::dropIfExists('event_stations');
         Schema::dropIfExists('event_locations');
         Schema::dropIfExists('event_session_speakers');
         Schema::dropIfExists('event_categories');
