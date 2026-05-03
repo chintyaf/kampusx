@@ -1,287 +1,388 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
-import { ArrowLeft, CheckCircle, QrCode, Calendar, MapPin, User, Mail, Phone, Download } from 'lucide-react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import api from '../../api/axios';
-import { useAuth } from '../../context/AuthContext'; // Sesuaikan path-nya
+import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-bootstrap";
+import {
+  ArrowLeft, CheckCircle, Calendar, MapPin, User,
+  Mail, Phone, ShieldCheck, Tag, CreditCard, Ticket,
+} from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import api from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
-const Checkout = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const { user, token } = useAuth(); // Ambil data user & token dari context
-
-    // --- STATE MANAGEMENT ---
-    const [step, setStep] = useState(1);
-    const [eventDetails, setEventDetails] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [ticketData, setTicketData] = useState(null); // Menyimpan data tiket dari backend
-
-    // Form data otomatis terisi dari user yang login
-    const [formData, setFormData] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        phone: user?.phone || '', 
-    });
-
-    // --- FETCH DATA EVENT ---
-    useEffect(() => {
-        // Kalau belum login, lempar ke SignIn
-        if (!user) {
-            navigate('/signin', { state: { from: `/checkout/${id}` } });
-            return;
-        }
-
-        const fetchEvent = async () => {
-            try {
-                const response = await api.get(`events/${id}`);
-                const result = response.data;
-
-                if (result.status === "success" || result.data) {
-                    setEventDetails(result.data || result);
-                } else {
-                    setEventDetails(result); 
-                }
-                
-                setIsLoading(false);
-            } catch (err) {
-                console.error("Gagal mengambil data event:", err);
-                setError("Gagal memuat detail event.");
-                setIsLoading(false);
-            }
-        };
-
-        fetchEvent();
-    }, [id, user, navigate]);
-
-    // --- HANDLERS ---
-    const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleCheckout = async (e) => {
-        e.preventDefault();
-        setStep(2); // Set loading state pada tombol
-
-        try {
-            // Asumsi Endpoint Laravel untuk proses checkout
-            // const response = await axios.post(
-            //     'http://localhost:8000/api/checkout', 
-            //     {
-            //         event_id: id,
-            //         name: formData.name,
-            //         email: formData.email,
-            //         phone: formData.phone,
-            //         quantity: 1, // Hardcode 1 tiket dulu untuk sekarang
-            //         // total_price: eventDetails.price // (Opsional) Sebaiknya harga dihitung di backend agar aman
-            //     },
-            //     {
-            //         headers: {
-            //             Authorization: `Bearer ${token}`, // Kirim token biar backend tahu siapa yang order
-            //             'Content-Type': 'application/json'
-            //         }
-            //     }
-            // );
-
-            const response = await api.post(`checkout`, {
-                event_id: id,
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                quantity: 1, 
-            });
-            console.log("Sukses checkout:", response.data);
-            const resultData = response.data.data || response.data;
-            const ticketCode = resultData.ticket?.ticket_code;
-            
-            navigate(`/ticket/${ticketCode}`, { replace: true });
-
-            // // Simpan data tiket dari response backend (misal tiket_code, dll)
-            // setTicketData(response.data.ticket);
-            // setStep(3); // Pindah ke halaman sukses
-
-        } catch (err) {
-            console.log(err.response?.data); 
-            alert(err.response?.data?.message || "Terjadi kesalahan sistem.");
-            setStep(1);
-        }
-    };
-
-    // --- RENDER: LOADING & ERROR STATE ---
-    if (isLoading) {
+// ── Step indicator ────────────────────────────────────────────────────────────
+const Steps = ({ current }) => {
+  const items = ["Informasi", "Pembayaran", "Selesai"];
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
+      {items.map((label, i) => {
+        const idx   = i + 1;
+        const done  = current > idx;
+        const active= current === idx;
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-                <Spinner animation="border" style={{ color: 'var(--color-primary)' }} />
+          <React.Fragment key={idx}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, fontWeight: 700,
+                background: done || active ? "var(--color-primary)" : "var(--color-border)",
+                color: done || active ? "#fff" : "var(--color-secondary)",
+                transition: "all .2s",
+              }}>
+                {done ? <CheckCircle size={16} /> : idx}
+              </div>
+              <span style={{ fontSize: 11, fontWeight: active ? 700 : 400, color: active ? "var(--color-primary)" : "var(--color-secondary)" }}>
+                {label}
+              </span>
             </div>
+            {i < items.length - 1 && (
+              <div style={{ flex: 1, height: 2, background: current > idx ? "var(--color-primary)" : "var(--color-border)", margin: "0 8px", marginBottom: 20, transition: "all .2s" }} />
+            )}
+          </React.Fragment>
         );
+      })}
+    </div>
+  );
+};
+
+// ── Field wrapper ─────────────────────────────────────────────────────────────
+const FieldIcon = ({ icon: Icon, children }) => (
+  <div style={{ position: "relative" }}>
+    <Icon size={16} style={{ position: "absolute", top: 11, left: 12, color: "var(--color-secondary)", pointerEvents: "none" }} />
+    {React.cloneElement(children, { style: { ...children.props.style, paddingLeft: 36, borderColor: "var(--color-border)", borderRadius: 8, fontSize: "var(--font-sm)" } })}
+  </div>
+);
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+const Checkout = () => {
+  const { id }     = useParams();
+  const navigate   = useNavigate();
+  const { user, token } = useAuth();
+
+  const [step,         setStep]         = useState(1); // 1=form, 2=processing, 3=done
+  const [eventDetails, setEventDetails] = useState(null);
+  const [isLoading,    setIsLoading]    = useState(true);
+  const [error,        setError]        = useState(null);
+  const [submitError,  setSubmitError]  = useState(null);
+
+  const [formData, setFormData] = useState({
+    name:  user?.name  || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+  });
+
+  // Redirect jika belum login
+  useEffect(() => {
+    if (!user) navigate("/signin", { state: { from: `/checkout/${id}` } });
+  }, [user]);
+
+  // Fetch event
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const res    = await api.get(`events/${id}`);
+        const result = res.data;
+        setEventDetails(result?.data ?? result);
+      } catch {
+        setError("Gagal memuat detail event.");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [id, user]);
+
+  // Load Midtrans Snap
+  useEffect(() => {
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
+    const snapUrl   = import.meta.env.VITE_MIDTRANS_SNAP_URL;
+    if (!snapUrl) return;
+
+    const script = document.createElement("script");
+    script.src   = snapUrl;
+    script.setAttribute("data-client-key", clientKey);
+    script.async = true;
+    document.body.appendChild(script);
+    return () => document.body.removeChild(script);
+  }, []);
+
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const handleCheckout = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+    setStep(2);
+
+    try {
+      const res        = await api.post("checkout", {
+        event_id: id,
+        name:     formData.name,
+        email:    formData.email,
+        phone:    formData.phone,
+        quantity: 1,
+      });
+
+      const snapToken  = res.data.snap_token;
+      const ticketCode = res.data.ticket_code;
+      const orderId    = res.data.order_id;
+
+      if (!orderId) throw new Error("Order ID tidak diterima dari server.");
+
+      if (snapToken) {
+        window.snap.pay(snapToken, {
+          onSuccess: () => navigate(`/ticket/${ticketCode}`, { replace: true }),
+          onPending: () => navigate("/my-tickets", { replace: true }),
+          onError:   () => { setSubmitError("Pembayaran gagal. Silakan coba lagi."); setStep(1); },
+          onClose:   () => { setSubmitError("Kamu menutup pop-up sebelum selesai."); setStep(1); },
+        });
+      } else {
+        // Tiket gratis
+        navigate(`/ticket/${ticketCode}`, { replace: true });
+      }
+    } catch (err) {
+      setSubmitError(err.response?.data?.message ?? "Terjadi kesalahan sistem.");
+      setStep(1);
     }
+  };
 
-    if (error || !eventDetails) {
-        return (
-            <Container className="py-5 text-center">
-                <Alert variant="danger">{error}</Alert>
-                <Button onClick={() => navigate(-1)}>Kembali</Button>
-            </Container>
-        );
-    }
+  // ── Loading ───────────────────────────────────────────────────────────────
+  if (isLoading) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "80vh" }}>
+      <Spinner animation="border" style={{ color: "var(--color-primary)" }} />
+    </div>
+  );
 
-    // --- RENDER: STEP 3 (TIKET DIGITAL) ---
-    // if (step === 3) {
-    //     return (
-    //         <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', padding: '50px 0' }}>
-    //             <Container className="d-flex flex-column align-items-center">
-    //                 <CheckCircle size={64} className="mb-3 text-success" />
-    //                 <h2 className="fw-bold mb-2">Pembayaran Berhasil!</h2>
-    //                 <p className="text-muted mb-5 text-center">Terima kasih, tiket Anda telah dikirim ke {formData.email}</p>
+  if (error || !eventDetails) return (
+    <Container style={{ paddingTop: 56, textAlign: "center" }}>
+      <Alert style={{ background: "var(--error-bg)", border: "1px solid var(--error-border)", color: "var(--error-text)", borderRadius: 10 }}>
+        {error ?? "Event tidak ditemukan."}
+      </Alert>
+      <Button onClick={() => navigate(-1)} style={{ background: "var(--color-primary)", border: "none", borderRadius: 8 }}>
+        Kembali
+      </Button>
+    </Container>
+  );
 
-    //                 {/* TIKET DIGITAL CARD */}
-    //                 <Card className="border-0 shadow-lg w-100" style={{ maxWidth: '800px', borderRadius: '16px', overflow: 'hidden' }}>
-    //                     <Row className="g-0">
-    //                         <Col md={8} className="p-4 p-md-5 bg-white">
-    //                             <span className="badge bg-success mb-2 px-3 py-2 rounded-pill">E-TICKET AKTIF</span>
-    //                             <h3 className="fw-bold">{eventDetails.title}</h3>
-                                
-    //                             <div className="d-flex flex-column gap-3 my-4 text-muted">
-    //                                 <div className="d-flex align-items-center gap-3">
-    //                                     <Calendar size={20} className="text-primary" />
-    //                                     <div>
-    //                                         <div className="fw-medium text-dark">{eventDetails.start_date || eventDetails.date}</div>
-    //                                     </div>
-    //                                 </div>
-    //                                 <div className="d-flex align-items-center gap-3">
-    //                                     <MapPin size={20} className="text-primary" />
-    //                                     <div>
-    //                                         <div className="fw-medium text-dark">{eventDetails.location}</div>
-    //                                     </div>
-    //                                 </div>
-    //                             </div>
+  // ── Kalkulasi harga ───────────────────────────────────────────────────────
+  const eventPrice   = parseFloat(eventDetails.price) || 0;
+  const adminFee     = eventPrice > 0 ? 1 : 0;
+  const total        = eventPrice + adminFee;
+  const isFree       = total === 0;
 
-    //                             <hr className="mb-4" />
+  const fmtRp = (n) => n === 0 ? "Gratis" : `Rp ${n.toLocaleString("id-ID")}`;
 
-    //                             <Row className="g-3">
-    //                                 <Col xs={6}>
-    //                                     <div className="text-muted mb-1" style={{ fontSize: '12px' }}>Nama Peserta</div>
-    //                                     <div className="fw-bold text-dark">{formData.name}</div>
-    //                                 </Col>
-    //                                 <Col xs={6}>
-    //                                     <div className="text-muted mb-1" style={{ fontSize: '12px' }}>Kode Tiket</div>
-    //                                     {/* Ambil kode tiket dari response backend */}
-    //                                     <div className="fw-bold text-dark">{ticketData?.ticket_code || '#EVT-PENDING'}</div>
-    //                                 </Col>
-    //                             </Row>
-    //                         </Col>
+  // ── Render ────────────────────────────────────────────────────────────────
+  return (
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh", paddingBottom: 56 }}>
 
-    //                         <Col md={4} className="p-4 d-flex flex-column align-items-center justify-content-center text-center bg-light border-start border-2 border-dashed">
-    //                             <div className="bg-white p-3 rounded-4 shadow-sm mb-3">
-    //                                 <QrCode size={120} />
-    //                             </div>
-    //                             <p className="text-muted mb-0" style={{ fontSize: '12px' }}>Tunjukkan QR Code ini pada saat registrasi ulang.</p>
-    //                         </Col>
-    //                     </Row>
-    //                 </Card>
+      {/* ── Page header ──────────────────────────────────────────────────── */}
+      <div style={{ background: "var(--color-white)", borderBottom: "1px solid var(--color-border)", padding: "18px 0", marginBottom: 32, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+        <Container>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => navigate(-1)}
+              style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--color-secondary)", display: "flex", alignItems: "center" }}>
+              <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h5 style={{ margin: 0, fontWeight: 800, color: "var(--color-text)", fontSize: "var(--font-lg)" }}>Checkout</h5>
+              <p style={{ margin: 0, fontSize: "var(--font-xs)", color: "var(--color-secondary)" }}>Lengkapi data untuk konfirmasi pesanan</p>
+            </div>
+          </div>
+        </Container>
+      </div>
 
-    //                 <div className="mt-5 d-flex gap-3">
-    //                     <Link to="/" className="text-decoration-none">
-    //                         <Button variant="primary" className="fw-medium py-2 px-4 rounded-pill">
-    //                             Kembali ke Beranda
-    //                         </Button>
-    //                     </Link>
-    //                 </div>
-    //             </Container>
-    //         </div>
-    //     );
-    // }
+      <Container>
+        {/* Step indicator */}
+        <Steps current={step === 2 ? 2 : 1} />
 
-    // Perhitungan harga (Asumsi admin fee statis)
-    const eventPrice = parseFloat(eventDetails.price) || 0;
-    const adminFee = eventPrice > 0 ? 5000 : 0;
-    const totalPayment = eventPrice + adminFee;
+        {/* Submit error */}
+        {submitError && (
+          <Alert style={{ background: "var(--error-bg)", border: "1px solid var(--error-border)", color: "var(--error-text)", borderRadius: 10, fontSize: "var(--font-sm)", marginBottom: 20 }}>
+            {submitError}
+          </Alert>
+        )}
 
-    // --- RENDER: STEP 1 & 2 (CHECKOUT FORM) ---
-    return (
-        <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', paddingBottom: '50px' }}>
-            {/* ... (Header Checkout tetap sama seperti kode kamu) ... */}
-            
-            <Container className="mt-4">
-                <Form onSubmit={handleCheckout}>
-                    <Row className="g-4">
-                        {/* KOLOM KIRI: FORM DATA DIRI */}
-                        <Col lg={8}>
-                            <Card className="border-0 shadow-sm p-4 mb-4 rounded-3">
-                                <h5 className="fw-bold mb-4">Informasi Pemesan</h5>
-                                
-                                <Form.Group className="mb-4">
-                                    <Form.Label className="fw-medium text-muted">Nama Lengkap</Form.Label>
-                                    <div className="position-relative">
-                                        <User size={18} className="position-absolute text-muted" style={{ top: '12px', left: '14px' }} />
-                                        <Form.Control type="text" name="name" value={formData.name} onChange={handleInputChange} required style={{ paddingLeft: '40px' }} disabled={step === 2} />
-                                    </div>
-                                </Form.Group>
+        <Form onSubmit={handleCheckout}>
+          <Row className="g-4">
 
-                                <Row className="g-3">
-                                    <Col md={6}>
-                                        <Form.Group className="mb-4">
-                                            <Form.Label className="fw-medium text-muted">Email</Form.Label>
-                                            <div className="position-relative">
-                                                <Mail size={18} className="position-absolute text-muted" style={{ top: '12px', left: '14px' }} />
-                                                <Form.Control type="email" name="email" value={formData.email} onChange={handleInputChange} required style={{ paddingLeft: '40px' }} disabled={step === 2} />
-                                            </div>
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-4">
-                                            <Form.Label className="fw-medium text-muted">Nomor WhatsApp</Form.Label>
-                                            <div className="position-relative">
-                                                <Phone size={18} className="position-absolute text-muted" style={{ top: '12px', left: '14px' }} />
-                                                <Form.Control type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="0812xxxxxx" style={{ paddingLeft: '40px' }} disabled={step === 2} />
-                                            </div>
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                            </Card>
-                        </Col>
+            {/* ── LEFT: Form ─────────────────────────────────────────────── */}
+            <Col lg={8}>
 
-                        {/* KOLOM KANAN: ORDER SUMMARY */}
-                        <Col lg={4}>
-                            <Card className="border-0 shadow-sm p-4 sticky-top rounded-3" style={{ top: '90px' }}>
-                                <h5 className="fw-bold mb-4">Ringkasan Pesanan</h5>
-                                
-                                <div className="mb-4">
-                                    <h6 className="fw-bold mb-1">{eventDetails.title}</h6>
-                                    <p className="text-muted mb-0" style={{ fontSize: '14px' }}>{eventDetails.location}</p>
-                                </div>
+              {/* Event info card */}
+              <div style={{ background: "var(--bahama-blue-50)", border: "1px solid var(--color-border-blue)", borderRadius: 12, padding: "14px 16px", marginBottom: 16, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <img
+                  src={eventDetails.image || `https://placehold.co/120x80/dff3ff/00699e?text=Event`}
+                  alt={eventDetails.title}
+                  style={{ width: 80, height: 60, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+                />
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: "var(--font-md)", color: "var(--color-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {eventDetails.title}
+                  </p>
+                  <div style={{ display: "flex", gap: 12, fontSize: "var(--font-xs)", color: "var(--color-secondary)", flexWrap: "wrap" }}>
+                    {eventDetails.start_date && (
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <Calendar size={11} /> {new Date(eventDetails.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                      </span>
+                    )}
+                    {eventDetails.location && (
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <MapPin size={11} /> {eventDetails.location}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-                                <hr className="text-muted" />
+              {/* Form card */}
+              <Card style={{ border: "1px solid var(--color-border)", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,105,158,0.05)", overflow: "hidden" }}>
+                <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--color-border)", background: "var(--color-white)" }}>
+                  <h6 style={{ margin: 0, fontWeight: 700, color: "var(--color-text)", fontSize: "var(--font-md)" }}>Informasi Pemesan</h6>
+                  <p style={{ margin: "2px 0 0", fontSize: "var(--font-xs)", color: "var(--color-secondary)" }}>Data ini akan digunakan sebagai identitas tiket</p>
+                </div>
+                <Card.Body style={{ padding: "20px" }}>
 
-                                <div className="d-flex justify-content-between mb-2">
-                                    <span className="text-muted">1x Tiket</span>
-                                    <span className="fw-medium">Rp {eventPrice.toLocaleString('id-ID')}</span>
-                                </div>
-                                <div className="d-flex justify-content-between mb-3">
-                                    <span className="text-muted">Biaya Admin</span>
-                                    <span className="fw-medium">Rp {adminFee.toLocaleString('id-ID')}</span>
-                                </div>
+                  <Form.Group style={{ marginBottom: 16 }}>
+                    <Form.Label style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)", marginBottom: 6 }}>
+                      Nama Lengkap <span style={{ color: "var(--error-text)" }}>*</span>
+                    </Form.Label>
+                    <FieldIcon icon={User}>
+                      <Form.Control
+                        type="text" name="name" value={formData.name}
+                        onChange={handleChange} required disabled={step === 2}
+                        placeholder="Nama sesuai identitas"
+                      />
+                    </FieldIcon>
+                  </Form.Group>
 
-                                <hr className="text-muted" />
+                  <Row className="g-3">
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)", marginBottom: 6 }}>
+                          Email <span style={{ color: "var(--error-text)" }}>*</span>
+                        </Form.Label>
+                        <FieldIcon icon={Mail}>
+                          <Form.Control
+                            type="email" name="email" value={formData.email}
+                            onChange={handleChange} required disabled={step === 2}
+                            placeholder="email@kamu.com"
+                          />
+                        </FieldIcon>
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)", marginBottom: 6 }}>
+                          Nomor WhatsApp <span style={{ color: "var(--error-text)" }}>*</span>
+                        </Form.Label>
+                        <FieldIcon icon={Phone}>
+                          <Form.Control
+                            type="tel" name="phone" value={formData.phone}
+                            onChange={handleChange} required disabled={step === 2}
+                            placeholder="0812xxxxxx"
+                          />
+                        </FieldIcon>
+                      </Form.Group>
+                    </Col>
+                  </Row>
 
-                                <div className="d-flex justify-content-between mb-4 align-items-center">
-                                    <span className="fw-bold fs-5">Total</span>
-                                    <span className="fw-bold fs-5 text-primary">
-                                        {totalPayment === 0 ? 'GRATIS' : `Rp ${totalPayment.toLocaleString('id-ID')}`}
-                                    </span>
-                                </div>
+                </Card.Body>
+              </Card>
 
-                                <Button type="submit" disabled={step === 2} className="w-100 fw-bold py-3">
-                                    {step === 2 ? <><Spinner as="span" animation="border" size="sm" className="me-2" /> Memproses...</> : 'Konfirmasi Pesanan'}
-                                </Button>
-                            </Card>
-                        </Col>
-                    </Row>
-                </Form>
-            </Container>
-        </div>
-    );
+              {/* Jaminan */}
+              <div style={{ display: "flex", gap: 20, marginTop: 16, flexWrap: "wrap" }}>
+                {[
+                  { icon: ShieldCheck, text: "Transaksi aman & terenkripsi" },
+                  { icon: Ticket,      text: "E-tiket dikirim ke email" },
+                  { icon: Tag,         text: "Harga sudah termasuk pajak" },
+                ].map(({ icon: Icon, text }) => (
+                  <div key={text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--font-xs)", color: "var(--color-secondary)" }}>
+                    <Icon size={13} color="var(--color-primary)" /> {text}
+                  </div>
+                ))}
+              </div>
+            </Col>
+
+            {/* ── RIGHT: Order summary ────────────────────────────────────── */}
+            <Col lg={4}>
+              <div style={{ position: "sticky", top: 90 }}>
+                <Card style={{ border: "1px solid var(--color-border)", borderRadius: 12, boxShadow: "0 2px 8px rgba(0,105,158,0.06)", overflow: "hidden" }}>
+                  <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--color-border)", background: "var(--color-white)" }}>
+                    <h6 style={{ margin: 0, fontWeight: 700, color: "var(--color-text)", fontSize: "var(--font-md)" }}>Ringkasan Pesanan</h6>
+                  </div>
+
+                  <Card.Body style={{ padding: "16px 18px" }}>
+                    {/* Event title */}
+                    <div style={{ marginBottom: 14 }}>
+                      <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: "var(--font-sm)", color: "var(--color-text)" }}>{eventDetails.title}</p>
+                      {eventDetails.location && (
+                        <p style={{ margin: 0, fontSize: "var(--font-xs)", color: "var(--color-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
+                          <MapPin size={10} /> {eventDetails.location}
+                        </p>
+                      )}
+                    </div>
+
+                    <hr style={{ margin: "12px 0", borderColor: "var(--color-border)", opacity: 1 }} />
+
+                    {/* Price breakdown */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--font-sm)", color: "var(--color-secondary)" }}>
+                        <span>1× Tiket</span>
+                        <span style={{ fontWeight: 600, color: "var(--color-text)" }}>
+                          {eventPrice === 0 ? "Gratis" : `Rp ${eventPrice.toLocaleString("id-ID")}`}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--font-sm)", color: "var(--color-secondary)" }}>
+                        <span>Biaya Admin</span>
+                        <span style={{ fontWeight: 600, color: "var(--color-text)" }}>
+                          {adminFee === 0 ? "–" : `Rp ${adminFee.toLocaleString("id-ID")}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <hr style={{ margin: "12px 0", borderColor: "var(--color-border)", opacity: 1 }} />
+
+                    {/* Total */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                      <span style={{ fontWeight: 800, fontSize: "var(--font-md)", color: "var(--color-text)" }}>Total</span>
+                      <span style={{ fontWeight: 800, fontSize: 20, color: "var(--color-primary)" }}>
+                        {isFree ? "GRATIS" : `Rp ${total.toLocaleString("id-ID")}`}
+                      </span>
+                    </div>
+
+                    {/* CTA Button */}
+                    <Button
+                      type="submit"
+                      disabled={step === 2}
+                      style={{ width: "100%", background: "var(--color-primary)", border: "none", borderRadius: 10, fontWeight: 700, fontSize: "var(--font-md)", padding: "12px 0", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "opacity .15s" }}
+                    >
+                      {step === 2 ? (
+                        <><Spinner as="span" animation="border" size="sm" /> Memproses…</>
+                      ) : (
+                        <><CreditCard size={16} /> {isFree ? "Klaim Tiket Gratis" : "Lanjut ke Pembayaran"}</>
+                      )}
+                    </Button>
+
+                    <p style={{ margin: "10px 0 0", textAlign: "center", fontSize: "var(--font-xs)", color: "var(--color-secondary)" }}>
+                      Dengan melanjutkan, kamu menyetujui <span style={{ color: "var(--color-primary)", cursor: "pointer", fontWeight: 600 }}>syarat & ketentuan</span> kami.
+                    </p>
+                  </Card.Body>
+                </Card>
+
+                {/* Help */}
+                <div style={{ marginTop: 12, textAlign: "center", fontSize: "var(--font-xs)", color: "var(--color-secondary)" }}>
+                  Ada masalah?{" "}
+                  <a href="mailto:support@kampusx.id" style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}>
+                    Hubungi support
+                  </a>
+                </div>
+              </div>
+            </Col>
+
+          </Row>
+        </Form>
+      </Container>
+    </div>
+  );
 };
 
 export default Checkout;

@@ -1,119 +1,222 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Card, Row, Col, Spinner, Button } from 'react-bootstrap';
-import { CheckCircle, Calendar, MapPin, Download } from 'lucide-react';
-import { useParams, Link } from 'react-router-dom';
-// import axios from 'axios';
-import api from '../api/axios';
-import QRCode from 'react-qr-code'; // <-- Pakai library yang baru diinstall
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import { Container, Card, Row, Col, Spinner, Button } from "react-bootstrap";
+import { CheckCircle, Calendar, MapPin, Download, ArrowLeft, Share2, Clock } from "lucide-react";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import QRCode from "react-qr-code";
+import { useAuth } from "../context/AuthContext";
 
 const TicketDetail = () => {
-    const { ticketCode } = useParams(); // Ambil kode tiket dari URL
-    const { token } = useAuth();
-    const [ticket, setTicket] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const { ticketCode } = useParams();
+  const { token }      = useAuth();
+  const location       = useLocation();
+  const navigate       = useNavigate();
 
-    useEffect(() => {
-        const fetchTicket = async () => {
-            try {
-                // Ambil data tiket dari backend
-                // const response = await axios.get(`http://localhost:8000/api/tickets/${ticketCode}`, {
-                //     headers: { Authorization: `Bearer ${token}` }
-                // });
-                const response = await api.get(`tickets/${ticketCode}`);
-                const result = response.data;
-                if (result.status === "success" || result.data) {
-                    setTicket(result.data || result);
-                } else {
-                    setTicket(result);
-                }
-                // setTicket(response.data.data);
-                setIsLoading(false);
-            } catch (err) {
-                console.error(err);
-                alert(err.response?.data?.message || "Gagal memuat tiket.");
-                setIsLoading(false);
-            }
-        };
-        fetchTicket();
-    }, [ticketCode, token]);
+  const fromCheckout = location.state?.fromCheckout === true;
 
-    if (isLoading) {
-        return <div className="text-center py-5"><Spinner animation="border" /></div>;
-    }
+  const [ticket,    setTicket]    = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error,     setError]     = useState(null);
 
-    if (!ticket) {
-        return <div className="text-center py-5">Tiket tidak ditemukan.</div>;
-    }
+  useEffect(() => {
+    (async () => {
+      try {
+        const res    = await api.get(`tickets/${ticketCode}`);
+        const result = res.data;
+        setTicket(result?.data ?? result);
+      } catch (err) {
+        setError(err.response?.data?.message ?? "Gagal memuat tiket.");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, [ticketCode, token]);
 
-    // Ambil detail event dari relasi yang dikirim backend
-    const event = ticket?.order_item?.order?.event || {};
+  if (isLoading) return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "70vh" }}>
+      <Spinner animation="border" style={{ color: "var(--color-primary)" }} />
+    </div>
+  );
 
-    return (
-        <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh', padding: '50px 0' }}>
-            <Container className="d-flex flex-column align-items-center">
-                <CheckCircle size={64} className="mb-3 text-success" />
-                <h2 className="fw-bold mb-2">Pemesanan Berhasil!</h2>
-                {/* <p className="text-muted mb-5 text-center">Tiket digital ini juga telah dikirim ke email kamu.</p> */}
+  if (error || !ticket) return (
+    <div style={{ textAlign: "center", padding: "80px 16px", color: "var(--color-secondary)" }}>
+      <p style={{ fontWeight: 700, color: "var(--color-text)", marginBottom: 8 }}>Tiket tidak ditemukan</p>
+      <p style={{ fontSize: "var(--font-sm)", marginBottom: 20 }}>{error}</p>
+      <Button onClick={() => navigate(-1)}
+        style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "8px 20px", fontWeight: 600 }}>
+        Kembali
+      </Button>
+    </div>
+  );
 
-                <Card className="border-0 shadow-lg w-100" style={{ maxWidth: '800px', borderRadius: '16px', overflow: 'hidden' }}>
-                    <Row className="g-0">
-                        {/* BAGIAN KIRI: INFO EVENT */}
-                        <Col md={8} className="p-4 p-md-5 bg-white">
-                            <span className="badge bg-success mb-2 px-3 py-2 rounded-pill">E-TICKET AKTIF</span>
-                            <h3 className="fw-bold">{event.title}</h3>
-                            
-                            <div className="d-flex flex-column gap-3 my-4 text-muted">
-                                <div className="d-flex align-items-center gap-3">
-                                    <Calendar size={20} className="text-primary" />
-                                    <div className="fw-medium text-dark">{event.start_date || 'Tanggal Event'}</div>
-                                </div>
-                                <div className="d-flex align-items-center gap-3">
-                                    <MapPin size={20} className="text-primary" />
-                                    <div className="fw-medium text-dark">{event.location}</div>
-                                </div>
-                            </div>
+  const event = ticket?.order_item?.order?.event ?? {};
 
-                            <hr className="mb-4" />
+  const statusMap = {
+    active:    { label: "E-TICKET AKTIF",  bg: "#10B981" },
+    used:      { label: "SUDAH DIGUNAKAN", bg: "#64748b" },
+    cancelled: { label: "DIBATALKAN",      bg: "#ef4444" },
+  };
+  const statusInfo = statusMap[ticket.status] ?? statusMap.active;
 
-                            <Row className="g-3">
-                                <Col xs={6}>
-                                    <div className="text-muted mb-1" style={{ fontSize: '12px' }}>Nama Peserta</div>
-                                    <div className="fw-bold text-dark">{ticket.attendee_name}</div>
-                                </Col>
-                                <Col xs={6}>
-                                    <div className="text-muted mb-1" style={{ fontSize: '12px' }}>Kode Tiket</div>
-                                    <div className="fw-bold text-dark">{ticket.ticket_code}</div>
-                                </Col>
-                            </Row>
-                        </Col>
+  const fmtDate = (d) => d
+    ? new Date(d).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    : "Tanggal belum ditentukan";
 
-                        {/* BAGIAN KANAN: QR CODE ASLI */}
-                        <Col md={4} className="p-4 d-flex flex-column align-items-center justify-content-center text-center bg-light border-start border-2 border-dashed">
-                            <div className="bg-white p-3 rounded-4 shadow-sm mb-3">
-                                {/* Generate QR Code dari qr_token milik tiket */}
-                                <QRCode value={ticket.qr_token} size={150} />
-                            </div>
-                            <p className="text-muted mb-0" style={{ fontSize: '12px' }}>
-                                Tunjukkan QR Code ini kepada panitia saat registrasi di lokasi.
-                            </p>
-                        </Col>
-                    </Row>
-                </Card>
+  return (
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh", paddingBottom: 56 }}>
 
-                <div className="mt-5 d-flex gap-3">
-                    <Button variant="outline-primary" className="fw-medium py-2 px-4 rounded-pill">
-                        <Download size={18} className="me-2" /> Unduh PDF
-                    </Button>
-                    <Link to="/explore-events">
-                        <Button variant="primary" className="fw-medium py-2 px-4 rounded-pill">
-                            Cari Event Lain
-                        </Button>
-                    </Link>
+      {/* ── Page header ──────────────────────────────────────────────────── */}
+      <div style={{ background: "var(--color-white)", borderBottom: "1px solid var(--color-border)", padding: "16px 0", marginBottom: 32, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+        <Container>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => navigate(-1)}
+              style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--color-secondary)" }}>
+              <ArrowLeft size={20} />
+            </button>
+            <h5 style={{ margin: 0, fontWeight: 800, color: "var(--color-text)", fontSize: "var(--font-lg)" }}>
+              Detail Tiket
+            </h5>
+          </div>
+        </Container>
+      </div>
+
+      <Container>
+        <div style={{ maxWidth: 780, margin: "0 auto" }}>
+
+          {/* ── Success banner — hanya dari checkout ─────────────────────── */}
+          {fromCheckout && (
+            <div style={{ background: "#F0FDF4", border: "1px solid #86EFAC", borderRadius: 12, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+              <CheckCircle size={32} color="#10B981" style={{ flexShrink: 0 }} />
+              <div>
+                <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: "var(--font-md)", color: "#166534" }}>Pemesanan Berhasil!</p>
+                <p style={{ margin: 0, fontSize: "var(--font-sm)", color: "#16a34a" }}>
+                  Tiket digital kamu sudah aktif. Tunjukkan QR Code kepada panitia saat registrasi.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Ticket card ───────────────────────────────────────────────── */}
+          <Card style={{ border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,105,158,0.10)" }}>
+            <Row className="g-0">
+
+              {/* LEFT: Event info */}
+              <Col md={8} style={{ background: "var(--color-white)", padding: "28px 28px 24px" }}>
+                {/* Status badge */}
+                <span style={{ background: statusInfo.bg, color: "#fff", fontSize: 10, fontWeight: 800, borderRadius: 99, padding: "4px 12px", letterSpacing: "0.6px", display: "inline-block", marginBottom: 14 }}>
+                  {statusInfo.label}
+                </span>
+
+                <h3 style={{ fontWeight: 800, color: "var(--color-text)", fontSize: "var(--font-xl)", lineHeight: 1.3, marginBottom: 20 }}>
+                  {event.title ?? "Nama Event"}
+                </h3>
+
+                {/* Event meta */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <Calendar size={17} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)" }}>
+                      {fmtDate(event.start_date)}
+                    </span>
+                  </div>
+                  {event.location && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <MapPin size={17} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)" }}>
+                        {event.location}
+                      </span>
+                    </div>
+                  )}
+                  {event.end_date && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <Clock size={17} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)" }}>
+                        Selesai: {fmtDate(event.end_date)}
+                      </span>
+                    </div>
+                  )}
                 </div>
-            </Container>
+
+                <hr style={{ margin: "0 0 20px", borderColor: "var(--color-border)", opacity: 1, borderStyle: "dashed" }} />
+
+                {/* Attendee info */}
+                <Row className="g-3">
+                  <Col xs={6}>
+                    <p style={{ margin: "0 0 3px", fontSize: "var(--font-xs)", color: "var(--color-secondary)", fontWeight: 500 }}>Nama Peserta</p>
+                    <p style={{ margin: 0, fontWeight: 700, color: "var(--color-text)", fontSize: "var(--font-sm)" }}>
+                      {ticket.attendee_name ?? "-"}
+                    </p>
+                  </Col>
+                  <Col xs={6}>
+                    <p style={{ margin: "0 0 3px", fontSize: "var(--font-xs)", color: "var(--color-secondary)", fontWeight: 500 }}>Kode Tiket</p>
+                    <p style={{ margin: 0, fontWeight: 700, color: "var(--color-primary)", fontSize: "var(--font-sm)", fontFamily: "monospace", letterSpacing: "0.5px" }}>
+                      {ticket.ticket_code}
+                    </p>
+                  </Col>
+                  {ticket.order_item?.order?.payment_status && (
+                    <Col xs={6}>
+                      <p style={{ margin: "0 0 3px", fontSize: "var(--font-xs)", color: "var(--color-secondary)", fontWeight: 500 }}>Status Bayar</p>
+                      <p style={{ margin: 0, fontWeight: 700, color: "#10B981", fontSize: "var(--font-sm)", textTransform: "capitalize" }}>
+                        {ticket.order_item.order.payment_status}
+                      </p>
+                    </Col>
+                  )}
+                  {ticket.order_item?.order?.total_price != null && (
+                    <Col xs={6}>
+                      <p style={{ margin: "0 0 3px", fontSize: "var(--font-xs)", color: "var(--color-secondary)", fontWeight: 500 }}>Total Dibayar</p>
+                      <p style={{ margin: 0, fontWeight: 700, color: "var(--color-text)", fontSize: "var(--font-sm)" }}>
+                        {ticket.order_item.order.total_price === 0
+                          ? "Gratis"
+                          : `Rp ${Number(ticket.order_item.order.total_price).toLocaleString("id-ID")}`}
+                      </p>
+                    </Col>
+                  )}
+                </Row>
+              </Col>
+
+              {/* RIGHT: QR code */}
+              <Col md={4}
+                style={{ background: "var(--color-bg)", borderLeft: "2px dashed var(--color-border)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "28px 20px", textAlign: "center" }}>
+                <div style={{ background: "#fff", padding: 14, borderRadius: 12, boxShadow: "0 2px 12px rgba(0,105,158,0.10)", marginBottom: 12 }}>
+                  <QRCode value={ticket.qr_token ?? ticket.ticket_code} size={130} />
+                </div>
+                <p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--color-secondary)", fontWeight: 500, lineHeight: 1.5 }}>
+                  Tunjukkan QR Code ini kepada panitia saat check-in.
+                </p>
+                <p style={{ margin: 0, fontSize: 10, color: "var(--color-secondary)", fontFamily: "monospace" }}>
+                  {ticket.ticket_code}
+                </p>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* ── Actions ───────────────────────────────────────────────────── */}
+          <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
+            <Button
+              variant="outline-secondary"
+              style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)" }}
+            >
+              <Download size={15} /> Unduh PDF
+            </Button>
+            <Button
+              variant="outline-secondary"
+              style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", gap: 6, padding: "8px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)" }}
+            >
+              <Share2 size={15} /> Bagikan
+            </Button>
+            <Link to="/explore-events" style={{ marginLeft: "auto" }}>
+              <Button
+                style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, fontWeight: 700, fontSize: "var(--font-sm)", padding: "8px 20px" }}
+              >
+                Cari Event Lain
+              </Button>
+            </Link>
+          </div>
+
         </div>
-    );
+      </Container>
+    </div>
+  );
 };
 
 export default TicketDetail;

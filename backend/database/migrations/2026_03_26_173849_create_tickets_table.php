@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('ticket_code')->unique();
             $table->string('attendee_email', 150);
             $table->string('qr_token', 255);
-            $table->enum('status', ['active', 'used', 'cancelled'])->default('active');
+            $table->enum('status', ['pending', 'active', 'used', 'cancelled'])->default('active');
             $table->timestamps();
         });
     }
