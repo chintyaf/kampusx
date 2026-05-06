@@ -112,8 +112,8 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 					data={posList}
 					renderRow={(pos, idx) => (
 						<tr key={pos.id} className="border-bottom">
-							<td className="px-4 py-3 align-middle">
-								<span className="fw-semibold text-dark">{pos.name}</span> <br />
+							<td className="px-4 py-3 align-middle d-flex flex-column">
+								<span className="fw-semibold text-dark">{pos.name}</span>
 								<span className="text-muted">{pos.description}</span>
 							</td>
 							<td className="py-3 align-middle">

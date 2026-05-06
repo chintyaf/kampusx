@@ -3,7 +3,7 @@
 	"tabWidth": 4,
 	"useTabs": true,
 	"singleQuote": true,
-	"bracketSameLine": true,
+	"bracketSameLine": false,
 	"jsxSingleQuote": false,
 	"trailingComma": "all",
 	"bracketSpacing": true,
@@ -11,12 +11,5 @@
 	"semi": true,
 	"endOfLine": "lf",
 	"quoteProps": "as-needed",
-	"overrides": [
-		{
-			"files": ["frontend/src/routes/index.jsx"],
-			"options": {
-				"printWidth": 300
-			}
-		}
-	]
+	"overrides": [{ "files": ["frontend/src/routes/index.jsx"], "options": { "printWidth": 300 } }]
 }

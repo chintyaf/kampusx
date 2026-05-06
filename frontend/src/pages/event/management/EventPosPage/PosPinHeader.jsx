@@ -4,18 +4,8 @@ import { ShieldCheck, Copy, Check, RefreshCw } from 'lucide-react';
 // import './PosPinHeader.css';
 
 const PosPinHeader = () => {
-	// Fungsi pembantu untuk meng-generate 6 karakter alfanumerik kapital
-	const generateRandomPin = () => {
-		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-		let result = '';
-		for (let i = 0; i < 6; i++) {
-			result += characters.charAt(Math.floor(Math.random() * characters.length));
-		}
-		return result;
-	};
-
 	// State untuk master PIN dan indikator copy
-	const [masterPin, setMasterPin] = useState(generateRandomPin());
+	const [masterPin, setMasterPin] = useState('asdasd');
 	const [pinCopied, setPinCopied] = useState(false);
 
 	// Fungsi untuk menyalin PIN ke clipboard
@@ -32,12 +22,6 @@ const PosPinHeader = () => {
 		} catch (err) {
 			console.error('Gagal menyalin PIN', err);
 		}
-	};
-
-	// Fungsi saat tombol Generate Baru diklik
-	const handleGenerateNew = () => {
-		setMasterPin(generateRandomPin());
-		setPinCopied(false); // Reset state copy jika sebelumnya "Tersalin!"
 	};
 
 	return (
@@ -61,19 +45,6 @@ const PosPinHeader = () => {
 						</Button>
 					</div>
 				</div>
-			</div>
-
-			{/* Kanan: Tombol Generate & Keterangan */}
-			<div className="d-flex flex-column align-items-sm-end gap-1">
-				<Button
-					variant="light"
-					onClick={handleGenerateNew}
-					className="pos-btn pos-btn-generate d-inline-flex align-items-center gap-1">
-					<RefreshCw size={12} /> Generate Baru
-				</Button>
-				<p className="pos-footer-text mb-0">
-					Berlaku untuk semua pos · Bagikan ke grup WhatsApp panitia
-				</p>
 			</div>
 		</div>
 	);

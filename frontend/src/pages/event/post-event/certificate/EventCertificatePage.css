@@ -1,0 +1,83 @@
+/* EventCertificatePage.css */
+.certificate-builder {
+	/* background-color: #f8f9fa; */
+	min-height: 250px;
+	/* max-height: 500px; */
+	border-radius: 12px;
+}
+
+.cert-sidebar {
+    min-width: 300px;
+    max-width: 300px;
+}
+
+.canvas-area {
+	background-color: var(--neutral-bg);
+	border: 1.5px solid var(--color-border);
+	/* padding: 30px 40px; */
+
+	border-radius: 12px;
+}
+
+.sidebar-panel {
+	width: 300px;
+}
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.upload-zone {
+	transition: all 0.2s ease-in-out;
+}
+
+.upload-zone.drag-over {
+	background-color: rgba(13, 110, 253, 0.05);
+	border-color: #0d6efd !important;
+}
+
+.upload-icon-box {
+	width: 60px;
+	height: 60px;
+	border: 2px dashed #adb5bd;
+}
+
+.upload-zone.drag-over .upload-icon-box {
+	border-color: #0d6efd;
+}
+
+.dynamic-element-item {
+	transition: background-color 0.15s ease;
+}
+
+.dynamic-element-item:hover:not(.added-item) {
+	background-color: #f1f3f5;
+}
+
+.added-item {
+	background-color: #e7f1ff;
+	cursor: default;
+}
+
+.on-canvas-item:hover {
+	background-color: #f8f9fa;
+}
+
+.color-swatch {
+	width: 30px;
+	height: 30px;
+	transition: transform 0.1s ease;
+}
+
+.color-swatch:hover {
+	transform: scale(1.1);
+}
+
+/* Custom Scrollbar for Sidebar */
+.sidebar-scrollable::-webkit-scrollbar {
+	width: 6px;
+}
+.sidebar-scrollable::-webkit-scrollbar-thumb {
+	background-color: #ced4da;
+	border-radius: 4px;
+}

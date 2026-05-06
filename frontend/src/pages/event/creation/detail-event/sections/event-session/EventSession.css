@@ -1,0 +1,68 @@
+.session-card-row {
+	background-color: transparent;
+	border: 1px solid transparent;
+}
+
+.session-card-row.select {
+	background-color: var(--neutral-bg);
+	border: 1px solid var(--neutral-border);
+}
+
+.session-card-row:hover {
+	background-color: #f1f5f99b;
+}
+
+/* Menghilangkan bullet/content dari before */
+.no-before::before {
+	content: none !important;
+	display: none !important;
+}
+
+.icon-delete {
+	cursor: pointer;
+	opacity: 0.5;
+	color: black !important; /* Opsional: ubah warna jadi merah */
+	transition: all 0.2s ease-in-out; /* Supaya transisinya halus */
+}
+
+.icon-delete:hover {
+	opacity: 1; /* Opacity jadi penuh saat di-hover */
+	color: black !important; /* Opsional: ubah warna jadi merah */
+}
+
+
+/* HEADER */
+/* Styling agar input date terlihat seperti teks biasa */
+.input-calendar:hover, .input-calendar:focus {
+color: var(--color-primary);
+}
+.seamless-date-input {
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #1e293b;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+	font-family: var(--font);
+    font-size: var(--font-xs);
+	letter-spacing: 1px;
+    width: 125px; /* Lebar statis agar teks tidak bergeser */
+}
+
+/* Menyembunyikan icon kalender bawaan browser tapi membuatnya tetap bisa diklik */
+.seamless-date-input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* Efek hover opsional agar user tahu itu bisa diklik */
+.seamless-date-input:hover {
+    color: var(--color-primary); /* Warna biru saat di-hover */
+}

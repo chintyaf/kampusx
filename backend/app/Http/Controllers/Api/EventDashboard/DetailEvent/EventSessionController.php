@@ -5,47 +5,50 @@ namespace App\Http\Controllers\Api\EventDashboard\DetailEvent;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use App\Models\EventSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\EventSessionResource;
 
 class EventSessionController extends Controller
 {
-    public function getSession($eventId)
+    public function getSession(int $eventId)
     {
-        $event = Event::select('id', 'start_date', 'end_date', 'timezone')
-            ->with(['sessions' => function($query) {
-                $query->select('id', 'event_id', 'title', 'description', 'date', 'start_time', 'end_time');
-            }])
-            ->findOrFail($eventId);
+        // $event = Event::findOrFail($eventId);
 
-        $startDate = Carbon::parse($event->start_date);
+        // $sessions = EventSession::with("sessions")->get();
+        try {
+          // Garis merah akan langsung hilang dengan tambahan query()
+            $sessions = EventSession::query()
+                ->where('event_id', $eventId)
+                ->orderBy('date', 'asc')
+                ->orderBy('start_time', 'asc')
+                ->get();
 
-        $sessions = $event->sessions->map(function ($session) use ($startDate) {
-            $day = $startDate->diffInDays(Carbon::parse($session->date)) + 1;
+            $grouped = $sessions->groupBy('date')->map(function ($items, $date){
+                return [
+                    'date' => $date,
+                    'day_number' => $items->first()->day_number,
+                    'sessions' => $items->map(function ($session){
+                        return new EventSessionResource($session);
+                    })
+                ];
+            });
 
-            return [
-                'id'          => $session->id,
-                'day'         => $day,
-                'title'       => $session->title,
-                'description' => $session->description,
-                'startTime'   => substr($session->start_time, 0, 5), // Ambil HH:mm saja
-                'endTime'     => substr($session->end_time, 0, 5),   // Ambil HH:mm saja
-                'date'        => $session->date,
-            ];
-        });
-
-        return response()->json([
-            'status' => 'success',
-            'data'   => [
-                'timezone'  => $event->timezone,
-                'startDate' => $event->start_date ? $startDate->format('Y-m-d') : null,
-                'endDate'   => $event->end_date ? Carbon::parse($event->end_date)->format('Y-m-d') : null,
-                'sessions'  => $sessions
-            ]
-        ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ], 500);
+        } finally {
+            return response()->json([
+                'status' => 'success',
+                'data' => $grouped
+            ]);
+        }
     }
 
-    public function setSession(Request $request, $eventId){
+    public function setSession(Request $request, int $eventId){
         $event = Event::findOrFail($eventId);
 
         $validated = $request->validate([

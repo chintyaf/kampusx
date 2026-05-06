@@ -31,6 +31,7 @@ import CertificateListPage from '../pages/event/post-event/certificate/Certifica
 import CreateCertificatePage from '../pages/event/post-event/certificate/CreateCertificatePage';
 import PostEventContentUploadPage from '../pages/event/post-event/PostEventContentUploadPage/index';
 // import { Certificate } from 'node:crypto';
+import EventCertificatePage from '../pages/event/post-event/certificate/EventCertificatePage.jsx';
 
 export const OrganizerRoutes = (
 	<Route path="organizer">
@@ -54,7 +55,7 @@ export const OrganizerRoutes = (
 			<Route path="event-pos" element={<EventPosPage />} />
 
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
-			
+
 			{/* Modul Belajar */}
 			<Route path="modul-belajar">
 				<Route path="materi-acara" element={<EventMaterial />} />
@@ -73,6 +74,7 @@ export const OrganizerRoutes = (
 			<Route path="sertifikat">
 				<Route path="atur-template" element={<CreateCertificatePage />} />
 				<Route path="kirim-sertifikat" element={<CertificateListPage />} />
+				<Route path="sertifikat" element={<EventCertificatePage />} />
 			</Route>
 
 			<Route path="event-location-test" element={<EventLocationTest />} />

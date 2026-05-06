@@ -11,11 +11,14 @@ class EventSession extends Model
         'event_id',
         'title',
         'description',
+        'day_number',
         'date',
         'start_time',
         'end_time',
-        // 'location',
-        // 'quota'
+    ];
+
+    protected $casts = [
+        'prerequisite_session_ids' => 'array', // Casting kolom JSON ke Array
     ];
 
     public function event(): BelongsTo
