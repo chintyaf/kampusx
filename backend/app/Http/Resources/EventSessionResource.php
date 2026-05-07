@@ -14,16 +14,17 @@ class EventSessionResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-             return [
-                'id' => $this->id,
-                'title' => $this->title,
-                'description' => $this->description,
-                'date' => $this->date,
-                'day_number' => $this->day_number,
-                'startTime' => $this->start_time,
-                'endTime' => $this->end_time,
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'dayNumber' => $this->day_number,
+            'date' => $this->date,
+            'startTime' => $this->start_time,
+            'endTime' => $this->end_time,
 
-                'prerequisiteSessionIds' => $this->prerequisite_session_ids,
+            // Masukkan speakers di sini (bisa juga pakai Resource terpisah seperti SpeakerResource)
+            'speakers' => $this->whenLoaded('speakers'),
         ];
         return parent::toArray($request);
     }

@@ -10,6 +10,7 @@ const SessionCard = ({
 	dayItem,
 	selectedRow,
 	setSelectedRow,
+	onAddSession,
 	onDeleteDay,
 	onEditDayDate,
 	onSidebarChange,
@@ -67,7 +68,9 @@ const SessionCard = ({
 						/>
 
 						<div className="d-flex flex-column gap-2 mt-3">
-							{sessions.map((session) => (
+							{[...sessions]
+								.sort((a, b) => (a.isHidden === b.isHidden ? 0 : a.isHidden ? 1 : -1))
+								.map((session) => (
 								<SessionRow
 									key={session.id}
 									selectedRow={selectedRow?.id === session.id}
@@ -86,7 +89,7 @@ const SessionCard = ({
 						</div>
 
 						{/* Ubah teks agar hari dinamis */}
-						<button className="btn-add gap-1 mt-2">
+						<button className="btn-add gap-1 mt-2" onClick={onAddSession}>
 							<Plus size={15} />
 							Tambah Sesi ke Hari {dayNumber}
 						</button>

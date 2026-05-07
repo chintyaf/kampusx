@@ -1,10 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { ArrowLeft, Upload, User, Building2, Check } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const SpeakerForm = ({ onChangeSidebar }) => {
+const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
 	const [status, setStatus] = useState('menunggu');
+	const [formData, setFormData] = useState({
+		name: '',
+		role: '',
+		bio: '',
+		avatarUrl: '',
+	});
+
+	useEffect(() => {
+		if (initialData) {
+			setFormData(initialData);
+		} else {
+			setFormData({ name: '', role: '', bio: '', avatarUrl: '' });
+		}
+	}, [initialData]);
+
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const handleSubmit = () => {
+		if (onSave) onSave({ ...formData, status });
+	};
 
 	// Common styles untuk flat design form
 	const inputStyle = {
@@ -39,7 +62,7 @@ const SpeakerForm = ({ onChangeSidebar }) => {
 			className="d-flex flex-column"
 			style={{
 				width: '400px',
-				height: '100vh',
+				// height: '100vh',
 				backgroundColor: '#ffffff',
 				borderLeft: '1px solid #e2e8f0',
 				fontFamily: 'Inter, system-ui, sans-serif',
@@ -58,10 +81,10 @@ const SpeakerForm = ({ onChangeSidebar }) => {
 				/>
 				<div>
 					<h5 className="mb-1 fw-bold" style={{ fontSize: '18px', color: '#1e293b' }}>
-						Tambah Pembicara Baru
+						{initialData ? 'Edit Pembicara' : 'Tambah Pembicara Baru'}
 					</h5>
 					<div style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.2' }}>
-						Langsung ditambahkan ke daftar & sesi ini
+						{initialData ? 'Perbarui informasi pembicara' : 'Langsung ditambahkan ke daftar'}
 					</div>
 				</div>
 			</div>
@@ -96,24 +119,22 @@ const SpeakerForm = ({ onChangeSidebar }) => {
 							</InputGroup.Text>
 							<Form.Control
 								placeholder="Nama lengkap *"
+								name="name"
+								value={formData.name}
+								onChange={handleChange}
 								style={{ ...inputStyle, borderLeft: 'none', paddingLeft: 0 }}
 							/>
 						</InputGroup>
 
-						<Form.Control placeholder="Jabatan / Posisi *" style={inputStyle} />
+						<Form.Control
+							placeholder="Jabatan / Posisi *"
+							name="role"
+							value={formData.role}
+							onChange={handleChange}
+							style={inputStyle}
+						/>
 					</div>
 				</div>
-
-				{/* Institution Input */}
-				<InputGroup className="mb-3">
-					<InputGroup.Text style={iconContainerStyle}>
-						<Building2 size={16} />
-					</InputGroup.Text>
-					<Form.Control
-						placeholder="Institusi / Perusahaan *"
-						style={{ ...inputStyle, borderLeft: 'none', paddingLeft: 0 }}
-					/>
-				</InputGroup>
 
 				{/* Topic Dropdown */}
 				<Form.Select className="mb-3" style={inputStyle}>
@@ -129,6 +150,9 @@ const SpeakerForm = ({ onChangeSidebar }) => {
 					as="textarea"
 					rows={3}
 					placeholder="Bio singkat (opsional)..."
+					name="bio"
+					value={formData.bio}
+					onChange={handleChange}
 					style={{ ...inputStyle, resize: 'none' }}
 					className="mb-4"
 				/>
@@ -181,7 +205,7 @@ const SpeakerForm = ({ onChangeSidebar }) => {
 				<Button
 					style={{
 						flex: 2,
-						backgroundColor: '#cbd5e1', // Warna disabled look sesuai referensi
+						backgroundColor: formData.name ? '#3b82f6' : '#cbd5e1',
 						border: 'none',
 						color: '#ffffff',
 						boxShadow: 'none',
@@ -190,8 +214,10 @@ const SpeakerForm = ({ onChangeSidebar }) => {
 						justifyContent: 'center',
 						gap: '6px',
 					}}
+					onClick={handleSubmit}
+					disabled={!formData.name} // Simple validation
 				>
-					<Check size={16} /> Simpan & Tambahkan ke Sesi
+					<Check size={16} /> Simpan Pembicara
 				</Button>
 			</div>
 		</div>

@@ -85,7 +85,7 @@ export const MENU_ITEMS = {
 				{ name: 'Info Utama', path: 'info', isCompleted: true },
 				{ name: 'Tempat Acara', path: 'tempat', isCompleted: true },
 				{ name: 'Susunan Acara', path: 'sesi', isCompleted: true },
-				{ name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
+				// { name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
 				// { name: 'Form Pendaftaran', path: 'formulir', isCompleted: false }, // Diganti agar lebih pas
 				{ name: 'Tiket', path: 'tiket', isCompleted: false },
 			],

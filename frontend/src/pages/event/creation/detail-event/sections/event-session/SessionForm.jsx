@@ -13,9 +13,11 @@ import {
 	Plus,
 	Mic,
 	HelpCircle,
+	Eye,
+	EyeOff,
 } from 'lucide-react';
 
-const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
+const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHideSession, onChangeSidebar }) => {
 	const [sessionData, setSessionData] = useState({
 		title: '',
 		description: '',
@@ -30,6 +32,7 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 		if (data) {
 			setSessionData({
 				title: data.title || '',
+				description: data.description || '',
 				startTime: data.startTime || '',
 				endTime: data.endTime || '',
 			});
@@ -44,7 +47,17 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 	const handleSubmit = () => {
 		// Gabungkan data lama (id dll) dengan editan baru
 		const updatedSession = { ...data, ...sessionData };
-		onSaveSession(updatedSession);
+		if (onSaveSession) onSaveSession(updatedSession);
+	};
+
+	const hasChanges = () => {
+		if (!data) return false;
+		return (
+			sessionData.title !== (data.title || '') ||
+			sessionData.description !== (data.description || '') ||
+			sessionData.startTime !== (data.startTime || '') ||
+			sessionData.endTime !== (data.endTime || '')
+		);
 	};
 
 	// Reusable inline style untuk flat input agar tidak berulang
@@ -70,7 +83,7 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 		>
 			{/* Title Section */}
 			<div className="px-4 my-3 d-flex justify-content-between align-items-center">
-				<div className="w-100">
+				<div className="flex-grow-1">
 					<div className="d-flex align-items-center ">
 						<div
 							className="rounded-circle me-2"
@@ -80,6 +93,41 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 							EDIT SESI
 						</span>
 					</div>
+				</div>
+				<div className="d-flex gap-2">
+					{data && (
+						<Button
+							variant="light"
+							className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
+							style={{ backgroundColor: '#f8fafc', color: '#64748b' }}
+							onClick={() => onToggleHideSession && onToggleHideSession()}
+							title={data.isHidden ? "Tampilkan Sesi" : "Sembunyikan Sesi"}
+						>
+							{data.isHidden ? <Eye size={18} /> : <EyeOff size={18} />}
+						</Button>
+					)}
+					<Button
+						variant="light"
+						className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
+						style={{ backgroundColor: '#fee2e2', color: '#ef4444' }}
+						onClick={() => {
+							if (window.confirm('Yakin ingin menghapus sesi ini?')) {
+								if (onDeleteSession) onDeleteSession();
+							}
+						}}
+						title="Hapus Sesi"
+					>
+						<Trash2 size={18} />
+					</Button>
+					<Button
+						variant="light"
+						className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
+						style={{ backgroundColor: '#f8fafc', color: '#64748b' }}
+						onClick={onClose}
+						title="Tutup"
+					>
+						<X size={18} />
+					</Button>
 				</div>
 			</div>
 
@@ -122,9 +170,10 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 					</Form.Label>
 					<Form.Control
 						type="text"
-						defaultValue={data.title}
-						handleChange={handleChange}
-						// style={flatInputStyle}
+						name="title"
+						value={sessionData.title}
+						onChange={handleChange}
+						style={flatInputStyle}
 					/>
 				</Form.Group>
 
@@ -137,7 +186,9 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 					<Form.Control
 						as="textarea"
 						rows={4}
-						defaultValue="Pembukaan resmi summit dan keynote speech dari Menteri Kominfo tentang roadmap AI nasional..."
+						name="description"
+						value={sessionData.description}
+						onChange={handleChange}
 						style={{ ...flatInputStyle, resize: 'none' }}
 					/>
 				</Form.Group>
@@ -160,12 +211,18 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 						<div className="d-flex align-items-center gap-2">
 							<Form.Control
 								type="time"
+								name="startTime"
+								value={sessionData.startTime}
+								onChange={handleChange}
 								className="text-center px-1"
 								style={flatInputStyle}
 							/>
 							<span className="text-muted">-</span>
 							<Form.Control
 								type="time"
+								name="endTime"
+								value={sessionData.endTime}
+								onChange={handleChange}
 								className="text-center px-1"
 								style={flatInputStyle}
 							/>
@@ -193,96 +250,97 @@ const SessionForm = ({ data, onClose, onSaveSession, onChangeSidebar }) => {
 								className="badge rounded-pill bg-light text-primary border"
 								style={{ fontSize: '11px' }}
 							>
-								1
+								{data?.speakers?.length || 0}
 							</span>
 						</Form.Label>
 						<Button
 							variant="link"
 							className="text-decoration-none p-0 d-flex align-items-center gap-1"
 							style={{ fontSize: '0.875rem', fontWeight: 500 }}
-							onClick={() => onChangeSidebar('speaker-list')}
+							onClick={() => {
+								if (hasChanges() && onSaveSession) {
+									onSaveSession({ ...data, ...sessionData });
+								}
+								onChangeSidebar('speaker-list');
+							}}
 						>
 							<Plus size={16} /> Tambah
 						</Button>
 					</div>
 
-					{/* Speaker Card */}
-					<div
-						className="border bg-white p-3 mt-3"
-						style={{ borderRadius: '16px', borderColor: '#cbd5e1' }}
-					>
-						<div className="d-flex align-items-center gap-3">
-							<div
-								className="position-relative"
-								style={{ width: '48px', height: '48px' }}
+					{/* Speaker Cards */}
+					{data?.speakers?.map((speaker, index) => (
+						<div
+							key={speaker.id || index}
+							className="border bg-white p-3 mt-3 position-relative"
+							style={{ borderRadius: '16px', borderColor: '#cbd5e1' }}
+						>
+							<Button
+								variant="light"
+								className="position-absolute rounded-circle p-0 d-flex align-items-center justify-content-center"
+								style={{ top: '12px', right: '12px', width: '24px', height: '24px', backgroundColor: '#f1f5f9' }}
+								onClick={() => {
+									const updatedSession = {
+										...data,
+										...sessionData,
+										speakers: data.speakers.filter((s) => s.id !== speaker.id),
+									};
+									if (onSaveSession) onSaveSession(updatedSession);
+								}}
 							>
-								<img
-									src="https://via.placeholder.com/48"
-									alt="Speaker"
-									className="rounded-circle w-100 h-100"
-									style={{ objectFit: 'cover' }}
-								/>
+								<X size={14} color="#64748b" />
+							</Button>
+
+							<div className="d-flex align-items-center gap-3">
 								<div
-									className="position-absolute bg-white border d-flex align-items-center justify-content-center rounded-circle"
-									style={{
-										bottom: '-4px',
-										right: '-4px',
-										width: '20px',
-										height: '20px',
-										fontSize: '0.65rem',
-										fontWeight: 600,
-										color: '#64748b',
-										borderColor: '#cbd5e1',
-									}}
+									className="position-relative"
+									style={{ width: '48px', height: '48px' }}
 								>
-									1
+									<img
+										src={speaker.avatarUrl || speaker.avatar || `https://i.pravatar.cc/150?u=${speaker.id || index}`}
+										alt={speaker.name}
+										className="rounded-circle w-100 h-100"
+										style={{ objectFit: 'cover' }}
+									/>
+								</div>
+								<div>
+									<h6 className="m-0" style={{ fontWeight: 600, color: '#0f172a' }}>
+										{speaker.name}
+									</h6>
+									<p
+										className="m-0"
+										style={{
+											fontSize: '0.8rem',
+											color: '#64748b',
+											lineHeight: 1.4,
+										}}
+									>
+										{speaker.role || speaker.title}
+										<br />
+										{speaker.bio || speaker.company}
+									</p>
 								</div>
 							</div>
-							<div>
-								<h6 className="m-0" style={{ fontWeight: 600, color: '#0f172a' }}>
-									Dr. Budi Santoso
-								</h6>
-								<p
-									className="m-0"
-									style={{
-										fontSize: '0.8rem',
-										color: '#64748b',
-										lineHeight: 1.4,
-									}}
-								>
-									Menteri Komunikasi
-									<br />
-									Kementerian Kominfo
-								</p>
-							</div>
 						</div>
-
-						<div className="d-flex align-items-center gap-3 mt-3">
-							<Mic size={18} color="#64748b" />
-							<Form.Control
-								type="text"
-								defaultValue="Roadmap AI Nasional 203"
-								style={flatInputStyle}
-							/>
-						</div>
-					</div>
+					))}
 				</div>
 			</div>
 
 			{/* Footer */}
 			<div className="p-3 border-top bg-white" style={{ borderColor: '#e2e8f0' }}>
 				<Button
-					disabled
+					disabled={!hasChanges()}
+					onClick={handleSubmit}
 					className="w-100 border-0"
 					style={{
-						backgroundColor: '#f1f5f9',
-						color: '#64748b',
+						backgroundColor: hasChanges() ? '#8b5cf6' : '#f1f5f9',
+						color: hasChanges() ? '#ffffff' : '#64748b',
 						borderRadius: '12px',
 						padding: '12px',
 						fontWeight: 500,
 					}}
 				>
-					Tidak ada perubahan
+					{hasChanges() ? 'Simpan Perubahan' : 'Tidak ada perubahan'}
 				</Button>
 			</div>
 		</div>

@@ -14,40 +14,40 @@ class EventSessionController extends Controller
 {
     public function getSession(int $eventId)
     {
-        // $event = Event::findOrFail($eventId);
-
-        // $sessions = EventSession::with("sessions")->get();
         try {
-          // Garis merah akan langsung hilang dengan tambahan query()
+            // Tambahkan with('speakers') di sini untuk Eager Loading
             $sessions = EventSession::query()
+                ->with('speakers')
                 ->where('event_id', $eventId)
                 ->orderBy('date', 'asc')
                 ->orderBy('start_time', 'asc')
                 ->get();
 
-            $grouped = $sessions->groupBy('date')->map(function ($items, $date){
+            $grouped = $sessions->groupBy('date')->map(function ($items, $date) {
                 return [
                     'date' => $date,
                     'day_number' => $items->first()->day_number,
-                    'sessions' => $items->map(function ($session){
+                    'sessions' => $items->map(function ($session) {
                         return new EventSessionResource($session);
-                    })
+                    })->values() // Tambahkan ->values() agar format JSON array-nya rapi
                 ];
-            });
+            })->values(); // Tambahkan ->values() di sini juga untuk mereset key hasil groupBy
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $grouped,
+                'session' => $sessions
+            ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 500);
-        } finally {
-            return response()->json([
-                'status' => 'success',
-                'data' => $grouped
-            ]);
         }
+        // Hapus blok finally untuk return success, return success cukup ditaruh di dalam try block.
+        // Menaruh return di finally akan override return error di blok catch.
     }
-
     public function setSession(Request $request, int $eventId){
         $event = Event::findOrFail($eventId);
 
