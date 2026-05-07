@@ -29,7 +29,7 @@ const SessionSummary = ({ summary, days, timezone = 'WIB' }) => {
 	}, [days]);
 
 	const sessions = days.sessions || [];
-	console.log('test', days, sessions);
+	// console.log('test', days, sessions);
 
 	const defaultDays = days || [
 		{ id: 1, title: 'Hari 1', date: 'Sel, 18 Agu 2026', sessions: 3, duration: '4j 30m' },

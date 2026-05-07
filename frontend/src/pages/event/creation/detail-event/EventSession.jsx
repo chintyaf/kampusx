@@ -32,17 +32,21 @@ const EventSession = () => {
 		endDate: '',
 	});
 
+	const [allSpeakers, setAllSpeakers] = useState([]);
+	const [selectedSpeakerToEdit, setSelectedSpeakerToEdit] = useState(null);
+
 	// -- DATA FETCHING --
 	useEffect(() => {
-		const fetchEventSession = async () => {
+		const fetchEventData = async () => {
 			if (!eventId) return;
 
 			try {
 				const response = await api.get(`event-dashboard/${eventId}/info-utama/session`);
-				const result = response.data;
 
-				if (result.status === 'success' && result.data) {
-					const groupedDaysArray = Object.values(result.data);
+				const sessionResult = response.data;
+				if (sessionResult.status === 'success' && sessionResult.data) {
+					const groupedDaysArray = Object.values(sessionResult.data);
+					const extractedSpeakersMap = new Map();
 
 					if (groupedDaysArray.length > 0) {
 						setFormData((prev) => ({
@@ -51,31 +55,93 @@ const EventSession = () => {
 							endDate: groupedDaysArray[groupedDaysArray.length - 1].date,
 						}));
 
-						setDays(groupedDaysArray);
-						setActiveSessions(groupedDaysArray[0].sessions || []);
+						// Konversi property mapping dan ekstrak pembicara
+						const formattedDays = groupedDaysArray.map(day => ({
+							...day,
+							sessions: day.sessions.map(session => {
+								if (session.speakers) {
+									session.speakers.forEach(spk => extractedSpeakersMap.set(spk.id, spk));
+								}
+								return {
+									...session,
+									startTime: session.start_time || session.startTime,
+									endTime: session.end_time || session.endTime
+								};
+							})
+						}));
+
+						setDays(formattedDays);
+						setActiveSessions(formattedDays[0].sessions || []);
 					} else {
 						setDays([]);
 						setActiveSessions([]);
 					}
+
+					setAllSpeakers(Array.from(extractedSpeakersMap.values()));
 				}
 			} catch (error) {
 				console.error('Gagal mengambil data event:', error);
 			}
 		};
 
-		fetchEventSession();
+		fetchEventData();
 	}, [eventId]);
 
 	// -- HANDLERS --
 	const handleSave = async () => {
-		const payload = {
+		// 1. Format Payload Sesi
+		const flatSessions = [];
+		days.forEach((day, index) => {
+			const dayNumber = day.day_number || index + 1;
+			if (day.sessions) {
+				day.sessions.forEach((s) => {
+					flatSessions.push({
+						id: s.id,
+						title: s.title,
+						description: s.description,
+						day: dayNumber,
+						startTime: s.startTime || s.start_time,
+						endTime: s.endTime || s.end_time,
+						prerequisite_session_ids: s.prerequisite_session_ids || [],
+					});
+				});
+			}
+		});
+
+		const sessionPayload = {
 			...formData,
-			days: days,
+			sessions: flatSessions,
+		};
+
+		// 2. Format Payload Speaker
+		const speakerPayload = {
+			speakers: allSpeakers.map((speaker) => {
+				const assignedSessions = [];
+				days.forEach((day) => {
+					if (day.sessions) {
+						day.sessions.forEach((s) => {
+							if (s.speakers && s.speakers.some((spk) => spk.id === speaker.id)) {
+								// Cegah ID "new-..." terkirim ke backend untuk relasi pivot
+								if (typeof s.id === 'number' || !String(s.id).startsWith('new-')) {
+									assignedSessions.push(s.id);
+								}
+							}
+						});
+					}
+				});
+
+				return {
+					...speaker,
+					id: typeof speaker.id === 'string' && speaker.id.startsWith('spk-') ? null : speaker.id,
+					sessions: assignedSessions,
+				};
+			}),
 		};
 
 		try {
-			await api.post(`event-dashboard/${eventId}/info-utama/session`, payload);
-			notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan.');
+			await api.post(`event-dashboard/${eventId}/info-utama/session`, sessionPayload);
+			await api.post(`event-dashboard/${eventId}/info-utama/speaker`, speakerPayload);
+			notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan.');
 		} catch (error) {
 			const errorMsg = error.response?.data?.message || 'Terjadi kesalahan pada server.';
 			if (error.response?.data?.errors) console.table(error.response.data.errors);
@@ -88,6 +154,149 @@ const EventSession = () => {
 			...prevDays,
 			{ date: '', sessions: [], day_number: prevDays.length + 1 },
 		]);
+	};
+
+	const handleSaveSession = (updatedSession) => {
+		setDays((prevDays) => {
+			const newDays = [...prevDays.map(d => ({ ...d, sessions: [...d.sessions] }))];
+
+			let oldDayIndex = -1;
+			let oldSessionIndex = -1;
+			
+			for (let i = 0; i < newDays.length; i++) {
+				const sIndex = newDays[i].sessions.findIndex(s => s.id === updatedSession.id);
+				if (sIndex !== -1) {
+					oldDayIndex = i;
+					oldSessionIndex = sIndex;
+					break;
+				}
+			}
+
+			if (oldDayIndex !== -1) {
+				const oldDayNumber = newDays[oldDayIndex].day_number || (oldDayIndex + 1);
+				const newDayNumber = parseInt(updatedSession.dayNumber);
+
+				if (oldDayNumber !== newDayNumber) {
+					newDays[oldDayIndex].sessions.splice(oldSessionIndex, 1);
+					
+					const newDayIndex = newDays.findIndex(d => (d.day_number || (newDays.indexOf(d) + 1)) === newDayNumber);
+					if (newDayIndex !== -1) {
+						newDays[newDayIndex].sessions.push(updatedSession);
+						newDays[newDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+					} else {
+						newDays[oldDayIndex].sessions.push(updatedSession);
+						newDays[oldDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+					}
+				} else {
+					newDays[oldDayIndex].sessions[oldSessionIndex] = updatedSession;
+					newDays[oldDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+				}
+			}
+			return newDays;
+		});
+		setSelectedRow(updatedSession);
+		notify('success', 'Berhasil!', 'Sesi berhasil diperbarui.');
+	};
+
+	const handleAddSpeakerToSession = (speaker) => {
+		if (!selectedRow) return;
+
+		const updatedSession = {
+			...selectedRow,
+			speakers: [...(selectedRow.speakers || []), speaker],
+		};
+
+		handleSaveSession(updatedSession);
+	};
+
+	const handleDeleteSession = (sessionId) => {
+		if (!sessionId) return;
+		setDays((prevDays) => {
+			return prevDays.map((day) => ({
+				...day,
+				sessions: day.sessions.filter((session) => session.id !== sessionId),
+			}));
+		});
+		setSelectedRow(null);
+		setSidebar('summary');
+		notify('success', 'Berhasil!', 'Sesi berhasil dihapus.');
+	};
+
+	const handleToggleHideSession = (sessionId) => {
+		if (!sessionId) return;
+		setDays((prevDays) => {
+			return prevDays.map((day) => ({
+				...day,
+				sessions: day.sessions.map((session) =>
+					session.id === sessionId
+						? { ...session, isHidden: !session.isHidden }
+						: session,
+				),
+			}));
+		});
+		setSelectedRow((prev) =>
+			prev && prev.id === sessionId ? { ...prev, isHidden: !prev.isHidden } : prev,
+		);
+		notify('success', 'Berhasil!', 'Status visibilitas sesi diubah.');
+	};
+
+	const handleSaveSpeaker = (speakerData) => {
+		if (speakerData.id) {
+			setAllSpeakers((prev) => prev.map((s) => (s.id === speakerData.id ? speakerData : s)));
+			notify('success', 'Berhasil', 'Data pembicara diperbarui.');
+		} else {
+			const newSpeaker = { ...speakerData, id: `spk-${Date.now()}` };
+			setAllSpeakers((prev) => [...prev, newSpeaker]);
+			notify('success', 'Berhasil', 'Pembicara baru ditambahkan.');
+		}
+		setSidebar('speaker-list');
+	};
+
+	const handleDeleteSpeaker = (speakerId) => {
+		// Cek apakah pembicara ada di sesi
+		const isAssigned = days.some((day) =>
+			day.sessions.some((session) =>
+				session.speakers && session.speakers.some((s) => s.id === speakerId)
+			)
+		);
+
+		if (isAssigned) {
+			notify('error', 'Gagal', 'Pembicara tidak dapat dihapus karena sedang mengisi sesi.');
+			return;
+		}
+
+		setAllSpeakers((prev) => prev.filter((s) => s.id !== speakerId));
+		notify('success', 'Berhasil', 'Pembicara dihapus dari daftar.');
+	};
+
+	const handleEditSpeaker = (speaker) => {
+		setSelectedSpeakerToEdit(speaker);
+		setSidebar('speaker-add');
+	};
+
+	const handleAddSession = (dayIndex) => {
+		const newSession = {
+			id: `new-${Date.now()}`,
+			title: '',
+			description: '',
+			startTime: '',
+			endTime: '',
+			speakers: [],
+			dayNumber: days[dayIndex].day_number || (dayIndex + 1),
+			prerequisite_session_ids: []
+		};
+
+		setDays((prevDays) => {
+			const newDays = [...prevDays];
+			newDays[dayIndex] = {
+				...newDays[dayIndex],
+				sessions: [...newDays[dayIndex].sessions, newSession],
+			};
+			return newDays;
+		});
+
+		setSelectedRow(newSession);
+		setSidebar('session-form');
 	};
 
 	// TAMBAHAN: Handler Delete Hari
@@ -118,14 +327,36 @@ const EventSession = () => {
 					<SessionForm
 						key={selectedRow?.id || 'new-session'}
 						data={selectedRow}
+						days={days}
 						onClose={handleCloseForm}
 						onChangeSidebar={setSidebar}
+						onSaveSession={handleSaveSession}
+						onDeleteSession={() => handleDeleteSession(selectedRow?.id)}
+						onToggleHideSession={() => handleToggleHideSession(selectedRow?.id)}
 					/>
 				);
 			case 'speaker-list':
-				return (<SpeakerList onChangeSidebar={setSidebar} />);
+				return (
+					<SpeakerList
+						sessionSpeakers={selectedRow?.speakers || []}
+						onAddSpeaker={handleAddSpeakerToSession}
+						onChangeSidebar={(action) => {
+							if (action === 'speaker-add') setSelectedSpeakerToEdit(null);
+							setSidebar(action);
+						}}
+						allSpeakers={allSpeakers}
+						onEditSpeaker={handleEditSpeaker}
+						onDeleteSpeaker={handleDeleteSpeaker}
+					/>
+				);
 			case 'speaker-add':
-				return <SpeakerForm onChangeSidebar={setSidebar} />;
+				return (
+					<SpeakerForm
+						onChangeSidebar={setSidebar}
+						initialData={selectedSpeakerToEdit}
+						onSave={handleSaveSpeaker}
+					/>
+				);
 			default:
 				return 'summary';
 		}
@@ -154,6 +385,7 @@ const EventSession = () => {
 						selectedRow={selectedRow}
 						setSelectedRow={setSelectedRow}
 						onSidebarChange={setSidebar}
+						onAddSession={() => handleAddSession(index)}
 						onDeleteDay={() => handleDeleteDay(index)} // Pass handler delete
 						onEditDayDate={(newDate) => handleEditDayDate(index, newDate)} // Pass handler edit
 					/>

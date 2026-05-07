@@ -98,8 +98,8 @@ export default function EventTicket() {
 
 	return (
 		<EventLayout
-			heading="Harga & Tipe Tiket"
-			subheading="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan."
+			title="Harga & Tipe Tiket"
+			description="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan."
 			sidebar={<TicketSummary tickets={tickets} />}
 			onSave={handleUpdate}>
 			{/* Ticket cards */}

@@ -3,44 +3,145 @@ import { Form, InputGroup, Image, Button } from 'react-bootstrap';
 import { Search, X, Plus, CheckCircle } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Dummy data untuk mensimulasikan daftar pembicara
-const DUMMY_SPEAKERS = [
-	{
-		id: 1,
-		name: 'Dr. Budi Santoso',
-		title: 'Menteri Komunikasi',
-		company: 'Kementerian Kominfo',
-		added: false,
-		avatar: 'https://i.pravatar.cc/150?img=11',
-	},
-	{
-		id: 2,
-		name: 'Rina Hartati, M.Sc',
-		title: 'AI Research Lead',
-		company: 'Google Indonesia',
-		added: true,
-		avatar: 'https://i.pravatar.cc/150?img=5',
-	},
-	{
-		id: 3,
-		name: 'Ahmad Fauzi',
-		title: 'CTO & Co-Founder',
-		company: 'TechStartup ID',
-		added: false,
-		avatar: 'https://i.pravatar.cc/150?img=12',
-	},
-	{
-		id: 4,
-		name: 'Prof. Dewi Kusuma',
-		title: 'Guru Besar Informatika',
-		company: 'Universitas Indonesia',
-		added: true,
-		avatar: 'https://i.pravatar.cc/150?img=9',
-	},
-];
+import { Edit2, Trash2 } from 'lucide-react';
 
-const SpeakerList = ({ onChangeSidebar }) => {
+// --- KOMPONEN SPEAKER CARD ---
+const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) => {
+	return (
+		<div className="d-flex align-items-center mb-4">
+			{/* Avatar with Status */}
+			<div
+				style={{
+					position: 'relative',
+					width: '50px',
+					height: '50px',
+					marginRight: '16px',
+				}}
+			>
+				<Image
+					src={speaker.avatarUrl || speaker.avatar || `https://i.pravatar.cc/150?u=${speaker.id}`}
+					roundedCircle
+					style={{
+						width: '50px',
+						height: '50px',
+						objectFit: 'cover',
+						opacity: speaker.added ? 0.4 : 1, // Dim avatar if added
+					}}
+				/>
+				{speaker.added && (
+					<div
+						style={{
+							position: 'absolute',
+							bottom: '-2px',
+							right: '-2px',
+							backgroundColor: 'white',
+							borderRadius: '50%',
+							padding: '2px',
+						}}
+					>
+						<CheckCircle size={18} fill="#82a3d4" color="white" />
+					</div>
+				)}
+			</div>
+
+			{/* Speaker Info */}
+			<div className="flex-grow-1" style={{ minWidth: 0 }}>
+				<h6
+					className="mb-0 text-truncate"
+					style={{
+						fontSize: '15px',
+						color: speaker.added ? '#adb5bd' : '#212529',
+						fontWeight: 500,
+					}}
+				>
+					{speaker.name}
+				</h6>
+				<p
+					className="mb-0 text-truncate"
+					style={{
+						fontSize: '13px',
+						color: speaker.added ? '#dee2e6' : '#6c757d',
+					}}
+				>
+					{speaker.role || speaker.title} &middot; <br /> {speaker.bio || speaker.company}
+				</p>
+			</div>
+
+			{/* Action Button/Badge */}
+			<div className="ms-2 d-flex align-items-center gap-1">
+				{speaker.added ? (
+					<div
+						style={{
+							backgroundColor: '#f1f5f9',
+							color: '#94a3b8',
+							padding: '6px 12px',
+							borderRadius: '16px',
+							fontSize: '12px',
+							fontWeight: 500,
+						}}
+					>
+						Ditambahkan
+					</div>
+				) : (
+					<Button
+						variant="light"
+						className="rounded-circle d-flex align-items-center justify-content-center"
+						style={{
+							width: '36px',
+							height: '36px',
+							backgroundColor: '#f8f9fa',
+							border: 'none',
+						}}
+						onClick={() => onAddSpeaker && onAddSpeaker(speaker)}
+					>
+						<Plus size={18} color="#475569" />
+					</Button>
+				)}
+				{onEditSpeaker && (
+					<Button
+						variant="light"
+						className="rounded-circle d-flex align-items-center justify-content-center p-0"
+						style={{ width: '32px', height: '32px', border: 'none', backgroundColor: '#f8f9fa', color: '#64748b' }}
+						onClick={() => onEditSpeaker(speaker)}
+					>
+						<Edit2 size={16} />
+					</Button>
+				)}
+				{onDeleteSpeaker && (
+					<Button
+						variant="light"
+						className="rounded-circle d-flex align-items-center justify-content-center p-0"
+						style={{ width: '32px', height: '32px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444' }}
+						onClick={() => {
+							if (window.confirm('Yakin ingin menghapus pembicara ini?')) {
+								onDeleteSpeaker(speaker.id);
+							}
+						}}
+					>
+						<Trash2 size={16} />
+					</Button>
+				)}
+			</div>
+		</div>
+	);
+};
+
+// --- KOMPONEN UTAMA SPEAKER LIST ---
+const SpeakerList = ({ allSpeakers = [], sessionSpeakers = [], onAddSpeaker, onEditSpeaker, onDeleteSpeaker, onChangeSidebar }) => {
 	const [searchQuery, setSearchQuery] = useState('');
+
+	// Logika Filtering untuk Search
+	const filteredSpeakers = allSpeakers.map((speaker) => ({
+		...speaker,
+		added: sessionSpeakers.some((s) => s.id === speaker.id)
+	})).filter((speaker) => {
+		const query = searchQuery.toLowerCase();
+		return (
+			(speaker.name || '').toLowerCase().includes(query) ||
+			(speaker.role || speaker.title || '').toLowerCase().includes(query) ||
+			(speaker.bio || speaker.company || '').toLowerCase().includes(query)
+		);
+	});
 
 	return (
 		<div
@@ -60,7 +161,7 @@ const SpeakerList = ({ onChangeSidebar }) => {
 							Pilih Pembicara
 						</h5>
 						<span style={{ fontSize: '14px', color: '#6c757d' }}>
-							10 pembicara terdaftar
+							{allSpeakers.length} pembicara terdaftar
 						</span>
 					</div>
 					<X
@@ -105,98 +206,21 @@ const SpeakerList = ({ onChangeSidebar }) => {
 
 			{/* Speaker List (Scrollable) */}
 			<div className="flex-grow-1 overflow-auto p-3">
-				{DUMMY_SPEAKERS.map((speaker) => (
-					<div key={speaker.id} className="d-flex align-items-center mb-4">
-						{/* Avatar with Status */}
-						<div
-							style={{
-								position: 'relative',
-								width: '50px',
-								height: '50px',
-								marginRight: '16px',
-							}}
-						>
-							<Image
-								src={speaker.avatar}
-								roundedCircle
-								style={{
-									width: '50px',
-									height: '50px',
-									objectFit: 'cover',
-									opacity: speaker.added ? 0.4 : 1, // Dim avatar if added
-								}}
-							/>
-							{speaker.added && (
-								<div
-									style={{
-										position: 'absolute',
-										bottom: '-2px',
-										right: '-2px',
-										backgroundColor: 'white',
-										borderRadius: '50%',
-										padding: '2px',
-									}}
-								>
-									<CheckCircle size={18} fill="#82a3d4" color="white" />
-								</div>
-							)}
-						</div>
-
-						{/* Speaker Info */}
-						<div className="flex-grow-1" style={{ minWidth: 0 }}>
-							<h6
-								className="mb-0 text-truncate"
-								style={{
-									fontSize: '15px',
-									color: speaker.added ? '#adb5bd' : '#212529',
-									fontWeight: 500,
-								}}
-							>
-								{speaker.name}
-							</h6>
-							<p
-								className="mb-0 text-truncate"
-								style={{
-									fontSize: '13px',
-									color: speaker.added ? '#dee2e6' : '#6c757d',
-								}}
-							>
-								{speaker.title} &middot; <br /> {speaker.company}
-							</p>
-						</div>
-
-						{/* Action Button/Badge */}
-						<div className="ms-2">
-							{speaker.added ? (
-								<div
-									style={{
-										backgroundColor: '#f1f5f9',
-										color: '#94a3b8',
-										padding: '6px 12px',
-										borderRadius: '16px',
-										fontSize: '12px',
-										fontWeight: 500,
-									}}
-								>
-									Ditambahkan
-								</div>
-							) : (
-								<Button
-									variant="light"
-									className="rounded-circle d-flex align-items-center justify-content-center"
-									style={{
-										width: '36px',
-										height: '36px',
-										backgroundColor: '#f8f9fa',
-										border: 'none',
-									}}
-								>
-									<Plus size={18} color="#475569" />
-								</Button>
-							)}
-						</div>
+				{filteredSpeakers.length > 0 ? (
+					filteredSpeakers.map((speaker) => (
+						<SpeakerCard
+							key={speaker.id}
+							speaker={speaker}
+							onAddSpeaker={onAddSpeaker}
+							onEditSpeaker={onEditSpeaker}
+							onDeleteSpeaker={onDeleteSpeaker}
+						/>
+					))
+				) : (
+					<div className="text-center text-muted mt-4" style={{ fontSize: '14px' }}>
+						Tidak ada pembicara yang cocok dengan pencarian Anda.
 					</div>
-				))}
+				)}
 			</div>
 
 			{/* Bottom Action Section */}

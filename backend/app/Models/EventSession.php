@@ -15,6 +15,7 @@ class EventSession extends Model
         'date',
         'start_time',
         'end_time',
+        'prerequisite_session_ids',
     ];
 
     protected $casts = [

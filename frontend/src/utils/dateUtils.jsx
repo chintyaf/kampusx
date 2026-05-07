@@ -42,8 +42,18 @@ export const calculateTotalDuration = (sessions) => {
 	for (const dateKey in sessionsByDate) {
 		const dailySessions = sessionsByDate[dateKey];
 
-		// Ubah sesi di HARI INI menjadi rentang [start, end] dalam menit
+		// Filter sesi yang tidak valid, lalu ubah menjadi rentang [start, end] dalam menit
 		const intervals = dailySessions
+			// --- BAGIAN YANG DITAMBAHKAN ---
+			// Abaikan jika startTime/endTime tidak ada, atau formatnya salah (tidak ada ':')
+			.filter(
+				(s) =>
+					s.startTime &&
+					s.endTime &&
+					s.startTime.includes(':') &&
+					s.endTime.includes(':'),
+			)
+			// -------------------------------
 			.map((s) => {
 				const startParts = s.startTime.split(':');
 				const endParts = s.endTime.split(':');
