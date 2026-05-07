@@ -14,16 +14,25 @@ return new class extends Migration
         Schema::create('event_tickets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('event_id')->constrained('events')->cascadeOnDelete();
-            $table->string('name'); // Contoh: "Early Bird", "General Admission"
+            $table->string('name');
+            $table->text('description')->nullable();
 
-            $table->enum('type', ['online', 'offline'])->default('offline');
-            $table->decimal('price', 12, 2)->default(0);
+            $table->enum('type', ['online', 'offline'])->default('offline')->index();
 
-            $table->integer('capacity')->nullable(); // Kuota per jenis tiket
+            $table->boolean('is_free')->default(false)->index();
+            // Menggunakan unsigned agar harga tidak bisa negatif
+            $table->decimal('price', 15, 2)->unsigned()->default(0);
+
+            // Menggunakan unsignedInteger untuk kuota
+            $table->unsignedInteger('capacity')->nullable()->comment('Null means unlimited');
 
             $table->dateTime('sale_start')->nullable();
             $table->dateTime('sale_end')->nullable();
+
+            // Membantu performa saat mengecek tiket per event
             $table->timestamps();
+
+            $table->index(['event_id', 'sale_end']);
         });
     }
 

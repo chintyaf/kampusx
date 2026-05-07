@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import axios from 'axios';
+// import axios from 'axios';
+import api from '../../api/axios';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -22,7 +23,8 @@ const ForgotPassword = () => {
         setIsLoading(true); setErrorMsg(''); setMessage('');
 
         try {
-            const response = await axios.post('http://localhost:8000/api/forgot-password', { email });
+            const response = await api.post('/forgot-password', { email });
+            // const response = await api.post('http://localhost:8000/api/forgot-password', { email });
             setMessage(response.data.message || 'OTP dikirim ke email!');
             setStep(2); // Pindah ke Step 2 (Input OTP)
         } catch (error) {
@@ -39,7 +41,8 @@ const ForgotPassword = () => {
 
         try {
             // Kita akan buat endpoint ini di Laravel sebentar lagi
-            await axios.post('http://localhost:8000/api/verify-otp', { email, otp });
+            await api.post('/verify-otp', { email, otp });
+            // await axios.post('http://localhost:8000/api/verify-otp', { email, otp });
             setMessage('OTP Valid! Silakan buat password baru.');
             setStep(3); // Pindah ke Step 3 (Input Password Baru)
         } catch (error) {
@@ -55,7 +58,8 @@ const ForgotPassword = () => {
         setIsLoading(true); setErrorMsg(''); setMessage('');
 
         try {
-            await axios.post('http://localhost:8000/api/reset-password', {
+            // await axios.post('http://localhost:8000/api/reset-password', {
+            await api.post('/reset-password', {
                 email, otp, password: newPassword
             });
             alert('Password berhasil direset! Silakan Log In.');

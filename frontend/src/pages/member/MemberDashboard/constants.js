@@ -1,0 +1,16 @@
+export const clr = {
+  primary:    "var(--color-primary)",
+  primaryHex: "#00699e",
+  success:    "#10B981",
+  accent:     "var(--color-secondary)",
+  bg:         "var(--color-bg)",
+  bg2:        "var(--color-bg-2)",
+  white:      "var(--color-white)",
+  text:       "var(--color-text)",
+  muted:      "var(--color-text-muted)",
+  border:     "var(--color-border)",
+  blue500:    "var(--bahama-blue-500)",
+  blue700:    "var(--bahama-blue-700)",
+  blue50:     "var(--bahama-blue-50)",
+  shadow:     "0 2px 12px rgba(0,105,158,0.08)",
+};

@@ -1,65 +1,74 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import React, { Suspense, lazy, useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import RouteProgressBar from '../components/RouteProgressBar';
 
-import VisitorLayout from "../layouts/MainLayout";
-import AuthLayout from "../layouts/AuthLayout";
-import DashboardLayout from "../layouts/DashboardLayout";
-import MemberLayout from "../layouts/MemberLayout";
+import VisitorLayout from '../layouts/MainLayout';
+import AuthLayout from '../layouts/AuthLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
+import MemberLayout from '../layouts/MemberLayout';
 
 // Import daftar rute
 import visitorRoutes from './PublicRoutes';
 import ProtectedRoute from './ProtectedRoute';
-import dashboardRoutes from './DashboardRoutes';
+import AdminRoutes from './AdminRoutes';
 import Dashboard from '../pages/dashboard/Dashboard';
-import MemberDashboard from '../pages/member/MemberDashboard';
+import MemberDashboard from '../pages/member/MemberDashboard/index.jsx';
 import Test from '../pages/dashboard/Test';
 
-// CREATE EVENT PAGES
-import CreateEvent from '../pages/event/CreateEvent';
-import EventDashboardPage from '../pages/event/EventDashboardPage';
-import EventGeneralInfo from '../pages/event/detail-event/EventGeneralInfo';
-import EventScheduleLocation from '../pages/event/detail-event/EventLocation';
-import EventSession from '../pages/event/detail-event/EventSession';
-import EventSpeaker from '../pages/event/detail-event/EventSpeaker';
-import EventRegistrationForm from '../pages/event/detail-event/EventRegistrationForm';
-import EventStaffManagement from '../pages/event/EventStaffManagement';
-
-import EventParticipantList from '../pages/event/EventParticipantListPage';
-import EventMaterialDistributionPage from '../pages/event/EventMaterialDistributionPage';
-import EventStatistics from '../pages/event/EventStatisticsPage';
-import EventPromotion from '../pages/event/EventPromotionPage';
-// END CREATE EVENT PAGES
-
-import EventLocationTest from '../pages/event/EventLocationTest';
+// Organizer dan Event Routes diimpor secara terpisah
+import { OrganizerRoutes } from './OrganizerRoutes';
 
 import NotFound from '../pages/NotFoundPage';
+
+// Session Changelog Pages
+import AdminMasterDataPage from '../pages/admin/AdminMasterDataPage';
+import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
+
+// NEW: CERTIFICATES & AFTER EVENT MOCKUP
+import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
+import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
 
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
 // import ExploreEvents from "../pages/ExploreEvents";
-import SignIn from '../pages/auth/SignIn';
-import SignUp from '../pages/auth/SignUp';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
 import ForgotPassword from '../pages/auth/ForgotPassword';
 
-import OrgDashboardPage from "../pages/organizer/OrgDashboardPage";
-import LandingPage from "../pages/public/LandingPage";
-import Checkout from "../pages/event/Checkout";
-import TicketDetail from "../pages/TicketDetail";
-import EventSpace from "../pages/member/EventSpace";
-import { useAuth } from "../context/AuthContext";
-import MyTickets from "../pages/member/MyTickets";
+import LandingPage from '../pages/public/LandingPage';
+import Checkout from '../pages/event/public/Checkout/index';
+import TicketDetail from '../pages/TicketDetail';
+import EventSpace from '../pages/member/EventSpace';
+import { useAuth } from '../context/AuthContext';
+import MyTickets from '../pages/member/MyTickets';
+
+import NearestEventTest from '../pages/public/NearestEventTest';
+import ExploreEvents from '../pages/ExploreEvents';
 
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
 	const { isAuthenticated, loading } = useAuth();
+	const location = useLocation();
+
+	// FIX: Membersihkan orphaned Bootstrap modal backdrop saat pindah halaman
+	useEffect(() => {
+		document.body.classList.remove('modal-open');
+		const backdrops = document.querySelectorAll('.modal-backdrop');
+		backdrops.forEach((b) => b.remove());
+	}, [location.pathname]);
+
 	if (loading) {
 		return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
 	}
 	return (
 		<Suspense fallback={<RouteProgressBar />}>
 			<Routes>
+				<Route path="/nearest-event" element={<NearestEventTest />} />
 				{/* 1. Jika BELUM login: Jadikan '/' sebagai Landing Page dengan VisitorLayout */}
+				<Route element={<MemberLayout />}>
+					<Route path="/test-location" />
+				</Route>
+
 				{!isAuthenticated && (
 					<Route element={<VisitorLayout />}>
 						<Route path="/" element={<LandingPage />} />
@@ -89,68 +98,40 @@ const AppRoutes = () => {
                     // ))} */}
 				</Route>
 
+				{/* TEST CHIN UI ROUTES (Tampilan Peserta - Tidak perlu login utuk testing) */}
+				<Route element={<VisitorLayout />}>
+					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
+					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
+				</Route>
+
 				{/* AUTH */}
 				<Route element={<AuthLayout />}>
-					<Route path="/login" element={<SignIn />} />
-					<Route path="/signup" element={<SignUp />} />
+					<Route path="/login" element={<LoginPage />} />
+					<Route path="/register" element={<RegisterPage />} />
 					<Route path="/forgot-password" element={<ForgotPassword />} />
 				</Route>
 
-                {/* MEMBER */}
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/checkout/:id" element={<Checkout />} />
-                    {/* Nanti bisa tambah rute profil peserta di sini: */}
-                    {/* <Route path="/my-tickets" element={<MyTickets />} /> */}
-                    <Route path="/ticket/:ticketCode" element={<TicketDetail />} />
-                    <Route path="/event-space/:id" element={<EventSpace />} />
-                </Route>
-                <Route element={<MemberLayout />}>
-                    <Route path="/my-tickets" element={<MyTickets />} />
-                    {/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
-                    {/* Tambahkan halaman member lainnya di sini nanti */}
-                </Route>
+				{/* MEMBER */}
+				<Route element={<ProtectedRoute />}>
+					<Route path="/checkout/:id" element={<Checkout />} />
+					{/* Nanti bisa tambah rute profil peserta di sini: */}
+					{/* <Route path="/my-tickets" element={<MyTickets />} /> */}
+					<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
+					<Route path="/event-space/:id" element={<EventSpace />} />
+					<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
+				</Route>
+				<Route element={<MemberLayout />}>
+					<Route path="/my-tickets" element={<MyTickets />} />
+					{/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
+					{/* Tambahkan halaman member lainnya di sini nanti */}
+				</Route>
 
 				{/* Group Dashboard */}
 				<Route element={<DashboardLayout />}>
 					{/* Admin */}
-					<Route element={<ProtectedRoute allowedRole={['admin']} />}>
-						<Route path="admin">
-							<Route path="dashboard" element={<Dashboard />} />
-							<Route path="verifikasi-organizer" element={<Test />} />
-							<Route path="kelola-pengguna" element={<Test />} />
-							<Route path="pantau-acara" element={<Test />} />
-							<Route path="kontrol-promosi" element={<Test />} />
-						</Route>
-					</Route>
+					<Route element={<ProtectedRoute allowedRole={['admin']} />}>{AdminRoutes}</Route>
 
-					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
-						<Route path="organizer">
-							<Route path="dashboard" element={<OrgDashboardPage />} />
-							<Route path="daftar-acara" element={<CreateEvent />} />
-							<Route path="buat-acara" element={<CreateEvent />} />
-
-							{/* Event Routes untuk Detail Event */}
-							<Route path=":eventId/event-dashboard">
-								<Route path="" element={<EventDashboardPage />} />
-								<Route path="detail">
-									<Route path="info" element={<EventGeneralInfo />} />
-									<Route path="tempat" element={<EventScheduleLocation />} />
-									<Route path="sesi" element={<EventSession />} />
-									<Route path="pembicara" element={<EventSpeaker />} />
-									<Route path="formulir" element={<EventRegistrationForm />} />
-								</Route>
-								<Route path="kelola-staff" element={<EventStaffManagement />} />
-
-								<Route path="daftar-peserta" element={<EventParticipantList />} />
-								<Route path="distribusi-materi" element={<EventMaterialDistributionPage />} />
-								<Route path="upload-sertifikat" element={<EventStaffManagement />} />
-
-								<Route path="statistik" element={<EventStatistics />} />
-								<Route path="promosi" element={<EventPromotion />} />
-								<Route path="event-location-test" element={<EventLocationTest />} />
-							</Route>
-						</Route>
-					</Route>
+					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>{OrganizerRoutes}</Route>
 
 					{/* <Route
                     path="*"

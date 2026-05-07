@@ -106,7 +106,6 @@ return new class extends Migration {
             $table->text('platform')->nullable();
             $table->text('meeting_link')->nullable();
             $table->text('online_instruction')->nullable();
-
             // --- Field untuk Offline ---
             $table->string('location_name')->nullable();
             $table->string('location_detail')->nullable();

@@ -78,6 +78,72 @@ class EventDashboardController extends Controller
         }
     }
 
+    public function getOverview($eventId)
+    {
+        $event = Event::with(['categories', 'institution', 'locationDetail', 'organizer'])->findOrFail($eventId);
+
+        $locationText = 'Belum diatur';
+        if ($event->locationDetail) {
+            if ($event->locationDetail->type === 'online') {
+                $locationText = "Online (" . ($event->locationDetail->platform ?? 'Platform tidak diketahui') . ")";
+            } else {
+                $locationText = $event->locationDetail->location_name ?? 'Lokasi Offline';
+            }
+        }
+
+        $now = now();
+        $isPublished = in_array($event->status, ['published', 'ongoing', 'archived', 'completed']);
+        
+        $timeline = [
+            [
+                'label' => 'Draft',
+                'date' => $event->created_at ? $event->created_at->format('d M Y') : 'Baru dibuat',
+                'status' => 'done'
+            ],
+            [
+                'label' => 'Published',
+                'date' => $isPublished ? 'Sudah Live' : 'Menunggu',
+                'status' => $isPublished ? 'done' : 'pending'
+            ]
+        ];
+
+        $isRegActive = $isPublished && $event->start_date && $now->lt($event->start_date);
+        $timeline[] = [
+            'label' => 'Registrasi',
+            'date' => $isPublished && $event->start_date ? 'Dibuka' : 'Terkunci',
+            'status' => $isRegActive ? 'active' : ($isPublished && $event->start_date && $now->gt($event->start_date) ? 'done' : 'pending')
+        ];
+
+        $isStarted = $event->start_date && $now->gte($event->start_date);
+        $timeline[] = [
+            'label' => 'Hari Acara',
+            'date' => $event->start_date ? $event->start_date->format('d M Y') : 'Belum diatur',
+            'status' => $isStarted ? ($event->end_date && $now->gt($event->end_date) ? 'done' : 'active') : 'pending'
+        ];
+
+        $isEnded = $event->end_date && $now->gt($event->end_date);
+        $timeline[] = [
+            'label' => 'Selesai',
+            'date' => $event->end_date ? $event->end_date->format('d M Y') : 'Belum diatur',
+            'status' => $isEnded ? 'done' : 'pending'
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'name' => $event->title,
+                'startDate' => $event->start_date ? $event->start_date->format('d M Y, H:i') : null,
+                'endDate' => $event->end_date ? $event->end_date->format('d M Y, H:i') : null,
+                'location' => $locationText,
+                'organizer' => $event->organizer->name ?? null,
+                'institution' => $event->institution->name ?? 'Independen / Umum',
+                'categories' => $event->categories->pluck('name'),
+                'status' => $event->status,
+                'timeline' => $timeline,
+            ]
+        ]);
+    }
+
     public function getStatus($eventId)
     {
         // Cari event, jika tidak ada langsung 404

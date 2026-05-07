@@ -40,4 +40,28 @@ class TicketController extends Controller
 
         return response()->json(['data' => $ticket], 200);
     }
+
+    public function generateQrHash($ticket_code, Request $request)
+    {
+        $ticket = Ticket::where('ticket_code', $ticket_code)
+                        ->where('participant_id', $request->user()->id)
+                        ->first();
+
+        if (!$ticket) {
+            return response()->json(['message' => 'Tiket tidak ditemukan'], 404);
+        }
+
+        // Membentuk Signed Hash kombinasi Ticket ID + Secret Key
+        $secretKey = config('app.key');
+        $stringToSign = $ticket->id . '|' . $ticket->ticket_code;
+        $signedHash = hash_hmac('sha256', $stringToSign, $secretKey);
+
+        // Gabungkan format untuk dikembalikan (Opsional: [ticket_code].[hash] agar mudah diekstrak scanner)
+        // Kita berikan string token QR nya
+        $qrToken = $ticket->ticket_code . '.' . $signedHash;
+
+        return response()->json([
+            'qr_string' => $qrToken
+        ], 200);
+    }
 }

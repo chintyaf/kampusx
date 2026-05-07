@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use Illuminate\Support\Facades\DB;
+// use App\Models\EventTicket;
 
 class EventLocationController extends Controller
 {
@@ -27,50 +28,54 @@ class EventLocationController extends Controller
         ]);
     }
 
-    public function update(Request $request, $eventId)
+  public function update(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
 
+        // 1. Validasi HANYA untuk field Lokasi (Urusan Kuota sudah pindah ke menu Tiket)
         $validated = $request->validate([
-            'type'                       => 'required|in:online,offline,hybrid',
-            'platform'                   => 'nullable|string',
-            'meeting_link'               => 'nullable|url',
-            'online_instruction'         => 'nullable|string',
-            'location'                   => 'nullable|string',
-            'location_detail'            => 'nullable|string',
-            'maps_url'                   => 'nullable|url',
-            'offline_instruction'        => 'nullable|string',
-            'is_online_quota_unlimited'  => 'nullable|boolean',
-            'is_offline_quota_unlimited' => 'nullable|boolean',
-            'online_quota'               => 'nullable|integer|min:0',
-            'offline_quota'              => 'nullable|integer|min:0',
-        ], [
-            'online_quota.required_if'  => 'Kuota online wajib diisi jika tidak unlimited.',
-            'offline_quota.required_if' => 'Kuota offline wajib diisi jika tidak unlimited.'
+            'type'                => 'required|in:online,offline,hybrid',
+
+            // Field Online
+            'platform'            => 'nullable|string',
+            'meeting_link'        => 'nullable|url',
+            'online_instruction'  => 'nullable|string',
+
+            // Field Offline (Perhatikan: di DB nama kolomnya 'location_name', bukan 'location')
+            'location_name'       => 'nullable|string',
+            'location_detail'     => 'nullable|string',
+            'maps_url'            => 'nullable|url',
+            'offline_instruction' => 'nullable|string',
         ]);
 
-        // Logic Unlimited Quota
-        $validated['online_quota'] = !empty($validated['is_online_quota_unlimited'])
-            ? null
-            : ($validated['online_quota'] ?? 0);
-
-        $validated['offline_quota'] = !empty($validated['is_offline_quota_unlimited'])
-            ? null
-            : ($validated['offline_quota'] ?? 0);
-
-
-        // Unset boolean flags as they likely don't exist in the DB columns
-        unset($validated['is_online_quota_unlimited']);
-        unset($validated['is_offline_quota_unlimited']);
+        // 2. Handle Empty State berdasarkan Tipe Event
+        // Membersihkan data yang tidak relevan agar tidak menjadi sampah di database
+        if ($validated['type'] === 'offline') {
+            $validated['platform']           = null;
+            $validated['meeting_link']       = null;
+            $validated['online_instruction'] = null;
+        } elseif ($validated['type'] === 'online') {
+            $validated['location_name']       = null;
+            $validated['location_detail']     = null;
+            $validated['maps_url']            = null;
+            $validated['offline_instruction'] = null;
+        }
 
         try {
             return DB::transaction(function () use ($event, $validated) {
+                // 3. Simpan data ke tabel event_locations
                 $event->locationDetail()->updateOrCreate(
                     ['event_id' => $event->id],
                     $validated
                 );
 
-                return response()->json(['status' => 'success', 'message' => 'Lokasi berhasil diperbarui']);
+                // 4. Trigger pembuatan Tiket otomatis (MVP Concept)
+                // $this->autoGenerateTickets($event->id, $validated['type']);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Tempat Acara berhasil diperbarui.'
+                ]);
             });
         } catch (\Exception $e) {
             return response()->json([
@@ -79,4 +84,38 @@ class EventLocationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Private Helper untuk Auto-Generate Tiket
+     */
+    // private function autoGenerateTickets($eventId, $eventType)
+    // {
+    //     // 1. Handle Tiket Online (Buat jika event online/hybrid, hapus jika event offline)
+    //     if (in_array($eventType, ['online', 'hybrid'])) {
+    //         EventTicket::firstOrCreate(
+    //             ['event_id' => $eventId, 'type' => 'online'],
+    //             [
+    //                 'name'    => 'Tiket Akses Online',
+    //                 'is_free' => true,
+    //                 'price'   => 0,
+    //             ]
+    //         );
+    //     } else {
+    //         EventTicket::where('event_id', $eventId)->where('type', 'online')->delete();
+    //     }
+
+    //     // 2. Handle Tiket Offline (Buat jika event offline/hybrid, hapus jika event online)
+    //     if (in_array($eventType, ['offline', 'hybrid'])) {
+    //         EventTicket::firstOrCreate(
+    //             ['event_id' => $eventId, 'type' => 'offline'],
+    //             [
+    //                 'name'    => 'Tiket Akses Offline',
+    //                 'is_free' => true,
+    //                 'price'   => 0,
+    //             ]
+    //         );
+    //     } else {
+    //         EventTicket::where('event_id', $eventId)->where('type', 'offline')->delete();
+    //     }
+    // }
 }

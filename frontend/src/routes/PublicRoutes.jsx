@@ -4,7 +4,7 @@
 
 import LandingPage from "../pages/public/LandingPage";
 import ExploreEvents from "../pages/ExploreEvents";
-import EventDetail from "../pages/event/EventDetail";
+import EventDetail from "../pages/event/public/EventDetail/index";
 
 // const publicRoutes = [
 //     {

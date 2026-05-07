@@ -10,10 +10,9 @@ import MapVisualizer from "./MapVisualizer";
 import LocationSummary from "./LocationSummary";
 import NearbyCampuses from "./NearbyCampuses";
 
-const OfflineLocationInput = ({ data }) => {
+const OfflineLocationInput = ({ data, onLocationChange }) => {
     const [isManualMode, setIsManualMode] = useState(false);
     const [locationData, setLocationData] = useState({
-        location_name: "",
         address_detail: "",
         country: "",
         province: "",
@@ -26,17 +25,28 @@ const OfflineLocationInput = ({ data }) => {
     useEffect(() => {
         if (data) {
             setLocationData({
-                location_name: data.location_name,
-                address_detail: data.address_detail,
-                country: data.country,
-                province: data.province,
-                city: data.city,
-                district: data.district,
-                latitude: data.latitude,
-                longitude: data.longitude,
+                address_detail: data.address_detail || "",
+                country: data.country || "",
+                province: data.province || "",
+                city: data.city || "",
+                district: data.district || "",
+                latitude: data.latitude || null,
+                longitude: data.longitude || null,
             });
         }
-    }, [data]);
+    }, [data.latitude, data.longitude, data.address_detail]); // Sync if coordinate or details changes from outside
+
+    const updateLocationData = (newData) => {
+        setLocationData((prev) => {
+            const nextState =
+                typeof newData === "function" ? newData(prev) : newData;
+            if (onLocationChange) {
+                onLocationChange(nextState);
+            }
+            return nextState;
+        });
+    };
+
     const isLocationSelected =
         locationData.latitude !== null && locationData.longitude !== null;
 
@@ -73,20 +83,20 @@ const OfflineLocationInput = ({ data }) => {
             {!isManualMode ? (
                 // Jika data sudah ada (Edit Mode)
                 <LocationSearch
-                    setLocationData={setLocationData}
+                    setLocationData={updateLocationData}
                     initialValue={locationData.address_detail}
                 />
             ) : (
                 <ManualLocationForm
                     locationData={locationData}
-                    setLocationData={setLocationData}
+                    setLocationData={updateLocationData}
                 />
             )}
 
             {/* Map Section */}
             <MapVisualizer
                 locationData={locationData}
-                setLocationData={setLocationData}
+                setLocationData={updateLocationData}
                 isManualMode={isManualMode}
                 isLocationSelected={isLocationSelected}
             />

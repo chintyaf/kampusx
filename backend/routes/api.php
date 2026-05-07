@@ -7,6 +7,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\EngagementController;
+use App\Http\Controllers\Api\EventMaterialController;
 
 // Organizer Dashboard
 // use App\Http\Controllers\Api\EventDashboardController;
@@ -17,6 +20,9 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
+use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
+use App\Http\Controllers\Api\EventDashboard\EventStationController;
 
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
@@ -32,6 +38,11 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 // Landing Page & Explore Event
+
+
+Route::get('/events/nearest', [EventController::class, 'getNearest']);
+
+
 Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi index() di EventController
 Route::get('/events/explore', [EventController::class, 'explore']);
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
@@ -56,10 +67,18 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+    // Event
+
+
     // --- ROLE: PARTICIPANT / UMUM ---
     Route::post('/checkout', [CheckoutController::class, 'store']);
     Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
+    Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);
     Route::get('/my-tickets', [TicketController::class, 'index']);
+    Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
+
+    // Mendaftar jadi Organizer
+    Route::post('/organizer-requests/apply', [\App\Http\Controllers\Api\OrganizerRequestController::class, 'apply']);
 
     // --- ROLE: ORGANIZER & ADMIN ---
     Route::middleware('role:organizer,admin')->group(function () {
@@ -74,7 +93,17 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/events-list', [OrganizerEventController::class, 'getOrgEvents']);
             // Untuk melihat detail spesifik milik organizer
             Route::get('/events/{id}', [OrganizerEventController::class, 'show']);
+
+            // Post-event Material Management
+            Route::get('/events/{id}/materials', [EventMaterialController::class, 'organizerIndex']);
+            Route::post('/events/{id}/materials', [EventMaterialController::class, 'store']);
+            Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy']);
         });
+
+        // Endpoint: Organizer Kelola Tim Institusinya (Manage Institution Member)
+        Route::get('/institutions/{id}/members', [\App\Http\Controllers\Api\InstitutionMemberController::class, 'index']);
+        Route::post('/institutions/{id}/members', [\App\Http\Controllers\Api\InstitutionMemberController::class, 'store']);
+        Route::delete('/institutions/{id}/members/{userId}', [\App\Http\Controllers\Api\InstitutionMemberController::class, 'destroy']);
 
         // Group: Event Dashboard (Manage Detail Event)
         Route::prefix('event-dashboard/{eventId}')->group(function () {
@@ -95,7 +124,23 @@ Route::middleware('auth:sanctum')->group(function () {
                 // Speaker
                 Route::get('/speaker', [EventSpeakerController::class, 'index']);
                 Route::post('/speaker', [EventSpeakerController::class, 'update']);
+
+                Route::get('/tickets', [EventTicketController::class, 'index']);
+                Route::post('/tickets', [EventTicketController::class, 'update']);
+
             });
+
+            // Dashboard Overview
+            Route::get('/overview', [\App\Http\Controllers\Api\EventDashboardController::class, 'getOverview']);
+
+            // Participant / Ticket holders route
+            Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
+
+            // Event Stations
+            Route::get('/stations', [EventStationController::class, 'index']);
+            Route::post('/stations', [EventStationController::class, 'store']);
+            Route::put('/stations/{id}', [EventStationController::class, 'update']);
+            Route::delete('/stations/{id}', [EventStationController::class, 'destroy']);
         });
 
     // Mengecek apa saja data yang masih kurang (GET)
@@ -113,14 +158,55 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // --- ROLE: PANITIA (COMMITTEE) ---
     Route::middleware('role:committee,organizer')->group(function () {
-        // Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
+        // Cek apakah user yang login berhak melihat halaman Scanner
+        Route::get('/scanner/check-access', function (Request $request) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Berhak mengakses scanner',
+                'user_role' => $request->user()->role ?? null
+            ], 200);
+        });
+
+        // 1. Validasi Scanner & 3. Manual Insert & 2. Search Manual
+        Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
+        Route::post('/attendance/manual', [AttendanceController::class, 'manualOverride']);
+        Route::get('/ticket/search', [AttendanceController::class, 'searchTicket']);
     });
 
     // --- ROLE: ADMIN PUSAT ---
     Route::middleware('role:admin')->group(function () {
-        // Route::post('/admin/approve-organizer/{id}', [AdminController::class, 'approveOrganizer']);
-        // Route::post('/admin/suspend-user/{id}', [AdminController::class, 'suspendUser']);
+        // 1. Organizer Management
+        Route::post('/admin/organizer-requests/{id}/approve', [\App\Http\Controllers\Api\AdminController::class, 'approveOrganizer']);
+
+        // 2. User Status Management
+        Route::post('/admin/users/{id}/status', [\App\Http\Controllers\Api\AdminController::class, 'changeUserStatus']);
+
+        // 3. Event Monitoring
+        Route::get('/admin/events', [\App\Http\Controllers\Api\AdminController::class, 'getEvents']);
+
+        // 4. Featured/Boost Event
+        // 4. Featured/Boost Event
+        Route::post('/admin/events/{id}/feature', [\App\Http\Controllers\Api\AdminController::class, 'toggleFeatureEvent']);
+
+        // 5. Create Institutions
+        Route::get('/admin/institutions', [\App\Http\Controllers\Api\AdminInstitutionController::class, 'index']);
+        Route::post('/admin/institutions', [\App\Http\Controllers\Api\AdminInstitutionController::class, 'store']);
+        Route::put('/admin/institutions/{id}', [\App\Http\Controllers\Api\AdminInstitutionController::class, 'update']);
+        Route::delete('/admin/institutions/{id}', [\App\Http\Controllers\Api\AdminInstitutionController::class, 'destroy']);
+
+        // 6. Master Data Kategori
+        Route::post('/admin/categories', [\App\Http\Controllers\Api\CategoryController::class, 'store']);
+        Route::put('/admin/categories/{id}', [\App\Http\Controllers\Api\CategoryController::class, 'update']);
+        Route::delete('/admin/categories/{id}', [\App\Http\Controllers\Api\CategoryController::class, 'destroy']);
+
+        // 7. Master Data Tipe Event
+        Route::post('/admin/event-types', [\App\Http\Controllers\Api\EventTypeController::class, 'store']);
+        Route::put('/admin/event-types/{id}', [\App\Http\Controllers\Api\EventTypeController::class, 'update']);
+        Route::delete('/admin/event-types/{id}', [\App\Http\Controllers\Api\EventTypeController::class, 'destroy']);
     });
+
+    // 4. Klaim Poin Engagement (Peserta)
+    Route::post('/engagement/claim', [EngagementController::class, 'claimPoints']);
 });
 
 

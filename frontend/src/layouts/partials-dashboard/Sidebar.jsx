@@ -1,217 +1,95 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import {
-	LayoutDashboard,
-	UserCheck,
-	ChevronDown,
-	Plus,
-	UsersRound,
-	FolderOpen,
-	ChartColumn,
-	Star,
-	Form,
-	UserRoundPen,
-} from 'lucide-react';
+import { Star } from 'lucide-react';
 
-import SidebarItem from './section/SidebarItem';
-
-// --- Configuration Data ---
-const MENU_ITEMS = {
-	admin: [
-		{
-			id: '1',
-			name: 'Admin Dashboard',
-			icon: <LayoutDashboard size={16} className="me-2" />,
-			path: 'admin/dashboard',
-		},
-		{
-			id: '2',
-			name: 'Verifikasi Organizer',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/verifikasi-organizer',
-		},
-		{
-			id: '3',
-			name: 'Kelola Pengguna',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/kelola-pengguna',
-		},
-		{
-			id: '4',
-			name: 'Pantau Acara',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/pantau-acara',
-		},
-		{
-			id: '5',
-			name: 'Kontrol Promosi',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/kontrol-promosi',
-		},
-	],
-	organizer: [
-		{
-			id: '1',
-			name: 'Dashboard',
-			icon: <LayoutDashboard size={16} className="me-2" />,
-			path: 'organizer/dashboard',
-		},
-		{
-			id: '2',
-			name: 'Daftar Acara',
-			icon: <LayoutDashboard size={16} className="me-2" />,
-			path: 'organizer/daftar-acara',
-		},
-	],
-	event_detail: [
-		{
-			id: '1',
-			name: 'Dashboard',
-			icon: <LayoutDashboard size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard',
-		},
-		{
-			id: '2',
-			name: 'Detil Event',
-			icon: <Form size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/detail',
-			submenu: [
-				{ name: 'Info Utama', path: 'info' },
-				{ name: 'Tempat Acara', path: 'tempat' },
-				{ name: 'Susunan Acara', path: 'sesi' },
-				{ name: 'Daftar Pembicara', path: 'pembicara' },
-				{ name: 'Formulir Registrasi', path: 'formulir' },
-			],
-		},
-		{
-			id: '7',
-			name: 'Staff Administrasi',
-			icon: <UserRoundPen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/kelola-staff',
-		},
-		{
-			id: '3',
-			name: 'Daftar Peserta',
-			icon: <UsersRound size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
-		},
-		{
-			id: '8',
-			name: 'Sertifikat',
-			icon: <UserRoundPen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/upload-sertifikat',
-		},
-		{
-			id: '4',
-			name: 'Distribusi Materi',
-			icon: <FolderOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/distribusi-materi',
-		},
-		{
-			id: '5',
-			name: 'Statistik',
-			icon: <ChartColumn size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/statistik',
-		},
-		{
-			id: '6',
-			name: 'Promosi',
-			icon: <Star size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/promosi',
-		},
-	],
-};
-
-const ACCOUNT_ITEMS = [
-	{
-		id: 'admin-account',
-		name: 'Admin',
-		path: 'admin/dashboard',
-		icon: <UserCheck size={16} className="me-2" />,
-	},
-	{
-		id: 'organizer-account',
-		name: 'Organizer',
-		path: 'organizer/dashboard',
-		icon: <UserCheck size={16} className="me-2" />,
-	},
-	{
-		id: 'event-account',
-		name: 'Event',
-		path: 'organizer/event/dashboard',
-		icon: <UserCheck size={16} className="me-2" />,
-	},
-];
+import { SidebarItem, EventCard } from '@/features/sidebar';
+import { MENU_ITEMS } from '@/features/sidebar/data/route';
 
 const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
-	const [openMenu, setOpenMenu] = useState(null);
+	// State menampung array berisi ID menu yang sedang terbuka
+	const [openMenus, setOpenMenus] = useState([]);
 	const location = useLocation();
 
+	// Mendapatkan eventId dari URL
 	const eventIdMatch = location.pathname.match(/\/organizer\/([^/]+)\/event-dashboard/);
 	const currentEventId = eventIdMatch ? eventIdMatch[1] : '';
 
 	const baseMenu = MENU_ITEMS[type] || [];
-	const currentMenu = baseMenu.map(item => ({
-		...item,
-		path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
-	}));
 
-	const handleToggle = id => {
+	// Menggunakan useMemo agar referensi currentMenu tidak berubah setiap kali render
+	const currentMenu = useMemo(() => {
+		return baseMenu.map((item) => ({
+			...item,
+			path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
+		}));
+	}, [baseMenu, currentEventId]);
+
+	const handleToggle = (id) => {
 		if (isSidebarCollapsed) {
-			// Jika sidebar sedang mengecil, otomatis lebarkan dan buka submenunya
+			// Lebarkan sidebar dan pastikan menu ini masuk ke daftar terbuka
 			setIsSidebarCollapsed(false);
-			setOpenMenu(id);
+			setOpenMenus((prev) => (prev.includes(id) ? prev : [...prev, id]));
 		} else {
-			// Perilaku normal saat sidebar sudah lebar
-			setOpenMenu(openMenu === id ? null : id);
+			// Tambah atau hapus ID menu dari array openMenus
+			setOpenMenus((prev) =>
+				prev.includes(id) ? prev.filter((menuId) => menuId !== id) : [...prev, id],
+			);
 		}
 	};
 
 	useEffect(() => {
 		const currentPath = location.pathname;
-		let activeMenuId = null;
 
-		currentMenu.forEach(item => {
+		currentMenu.forEach((item) => {
 			if (item.submenu) {
-				const isActive = item.submenu.some(sub => {
+				const isActive = item.submenu.some((sub) => {
 					const fullPath = `${item.path}/${sub.path}`.replace(/\/+/g, '/');
 					return currentPath.startsWith(fullPath);
 				});
-				if (isActive) setOpenMenu(item.id);
-			}
 
-			// 2. Logika Tambahan: Jika path persis sama dengan item.path, tandai sebagai aktif
-			// Ini memastikan jika user di '/admin/dashboard', maka item dashboard terbuka/aktif
-
-			if (currentPath === `/${item.path}` || currentPath === item.path) {
-				activeMenuId = item.id;
+				// Jika path aktif, pastikan ID menu masuk ke daftar terbuka
+				if (isActive) {
+					setOpenMenus((prev) => {
+						if (!prev.includes(item.id)) {
+							return [...prev, item.id];
+						}
+						return prev;
+					});
+				}
 			}
 		});
 	}, [location.pathname, currentMenu]);
 
 	return (
-		<div
-			className={`sidebar-container flex-shrink-0 p-3 bg-white border-end ${isSidebarCollapsed ? 'collapsed' : ''}`}
-			style={{
-				width: isSidebarCollapsed ? '80px' : '280px', // Animasi Lebar disini
-				transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-				height: '100%',
-				overflowY: 'auto',
-				overflowX: 'hidden',
-			}}>
-			<ul className="list-unstyled ps-0">
-				{currentMenu.map(item => (
-					<li className="mb-2" key={item.id}>
-						<SidebarItem
-							item={item}
-							isOpen={openMenu === item.id}
-							toggle={handleToggle}
-							isSidebarCollapsed={isSidebarCollapsed}
-						/>
-					</li>
-				))}
-			</ul>
-		</div>
+		<>
+			<div
+				className={`sidebar-container flex-shrink-0 border-end d-flex flex-column justify-content-between ${isSidebarCollapsed ? 'collapsed' : ''}`}
+				style={{
+					width: isSidebarCollapsed ? '80px' : '240px',
+					transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+					height: '100%',
+					overflowY: 'auto',
+					overflowX: 'hidden',
+					overflowAnchor: 'none', // Tambahkan baris ini
+				}}>
+				{/* List  */}
+				<div>
+					<ul className="list-unstyled ps-0 mx-2 mt-2">
+						{currentMenu.map((item) => (
+							<li className="mb-2" key={item.id}>
+								<SidebarItem
+									item={item}
+									isOpen={openMenus.includes(item.id)}
+									toggle={handleToggle}
+									isSidebarCollapsed={isSidebarCollapsed}
+								/>
+							</li>
+						))}
+					</ul>
+				</div>
+				<EventCard isCollapsed={isSidebarCollapsed} />
+			</div>
+		</>
 	);
 };
 

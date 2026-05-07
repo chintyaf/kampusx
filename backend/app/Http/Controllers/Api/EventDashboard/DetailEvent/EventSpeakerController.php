@@ -48,24 +48,23 @@ class EventSpeakerController extends Controller
      */
     public function update(Request $request, $eventId)
     {
-        // Validasi struktur data yang dikirim dari React
+        // Validasi struktur data
         $request->validate([
-            'speakers'                  => 'required|array',
-            'speakers.*.id'             => 'nullable|exists:speakers,id', // Opsional: pastikan ID valid jika dikirim untuk update
-            'speakers.*.name'           => 'required|string|max:255',
-            'speakers.*.role'           => 'nullable|string|max:255',
-            'speakers.*.bio'            => 'nullable|string', // Tambahkan validasi bio
+            'speakers'                           => 'required|array',
+            'speakers.*.id'                      => 'nullable|exists:speakers,id',
+            'speakers.*.name'                    => 'required|string|max:255',
+            'speakers.*.role'                    => 'required|string|max:255', // Sesuaikan dengan React (Required)
+            'speakers.*.bio'                     => 'nullable|string',
 
-            // Sesuaikan key dengan nama kolom di database (social_link)
+            // Validasi JSON / Array
             'speakers.*.social_link'             => 'nullable|array',
             'speakers.*.social_link.*.platform'  => 'required_with:speakers.*.social_link|string',
             'speakers.*.social_link.*.url'       => 'required_with:speakers.*.social_link|url',
+            'speakers.*.expertise'               => 'nullable|array',
 
-            'speakers.*.expertise'      => 'nullable|array',
-
-            // Relasi ke tabel pivot
-            'speakers.*.sessions'       => 'nullable|array',
-            'speakers.*.sessions.*'     => 'exists:event_sessions,id',
+            // Relasi Pivot
+            'speakers.*.sessions'                => 'nullable|array',
+            'speakers.*.sessions.*'              => 'exists:event_sessions,id',
         ]);
 
         try {
@@ -73,25 +72,31 @@ class EventSpeakerController extends Controller
 
             foreach ($request->speakers as $speakerData) {
 
-                // Proses Simpan / Update
-                // Kita tidak lagi menyimpan session_id di tabel speaker, melainkan event_id
-                $speaker = Speaker::updateOrCreate(
-                    ['id' => $speakerData['id'] ?? null], // Cari berdasarkan ID jika ada
-                    [
-                        'event_id'    => $eventId, // Gunakan parameter $eventId dari URL
-                        'name'        => $speakerData['name'],
-                        'role'        => $speakerData['role'] ?? null,
-                        'bio'         => $speakerData['bio'] ?? null, // Simpan data bio
-                        'social_link' => $speakerData['social_link'] ?? null, // Simpan sebagai array (Laravel cast ke JSON)
-                        'expertise'   => $speakerData['expertise'] ?? null,
-                    ]
-                );
+                // Siapkan data yang akan disimpan (Fallback array kosong untuk JSON)
+                $dataToSave = [
+                    'event_id'    => $eventId,
+                    'name'        => $speakerData['name'],
+                    'role'        => $speakerData['role'],
+                    'bio'         => $speakerData['bio'] ?? null,
+                    'social_link' => $speakerData['social_link'] ?? [],
+                    'expertise'   => $speakerData['expertise'] ?? [],
+                ];
+
+                // Proses Simpan / Update yang lebih aman
+                if (!empty($speakerData['id'])) {
+                    // Update data yang sudah ada
+                    $speaker = Speaker::where('id', $speakerData['id'])
+                                      ->where('event_id', $eventId) // Keamanan tambahan
+                                      ->firstOrFail();
+                    $speaker->update($dataToSave);
+                } else {
+                    // Buat data baru
+                    $speaker = Speaker::create($dataToSave);
+                }
 
                 // Update data di pivot table 'event_session_speakers'
-                if (isset($speakerData['sessions'])) {
-                    // Sync akan mengurus insert & delete relasi otomatis di tabel pivot
-                    $speaker->sessions()->sync($speakerData['sessions']);
-                }
+                // Penggunaan array kosong [] memastikan relasi dihapus jika user menghapus centang semua sesi
+                $speaker->sessions()->sync($speakerData['sessions'] ?? []);
             }
 
             DB::commit();
@@ -99,7 +104,7 @@ class EventSpeakerController extends Controller
             return response()->json([
                 'success' => true,
                 'status'  => 'success',
-                'message' => 'Semua pembicara berhasil disimpan',
+                'message' => 'Data pembicara berhasil disimpan',
             ], 200);
 
         } catch (\Exception $e) {
