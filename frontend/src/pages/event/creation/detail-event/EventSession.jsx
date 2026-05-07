@@ -102,6 +102,7 @@ const EventSession = () => {
 						day: dayNumber,
 						startTime: s.startTime || s.start_time,
 						endTime: s.endTime || s.end_time,
+						prerequisite_session_ids: s.prerequisite_session_ids || [],
 					});
 				});
 			}
@@ -157,12 +158,41 @@ const EventSession = () => {
 
 	const handleSaveSession = (updatedSession) => {
 		setDays((prevDays) => {
-			return prevDays.map((day) => ({
-				...day,
-				sessions: day.sessions.map((session) =>
-					session.id === updatedSession.id ? updatedSession : session,
-				),
-			}));
+			const newDays = [...prevDays.map(d => ({ ...d, sessions: [...d.sessions] }))];
+
+			let oldDayIndex = -1;
+			let oldSessionIndex = -1;
+			
+			for (let i = 0; i < newDays.length; i++) {
+				const sIndex = newDays[i].sessions.findIndex(s => s.id === updatedSession.id);
+				if (sIndex !== -1) {
+					oldDayIndex = i;
+					oldSessionIndex = sIndex;
+					break;
+				}
+			}
+
+			if (oldDayIndex !== -1) {
+				const oldDayNumber = newDays[oldDayIndex].day_number || (oldDayIndex + 1);
+				const newDayNumber = parseInt(updatedSession.dayNumber);
+
+				if (oldDayNumber !== newDayNumber) {
+					newDays[oldDayIndex].sessions.splice(oldSessionIndex, 1);
+					
+					const newDayIndex = newDays.findIndex(d => (d.day_number || (newDays.indexOf(d) + 1)) === newDayNumber);
+					if (newDayIndex !== -1) {
+						newDays[newDayIndex].sessions.push(updatedSession);
+						newDays[newDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+					} else {
+						newDays[oldDayIndex].sessions.push(updatedSession);
+						newDays[oldDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+					}
+				} else {
+					newDays[oldDayIndex].sessions[oldSessionIndex] = updatedSession;
+					newDays[oldDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+				}
+			}
+			return newDays;
 		});
 		setSelectedRow(updatedSession);
 		notify('success', 'Berhasil!', 'Sesi berhasil diperbarui.');
@@ -252,6 +282,8 @@ const EventSession = () => {
 			startTime: '',
 			endTime: '',
 			speakers: [],
+			dayNumber: days[dayIndex].day_number || (dayIndex + 1),
+			prerequisite_session_ids: []
 		};
 
 		setDays((prevDays) => {
@@ -295,6 +327,7 @@ const EventSession = () => {
 					<SessionForm
 						key={selectedRow?.id || 'new-session'}
 						data={selectedRow}
+						days={days}
 						onClose={handleCloseForm}
 						onChangeSidebar={setSidebar}
 						onSaveSession={handleSaveSession}

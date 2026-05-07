@@ -17,12 +17,14 @@ import {
 	EyeOff,
 } from 'lucide-react';
 
-const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHideSession, onChangeSidebar }) => {
+const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession, onToggleHideSession, onChangeSidebar }) => {
 	const [sessionData, setSessionData] = useState({
 		title: '',
 		description: '',
 		startTime: '',
 		endTime: '',
+		dayNumber: 1,
+		prerequisite_session_ids: []
 	});
 	const [activeType, setActiveType] = useState('Keynote');
 	const sessionTypes = ['Keynote', 'Panel', 'Workshop', 'Sesi', 'Break'];
@@ -35,6 +37,8 @@ const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHi
 				description: data.description || '',
 				startTime: data.startTime || '',
 				endTime: data.endTime || '',
+				dayNumber: data.dayNumber || 1,
+				prerequisite_session_ids: data.prerequisite_session_ids || []
 			});
 		}
 	}, [data]);
@@ -42,6 +46,14 @@ const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHi
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setSessionData((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const handlePrerequisiteChange = (e) => {
+		const value = e.target.value;
+		setSessionData((prev) => ({
+			...prev,
+			prerequisite_session_ids: value ? [value] : []
+		}));
 	};
 
 	const handleSubmit = () => {
@@ -56,9 +68,43 @@ const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHi
 			sessionData.title !== (data.title || '') ||
 			sessionData.description !== (data.description || '') ||
 			sessionData.startTime !== (data.startTime || '') ||
-			sessionData.endTime !== (data.endTime || '')
+			sessionData.endTime !== (data.endTime || '') ||
+			parseInt(sessionData.dayNumber) !== parseInt(data.dayNumber || 1) ||
+			JSON.stringify(sessionData.prerequisite_session_ids) !== JSON.stringify(data.prerequisite_session_ids || [])
 		);
 	};
+
+	// Cari tahu daftar sesi lain untuk prerequisite
+	const allOtherSessions = [];
+	days.forEach(day => {
+		if (day.sessions) {
+			day.sessions.forEach(s => {
+				if (s.id !== data?.id) {
+					allOtherSessions.push({ ...s, dayNumber: day.day_number || day.dayNumber || (days.indexOf(day) + 1) });
+				}
+			})
+		}
+	});
+
+	// Validasi prerequisite
+	let prerequisiteWarning = null;
+	if (sessionData.prerequisite_session_ids && sessionData.prerequisite_session_ids.length > 0) {
+		const prereqId = sessionData.prerequisite_session_ids[0];
+		const prereqSession = allOtherSessions.find(s => s.id == prereqId); // string/int comparison
+		
+		if (prereqSession && sessionData.startTime && prereqSession.endTime) {
+			const currentDay = parseInt(sessionData.dayNumber);
+			const prereqDay = parseInt(prereqSession.dayNumber);
+
+			if (currentDay < prereqDay) {
+				prerequisiteWarning = "Jadwal sesi ini berada pada hari sebelum sesi prasyarat selesai.";
+			} else if (currentDay === prereqDay) {
+				if (sessionData.startTime < prereqSession.endTime) {
+					prerequisiteWarning = "Jadwal sesi ini berada sebelum sesi prasyarat selesai, harap periksa kembali waktu pelaksanaan.";
+				}
+			}
+		}
+	}
 
 	// Reusable inline style untuk flat input agar tidak berulang
 	const flatInputStyle = {
@@ -199,9 +245,20 @@ const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHi
 						<Form.Label className="form-label">
 							<Calendar size={14} className="me-1" /> Hari
 						</Form.Label>
-						<Form.Select style={flatInputStyle}>
-							<option>Hari 1</option>
-							<option>Hari 2</option>
+						<Form.Select
+							name="dayNumber"
+							value={sessionData.dayNumber}
+							onChange={handleChange}
+							style={flatInputStyle}
+						>
+							{days.map((day, idx) => {
+								const dNum = day.day_number || (idx + 1);
+								return (
+									<option key={dNum} value={dNum}>
+										Hari {dNum}
+									</option>
+								);
+							})}
 						</Form.Select>
 					</Col>
 					<Col xs={12} className="mb-4">
@@ -235,10 +292,21 @@ const SessionForm = ({ data, onClose, onSaveSession, onDeleteSession, onToggleHi
 					<Form.Label className="form-label">
 						<LinkIcon size={14} /> Prasyarat Sesi
 					</Form.Label>
-					<Form.Select style={flatInputStyle}>
-						<option>Tidak ada prasyarat</option>
-						<option>Sesi Fundamental AI</option>
+					<Form.Select 
+						value={sessionData.prerequisite_session_ids?.[0] || ''}
+						onChange={handlePrerequisiteChange}
+						style={flatInputStyle}
+					>
+						<option value="">Tidak ada prasyarat</option>
+						{allOtherSessions.map(s => (
+							<option key={s.id} value={s.id}>{s.title || 'Sesi Tanpa Judul'}</option>
+						))}
 					</Form.Select>
+					{prerequisiteWarning && (
+						<div className="mt-2 p-2 rounded" style={{ backgroundColor: '#fff3cd', color: '#856404', fontSize: '0.85rem' }}>
+							⚠️ {prerequisiteWarning}
+						</div>
+					)}
 				</Form.Group>
 
 				{/* Pembicara */}

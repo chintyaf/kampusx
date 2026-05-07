@@ -22,6 +22,7 @@ class EventSessionResource extends JsonResource
             'date' => $this->date,
             'startTime' => $this->start_time,
             'endTime' => $this->end_time,
+            'prerequisite_session_ids' => $this->prerequisite_session_ids,
 
             // Masukkan speakers di sini (bisa juga pakai Resource terpisah seperti SpeakerResource)
             'speakers' => $this->whenLoaded('speakers'),
