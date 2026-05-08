@@ -61,7 +61,7 @@ const SignIn = () => {
 				<p className="text-muted" style={{ fontSize: 'var(--font-sm)' }}>
 					or{' '}
 					<Link
-						to="/signup"
+						to="/register"
 						className="text-decoration-none fw-semibold"
 						style={{ color: 'var(--color-primary)' }}>
 						get started with a new account
@@ -203,7 +203,7 @@ const SignIn = () => {
 
 			<div className="text-center">
 				<Link
-					to="/signup"
+					to="/register"
 					className="text-decoration-none"
 					style={{
 						fontSize: 'var(--font-sm)',
