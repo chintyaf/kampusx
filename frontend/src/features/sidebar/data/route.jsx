@@ -85,7 +85,7 @@ export const MENU_ITEMS = {
 				{ name: 'Info Utama', path: 'info', isCompleted: true },
 				{ name: 'Tempat Acara', path: 'tempat', isCompleted: true },
 				{ name: 'Susunan Acara', path: 'sesi', isCompleted: true },
-				{ name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
+				// { name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
 				// { name: 'Form Pendaftaran', path: 'formulir', isCompleted: false }, // Diganti agar lebih pas
 				{ name: 'Tiket', path: 'tiket', isCompleted: false },
 			],
@@ -124,7 +124,7 @@ export const MENU_ITEMS = {
 			id: 'sertifikat-event',
 			name: 'Sertifikat',
 			icon: <Award size={16} className="me-2" />, // Icon medali/penghargaan sangat pas untuk sertifikat
-			path: '/organizer/:eventId/event-dashboard/sertifikat/atur-template',
+			path: '/organizer/:eventId/event-dashboard/sertifikat/sertifikat',
 			// submenu: [
 			// 	{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
 			// 	{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },

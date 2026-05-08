@@ -2,10 +2,11 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import React, { Suspense, lazy, useState, useEffect } from 'react';
 import RouteProgressBar from '../components/RouteProgressBar';
 
-import VisitorLayout from '../layouts/MainLayout';
-import AuthLayout from '../layouts/AuthLayout';
-import DashboardLayout from '../layouts/DashboardLayout';
-import MemberLayout from '../layouts/MemberLayout';
+import VisitorLayout from '@/layouts/MainLayout';
+import AuthLayout from '@/layouts/AuthLayout';
+import DashboardLayout from '@/layouts/DashboardLayout';
+import MemberLayout from '@/layouts/MemberLayout';
+import PublicLayout from '@/layouts/PublicLayout.jsx';
 
 // Import daftar rute
 import visitorRoutes from './PublicRoutes';
@@ -77,7 +78,7 @@ const AppRoutes = () => {
 
 				{/* 2. Jika SUDAH login: Jadikan '/' sebagai Member Dashboard dengan DashboardLayout */}
 				{isAuthenticated && (
-					<Route element={<DashboardLayout />}>
+					<Route element={<PublicLayout />}>
 						{/* Ganti <Dashboard /> di bawah dengan halaman khusus Member jika ada */}
 						<Route path="/" element={<MemberDashboard />} />
 					</Route>

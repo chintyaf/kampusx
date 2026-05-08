@@ -25,7 +25,7 @@ const EventPosPage = () => {
 	const fetchPosList = async () => {
 		try {
 			const response = await api.get(`/event-dashboard/${eventId}/stations`);
-			console.log('Response Data:', response.data.data)
+			console.log('Response Data:', response.data.data);
 			const mappedData = response.data.data.map((station) => ({
 				id: station.id,
 				name: station.name,
@@ -64,7 +64,7 @@ const EventPosPage = () => {
 			setPosList((prev) => prev.filter((p) => p.id !== posToDelete));
 		} catch (error) {
 			console.error('Failed to delete station:', error);
-			alert('Gagal menghapus pos'); // Pertimbangkan mengganti alert ini dengan toast notification jika ada
+			alert('Gagal menghapus pos');
 		} finally {
 			setIsDeleting(false);
 			setShowDeleteModal(false);
@@ -96,10 +96,10 @@ const EventPosPage = () => {
 
 			{/* ── Stat Cards ── */}
 			<Row className="g-3">
-				<Col xs={12} sm={3}>
+				<Col xs={12} md={6} lg={3}>
 					<StatCard Icon={Users} label="Total Pos" value={`${posList.length}`} />
 				</Col>
-				<Col xs={12} sm={3}>
+				<Col xs={12} md={6} lg={3}>
 					<StatCard
 						Icon={CheckCircle2}
 						label="Pos Aktif"
@@ -107,7 +107,7 @@ const EventPosPage = () => {
 						type="green"
 					/>
 				</Col>
-				<Col xs={12} sm={3}>
+				<Col xs={12} md={6} lg={3}>
 					<StatCard
 						Icon={Box}
 						label="Belum Digunakan"
@@ -115,7 +115,7 @@ const EventPosPage = () => {
 						type="yellow"
 					/>
 				</Col>
-				<Col xs={12} sm={3}>
+				<Col xs={12} md={6} lg={3}>
 					<StatCard
 						Icon={Ticket}
 						label="Total Scan"

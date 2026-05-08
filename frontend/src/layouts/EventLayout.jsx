@@ -7,6 +7,8 @@ import { Image } from 'lucide-react';
 import { notify } from '../utils/notify';
 
 const EventLayout = ({
+	title,
+	description,
 	heading,
 	subheading,
 	children,
@@ -82,14 +84,21 @@ const EventLayout = ({
 				{/* minWidth: 0 penting agar form tidak meluber ke luar container */}
 				<div className="flex-grow-1 position-relative" style={{ minWidth: 0 }}>
 					{/* Header Section */}
-					<div className="mb-4 d-flex align-items-start">
-						<div>
-							<h5 className="fw-bold mb-1" style={{ fontSize: '1.1rem' }}>
-								{heading}
-							</h5>
-							<p className="text-muted small mb-0">{subheading}</p>
-						</div>
-					</div>
+					{heading ||
+						(title && (
+							<div className="mb-4 d-flex align-items-start">
+								<div>
+									<h5 className="fw-bold mb-1" style={{ fontSize: '1.1rem' }}>
+										{heading}
+										{title}
+									</h5>
+									<p className="text-muted small mb-0">
+										{subheading}
+										{description}
+									</p>
+								</div>
+							</div>
+						))}
 
 					<div className="position-relative">
 						<div
@@ -97,7 +106,8 @@ const EventLayout = ({
 							style={{
 								opacity: isSaving ? 0.5 : 1,
 								pointerEvents: isSaving ? 'none' : 'auto',
-							}}>
+							}}
+						>
 							{children}
 						</div>
 					</div>
@@ -114,7 +124,8 @@ const EventLayout = ({
 										return;
 									}
 									navigate(`../${prevPath}`);
-								}}>
+								}}
+							>
 								Back
 							</Button>
 						)}
@@ -123,7 +134,8 @@ const EventLayout = ({
 							<Button
 								variant="primary"
 								onClick={handleSaveAndContinue}
-								disabled={isSaving}>
+								disabled={isSaving}
+							>
 								{isSaving ? 'Saving...' : 'Selanjutnya'}
 							</Button>
 						) : (
@@ -137,7 +149,17 @@ const EventLayout = ({
 				{/* ── KOLOM KANAN: Sidebar Opsional ── */}
 				{/* Kalau prop sidebar diisi, dia akan dirender di sini dan diberi sifat sticky */}
 				{sidebar && (
-					<div style={{ position: 'sticky', top: '0px', flexShrink: 0 }}>{sidebar}</div>
+					<div
+						style={{
+							position: 'sticky',
+							top: '0px',
+							flexShrink: 0,
+							// maxWidth: '400px',
+							height: '80vh',
+						}}
+					>
+						{sidebar}
+					</div>
 				)}
 			</div>
 		</>

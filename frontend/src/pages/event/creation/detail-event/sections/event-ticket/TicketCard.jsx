@@ -29,7 +29,8 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 					transition: 'background-color 0.2s',
 					borderColor: '#e2e8f0',
 				}}
-				onClick={() => setOpen(!open)}>
+				onClick={() => setOpen(!open)}
+			>
 				<div className="d-flex align-items-center gap-3">
 					<div className="custom-badge-number">{index + 1}</div>
 					<span className="text-dark" style={{ fontSize: '16px', fontWeight: 400 }}>
