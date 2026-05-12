@@ -3,16 +3,14 @@ import { Button } from 'react-bootstrap';
 import { ShieldCheck, Copy, Check, RefreshCw } from 'lucide-react';
 // import './PosPinHeader.css';
 
-const PosPinHeader = () => {
-	// State untuk master PIN dan indikator copy
-	const [masterPin, setMasterPin] = useState('asdasd');
+const PosPinHeader = ({ pin }) => {
 	const [pinCopied, setPinCopied] = useState(false);
 
 	// Fungsi untuk menyalin PIN ke clipboard
 	// TODO : ubah ini menjadi link yang bisa dibagikan
 	const handleCopyPin = async () => {
 		try {
-			await navigator.clipboard.writeText(masterPin);
+			await navigator.clipboard.writeText(pin);
 			setPinCopied(true);
 
 			// Kembalikan tombol ke state awal setelah 2 detik
@@ -35,7 +33,7 @@ const PosPinHeader = () => {
 				<div>
 					<p className="pos-subtitle mb-0">PIN Akses Panitia</p>
 					<div className="d-flex align-items-center gap-2 mt-1">
-						<span className="pos-pin-text">{masterPin}</span>
+						<span className="pos-pin-text">{pin}</span>
 						<Button
 							variant="light"
 							onClick={handleCopyPin}

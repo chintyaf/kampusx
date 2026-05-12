@@ -72,7 +72,8 @@ const CustomToggle = React.forwardRef(({ children, onClick, style }, ref) => (
 			border: '1.5px solid',
 			transition: 'all 0.15s ease',
 			...style,
-		}}>
+		}}
+	>
 		{children}
 	</div>
 ));
@@ -139,7 +140,8 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 						backgroundColor: current.bg,
 						borderColor: current.border,
 						color: current.color,
-					}}>
+					}}
+				>
 					<span
 						className="rounded-circle flex-shrink-0"
 						style={{
@@ -156,14 +158,16 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 
 				<Dropdown.Menu
 					className="p-0 border-0 mt-2"
-					style={{ borderRadius: 7, shadowColor: 'none' }}>
+					style={{ borderRadius: 7, shadowColor: 'none' }}
+				>
 					<div
 						className="shadow-sm pop-down"
 						style={{
 							borderRadius: 7,
 							overflow: 'hidden',
 							border: '1.2px solid var(--border-md)',
-						}}>
+						}}
+					>
 						<div className="nav-dropdown ">
 							<div
 								className="px-3 py-2 text-uppercase fw-bold text-secondary border-bottom "
@@ -172,7 +176,8 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 									// background: 'linear-gradient(135deg, var(--bahama-blue-50) 0%, var(--bahama-blue-100) 100%)',
 									fontSize: 10,
 									letterSpacing: '0.7px',
-								}}>
+								}}
+							>
 								Ubah Status
 							</div>
 
@@ -188,7 +193,8 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 										style={{
 											backgroundColor: isActive ? '#f0f9ff' : 'transparent',
 											transition: 'background 0.12s ease',
-										}}>
+										}}
+									>
 										<div
 											className="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
 											style={{
@@ -196,7 +202,8 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 												height: 32,
 												border: `1.5px solid ${cfg.border}`,
 												backgroundColor: cfg.bg,
-											}}>
+											}}
+										>
 											<cfg.icon size={15} color={cfg.color} strokeWidth={2} />
 										</div>
 										<div className="flex-grow-1 ms-1">
@@ -205,12 +212,14 @@ const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 												style={{
 													fontSize: 13,
 													lineHeight: 1.2,
-												}}>
+												}}
+											>
 												{cfg.label}
 											</div>
 											<div
 												className="text-secondary mt-1"
-												style={{ fontSize: 11 }}>
+												style={{ fontSize: 11 }}
+											>
 												{cfg.desc}
 											</div>
 										</div>

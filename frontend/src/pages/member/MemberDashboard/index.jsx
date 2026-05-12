@@ -47,7 +47,7 @@ const MemberDashboard = () => {
 						id: ev.id,
 						title: ev.title,
 						org: ev.organizer?.name ?? 'Unknown',
-						image: `https://placehold.co/600x300/dff3ff/00699e?text=Event+${ev.id}`,
+						image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
 						date: ev.start_date
 							? new Date(ev.start_date).toLocaleDateString('id-ID', {
 									day: 'numeric',

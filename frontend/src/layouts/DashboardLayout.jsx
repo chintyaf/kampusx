@@ -49,7 +49,8 @@ const DashboardLayout = () => {
 				height: '100vh',
 				overflow: 'hidden',
 				backgroundColor: 'red',
-			}}>
+			}}
+		>
 			{/* Kirim state dan toggle ke Navbar */}
 			<Navbar
 				eventId={eventId}
@@ -62,7 +63,8 @@ const DashboardLayout = () => {
 				style={{
 					overflow: 'hidden',
 					height: '100vh',
-				}}>
+				}}
+			>
 				{showSidebar && (
 					<Sidebar
 						type={sidebarType}
@@ -89,13 +91,14 @@ const DashboardLayout = () => {
 				<main
 					style={{
 						padding: '30px 60px',
-						backgroundColor: '#F8FAFC',
+						backgroundColor: 'var(--color-bg)',
 						// backgroundColor: 'white',
 						flex: 1,
 						overflowY: 'auto',
 						position: 'relative',
 						minHeight: '0',
-					}}>
+					}}
+				>
 					<Toaster position="top-right" containerStyle={{ top: 100, right: 40 }} />
 
 					{/* GLOBAL LOADING OVERLAY */}
@@ -107,13 +110,13 @@ const DashboardLayout = () => {
 								left: 0,
 								right: 0,
 								bottom: 0,
-								backgroundColor: 'rgba(247, 248, 249, 0.7)',
 								zIndex: 9999,
 								display: 'flex',
 								justifyContent: 'center',
 								alignItems: 'center',
 								backdropFilter: 'blur(2px)',
-							}}>
+							}}
+						>
 							<div className="spinner-border text-primary" role="status">
 								<span className="visually-hidden">Loading...</span>
 							</div>

@@ -22,13 +22,12 @@ const SessionCard = ({
 	const dayNumber = dayItem.day_number || dayIndex + 1;
 
 	return (
-		<div className="custom-ticket-card mb-3">
+		<div className="custom-ticket-card mb-3 shadow-sm">
 			<div
-				className={`px-4 py-3 d-flex justify-content-between align-items-center ${open ? 'border-bottom' : ''}`}
+				className={`px-4 subtle py-3 d-flex justify-content-between align-items-center ${open ? 'border-bottom' : ''}`}
 				style={{
 					cursor: 'pointer',
 					transition: 'background-color 0.2s',
-					borderColor: '#e2e8f0',
 				}}
 				onClick={() => setOpen(!open)}
 			>
@@ -67,25 +66,27 @@ const SessionCard = ({
 							onEdit={onEditDayDate}
 						/>
 
-						<div className="d-flex flex-column gap-2 mt-3">
+						<div className="d-flex flex-column gap-2">
 							{[...sessions]
-								.sort((a, b) => (a.isHidden === b.isHidden ? 0 : a.isHidden ? 1 : -1))
+								.sort((a, b) =>
+									a.isHidden === b.isHidden ? 0 : a.isHidden ? 1 : -1,
+								)
 								.map((session) => (
-								<SessionRow
-									key={session.id}
-									selectedRow={selectedRow?.id === session.id}
-									onClick={() => {
-										if (selectedRow?.id === session.id) {
-											setSelectedRow(null);
-											onSidebarChange('summary');
-										} else {
-											setSelectedRow(session);
-											onSidebarChange('session-form');
-										}
-									}}
-									session={session}
-								/>
-							))}
+									<SessionRow
+										key={session.id}
+										selectedRow={selectedRow?.id === session.id}
+										onClick={() => {
+											if (selectedRow?.id === session.id) {
+												setSelectedRow(null);
+												onSidebarChange('summary');
+											} else {
+												setSelectedRow(session);
+												onSidebarChange('session-form');
+											}
+										}}
+										session={session}
+									/>
+								))}
 						</div>
 
 						{/* Ubah teks agar hari dinamis */}

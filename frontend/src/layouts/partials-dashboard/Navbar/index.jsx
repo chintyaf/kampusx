@@ -48,9 +48,9 @@ const Navbar = ({ eventId, toggleSidebar, showToggleBtn }) => {
 				<div className="d-flex align-items-center gap-2">
 					{showToggleBtn && (
 						<button
-							className="btn btn-light d-flex align-items-center justify-content-center p-2 border-0 bg-transparent text-secondary hover-bg-light rounded-circle"
+							className="btn btn-light d-flex align-items-center justify-content-center p-2 border-0 bg-transparent text-muted hover-bg-light rounded-circle"
 							onClick={toggleSidebar}>
-							<Menu size={22} />
+							<Menu size={20} />
 						</button>
 					)}
 					<NavLink to={navLink} className="link-dark text-decoration-none">

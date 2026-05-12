@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 // import axios from 'axios';
 import api from '../../../../api/axios';
 import { useAuth } from '../../../../context/AuthContext';
+import { STORAGE_URL } from '../../../../api/storage';
 
 
 const EventDetail = () => {
@@ -109,7 +110,7 @@ const EventDetail = () => {
                         {/* Gambar Utama Event */}
                         <div className="mb-4">
                             <img 
-                                src={eventDetails.image_url || `https://placehold.co/1200x600/e2e8f0/64748b?text=${encodeURIComponent(eventDetails.title)}`} 
+                                src={eventDetails.image_path ? `${STORAGE_URL}/${eventDetails.image_path}` : `${STORAGE_URL}/event-banners/${eventDetails.id}.jpg`} 
                                 alt={eventDetails.title} 
                                 className="w-100 rounded-4 object-fit-cover shadow-sm"
                                 style={{ height: '400px' }}

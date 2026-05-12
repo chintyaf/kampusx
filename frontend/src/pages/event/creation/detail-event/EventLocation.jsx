@@ -185,8 +185,8 @@ const EventLocation = () => {
 
     return (
         <EventLayout
-            heading="Konfigurasi Teknis & Jadwal Event"
-            subheading="Atur mode kehadiran, lokasi, dan detail sesi acara dalam satu tempat."
+            title="Konfigurasi Teknis & Jadwal Event"
+            description="Atur mode kehadiran, lokasi, dan detail sesi acara dalam satu tempat."
             nextPath="sesi"
             prevPath="info"
             onSave={handleSave}

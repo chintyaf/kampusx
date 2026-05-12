@@ -12,7 +12,7 @@ main {
 .sidebar-container {
 	/* max-width: 250px; */
 	/* max-width: ; */
-	background-color: #ffffff;
+	background-color: hsl(224, 2%, 100%);
 	/* padding-top: 1.5rem; */
 	border-right: 1px solid var(--color-border);
 
@@ -94,18 +94,12 @@ main {
 }
 
 /* State: ACTIVE (Kembali menggunakan CSS variables asli) */
-.custom-menu-item.active {
+.custom-menu-item.active,
+.custom-menu-item.active .menu-text,
+.custom-menu-item.active .menu-icon {
 	background-color: var(--bahama-blue-50) !important;
 	color: var(--bahama-blue-700) !important;
-	font-weight: 600;
-}
-
-.custom-menu-item.active .menu-text {
-	color: var(--bahama-blue-700);
-}
-
-.custom-menu-item.active .menu-icon {
-	color: var(--bahama-blue-700);
+	font-weight: 500;
 }
 
 .menu-text,
