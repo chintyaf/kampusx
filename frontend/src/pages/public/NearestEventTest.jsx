@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import LocationPopup from '../../components/event/LocationPopup';
 
 import api from '../../api/axios';
+import { STORAGE_URL } from '../../api/storage';
 
 const NearestEventTest = () => {
 	// 1. Ubah inisialisasi awal menjadi null agar if (coords) tidak langsung trigger
@@ -181,10 +182,7 @@ const NearestEventTest = () => {
 
 									<img
 										// Jika API mu mereturn null untuk image, gunakan placehold.co sebagai default
-										src={
-											ev.image ||
-											`https://placehold.co/600x300/e2e8f0/64748b?text=Event+${ev.id}`
-										}
+										src={ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`}
 										alt={ev.title}
 										className="w-100 object-fit-cover rounded mb-3"
 										style={{ height: '180px' }}

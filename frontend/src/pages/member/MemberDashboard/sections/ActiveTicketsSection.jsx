@@ -4,6 +4,7 @@ import { Calendar, MapPin } from 'lucide-react';
 import SectionHeader from '../SectionHeader';
 import StatusPill from '../StatusPill';
 import { clr } from '../constants';
+import { STORAGE_URL } from '@/api/storage';
 
 const ActiveTicketsSection = ({ activeTickets }) => {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ const ActiveTicketsSection = ({ activeTickets }) => {
                   (e.currentTarget.style.transform = 'translateY(0)')
                 }>
                 <img
-                  src={ev.image ?? 'https://placehold.co/600x300'}
+                  src={ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`}
                   alt={ev.title}
                   style={{
                     width: '100%',

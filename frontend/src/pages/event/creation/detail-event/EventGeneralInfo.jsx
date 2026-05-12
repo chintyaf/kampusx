@@ -197,8 +197,8 @@ const EventGeneralInfo = () => {
 
 	return (
 		<EventLayout
-			heading="Informasi Utama"
-			subheading="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
+			title="Informasi Utama"
+			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
 			onSave={handleUpdate}>
 			<Form>

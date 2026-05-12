@@ -101,7 +101,8 @@ export default function EventTicket() {
 			title="Harga & Tipe Tiket"
 			description="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan."
 			sidebar={<TicketSummary tickets={tickets} />}
-			onSave={handleUpdate}>
+			onSave={handleUpdate}
+		>
 			{/* Ticket cards */}
 			<div className="d-flex flex-column gap-2">
 				{tickets &&

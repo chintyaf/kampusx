@@ -50,11 +50,17 @@ class EventController extends Controller
             return DB::transaction(function () use ($request, $validated) {
 
                 // 2. Persiapkan array data utama (Gunakan nama $eventData)
+                $pin = strtoupper(\Illuminate\Support\Str::random(6));
+                while (Event::where('pos_pin', $pin)->exists()) {
+                    $pin = strtoupper(\Illuminate\Support\Str::random(6));
+                }
+
                 $eventData = [
                     'organizer_id'  => $request->user()->id,
                     'title'         => $validated['title'],
                     'status'        => 'draft',
                     'description'   => $validated['description'] ?? null,
+                    'pos_pin'       => $pin,
                 ];
 
                 // 3. Handle Upload File (Tanpa cek file lama karena ini data baru)

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { STORAGE_URL } from '../api/storage';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const formatPrice = (price) => {
@@ -119,7 +120,7 @@ const EventCard = ({ ev }) => (
 
 			{/* Image */}
 			<img
-				src={ev.image || `https://placehold.co/600x300/dff3ff/00699e?text=Event+${ev.id}`}
+				src={ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`}
 				alt={ev.title}
 				style={{ width: '100%', height: 165, objectFit: 'cover', marginTop: 8 }}
 			/>
