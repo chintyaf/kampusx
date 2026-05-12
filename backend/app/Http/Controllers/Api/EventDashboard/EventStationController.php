@@ -18,10 +18,12 @@ class EventStationController extends Controller
         $stations = EventStation::where('event_id', $eventId)->get(
             ['id', 'name', 'description', 'is_active']
         );
+        $event = \App\Models\Event::findOrFail($eventId);
 
         return response()->json([
             'status' => 'success',
-            'data' => $stations
+            'data' => $stations,
+            'pos_pin' => $event->pos_pin
         ]);
     }
 

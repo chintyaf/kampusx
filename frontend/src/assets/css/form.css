@@ -3,7 +3,7 @@
 	--color-border-input: #c2ccd8;
 	/* --color-bg-input: #f4f6f9; */
 	--color-bg-input: #f4f6f980;
-	--color-text-label: #64748b;
+	--color-text-label: #1a1f25;
 	--color-text: #334155;
 }
 
@@ -21,8 +21,9 @@ form {
 }
 
 /* Diperbaiki agar sesuai gambar: tidak uppercase, warna lebih soft */
-.form-label {
-	font-weight: 500;
+.form-label,
+.custom-form-label {
+	font-weight: 600;
 	font-size: 14px;
 	color: var(--color-text-label);
 	margin-bottom: 8px;
@@ -110,9 +111,9 @@ form {
 
 /* Container Utama */
 .custom-ticket-card {
-	border: 1px solid #e2e8f0;
+	border: 1px solid var(--color-border);
 	border-radius: 12px;
-	background-color: #ffffff;
+	background-color: hsl(0, 0%, 100%);
 	margin-bottom: 1.5rem;
 }
 
@@ -128,14 +129,6 @@ form {
 	justify-content: center;
 	font-weight: 500;
 	font-size: 14px;
-}
-
-/* Label Input */
-.custom-form-label {
-	color: #64748b;
-	font-size: 14px;
-	margin-bottom: 8px;
-	font-weight: 400;
 }
 
 /* Styling Input Standard (Text, Date, Textarea) */

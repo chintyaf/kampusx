@@ -20,7 +20,7 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 	};
 
 	return (
-		<div className="custom-ticket-card">
+		<div className="custom-ticket-card shadow-sm">
 			{/* Header */}
 			<div
 				className={`px-4 py-3 d-flex justify-content-between align-items-center ${open ? 'border-bottom' : ''}`}

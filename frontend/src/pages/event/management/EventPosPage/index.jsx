@@ -16,6 +16,7 @@ const EventPosPage = () => {
 	const [posList, setPosList] = useState([]);
 	const [showForm, setShowForm] = useState(false);
 	const [selectedPos, setSelectedPos] = useState(null);
+	const [posPin, setPosPin] = useState('-');
 
 	// State untuk Modal Delete
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -26,6 +27,9 @@ const EventPosPage = () => {
 		try {
 			const response = await api.get(`/event-dashboard/${eventId}/stations`);
 			console.log('Response Data:', response.data.data);
+			if (response.data.pos_pin) {
+				setPosPin(response.data.pos_pin);
+			}
 			const mappedData = response.data.data.map((station) => ({
 				id: station.id,
 				name: station.name,
@@ -92,7 +96,7 @@ const EventPosPage = () => {
 				/>
 			</div>
 
-			<PosPinHeader />
+			<PosPinHeader pin={posPin} />
 
 			{/* ── Stat Cards ── */}
 			<Row className="g-3">

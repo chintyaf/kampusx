@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Badge, Button, Row, Col } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
 import { Calendar, MapPin, Users, LayoutDashboard, Trash2, Image as ImageIcon } from 'lucide-react';
+import { STORAGE_URL } from '@/api/storage';
 
 const EventCard = ({ event, onDelete }) => {
 	// Format tanggal
@@ -86,32 +87,30 @@ const EventCard = ({ event, onDelete }) => {
 							position: 'relative',
 							overflow: 'hidden',
 						}}>
-						{event.image_path ? (
-							<img
-								src={event.image_path}
-								alt={event.title}
-								style={{
-									width: '100%',
-									height: '100%',
-									objectFit: 'cover',
-									position: 'absolute',
-									top: 0,
-									left: 0,
-								}}
-								onError={(e) => {
-									e.target.style.display = 'none';
-									e.target.parentElement.querySelector(
-										'.placeholder',
-									).style.display = 'flex';
-								}}
-							/>
-						) : null}
+						<img
+							src={event.image_path ? `${STORAGE_URL}/${event.image_path}` : `${STORAGE_URL}/event-banners/${event.id}.jpg`}
+							alt={event.title}
+							style={{
+								width: '100%',
+								height: '100%',
+								objectFit: 'cover',
+								position: 'absolute',
+								top: 0,
+								left: 0,
+							}}
+							onError={(e) => {
+								e.target.style.display = 'none';
+								e.target.parentElement.querySelector(
+									'.placeholder',
+								).style.display = 'flex';
+							}}
+						/>
 
 						{/* Placeholder jika gambar tidak ada */}
 						<div
 							className="placeholder"
 							style={{
-								display: event.image_path ? 'none' : 'flex',
+								display: 'none',
 								position: 'absolute',
 								top: 0,
 								left: 0,

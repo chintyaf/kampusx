@@ -82,12 +82,10 @@ export const MENU_ITEMS = {
 			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
 			path: '/organizer/:eventId/event-dashboard/detail',
 			submenu: [
-				{ name: 'Info Utama', path: 'info', isCompleted: true },
-				{ name: 'Tempat Acara', path: 'tempat', isCompleted: true },
-				{ name: 'Susunan Acara', path: 'sesi', isCompleted: true },
-				// { name: 'Daftar Pembicara', path: 'pembicara', isCompleted: false },
-				// { name: 'Form Pendaftaran', path: 'formulir', isCompleted: false }, // Diganti agar lebih pas
-				{ name: 'Tiket', path: 'tiket', isCompleted: false },
+				{ name: 'Informasi Umum', path: 'info', isCompleted: true },
+				{ name: 'Tempat Pelaksanaan', path: 'tempat', isCompleted: true },
+				{ name: 'Jadwal', path: 'sesi', isCompleted: true },
+				{ name: 'Kategori Tiket', path: 'tiket', isCompleted: false },
 			],
 		},
 		{

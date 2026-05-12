@@ -22,7 +22,9 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 
 	--color-primary: #00699e;
 	--color-secondary: #64748b;
-	--color-bg: #f8fafc;
+	--color-bg-dark : #f4f5f7;
+	--color-bg: #f4f5f7;
+	--color-bg-light: hsl(220, 16%, 100%);
 	--color-text: #0f172a;
 	--color-text-muted: #212529bf;
 

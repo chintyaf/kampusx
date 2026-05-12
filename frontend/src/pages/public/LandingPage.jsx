@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { STORAGE_URL } from "../../api/storage";
 import {
   Carousel, Container, Row, Col, Card, Button,
   InputGroup, Form, Spinner,
@@ -119,9 +120,9 @@ const LandingPage = () => {
   const [email, setEmail]         = useState("");
 
   const banners = [
-    { id: 1, image: "https://placehold.co/1200x420/00699e/ffffff?text=Konser+Musik+Tahunan"        },
-    { id: 2, image: "https://placehold.co/1200x420/0aabed/ffffff?text=Seminar+Nasional+Teknologi"  },
-    { id: 3, image: "https://placehold.co/1200x420/055c87/ffffff?text=Workshop+Persiapan+Karir"    },
+    { id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
+    { id: 2, image: `${STORAGE_URL}/event-banners/2.jpg` },
+    { id: 3, image: `${STORAGE_URL}/event-banners/3.jpg` },
   ];
 
   useEffect(() => {
@@ -140,7 +141,7 @@ const LandingPage = () => {
               id:         ev.id,
               title:      ev.title,
               org:        ev.organizer?.name ?? "Unknown",
-              image:      `https://placehold.co/600x300/dff3ff/00699e?text=Event+${ev.id}`,
+              image:      ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
               date:       ev.start_date
                 ? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
                 : "Tanggal Belum Ditentukan",
