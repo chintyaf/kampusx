@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Middleware
-use App\Http\Middleware\CheckEventOrganizer;
+// use App\Http\Middleware\CheckEventOrganizer;
 
 // Api Controllers
 use App\Http\Controllers\Api\EventController;
@@ -118,7 +118,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // Group: Event Dashboard
         Route::prefix('event-dashboard/{eventId}')
-        ->middleware(['auth', CheckEventOrganizer::class]) // Pindahkan middleware ke sini agar melindungi semua route di dalamnya
+        // ->middleware(['auth', CheckEventOrganizer::class]) // Pindahkan middleware ke sini agar melindungi semua route di dalamnya
         ->group(function () {
 
             // 1. Detail Event (Info Utama)

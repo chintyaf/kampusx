@@ -36,6 +36,8 @@ const MemberDashboard = () => {
 		},
 	];
 
+	console.log(STORAGE_URL);
+
 	// Fetch all events
 	useEffect(() => {
 		(async () => {
@@ -47,7 +49,9 @@ const MemberDashboard = () => {
 						id: ev.id,
 						title: ev.title,
 						org: ev.organizer?.name ?? 'Unknown',
-						image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
+						image: ev.image_path
+							? `${STORAGE_URL}/${ev.image_path}`
+							: `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
 						date: ev.start_date
 							? new Date(ev.start_date).toLocaleDateString('id-ID', {
 									day: 'numeric',
@@ -169,7 +173,8 @@ const MemberDashboard = () => {
 					justifyContent: 'center',
 					alignItems: 'center',
 					minHeight: '60vh',
-				}}>
+				}}
+			>
 				<Spinner animation="border" style={{ color: clr.primaryHex }} />
 			</div>
 		);
@@ -185,7 +190,8 @@ const MemberDashboard = () => {
 							margin: 0,
 							fontSize: 'var(--font-xs)',
 							color: 'var(--color-secondary)',
-						}}>
+						}}
+					>
 						Selamat datang kembali 👋
 					</p>
 					<h1
@@ -194,7 +200,8 @@ const MemberDashboard = () => {
 							fontSize: 'var(--font-xl)',
 							fontWeight: 800,
 							color: 'var(--color-text)',
-						}}>
+						}}
+					>
 						{user?.name ?? 'Member'}
 					</h1>
 				</div>

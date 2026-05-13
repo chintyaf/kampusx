@@ -29,7 +29,7 @@ const EventOrganizerGuard = () => {
 			}
 		};
 
-		checkAccess();
+		console.log(is)
 	}, [eventId]);
 
 	// Tampilkan loading screen selama proses pengecekan
