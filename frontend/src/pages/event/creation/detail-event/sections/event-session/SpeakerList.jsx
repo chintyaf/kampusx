@@ -19,7 +19,11 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 				}}
 			>
 				<Image
-					src={speaker.avatarUrl || speaker.avatar || `https://i.pravatar.cc/150?u=${speaker.id}`}
+					src={
+						speaker.avatarUrl ||
+						speaker.avatar ||
+						`https://i.pravatar.cc/150?u=${speaker.id}`
+					}
 					roundedCircle
 					style={{
 						width: '50px',
@@ -101,7 +105,13 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 					<Button
 						variant="light"
 						className="rounded-circle d-flex align-items-center justify-content-center p-0"
-						style={{ width: '32px', height: '32px', border: 'none', backgroundColor: '#f8f9fa', color: '#64748b' }}
+						style={{
+							width: '32px',
+							height: '32px',
+							border: 'none',
+							backgroundColor: '#f8f9fa',
+							color: '#64748b',
+						}}
 						onClick={() => onEditSpeaker(speaker)}
 					>
 						<Edit2 size={16} />
@@ -111,7 +121,13 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 					<Button
 						variant="light"
 						className="rounded-circle d-flex align-items-center justify-content-center p-0"
-						style={{ width: '32px', height: '32px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444' }}
+						style={{
+							width: '32px',
+							height: '32px',
+							border: 'none',
+							backgroundColor: '#fee2e2',
+							color: '#ef4444',
+						}}
 						onClick={() => {
 							if (window.confirm('Yakin ingin menghapus pembicara ini?')) {
 								onDeleteSpeaker(speaker.id);
@@ -127,21 +143,30 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 };
 
 // --- KOMPONEN UTAMA SPEAKER LIST ---
-const SpeakerList = ({ allSpeakers = [], sessionSpeakers = [], onAddSpeaker, onEditSpeaker, onDeleteSpeaker, onChangeSidebar }) => {
+const SpeakerList = ({
+	allSpeakers = [],
+	sessionSpeakers = [],
+	onAddSpeaker,
+	onEditSpeaker,
+	onDeleteSpeaker,
+	onChangeSidebar,
+}) => {
 	const [searchQuery, setSearchQuery] = useState('');
 
 	// Logika Filtering untuk Search
-	const filteredSpeakers = allSpeakers.map((speaker) => ({
-		...speaker,
-		added: sessionSpeakers.some((s) => s.id === speaker.id)
-	})).filter((speaker) => {
-		const query = searchQuery.toLowerCase();
-		return (
-			(speaker.name || '').toLowerCase().includes(query) ||
-			(speaker.role || speaker.title || '').toLowerCase().includes(query) ||
-			(speaker.bio || speaker.company || '').toLowerCase().includes(query)
-		);
-	});
+	const filteredSpeakers = allSpeakers
+		.map((speaker) => ({
+			...speaker,
+			added: sessionSpeakers.some((s) => s.id === speaker.id),
+		}))
+		.filter((speaker) => {
+			const query = searchQuery.toLowerCase();
+			return (
+				(speaker.name || '').toLowerCase().includes(query) ||
+				(speaker.role || speaker.title || '').toLowerCase().includes(query) ||
+				(speaker.bio || speaker.company || '').toLowerCase().includes(query)
+			);
+		});
 
 	return (
 		<div

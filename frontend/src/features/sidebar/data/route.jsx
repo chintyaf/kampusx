@@ -82,10 +82,26 @@ export const MENU_ITEMS = {
 			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
 			path: '/organizer/:eventId/event-dashboard/detail',
 			submenu: [
-				{ name: 'Informasi Umum', path: 'info', isCompleted: true },
-				{ name: 'Tempat Pelaksanaan', path: 'tempat', isCompleted: true },
-				{ name: 'Jadwal', path: 'sesi', isCompleted: true },
-				{ name: 'Kategori Tiket', path: 'tiket', isCompleted: false },
+				{
+					name: 'Informasi Umum',
+					path: 'info',
+					// isCompleted: true
+				},
+				{
+					name: 'Tempat Pelaksanaan',
+					path: 'tempat',
+					// isCompleted: true
+				},
+				{
+					name: 'Jadwal',
+					path: 'sesi',
+					// isCompleted: true
+				},
+				{
+					name: 'Kategori Tiket',
+					path: 'tiket',
+					// isCompleted: false
+				},
 			],
 		},
 		{
@@ -107,9 +123,21 @@ export const MENU_ITEMS = {
 			icon: <BookOpen size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/modul-belajar',
 			submenu: [
-				{ name: 'Materi Acara', path: 'materi-acara', isCompleted: true },
-				{ name: 'Materi Pasca-Acara', path: 'materi-after', isCompleted: false },
-				{ name: 'Kelola Kuis', path: 'kuis', isCompleted: false },
+				{
+					name: 'Materi Acara',
+					path: 'materi-acara',
+					// isCompleted: true
+				},
+				{
+					name: 'Materi Pasca-Acara',
+					path: 'materi-after',
+					//  isCompleted: false
+				},
+				{
+					name: 'Kelola Kuis',
+					path: 'kuis',
+					// isCompleted: false
+				},
 			],
 		},
 		{

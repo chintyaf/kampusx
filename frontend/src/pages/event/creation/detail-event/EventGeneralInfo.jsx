@@ -203,7 +203,7 @@ const EventGeneralInfo = () => {
 			onSave={handleUpdate}>
 			<Form>
 				<Form.Group className="mb-4" controlId="formTitle">
-					<Form.Label>Nama Event</Form.Label>
+					<Form.Label className="required">Nama Event</Form.Label>
 					<Form.Control
 						required
 						type="text"

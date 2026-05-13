@@ -67,7 +67,7 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 					<div className="p-4" style={{ paddingTop: '20px' }}>
 						{/* Row 1: Nama Tiket */}
 						{/* <Form.Group className="mb-4">
-							<label className="custom-form-label">Nama Tiket</label>
+							<label className='form-label required'>Nama Tiket</label>
 							<Form.Control
 								type="text"
 								className="custom-soft-input"
@@ -82,7 +82,7 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 							{/* Kolom Harga */}
 							<Col md={6} className="mb-3 mb-md-0">
 								<div className="d-flex justify-content-between align-items-center mb-2">
-									<label className="custom-form-label mb-0">Harga (Rp)</label>
+									<label className="form-label required mb-0">Harga (Rp)</label>
 									<Form.Check
 										type="switch"
 										id={`free-switch-${index}`}
@@ -110,7 +110,7 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 							{/* Kolom Kapasitas */}
 							<Col md={6}>
 								<div className="d-flex justify-content-between align-items-center mb-2">
-									<label className="custom-form-label mb-0">Kapasitas</label>
+									<label className="form-label required mb-0">Kapasitas</label>
 									<Form.Check
 										type="switch"
 										id={`unlimited-switch-${index}`}
@@ -132,9 +132,8 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 										value={ticket.capacity}
 										disabled={ticket.unlimited}
 										onChange={(e) => onChange({ capacity: e.target.value })}
-										placeholder={ticket.unlimited ? '' : '500'}
+										placeholder={ticket.unlimited ? '' : '0'}
 									/>
-									<span className="custom-unified-suffix">peserta</span>
 								</div>
 							</Col>
 						</Row>
@@ -143,25 +142,30 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 						<Row className="mb-4">
 							<Col md={6} className="mb-3 mb-md-0">
 								<Form.Group>
-									<label className="custom-form-label">Mulai Penjualan</label>
+									<label className="form-label required">Mulai Penjualan</label>
 									<Form.Control
 										type="datetime-local"
+										name="sale_start"
 										className="custom-soft-input"
-										value={ticket.saleStart}
-										onChange={(e) => onChange({ saleStart: e.target.value })}
-										style={{ color: ticket.saleStart ? '#1e293b' : '#94a3b8' }}
+										value={
+											ticket.sale_start ? ticket.sale_start.slice(0, 16) : ''
+										}
+										onChange={(e) => onChange({ sale_start: e.target.value })}
+										style={{ color: ticket.sale_start ? '#1e293b' : '#94a3b8' }}
+										required
 									/>
 								</Form.Group>
 							</Col>
 							<Col md={6}>
 								<Form.Group>
-									<label className="custom-form-label">Akhir Penjualan</label>
+									<label className="form-label required">Akhir Penjualan</label>
 									<Form.Control
 										type="datetime-local"
 										className="custom-soft-input"
-										value={ticket.saleEnd}
-										onChange={(e) => onChange({ saleEnd: e.target.value })}
-										style={{ color: ticket.saleEnd ? '#1e293b' : '#94a3b8' }}
+										value={ticket.sale_end ? ticket.sale_end.slice(0, 16) : ''}
+										onChange={(e) => onChange({ sale_end: e.target.value })}
+										style={{ color: ticket.sale_end ? '#1e293b' : '#94a3b8' }}
+										required
 									/>
 								</Form.Group>
 							</Col>
@@ -179,7 +183,7 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 								as="textarea"
 								className="custom-soft-input"
 								rows={2}
-								value={ticket.description}
+								value={ticket.description || ''}
 								onChange={(e) => onChange({ description: e.target.value })}
 								placeholder="Keuntungan atau info tambahan untuk pemegang tiket ini..."
 								style={{ resize: 'none', height: '80px' }}

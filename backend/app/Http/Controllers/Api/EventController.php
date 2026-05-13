@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 // use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Validation\ValidationException;
 
@@ -160,6 +161,38 @@ class EventController extends Controller
             'success' => true,
             'data' => $event
         ]);
+    }
+
+    public function checkOrganizer(int $eventId)
+    {
+        // 1. Cari event berdasarkan ID
+        $event = Event::findOrFail($eventId);
+
+        // 2. Jika event tidak ditemukan
+        if (!$event) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Event tidak ditemukan',
+                'is_authorized' => false
+            ], 404);
+        }
+
+        // 3. Cek apakah user yang sedang login adalah pembuat event
+        // Pastikan kolom di database benar 'organizer_id' atau sesuaikan dengan nama kolommu (misal: 'user_id')
+        if ($event->organizer_id !== Auth::id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak. Anda bukan organizer dari event ini.',
+                'is_authorized' => false
+            ], 403);
+        }
+
+        // 4. Jika lolos pengecekan (User adalah organizer)
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Akses diizinkan.',
+            'is_authorized' => true
+        ], 200);
     }
 
 

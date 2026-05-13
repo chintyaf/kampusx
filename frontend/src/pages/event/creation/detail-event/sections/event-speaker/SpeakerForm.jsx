@@ -1,16 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import Select from 'react-select';
-import { User, Trash2, Plus } from 'lucide-react';
+import { User, Trash2, Plus, Camera } from 'lucide-react';
 import CreatableSelect from 'react-select/creatable';
 
 import api from '../../../../../../api/axios';
+import { STORAGE_URL } from '../../../../../../api/storage';
 
 const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 	const isEdit = !!initialData;
+	const fileInputRef = useRef(null);
 
 	const [sessionOptions, setSessionOptions] = useState([]);
 	const [isLoadingSessions, setIsLoadingSessions] = useState(false);
+
+	// State untuk preview gambar & file yang dipilih
+	const [imagePreview, setImagePreview] = useState(null);
+	const [imageFile, setImageFile] = useState(null);
 
 	// Opsi platform untuk dropdown social link
 	const platformOptions = [
@@ -90,6 +96,11 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 				}
 			}
 
+			// Set image preview dari data yang sudah ada
+			if (initialData.image_url) {
+				setImagePreview(initialData.image_url);
+			}
+
 			setFormData({
 				name: initialData.name || '',
 				role: initialData.role || '',
@@ -143,6 +154,40 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 		setFormData({ ...formData, social_links: updatedLinks });
 	};
 
+	// Handle image selection
+	const handleImageChange = (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
+
+		// Validasi tipe file
+		const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+		if (!allowedTypes.includes(file.type)) {
+			alert('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.');
+			return;
+		}
+
+		// Validasi ukuran file (maks 2MB)
+		if (file.size > 2 * 1024 * 1024) {
+			alert('Ukuran file maksimal 2MB.');
+			return;
+		}
+
+		setImageFile(file);
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			setImagePreview(reader.result);
+		};
+		reader.readAsDataURL(file);
+	};
+
+	const handleRemoveImage = () => {
+		setImageFile(null);
+		setImagePreview(null);
+		if (fileInputRef.current) {
+			fileInputRef.current.value = '';
+		}
+	};
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
 
@@ -166,6 +211,8 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 				id: item.value,
 				name: item.label,
 			})),
+			// Sertakan file gambar jika ada
+			_imageFile: imageFile || null,
 		};
 
 		onSave(payload);
@@ -182,12 +229,60 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 		<Form className="border rounded-4 p-4 bg-white mb-4 shadow-sm" onSubmit={handleSubmit}>
 			<h6 className="fw-bold mb-4">{isEdit ? 'Edit Speaker' : 'Tambah Speaker Baru'}</h6>
 			<Row>
-				<Col className="col-1 d-none d-md-block text-center text-muted">
+				<Col className="col-auto d-none d-md-block text-center text-muted">
+					{/* Avatar / Image Upload */}
 					<div
-						className="bg-light d-flex align-items-center justify-content-center rounded-circle border"
-						style={{ width: '70px', height: '70px' }}>
-						<User size={35} strokeWidth={1.5} className="text-secondary opacity-50" />
+						className="position-relative"
+						style={{ width: '90px', height: '90px', cursor: 'pointer' }}
+						onClick={() => fileInputRef.current?.click()}
+					>
+						{imagePreview ? (
+							<img
+								src={imagePreview}
+								alt="Speaker"
+								className="rounded-circle border object-fit-cover"
+								style={{ width: '90px', height: '90px' }}
+							/>
+						) : (
+							<div
+								className="bg-light d-flex align-items-center justify-content-center rounded-circle border"
+								style={{ width: '90px', height: '90px' }}>
+								<User size={40} strokeWidth={1.5} className="text-secondary opacity-50" />
+							</div>
+						)}
+						{/* Camera overlay */}
+						<div
+							className="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-primary text-white"
+							style={{
+								width: '28px',
+								height: '28px',
+								bottom: '0',
+								right: '0',
+								border: '2px solid white',
+							}}
+						>
+							<Camera size={14} />
+						</div>
 					</div>
+					<input
+						ref={fileInputRef}
+						type="file"
+						accept="image/jpeg,image/png,image/webp"
+						className="d-none"
+						onChange={handleImageChange}
+					/>
+					{imagePreview && (
+						<button
+							type="button"
+							className="btn btn-link text-danger p-0 mt-1 small text-decoration-none"
+							onClick={(e) => {
+								e.stopPropagation();
+								handleRemoveImage();
+							}}
+						>
+							Hapus Foto
+						</button>
+					)}
 				</Col>
 				<Col>
 					<Form.Group className="mb-3">
@@ -319,7 +414,7 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 			</Row>
 
 			<div className="d-flex gap-2 justify-content-end mt-4">
-				<Button variant="light" onClick={onCancel} className="px-4">
+				<Button variant="light" type="button" onClick={onCancel} className="px-4">
 					Batal
 				</Button>
 				{/* 2. UBAH TYPE BUTTON DAN TAMBAHKAN KONDISI DISABLED */}
