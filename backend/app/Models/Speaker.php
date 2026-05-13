@@ -15,7 +15,8 @@ class Speaker extends Model
         'role',
         'bio',
         'social_link',
-        'expertise'
+        'expertise',
+        'image_path',
     ];
 
     protected $casts = [

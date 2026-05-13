@@ -62,15 +62,24 @@ const SpeakerCard = ({ data, onEdit, onDelete }) => {
                 <Row className="align-items-start g-3">
                     {/* Avatar Profil */}
                     <Col xs="auto">
-                        <div
-                            className="bg-light d-flex align-items-center justify-content-center rounded-circle border"
-                            style={{ width: "70px", height: "70px" }}
-                        >
-                            <User
-                                size={35}
-                                className="text-secondary opacity-50"
+                        {data.image_url ? (
+                            <img
+                                src={data.image_url}
+                                alt={name}
+                                className="rounded-circle border object-fit-cover"
+                                style={{ width: "70px", height: "70px" }}
                             />
-                        </div>
+                        ) : (
+                            <div
+                                className="bg-light d-flex align-items-center justify-content-center rounded-circle border"
+                                style={{ width: "70px", height: "70px" }}
+                            >
+                                <User
+                                    size={35}
+                                    className="text-secondary opacity-50"
+                                />
+                            </div>
+                        )}
                     </Col>
 
                     {/* Info Utama */}

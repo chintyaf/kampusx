@@ -1,5 +1,6 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
+import EventOrganizerGuard from '@/components/guards/EventOrganizerGuard';
 
 import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
@@ -41,7 +42,7 @@ export const OrganizerRoutes = (
 		<Route path="buat-acara" element={<CreateEvent />} />
 
 		{/* Event Routes untuk Detail Event */}
-		<Route path=":eventId/event-dashboard">
+		<Route path=":eventId/event-dashboard" element={<EventOrganizerGuard />}>
 			<Route path="" element={<EventDashboardPage />} />
 			<Route path="detail">
 				<Route path="info" element={<EventGeneralInfo />} />

@@ -97,27 +97,56 @@ const EventSpeaker = () => {
             throw new Error("Speaker wajib diisi");
         }
 
-        // 3. Bersihkan payload: ubah ID temporary menjadi null sebelum dikirim ke backend
-        const cleanSpeakers = speakers.map((speaker) => ({
-            ...speaker,
-            id:
-                typeof speaker.id === "string" && speaker.id.startsWith("temp_")
-                    ? null
-                    : speaker.id,
-            // Kembalikan sessions menjadi array of ID untuk API Laravel
-            sessions: speaker.sessions
-                ? speaker.sessions.map((s) => s.id || s.value || s)
-                : [],
-        }));
+        // Gunakan FormData agar bisa mengirim file gambar bersama data JSON
+        const formData = new FormData();
 
-        const payload = {
-            speakers: cleanSpeakers,
-        };
+        speakers.forEach((speaker, index) => {
+            const cleanId =
+                typeof speaker.id === "string" && speaker.id.startsWith("temp_")
+                    ? ""
+                    : speaker.id;
+
+            formData.append(`speakers[${index}][id]`, cleanId || "");
+            formData.append(`speakers[${index}][name]`, speaker.name || "");
+            formData.append(`speakers[${index}][role]`, speaker.role || "");
+            formData.append(`speakers[${index}][bio]`, speaker.bio || "");
+
+            // Social links (array of objects)
+            const socialLinks = speaker.social_link || [];
+            socialLinks.forEach((link, linkIndex) => {
+                formData.append(`speakers[${index}][social_link][${linkIndex}][platform]`, link.platform || "");
+                formData.append(`speakers[${index}][social_link][${linkIndex}][url]`, link.url || "");
+            });
+
+            // Expertise
+            const expertise = speaker.expertise || [];
+            expertise.forEach((tag, tagIndex) => {
+                formData.append(`speakers[${index}][expertise][${tagIndex}]`, typeof tag === 'string' ? tag : tag.label || tag.value || '');
+            });
+
+            // Sessions (array of IDs)
+            const sessions = speaker.sessions
+                ? speaker.sessions.map((s) => s.id || s.value || s)
+                : [];
+            sessions.forEach((sessionId, sessionIndex) => {
+                formData.append(`speakers[${index}][sessions][${sessionIndex}]`, sessionId);
+            });
+
+            // Append image file jika ada (dari SpeakerForm via _imageFile)
+            if (speaker._imageFile) {
+                formData.append(`speakers_image_${index}`, speaker._imageFile);
+            }
+        });
 
         try {
             const response = await api.post(
                 `event-dashboard/${eventId}/info-utama/speaker`,
-                payload,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                },
             );
 
             notify(
@@ -181,7 +210,10 @@ const EventSpeaker = () => {
                         </div>
                     ))
                 ) : (
-                    <SectionPlaceholder />
+                    <SectionPlaceholder
+                        title="Belum ada pembicara"
+                        subtitle="Klik tombol di bawah untuk menambahkan pembicara baru ke event ini."
+                    />
                 )}
 
                 {showAddForm ? (
