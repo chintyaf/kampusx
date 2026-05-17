@@ -42,7 +42,7 @@ export const OrganizerRoutes = (
 		<Route path="buat-acara" element={<CreateEvent />} />
 
 		{/* Event Routes untuk Detail Event */}
-		<Route path=":eventId/event-dashboard" element={<EventOrganizerGuard />}>
+		<Route path=":eventId/event-dashboard" >
 			<Route path="" element={<EventDashboardPage />} />
 			<Route path="detail">
 				<Route path="info" element={<EventGeneralInfo />} />

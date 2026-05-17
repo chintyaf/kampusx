@@ -166,7 +166,7 @@ class EventController extends Controller
     public function checkOrganizer(int $eventId)
     {
         // 1. Cari event berdasarkan ID
-        $event = Event::findOrFail($eventId);
+        $event = Event::find($eventId);
 
         // 2. Jika event tidak ditemukan
         if (!$event) {

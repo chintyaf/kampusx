@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useParams, Navigate, Outlet } from 'react-router-dom';
+import { useParams, Navigate, Outlet, useOutletContext } from 'react-router-dom';
 import api from '@/api/axios';
 import { useLoading } from '../../context/LoadingContext';
 
 const EventOrganizerGuard = () => {
 	const { eventId } = useParams();
 	const { setIsPageLoading } = useLoading();
+	const context = useOutletContext();
 	const [isAuthorized, setIsAuthorized] = useState(null);
 
 	useEffect(() => {
@@ -43,7 +44,7 @@ const EventOrganizerGuard = () => {
 	}
 
 	// 5. Jika diizinkan, render halaman
-	return <Outlet />;
+	return <Outlet context={context} />;
 };
 
 export default EventOrganizerGuard;
