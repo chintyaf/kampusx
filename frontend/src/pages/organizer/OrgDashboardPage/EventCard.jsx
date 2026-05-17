@@ -74,7 +74,8 @@ const EventCard = ({ event, onDelete }) => {
 			onMouseLeave={(e) => {
 				e.currentTarget.style.borderColor = 'var(--color-border)';
 				e.currentTarget.style.transform = 'translateY(0)';
-			}}>
+			}}
+		>
 			<Row className="g-0 h-100">
 				{/* KOLOM KIRI: GAMBAR */}
 				<Col xs={12} md={4} className="position-relative">
@@ -86,9 +87,14 @@ const EventCard = ({ event, onDelete }) => {
 							backgroundColor: 'var(--color-bg-2)',
 							position: 'relative',
 							overflow: 'hidden',
-						}}>
+						}}
+					>
 						<img
-							src={event.image_path ? `${STORAGE_URL}/${event.image_path}` : `${STORAGE_URL}/event-banners/${event.id}.jpg`}
+							src={
+								event.image_path
+									? `${STORAGE_URL}/${event.image_path}`
+									: `${STORAGE_URL}/event-banners/${event.id}.jpg`
+							}
 							alt={event.title}
 							style={{
 								width: '100%',
@@ -100,9 +106,8 @@ const EventCard = ({ event, onDelete }) => {
 							}}
 							onError={(e) => {
 								e.target.style.display = 'none';
-								e.target.parentElement.querySelector(
-									'.placeholder',
-								).style.display = 'flex';
+								e.target.parentElement.querySelector('.placeholder').style.display =
+									'flex';
 							}}
 						/>
 
@@ -120,7 +125,8 @@ const EventCard = ({ event, onDelete }) => {
 								justifyContent: 'center',
 								backgroundColor: 'var(--color-bg-2)',
 								flexDirection: 'column',
-							}}>
+							}}
+						>
 							<ImageIcon size={48} style={{ color: 'var(--color-secondary)' }} />
 							<p
 								style={{
@@ -128,7 +134,8 @@ const EventCard = ({ event, onDelete }) => {
 									fontSize: 'var(--font-sm)',
 									marginTop: '8px',
 									marginBottom: 0,
-								}}>
+								}}
+							>
 								Tidak ada gambar
 							</p>
 						</div>
@@ -150,7 +157,8 @@ const EventCard = ({ event, onDelete }) => {
 									color: statusStyle.color,
 									border: `1px solid ${statusStyle.border}`,
 									fontSize: 'var(--font-xs)',
-								}}>
+								}}
+							>
 								{statusStyle.text}
 							</Badge>
 
@@ -165,7 +173,8 @@ const EventCard = ({ event, onDelete }) => {
 									display: '-webkit-box',
 									WebkitLineClamp: '2',
 									WebkitBoxOrient: 'vertical',
-								}}>
+								}}
+							>
 								{event.title}
 							</Card.Title>
 						</div>
@@ -180,7 +189,8 @@ const EventCard = ({ event, onDelete }) => {
 										backgroundColor: 'var(--bahama-blue-700)',
 										color: 'var(--color-white)',
 										fontSize: 'var(--font-xs)',
-									}}>
+									}}
+								>
 									⭐ Featured
 								</Badge>
 							</div>
@@ -199,7 +209,8 @@ const EventCard = ({ event, onDelete }) => {
 									display: '-webkit-box',
 									WebkitLineClamp: '2',
 									WebkitBoxOrient: 'vertical',
-								}}>
+								}}
+							>
 								{event.description}
 							</p>
 						)}
@@ -217,7 +228,8 @@ const EventCard = ({ event, onDelete }) => {
 										style={{
 											fontSize: 'var(--font-sm)',
 											color: 'var(--color-secondary)',
-										}}>
+										}}
+									>
 										{formatDate(event.start_date)}
 										{event.end_date &&
 											event.start_date !== event.end_date &&
@@ -235,7 +247,8 @@ const EventCard = ({ event, onDelete }) => {
 										style={{
 											fontSize: 'var(--font-sm)',
 											color: 'var(--color-secondary)',
-										}}>
+										}}
+									>
 										{event.attendees || '0'} peserta
 									</span>
 								</Col>
@@ -254,7 +267,8 @@ const EventCard = ({ event, onDelete }) => {
 												overflow: 'hidden',
 												textOverflow: 'ellipsis',
 												whiteSpace: 'nowrap',
-											}}>
+											}}
+										>
 											{event.location}
 										</span>
 									</Col>
@@ -272,7 +286,8 @@ const EventCard = ({ event, onDelete }) => {
 								style={{
 									fontSize: 'var(--font-sm)',
 									padding: '8px 16px',
-								}}>
+								}}
+							>
 								{/* Ganti icon dan teks di sini */}
 								<LayoutDashboard size={16} className="me-2" />
 								Kelola Event
@@ -285,7 +300,8 @@ const EventCard = ({ event, onDelete }) => {
 									fontSize: 'var(--font-sm)',
 									padding: '8px 16px',
 								}}
-								onClick={() => onDelete(event.id)}>
+								onClick={() => onDelete(event.id)}
+							>
 								<Trash2 size={16} className="me-2" />
 								Hapus
 							</Button>

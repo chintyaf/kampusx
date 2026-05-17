@@ -6,6 +6,10 @@ import Test from '../pages/dashboard/Test';
 import CreateEvent from '../pages/event/creation/CreateEvent/index';
 import ManageUserPage from '../pages/admin/ManageUserPage';
 
+import Kategori from '../pages/admin/master-data/Kategori';
+import TipeEvent from '../pages/admin/master-data/TipeEvent';
+import Institusi from '../pages/admin/master-data/Institusi';
+
 export const AdminRoutes = [
 	// ADMIN ROUTES
 	<Route path="admin">
@@ -15,6 +19,12 @@ export const AdminRoutes = [
 		<Route path="pantau-acara" element={<Test />} />
 
 		<Route path="kontrol-promosi" element={<Test />} />
+
+		<Route path="master-data">
+			<Route path="kategori" element={<Kategori />} />
+			<Route path="tipe-event" element={<TipeEvent />} />
+			<Route path="institusi" element={<Institusi />} />
+		</Route>
 	</Route>,
 ];
 

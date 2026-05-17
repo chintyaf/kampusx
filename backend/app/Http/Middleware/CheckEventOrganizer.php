@@ -12,18 +12,25 @@ class CheckEventOrganizer
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $eventId = $request->route('eventId');
+        // Ambil parameter dari route (bisa berupa ID string atau instance Model karena Implicit Binding)
+        $routeParam = $request->route('eventId') ?? $request->route('id') ?? $request->route('event');
 
-        // Fetch the event with ALL columns so we can read the organizer_id
-        $event = Event::find($eventId);
+        // Jika route parameter sudah berupa instance Event (karena Model Binding), gunakan langsung
+        // Jika masih berupa ID (string/int), lakukan query pencarian
+        if ($routeParam instanceof \App\Models\Event) {
+            $event = $routeParam;
+        } else {
+            $event = Event::find($routeParam);
+        }
 
         // Jika event tidak ada
         if(!$event){
             abort(404, 'Event tidak ditemukan');
         }
 
-        // Cek apakah user yang login adalah pemilik event
-        if ($event->organizer_id !== Auth::id()) {
+        // Cek apakah user yang login adalah pemilik event atau admin
+        $user = Auth::user();
+        if ($event->organizer_id !== $user->id && $user->role !== 'admin') {
             // Gunakan 403 (Forbidden) untuk masalah hak akses
             abort(403, 'Tidak boleh akses');
         }

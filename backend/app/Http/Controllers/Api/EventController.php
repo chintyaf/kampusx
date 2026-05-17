@@ -177,13 +177,15 @@ class EventController extends Controller
             ], 404);
         }
 
-        // 3. Cek apakah user yang sedang login adalah pembuat event
-        // Pastikan kolom di database benar 'organizer_id' atau sesuaikan dengan nama kolommu (misal: 'user_id')
-        if ($event->organizer_id !== Auth::id()) {
+        // 3. Cek apakah user yang sedang login adalah pembuat event atau admin
+        $user = Auth::user();
+        if ($event->organizer_id !== $user->id && $user->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak. Anda bukan organizer dari event ini.',
-                'is_authorized' => false
+                'is_authorized' => false,
+                'user' => $user,
+                'event' => $event
             ], 403);
         }
 
@@ -191,7 +193,9 @@ class EventController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Akses diizinkan.',
-            'is_authorized' => true
+            'is_authorized' => true,
+                 'user' => $user,
+                'event' => $event->organizer_id
         ], 200);
     }
 

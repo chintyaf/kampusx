@@ -53,6 +53,27 @@ export const MENU_ITEMS = {
 			icon: <UserCheck size={16} className="me-2" />,
 			path: 'admin/kontrol-promosi',
 		},
+
+		{
+			id: 'master-data',
+			name: 'Master Data',
+			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
+			path: 'admin/master-data',
+			submenu: [
+				{
+					name: 'Kategori',
+					path: 'kategori',
+				},
+				{
+					name: 'Tipe Event',
+					path: 'tipe-event',
+				},
+				{
+					name: 'Institusi',
+					path: 'institusi',
+				},
+			],
+		},
 	],
 	organizer: [
 		{

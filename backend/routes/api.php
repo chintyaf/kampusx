@@ -91,8 +91,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // General Events (Create, Update, Delete)
         Route::post('/events', [EventController::class, 'store']);
-        Route::put('/events/{id}', [EventController::class, 'update']);
-        Route::delete('/events/{id}', [EventController::class, 'destroy']);
+        Route::put('/events/{id}', [EventController::class, 'update'])->middleware(CheckEventOrganizer::class);
+        Route::delete('/events/{id}', [EventController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
         Route::get('/events/{id}/check-organizer', [EventController::class, 'checkOrganizer']);
 
         // Group: Organizer Dashboard List
@@ -102,9 +102,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/events/{id}', [OrganizerEventController::class, 'show']);
 
             // Post-event Material Management
-            Route::get('/events/{id}/materials', [EventMaterialController::class, 'organizerIndex']);
-            Route::post('/events/{id}/materials', [EventMaterialController::class, 'store']);
-            Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy']);
+            Route::get('/events/{id}/materials', [EventMaterialController::class, 'organizerIndex'])->middleware(CheckEventOrganizer::class);
+            Route::post('/events/{id}/materials', [EventMaterialController::class, 'store'])->middleware(CheckEventOrganizer::class);
+            Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
         });
 
         // Endpoint: Organizer Kelola Tim Institusinya (Manage Institution Member)
@@ -113,12 +113,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/institutions/{id}/members/{userId}', [InstitutionMemberController::class, 'destroy']);
 
         // Group: Event Dashboard (Manage Detail Event)
-        Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy']);
+        Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
+
+        // Status Event (Mengecek kekurangan, Publish, Draft, Archive)
+        Route::get('/events/{event}/status', [EventStatusController::class, 'index'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/status', [EventStatusController::class, 'update'])->middleware(CheckEventOrganizer::class);
+        Route::get('/events/{event}/check-status', [EventStatusController::class, 'getMissingData'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/publish', [EventStatusController::class, 'updatePublish'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/draft', [EventStatusController::class, 'updateDraft'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/artchived', [EventStatusController::class, 'updateArchive'])->middleware(CheckEventOrganizer::class);
 
 
             // Group: Event Dashboard
         Route::prefix('event-dashboard/{eventId}')
-        ->middleware(['auth', CheckEventOrganizer::class]) // Pindahkan middleware ke sini agar melindungi semua route di dalamnya
+        ->middleware([CheckEventOrganizer::class]) // Pindahkan middleware ke sini agar melindungi semua route di dalamnya
         ->group(function () {
 
             // 1. Detail Event (Info Utama)
@@ -160,20 +168,13 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-    // Mengecek apa saja data yang masih kurang (GET)
-    Route::get('/events/{event}/status', [EventStatusController::class, 'index']);
-    Route::post('/events/{event}/status', [EventStatusController::class, 'update']);
-    Route::get('/events/{event}/check-status', [EventStatusController::class, 'getMissingData']);
-
-    Route::post('/events/{event}/publish', [EventStatusController::class, 'updatePublish']);
-    Route::post('/events/{event}/draft', [EventStatusController::class, 'updateDraft']);
-    Route::post('/events/{event}/artchived', [EventStatusController::class, 'updateArchive']);
+    // [Route EventStatusController telah dipindahkan ke dalam group role:organizer,admin agar aman dari akses partisipan]
 });
 
 // ==========================================
 // --- ROLE: PANITIA (COMMITTEE) ---
 // ==========================================
-Route::middleware('role:committee,organizer')->group(function () {
+Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function () {
     // Cek apakah user yang login berhak melihat halaman Scanner
     Route::get('/scanner/check-access', function (Request $request) {
         return response()->json([
@@ -192,7 +193,7 @@ Route::middleware('role:committee,organizer')->group(function () {
 // ==========================================
 // --- ROLE: ADMIN PUSAT ---
 // ==========================================
-Route::middleware('role:admin')->group(function () {
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // 1. Organizer Management
     Route::post('/admin/organizer-requests/{id}/approve', [AdminController::class, 'approveOrganizer']);
 
@@ -220,6 +221,11 @@ Route::middleware('role:admin')->group(function () {
     Route::post('/admin/event-types', [EventTypeController::class, 'store']);
     Route::put('/admin/event-types/{id}', [EventTypeController::class, 'update']);
     Route::delete('/admin/event-types/{id}', [EventTypeController::class, 'destroy']);
+
+    Route::resource('categories', CategoryController::class);
+    Route::resource('event-types', EventTypeController::class);
+    Route::resource('institutions', InstitutionController::class);
+
 });
 
 
@@ -229,12 +235,3 @@ Route::middleware('role:admin')->group(function () {
 
 // Klaim Poin Engagement (Peserta)
 Route::post('/engagement/claim', [EngagementController::class, 'claimPoints']);
-
-// Category
-Route::get('/categories', [CategoryController::class, 'index']);
-
-// Event Type
-Route::get('/event-types', [EventTypeController::class, 'index']);
-
-// Institution
-Route::get('/institutions', [InstitutionController::class, 'index']);

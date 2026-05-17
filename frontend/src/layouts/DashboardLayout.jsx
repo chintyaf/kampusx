@@ -1,6 +1,7 @@
 // src/layouts/DashboardLayout.jsx
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react'; // Tambahkan useState
+import { useLoading } from '../context/LoadingContext';
 import { useParams } from 'react-router-dom';
 
 import Sidebar from './partials-dashboard/Sidebar.jsx';
@@ -17,8 +18,7 @@ const DashboardLayout = () => {
 	const location = useLocation();
 	var pathname = location.pathname;
 
-	// State untuk collapse sidebar
-	const [isPageLoading, setIsPageLoading] = useState(false);
+	const { isPageLoading, setIsPageLoading } = useLoading();
 	const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
 	// 1. Definisikan kondisi (Sama dengan di Navbar)
@@ -41,6 +41,8 @@ const DashboardLayout = () => {
 		pathname !== '/' &&
 		!pathname.includes('buat-acara') &&
 		!pathname.includes('organizer/dashboard');
+
+
 
 	return (
 		<div
@@ -73,20 +75,7 @@ const DashboardLayout = () => {
 					/>
 				)}
 
-				{isPageLoading && (
-					<div
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							right: 0,
-							height: '3px',
-							background: 'var(--color-primary)',
-							zIndex: 10000,
-							animation: 'loading-bar 2s infinite ease-in-out',
-						}}
-					/>
-				)}
+				{/* GLOBAL LOADING BAR HAS BEEN MOVED TO LoadingContext */}
 
 				<main
 					style={{
@@ -101,27 +90,7 @@ const DashboardLayout = () => {
 				>
 					<Toaster position="top-right" containerStyle={{ top: 100, right: 40 }} />
 
-					{/* GLOBAL LOADING OVERLAY */}
-					{isPageLoading && (
-						<div
-							style={{
-								position: 'absolute', // Menempel pada <main> yang 'relative'
-								top: 0,
-								left: 0,
-								right: 0,
-								bottom: 0,
-								zIndex: 9999,
-								display: 'flex',
-								justifyContent: 'center',
-								alignItems: 'center',
-								backdropFilter: 'blur(2px)',
-							}}
-						>
-							<div className="spinner-border text-primary" role="status">
-								<span className="visually-hidden">Loading...</span>
-							</div>
-						</div>
-					)}
+					{/* GLOBAL LOADING OVERLAY HAS BEEN MOVED TO LoadingContext */}
 
 					<Outlet
 						context={{

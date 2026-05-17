@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Spinner } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 
 import api from '../../../api/axios';
 import NoEvent from './NoEvent';
 import EventList from './EventList';
+import { useLoading } from '../../../context/LoadingContext';
 
 const OrgDashboardPage = () => {
 	const [events, setEvents] = useState([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const { setIsPageLoading } = useLoading();
+	const [dataLoaded, setDataLoaded] = useState(false);
 
 	useEffect(() => {
 		const fetchEvents = async () => {
+			setIsPageLoading(true);
 			try {
 				const response = await api.get('/organizer/events-list');
 				const result = response.data;
@@ -22,7 +25,8 @@ const OrgDashboardPage = () => {
 			} catch (error) {
 				console.error('Error fetching events:', error);
 			} finally {
-				setIsLoading(false);
+				setIsPageLoading(false);
+				setDataLoaded(true);
 			}
 		};
 
@@ -32,14 +36,7 @@ const OrgDashboardPage = () => {
 	return (
 		<div style={{ minHeight: '100vh', fontFamily: 'var(--font)' }}>
 			<Container className="py-4">
-				{isLoading ? (
-					<div className="text-center mt-5">
-						<Spinner animation="border" style={{ color: '#00699e' }} />
-						<p className="mt-3" style={{ color: '#64748b', fontSize: '14px' }}>
-							Memuat data acara...
-						</p>
-					</div>
-				) : events.length === 0 ? (
+				{!dataLoaded ? null : events.length === 0 ? (
 					<NoEvent />
 				) : (
 					<EventList events={events} />

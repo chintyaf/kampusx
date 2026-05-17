@@ -1,48 +1,48 @@
 import { useEffect, useState } from 'react';
 import { useParams, Navigate, Outlet } from 'react-router-dom';
 import api from '@/api/axios';
+import { useLoading } from '../../context/LoadingContext';
 
 const EventOrganizerGuard = () => {
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useLoading();
 	const [isAuthorized, setIsAuthorized] = useState(null);
 
 	useEffect(() => {
-		// Logika pengecekan ke backend/state lokal
-		// Contoh: Memanggil API Laravel yang sudah dipasang middleware sebelumnya
 		const checkAccess = async () => {
-			try {
-				// Ganti dengan endpoint atau fungsi fetch kamu yang sebenarnya
-				const response = await fetch(`/api/events/${eventId}/check-organizer`, {
-					headers: {
-						// Pastikan token auth dikirim jika pakai Sanctum/JWT
-						Authorization: `Bearer ${localStorage.getItem('token')}`,
-					},
-				});
+			// 1. Panggil loading di DALAM useEffect
+			setIsPageLoading(true);
 
-				if (response.ok) {
-					setIsAuthorized(true);
-				} else {
-					setIsAuthorized(false);
-				}
+			try {
+				await api.get(`/events/${eventId}/check-organizer`);
+				setIsAuthorized(true);
 			} catch (error) {
 				setIsAuthorized(false);
+			} finally {
+				// 2. Matikan loading di DALAM useEffect setelah proses selesai
+				setIsPageLoading(false);
 			}
 		};
 
-		checkAccess();
-	}, [eventId]);
+		if (eventId) {
+			checkAccess();
+		} else {
+			setIsAuthorized(true);
+			setIsPageLoading(false); // Matikan juga di sini jika tidak ada eventId
+		}
+	}, [eventId, setIsPageLoading]); // Tambahkan setIsPageLoading ke dependency array
 
-	// Tampilkan loading screen selama proses pengecekan
+	// 3. Tahan render dengan mengembalikan null selama masih loading
 	if (isAuthorized === null) {
-		return <div>Memeriksa akses...</div>;
+		return null;
 	}
 
-	// Jika bukan organizer, lempar ke halaman 404 (atau halaman lain)
+	// 4. Jika ditolak, redirect
 	if (isAuthorized === false) {
 		return <Navigate to="/404" replace />;
 	}
 
-	// Jika lolos pengecekan, render semua route yang ada di dalamnya
+	// 5. Jika diizinkan, render halaman
 	return <Outlet />;
 };
 
