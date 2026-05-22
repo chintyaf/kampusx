@@ -2,9 +2,14 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 
 import Dashboard from '../pages/dashboard/Dashboard';
-import Test from '../pages/dashboard/Test';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
 import CreateEvent from '../pages/event/creation/CreateEvent/index';
 import ManageUserPage from '../pages/admin/ManageUserPage';
+
+// Import komponen baru yang ditambahkan
+import OrganizerVerificationPage from '../pages/admin/OrganizerVerificationPage';
+import EventMonitoringPage from '../pages/admin/EventMonitoringPage';
+import PromotionControlPage from '../pages/admin/PromotionControlPage';
 
 import Kategori from '../pages/admin/master-data/Kategori';
 import TipeEvent from '../pages/admin/master-data/TipeEvent';
@@ -12,13 +17,13 @@ import Institusi from '../pages/admin/master-data/Institusi';
 
 export const AdminRoutes = [
 	// ADMIN ROUTES
-	<Route path="admin">
-		<Route path="dashboard" element={<Dashboard />} />
-		<Route path="verifikasi-organizer" element={<Test />} />
+	<Route path="admin" key="admin-routes">
+		<Route path="dashboard" element={<AdminDashboardPage />} />
+		<Route path="verifikasi-organizer" element={<OrganizerVerificationPage />} />
 		<Route path="kelola-pengguna" element={<ManageUserPage />} />
-		<Route path="pantau-acara" element={<Test />} />
+		<Route path="pantau-acara" element={<EventMonitoringPage />} />
 
-		<Route path="kontrol-promosi" element={<Test />} />
+		<Route path="kontrol-promosi" element={<PromotionControlPage />} />
 
 		<Route path="master-data">
 			<Route path="kategori" element={<Kategori />} />

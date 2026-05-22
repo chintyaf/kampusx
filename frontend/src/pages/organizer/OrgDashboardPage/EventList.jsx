@@ -27,22 +27,7 @@ const EventList = ({ events }) => {
 		<>
 			{/* Header Section */}
 			<div className="mb-4">
-				<div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
-					<div>
-						<h3 className="fw-bold mb-2" style={{ color: 'var(--color-text)' }}>
-							<Sparkles
-								size={28}
-								className="me-2"
-								style={{ color: 'var(--color-primary)' }}
-							/>
-							Dashboard Event Organizer
-						</h3>
-						<p
-							className="mb-0"
-							style={{ fontSize: 'var(--font-md)', color: 'var(--color-secondary)' }}>
-							Kelola dan pantau semua event Anda dalam satu tempat
-						</p>
-					</div>
+				{/* <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
 					<NavLink to="/organizer/buat-acara" className="text-decoration-none">
 						<Button
 							className="fw-semibold rounded-3 border-0 d-flex align-items-center"
@@ -50,12 +35,13 @@ const EventList = ({ events }) => {
 								backgroundColor: 'var(--color-primary)',
 								padding: '12px 24px',
 								fontSize: 'var(--font-sm)',
-							}}>
+							}}
+						>
 							<Plus size={18} className="me-2" />
 							Buat Event Baru
 						</Button>
 					</NavLink>
-				</div>
+				</div> */}
 			</div>
 
 			{/* Main Card */}
@@ -64,7 +50,8 @@ const EventList = ({ events }) => {
 				style={{
 					borderColor: 'var(--color-border)',
 					backgroundColor: 'var(--color-white)',
-				}}>
+				}}
+			>
 				<Card.Body className="p-4 p-md-5">
 					{/* Title & Search */}
 					<div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
@@ -73,7 +60,8 @@ const EventList = ({ events }) => {
 							style={{
 								color: 'var(--color-text)',
 								fontSize: 'var(--font-xl)',
-							}}>
+							}}
+						>
 							My Events
 							<span
 								className="ms-2 px-3 py-1 rounded-pill"
@@ -82,7 +70,8 @@ const EventList = ({ events }) => {
 									color: 'var(--bahama-blue-800)',
 									fontSize: 'var(--font-sm)',
 									fontWeight: '600',
-								}}>
+								}}
+							>
 								{filteredEvents.length}
 							</span>
 						</h4>
@@ -91,7 +80,8 @@ const EventList = ({ events }) => {
 						<InputGroup style={{ maxWidth: '400px' }}>
 							<InputGroup.Text
 								className="bg-white border-end-0 ps-3"
-								style={{ borderColor: 'var(--color-border)' }}>
+								style={{ borderColor: 'var(--color-border)' }}
+							>
 								<Search size={18} style={{ color: 'var(--color-secondary)' }} />
 							</InputGroup.Text>
 							<Form.Control
@@ -122,7 +112,8 @@ const EventList = ({ events }) => {
 										style={{
 											color: 'var(--color-secondary)',
 											fontSize: 'var(--font-md)',
-										}}>
+										}}
+									>
 										{searchQuery
 											? 'Tidak ada event yang sesuai dengan pencarian Anda'
 											: 'Belum ada event yang dibuat'}
