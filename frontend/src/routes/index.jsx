@@ -46,6 +46,8 @@ import MyTickets from '../pages/member/MyTickets';
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
 
+import CommitteePage from '../pages/committee/CommitteePage';
+
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
 	const { isAuthenticated, loading } = useAuth();
@@ -139,6 +141,8 @@ const AppRoutes = () => {
                     element={<Navigate to="/dashboard" replace />}
                 /> */}
 				</Route>
+				<Route path="/committee" element={<CommitteePage />} />
+
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</Suspense>

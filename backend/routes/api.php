@@ -29,6 +29,9 @@ use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\EventDashboard\EventStatusController;
 
+// use App\Http\Controllers\CommitteeController;
+use App\Http\Controllers\Api\CommitteeController;
+
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
 // ==========================================
@@ -218,3 +221,8 @@ Route::get('/event-types', [EventTypeController::class, 'index']);
 
 // Institution
 Route::get('/institutions', [InstitutionController::class, 'index']);
+
+// Committee
+Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
+Route::post('/committee/scan', [CommitteeController::class, 'scan']);
+Route::get('/committee/stats', [CommitteeController::class, 'stats']);
