@@ -43,7 +43,7 @@ const CanvasArea = ({
 			data-canvas
 			onClick={() => setSelectedId(null)}
 			className="flex-grow-1 position-relative canvas-area d-flex justify-content-center align-items-center overflow-hidden"
-		// style={(height = 100)}
+			// style={(height = 100)}
 		>
 			{isUploading ? (
 				<div className="d-flex flex-column align-items-center justify-content-center p-5">
@@ -66,11 +66,15 @@ const CanvasArea = ({
 						e.stopPropagation();
 						onDrop(e);
 					}}
-					className={`position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer upload-zone ${isDragOver ? 'drag-over' : ''}`}>
+					className={`position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center cursor-pointer upload-zone ${isDragOver ? 'drag-over' : ''}`}
+				>
 					<div className="upload-icon-box bg-white rounded-3 d-flex align-items-center justify-content-center mb-3">
 						<Upload size={24} className={isDragOver ? 'text-primary' : 'text-muted'} />
 					</div>
-					<h6 className={`fw-bold ${isDragOver ? 'text-primary' : 'text-secondary'}`} height={500}>
+					<h6
+						className={`fw-bold ${isDragOver ? 'text-primary' : 'text-secondary'}`}
+						height={500}
+					>
 						Upload template sertifikat
 					</h6>
 					<p className="text-muted small">Drag & drop atau klik di sini · PNG, JPG</p>
@@ -119,7 +123,8 @@ const CanvasArea = ({
 						onClick={(e) => {
 							e.stopPropagation();
 							fileRef.current?.click();
-						}}>
+						}}
+					>
 						<Upload size={14} /> Ganti template
 					</Button>
 				</>

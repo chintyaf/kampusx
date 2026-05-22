@@ -73,9 +73,9 @@ export const OrganizerRoutes = (
 
 			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
 			<Route path="sertifikat">
-				<Route path="atur-template" element={<CreateCertificatePage />} />
-				<Route path="kirim-sertifikat" element={<CertificateListPage />} />
-				<Route path="sertifikat" element={<EventCertificatePage />} />
+				<Route index element={<EventCertificatePage />} />
+				{/* <Route path="atur-template" element={<CreateCertificatePage />} /> */}
+				{/* <Route path="kirim-sertifikat" element={<CertificateListPage />} /> */}
 			</Route>
 
 			<Route path="event-location-test" element={<EventLocationTest />} />

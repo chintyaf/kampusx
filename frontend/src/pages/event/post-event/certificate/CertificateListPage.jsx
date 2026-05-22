@@ -67,7 +67,7 @@ const CertificateListPage = () => {
 		<>
 			<FormHeading heading="Buat Sertifikat" subheading="aidk" />
 			{/* ── Stat Cards ── */}
-			<div className='d-flex flex-column gap-3 mt-3'>
+			<div className="d-flex flex-column gap-3 mt-3">
 				<Row className="g-3">
 					<Col xs={12} sm={3}>
 						<StatCard Icon={Users} label="Total Peserta" value={10} />
@@ -89,11 +89,13 @@ const CertificateListPage = () => {
 						border: '1px solid #e2e8f0',
 						borderRadius: '8px',
 						overflow: 'hidden',
-					}}>
+					}}
+				>
 					{/* Header Card */}
 					<div
 						className="d-flex justify-content-between align-items-center px-4 py-3"
-						style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#fff' }}>
+						style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#fff' }}
+					>
 						<h4 className="m-0" style={{ fontWeight: '600', fontSize: '1rem' }}>
 							Participants
 						</h4>
@@ -105,7 +107,8 @@ const CertificateListPage = () => {
 					{/* Table */}
 					<div
 						className="p-0 table-responsive"
-						style={{ backgroundColor: 'var(--color-white)' }}>
+						style={{ backgroundColor: 'var(--color-white)' }}
+					>
 						<Table
 							columns={tableColumns}
 							data={participantsData}
@@ -134,7 +137,8 @@ const CertificateListPage = () => {
 													fontWeight: 'bold',
 													// fontSize: '1.1rem',
 													color: isAttendancePass ? '#16a34a' : '#dc2626',
-												}}>
+												}}
+											>
 												{participant.attendance}%
 											</div>
 											{/* <div className="text-muted" style={{ fontSize: '0.7rem' }}>
@@ -174,7 +178,8 @@ const CertificateListPage = () => {
 														? '#dcfce7'
 														: '#fee2e2',
 													color: isEligible ? '#166534' : '#991b1b',
-												}}>
+												}}
+											>
 												{isEligible ? (
 													<CheckCircle2 size={16} strokeWidth={2} />
 												) : (

@@ -171,7 +171,7 @@ export const MENU_ITEMS = {
 			id: 'sertifikat-event',
 			name: 'Sertifikat',
 			icon: <Award size={16} className="me-2" />, // Icon medali/penghargaan sangat pas untuk sertifikat
-			path: '/organizer/:eventId/event-dashboard/sertifikat/sertifikat',
+			path: '/organizer/:eventId/event-dashboard/sertifikat',
 			// submenu: [
 			// 	{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
 			// 	{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
