@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { QR_PATTERN } from "./constants";
 
-const CanvasElement = ({ el, selected, onSelect, onMove }) => {
+const CanvasElement = ({ el, selected, onSelect, onMove, canvasWidth = 1920 }) => {
   const dragging = useRef(false);
   const startMouse = useRef({ x: 0, y: 0 });
   const startPos = useRef({ x: 0, y: 0 });
@@ -38,6 +38,7 @@ const CanvasElement = ({ el, selected, onSelect, onMove }) => {
   return (
     <div
       onMouseDown={onMouseDown}
+      onClick={(e) => e.stopPropagation()}
       className={`position-absolute p-1 rounded-1 ${
         selected ? "border border-2 border-primary" : "border border-2 border-transparent"
       }`}
@@ -53,20 +54,25 @@ const CanvasElement = ({ el, selected, onSelect, onMove }) => {
       {el.fieldId === "f3" ? (
         <div
           style={{
-            width: "50px", height: "50px", borderRadius: "4px",
+            width: `${(50 / 1920) * canvasWidth}px`, 
+            height: `${(50 / 1920) * canvasWidth}px`, 
+            borderRadius: `${(4 / 1920) * canvasWidth}px`,
             backgroundColor: el.color === "#ffffff" ? "#000" : el.color,
-            display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "2px", padding: "4px",
+            display: "grid", 
+            gridTemplateColumns: "repeat(5,1fr)", 
+            gap: `${(2 / 1920) * canvasWidth}px`, 
+            padding: `${(4 / 1920) * canvasWidth}px`,
           }}
         >
           {QR_PATTERN.map((on, i) => (
-            <div key={i} style={{ backgroundColor: on ? "#fff" : "transparent", borderRadius: "1px" }} />
+            <div key={i} style={{ backgroundColor: on ? "#fff" : "transparent", borderRadius: `${(1 / 1920) * canvasWidth}px` }} />
           ))}
         </div>
       ) : (
         <p
-          className="m-0 text-nowrap lh-1"
+          className="m-0 text-nowrap lh-1 text-center"
           style={{
-            fontSize: `${el.fontSize}px`,
+            fontSize: `${(el.fontSize / 1920) * canvasWidth}px`,
             fontWeight: el.bold ? 700 : 400,
             color: el.color,
           }}

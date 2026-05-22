@@ -40,7 +40,7 @@ const EventOrganizerGuard = () => {
 
 	// 4. Jika ditolak, redirect
 	if (isAuthorized === false) {
-		return <Navigate to="/404" replace />;
+		return <Navigate to="/not-found" replace />;
 	}
 
 	// 5. Jika diizinkan, render halaman

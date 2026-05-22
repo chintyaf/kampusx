@@ -30,7 +30,7 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import FormHeading from "../../../../components/dashboard/FormHeading";
+import FormHeading from "@/components/dashboard/FormHeading";
 import "../../../../assets/css/participant-list.css";
 
 // ─── Utility: masking helpers ────────────────────────────────────────────────

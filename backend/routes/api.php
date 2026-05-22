@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\EventDashboardController;
 use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
 use App\Http\Controllers\Api\EventDashboard\EventStationController;
 use App\Http\Controllers\Api\EventDashboard\EventStatusController;
+use App\Http\Controllers\Api\EventDashboard\CertificateController;
 
 // Event Dashboard Detail Controllers
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
@@ -165,6 +166,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/stations/{id}', [EventStationController::class, 'update']);
             Route::delete('/stations/{id}', [EventStationController::class, 'destroy']);
 
+            // 5. Certificate Design Template
+            Route::get('/certificate', [CertificateController::class, 'show']);
+            Route::get('/certificate/background-file', [CertificateController::class, 'getBackground']);
+            Route::post('/certificate', [CertificateController::class, 'storeTemplate']);
+            Route::post('/certificate/upload-background', [CertificateController::class, 'uploadBackground']);
+            Route::delete('/certificate', [CertificateController::class, 'destroy']);
         });
     });
 
@@ -235,3 +242,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 
 // Klaim Poin Engagement (Peserta)
 Route::post('/engagement/claim', [EngagementController::class, 'claimPoints']);
+
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('event-types', [EventTypeController::class, 'index']);
+Route::get('institutions', [InstitutionController::class, 'index']);

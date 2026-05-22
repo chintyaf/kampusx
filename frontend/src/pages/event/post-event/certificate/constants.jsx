@@ -60,7 +60,7 @@ export const INITIAL_ELEMENTS = [
 		label: '{ Nama Peserta }',
 		x: 50,
 		y: 46,
-		fontSize: 24,
+		fontSize: 64,
 		bold: true,
 		color: '#0f172a',
 	},
@@ -70,13 +70,13 @@ export const INITIAL_ELEMENTS = [
 		label: '{ ID Sertifikat }',
 		x: 50,
 		y: 56,
-		fontSize: 12,
+		fontSize: 24,
 		bold: false,
 		color: '#6c757d',
 	},
 ];
 
-export const FONT_SIZES = [10, 12, 14, 16, 20, 24, 28];
+export const FONT_SIZES = [12, 16, 20, 24, 28, 36, 48, 64, 72, 80, 96, 120];
 export const COLORS = ['#0f172a', '#0d6efd', '#1e3a5f', '#6c757d', '#ffffff', '#fd7e14', '#198754'];
 
 export const QR_PATTERN = Array.from({ length: 25 }, (_, i) =>

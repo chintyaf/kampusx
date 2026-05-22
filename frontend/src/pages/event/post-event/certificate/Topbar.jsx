@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "react-bootstrap";
 import { Award, Eye, Save, Check } from "lucide-react";
 
-const Topbar = ({ saved, onSave }) => {
+const Topbar = ({ saved, onSave, onPreview }) => {
   return (
     <div className="d-flex align-items-center justify-content-between px-4 py-2 bg-white border-bottom shadow-sm">
       <div className="d-flex align-items-center gap-3">
@@ -13,7 +13,12 @@ const Topbar = ({ saved, onSave }) => {
       </div>
 
       <div className="d-flex align-items-center gap-2">
-        <Button variant="outline-secondary" size="sm" className="d-flex align-items-center gap-2">
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          className="d-flex align-items-center gap-2"
+          onClick={onPreview}
+        >
           <Eye size={16} /> Preview
         </Button>
         <Button

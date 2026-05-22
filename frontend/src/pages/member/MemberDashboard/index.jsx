@@ -36,8 +36,6 @@ const MemberDashboard = () => {
 		},
 	];
 
-	console.log(STORAGE_URL);
-
 	// Fetch all events
 	useEffect(() => {
 		(async () => {

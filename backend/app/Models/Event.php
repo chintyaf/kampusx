@@ -177,4 +177,10 @@ class Event extends Model
     {
         return $this->hasMany(EventMaterial::class);
     }
+
+    public function certificateTemplate(): HasOne
+    {
+        return $this->hasOne(CertificateTemplate::class);
+    }
 }
+

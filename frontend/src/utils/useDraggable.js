@@ -33,5 +33,5 @@ export const useDraggable = (initialFields) => {
     setSelected(null);
   }, []);
 
-  return { fields, selected, setSelected, canvasRef, onMouseDown, onMouseMove, onMouseUp, addField, removeField };
+  return { fields, setFields, selected, setSelected, canvasRef, onMouseDown, onMouseMove, onMouseUp, addField, removeField };
 };

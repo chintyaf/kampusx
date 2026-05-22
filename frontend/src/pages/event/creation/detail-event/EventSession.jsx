@@ -379,16 +379,14 @@ const EventSession = () => {
 	// -- RENDER --
 	return (
 		<EventLayout
+			title="Schedule Breakdown"
+			description="Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
 			onSave={handleSave}
-			nextPath={'pembicara'}
+			nextPath={'tiket'}
 			prevPath={'tempat'}
 			sidebar={renderSidebar()}
 		>
 			<Outlet context={{ sidebar, setSidebar, setSelectedRow }} />
-			<FormHeading
-				heading="Schedule Breakdown"
-				subheading="Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
-			/>
 
 			<div>
 				{days.map((dayItem, index) => (

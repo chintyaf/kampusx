@@ -1,15 +1,17 @@
 import React from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 
-const shadow = "0 2px 12px rgba(0,105,158,0.08)";
-const primaryHex = "#00699e";
+const shadow = '0 2px 12px rgba(0,105,158,0.08)';
+const primaryHex = '#00699e';
 
-const EventCard = ({ ev, onClick }) => (
+// Tambahkan default value ev = {} agar aplikasi tidak crash jika prop ev tidak dikirim
+const EventCard = ({ ev = {}, onClick }) => (
 	<div
 		onClick={onClick}
+		className="border"
 		style={{
 			flexShrink: 0,
-			width: 196,
+			maxWidth: '450px',
 			background: 'var(--color-white)',
 			borderRadius: 12,
 			overflow: 'hidden',
@@ -18,12 +20,14 @@ const EventCard = ({ ev, onClick }) => (
 			transition: 'transform .15s',
 		}}
 		onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-3px)')}
-		onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}>
+		onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+	>
 		<div style={{ position: 'relative' }}>
+			{/* Fallback image jika ev.image kosong */}
 			<img
-				src={ev.image}
-				alt={ev.title}
-				style={{ width: '100%', height: 96, objectFit: 'cover' }}
+				src={ev.image || 'https://placehold.co/196x96/eeeeee/999999?text=No+Image'}
+				alt={ev.title || 'Event image'}
+				style={{ width: '100%', aspectRatio: '3/2', objectFit: 'cover' }}
 			/>
 			{ev.isFeatured && (
 				<span
@@ -37,7 +41,8 @@ const EventCard = ({ ev, onClick }) => (
 						fontWeight: 700,
 						borderRadius: 99,
 						padding: '2px 7px',
-					}}>
+					}}
+				>
 					FEATURED
 				</span>
 			)}
@@ -53,7 +58,8 @@ const EventCard = ({ ev, onClick }) => (
 							borderRadius: 99,
 							padding: '1px 6px',
 							fontWeight: 600,
-						}}>
+						}}
+					>
 						Online
 					</span>
 				)}
@@ -66,7 +72,8 @@ const EventCard = ({ ev, onClick }) => (
 							borderRadius: 99,
 							padding: '1px 6px',
 							fontWeight: 600,
-						}}>
+						}}
+					>
 						Offline
 					</span>
 				)}
@@ -82,8 +89,10 @@ const EventCard = ({ ev, onClick }) => (
 					WebkitLineClamp: 2,
 					WebkitBoxOrient: 'vertical',
 					lineHeight: 1.4,
-				}}>
-				{ev.title}
+				}}
+			>
+				{/* Fallback title */}
+				{ev.title || 'Untitled Event'}
 			</p>
 			<div
 				style={{
@@ -92,10 +101,12 @@ const EventCard = ({ ev, onClick }) => (
 					display: 'flex',
 					flexDirection: 'column',
 					gap: 3,
-				}}>
+				}}
+			>
 				<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 					<Calendar size={10} />
-					{ev.date}
+					{/* Fallback date */}
+					{ev.date || 'TBA'}
 				</span>
 				<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 					<MapPin size={10} />
@@ -105,8 +116,10 @@ const EventCard = ({ ev, onClick }) => (
 							textOverflow: 'ellipsis',
 							whiteSpace: 'nowrap',
 							maxWidth: 130,
-						}}>
-						{ev.location}
+						}}
+					>
+						{/* Fallback location */}
+						{ev.location || 'Location TBA'}
 					</span>
 				</span>
 			</div>
@@ -118,8 +131,10 @@ const EventCard = ({ ev, onClick }) => (
 					fontSize: 'var(--font-xs)',
 					fontWeight: 700,
 					color: 'var(--color-primary)',
-				}}>
-				{ev.price}
+				}}
+			>
+				{/* Fallback price */}
+				{ev.price || 'Free'}
 			</div>
 		</div>
 	</div>

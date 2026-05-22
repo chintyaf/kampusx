@@ -1,14 +1,14 @@
 import React from 'react';
 
-const FormHeading = ({ heading, subheading, className }) => {
+const FormHeading = ({ title, description, className }) => {
 	return (
 		<>
 			<div className={`d-flex align-items-start ${className || ''}`}>
 				<div>
 					<h5 className="fw-bold mb-1" style={{ fontSize: '1.1rem' }}>
-						{heading}
+						{title}
 					</h5>
-					<p className="text-muted small mb-0">{subheading}</p>
+					<p className="text-muted small mb-0">{description}</p>
 				</div>
 			</div>
 		</>
