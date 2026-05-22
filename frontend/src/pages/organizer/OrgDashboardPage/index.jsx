@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '@/api/axios';
+import StatCards from '@/components/dashboard/StatCards';
 import {
 	Search,
 	Plus,
@@ -20,35 +23,26 @@ import {
 	Bell,
 	Zap,
 } from 'lucide-react';
+import { useLoading } from '@/context/LoadingContext';
 
-const FONT = "'DM Sans', 'Instrument Sans', system-ui, sans-serif";
-const MONO = "'DM Mono', 'Fira Mono', monospace";
+import './org-dashboard.css';
 
 const colors = {
-	bg: '#f5f4f0',
-	surface: '#ffffff',
-	border: '#e8e6e0',
-	borderHover: '#b8b4a8',
-	text: '#1a1916',
-	textMuted: '#6b6862',
-	textFaint: '#a8a49c',
-	accent: '#1f4de4',
-	accentLight: '#eaeefd',
-	accentText: '#1a3db8',
-	amber: '#c47b0a',
-	amberLight: '#fef4e0',
-	green: '#1a7a42',
-	greenLight: '#e6f5ec',
-	red: '#c0392b',
-	redLight: '#fdecea',
-	purple: '#6b3fa0',
-	purpleLight: '#f0eafd',
-	ongoing: '#1f4de4',
-	ongoingBg: '#eaeefd',
-	draft: '#c47b0a',
-	draftBg: '#fef4e0',
-	completed: '#1a1916',
-	completedBg: '#f0efec',
+	green: 'var(--success-text)',
+	greenLight: 'var(--success-bg)',
+	accent: 'var(--color-primary)',
+	amber: 'var(--warning-text)',
+	amberLight: 'var(--warning-bg)',
+	red: 'var(--danger-text)',
+	redLight: 'var(--danger-bg)',
+	purple: 'var(--purple-text)',
+	purpleLight: 'var(--purple-bg)',
+	ongoing: 'var(--bahama-blue-600)',
+	ongoingBg: 'var(--bahama-blue-50)',
+	draft: 'var(--warning-text)',
+	draftBg: 'var(--warning-bg)',
+	completed: 'var(--color-text)',
+	completedBg: 'var(--color-bg)',
 };
 
 const statusConfig = {
@@ -59,6 +53,7 @@ const statusConfig = {
 };
 
 const formatDate = (dateString) => {
+	if (!dateString) return '-';
 	const date = new Date(dateString);
 	return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 };
@@ -66,495 +61,229 @@ const formatDate = (dateString) => {
 const NavItem = ({ icon: Icon, label, active, onClick }) => (
 	<button
 		onClick={onClick}
-		style={{
-			display: 'flex',
-			alignItems: 'center',
-			gap: '10px',
-			padding: '9px 12px',
-			width: '100%',
-			backgroundColor: active ? colors.text : 'transparent',
-			color: active ? '#ffffff' : colors.textMuted,
-			border: 'none',
-			borderRadius: '8px',
-			cursor: 'pointer',
-			fontSize: '13.5px',
-			fontWeight: active ? '500' : '400',
-			fontFamily: FONT,
-			textAlign: 'left',
-			transition: 'all 0.15s',
-		}}
-		onMouseOver={(e) => {
-			if (!active) {
-				e.currentTarget.style.backgroundColor = colors.border;
-				e.currentTarget.style.color = colors.text;
-			}
-		}}
-		onMouseOut={(e) => {
-			if (!active) {
-				e.currentTarget.style.backgroundColor = 'transparent';
-				e.currentTarget.style.color = colors.textMuted;
-			}
-		}}
+		className={`org-nav-item d-flex align-items-center gap-2 w-100 border-0 text-start py-2 px-3 fs-4 ${
+			active ? 'active' : ''
+		}`}
 	>
 		<Icon size={16} strokeWidth={1.75} />
 		{label}
 	</button>
 );
 
-const MetricCard = ({ label, value, sub, icon: Icon, iconColor, trend }) => (
-	<div
-		style={{
-			padding: '20px 22px',
-			backgroundColor: colors.surface,
-			border: `1px solid ${colors.border}`,
-			borderRadius: '12px',
-			display: 'flex',
-			flexDirection: 'column',
-			gap: '2px',
-		}}
-	>
-		<div
-			style={{
-				display: 'flex',
-				justifyContent: 'space-between',
-				alignItems: 'flex-start',
-				marginBottom: '10px',
-			}}
-		>
-			<span
-				style={{
-					fontSize: '12px',
-					color: colors.textMuted,
-					fontWeight: '500',
-					textTransform: 'uppercase',
-					letterSpacing: '0.04em',
-				}}
-			>
-				{label}
-			</span>
-			<div
-				style={{
-					width: '30px',
-					height: '30px',
-					backgroundColor: iconColor + '18',
-					borderRadius: '8px',
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-				}}
-			>
-				<Icon size={15} color={iconColor} strokeWidth={2} />
-			</div>
-		</div>
-		<span
-			style={{
-				fontSize: '26px',
-				color: colors.text,
-				fontWeight: '600',
-				letterSpacing: '-0.02em',
-				lineHeight: '1',
-			}}
-		>
-			{value}
-		</span>
-		<span
-			style={{
-				fontSize: '12px',
-				color: trend === 'up' ? colors.green : colors.textFaint,
-				marginTop: '6px',
-			}}
-		>
-			{sub}
-		</span>
-	</div>
-);
-
 const StatusBadge = ({ status }) => {
-	const cfg = statusConfig[status] || statusConfig.draft;
+	const label = statusConfig[status]?.label || 'Draft';
 	return (
-		<span
-			style={{
-				backgroundColor: cfg.bg,
-				color: cfg.text,
-				padding: '2px 8px',
-				borderRadius: '5px',
-				fontSize: '11px',
-				fontWeight: '600',
-				letterSpacing: '0.02em',
-				fontFamily: MONO,
-				whiteSpace: 'nowrap',
-			}}
-		>
-			{cfg.label.toUpperCase()}
+		<span className={`org-status-badge py-1 px-2 fw-semibold text-nowrap status-${status}`}>
+			{label.toUpperCase()}
 		</span>
 	);
 };
 
 export default function OrgDashboardPage() {
+	const navigate = useNavigate();
 	const [activeNav, setActiveNav] = useState('overview');
 	const [searchQuery, setSearchQuery] = useState('');
-	const [hoveredEvent, setHoveredEvent] = useState(null);
+	const [events, setEvents] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
 
-	const events = [
-		{
-			id: 1,
-			title: 'FestiFit 2025: Gerak Sehat, Jiwa Sehat',
-			status: 'ongoing',
-			start_date: '2026-06-04',
-			attendees: 450,
-			revenue: 'Rp 22.500.000',
-			needsAttention: false,
-		},
-		{
-			id: 2,
-			title: 'Workshop UI/UX Design: Flat & Clean Aesthetic',
-			status: 'draft',
-			start_date: '2026-07-15',
-			attendees: 0,
-			revenue: 'Rp 0',
-			needsAttention: true,
-		},
-		{
-			id: 3,
-			title: 'Tech Career Seminar 2025',
-			status: 'completed',
-			start_date: '2026-05-10',
-			attendees: 850,
-			revenue: 'Rp 42.500.000',
-			needsAttention: true,
-		},
-	];
+	const { isPageLoading, setIsPageLoading } = useLoading();
+
+	useEffect(() => {
+		const fetchEvents = async () => {
+			try {
+				setLoading(true);
+				const response = await api.get('/organizer/events-list');
+				if (response.data && response.data.status === 'success') {
+					setEvents(response.data.data);
+				} else {
+					setEvents([]);
+				}
+			} catch (err) {
+				console.error('Error fetching organizer events:', err);
+				setError('Gagal memuat data event. Silakan coba beberapa saat lagi.');
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchEvents();
+	}, []);
+
+	const formatRupiah = (number) => {
+		return new Intl.NumberFormat('id-ID', {
+			style: 'currency',
+			currency: 'IDR',
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 0,
+		}).format(number);
+	};
+
+	const totalRevenueValue = events.reduce((sum, e) => sum + (parseFloat(e.revenue) || 0), 0);
+	const activeEventsCount = events.filter(
+		(e) => e.status === 'published' || e.status === 'ongoing',
+	).length;
+	const draftEventsCount = events.filter((e) => e.status === 'draft').length;
+	const totalAttendeesCount = events.reduce((sum, e) => sum + (parseInt(e.attendees) || 0), 0);
 
 	const filtered = events.filter((e) =>
 		e.title.toLowerCase().includes(searchQuery.toLowerCase()),
 	);
 
-	const logs = [
+	const statsData = [
 		{
-			text: 'Manual Override: Status presensi VIP a.n. Budi diubah ke Hadir.',
-			time: '5 menit yang lalu',
-			type: 'alert',
+			label: 'Total Revenue',
+			value: formatRupiah(totalRevenueValue),
+			sub: 'Total pendapatan semua event',
+			lucideIcon: Wallet,
+			iconBg: '#dcfce7',
+			iconColor: '#166534',
 		},
 		{
-			text: 'Mid-Event Check popup diaktifkan untuk sesi Mental Health',
-			time: '1 jam yang lalu',
-			type: 'info',
+			label: 'Avg. Conversion',
+			value: '14.2%',
+			sub: '↑ +2.4% vs bulan lalu',
+			lucideIcon: TrendingUp,
+			iconBg: '#dff3ff',
+			iconColor: '#00699e',
 		},
 		{
-			text: 'Kapasitas link virtual Zoom hampir penuh (95%).',
-			time: '2 jam yang lalu',
-			type: 'warning',
+			label: 'Event Berjalan',
+			value: `${activeEventsCount} Aktif`,
+			sub: `${draftEventsCount} Event dalam draft`,
+			lucideIcon: Activity,
+			iconBg: '#fef3c7',
+			iconColor: '#92400e',
 		},
 		{
-			text: 'Asisten AI selesai melakukan auto-tagging untuk Draft Event.',
-			time: 'Kemarin, 14:30',
-			type: 'success',
+			label: 'Total Peserta',
+			value: totalAttendeesCount.toLocaleString('id-ID'),
+			sub: 'Tiket terdaftar',
+			lucideIcon: Users,
+			iconBg: '#fee2e2',
+			iconColor: '#991b1b',
 		},
 	];
-
-	const logDot = {
-		alert: colors.red,
-		info: colors.accent,
-		warning: colors.amber,
-		success: colors.green,
-	};
 
 	return (
 		<>
 			{/* Main */}
-			<div
-				style={{
-					flex: 1,
-					display: 'flex',
-					flexDirection: 'column',
-					overflowY: 'auto',
-					minWidth: 0,
-				}}
-			>
+			<div className="flex-grow-1 d-flex flex-column overflow-auto min-w-0">
 				<div>
 					{/* Metrics */}
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: 'repeat(4, 1fr)',
-							gap: '16px',
-							marginBottom: '24px',
-						}}
-					>
-						<MetricCard
-							label="Total Revenue"
-							value="Rp 65M"
-							sub="↑ Bulan ini"
-							iconColor={colors.green}
-							icon={Wallet}
-							trend="up"
-						/>
-						<MetricCard
-							label="Avg. Conversion"
-							value="14.2%"
-							sub="↑ +2.4% vs bulan lalu"
-							iconColor={colors.accent}
-							icon={TrendingUp}
-							trend="up"
-						/>
-						<MetricCard
-							label="Event Berjalan"
-							value="1 Aktif"
-							sub="2 Event dalam draft"
-							iconColor={colors.amber}
-							icon={Activity}
-						/>
-						<MetricCard
-							label="Refund Rate"
-							value="1.2%"
-							sub="Sangat sehat (< 5%)"
-							iconColor={colors.red}
-							icon={ShieldAlert}
-						/>
-					</div>
+					<StatCards stats={statsData} />
 
 					{/* Body */}
-					<div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+					<div className="d-flex gap-4 align-items-start">
 						{/* Events */}
-						<div
-							style={{
-								flex: '2 1 0',
-								backgroundColor: colors.surface,
-								border: `1px solid ${colors.border}`,
-								borderRadius: '12px',
-								padding: '22px 24px',
-								minWidth: 0,
-							}}
-						>
-							<div
-								style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-									alignItems: 'center',
-									marginBottom: '18px',
-								}}
-							>
-								<h2
-									style={{
-										fontSize: '14px',
-										fontWeight: '600',
-										color: colors.text,
-										margin: 0,
-									}}
-								>
+						<div className="org-content-container flex-grow-1 border p-4 min-w-0">
+							<div className="d-flex justify-content-between align-items-center mb-3">
+								<h2 className="org-section-title fs-2 fw-bold m-0">
 									Manajemen Event
 								</h2>
-								<div
-									style={{
-										position: 'relative',
-										display: 'flex',
-										alignItems: 'center',
-									}}
-								>
+								<div className="position-relative d-flex align-items-center">
 									<Search
 										size={13}
-										color={colors.textFaint}
-										style={{
-											position: 'absolute',
-											left: '10px',
-											pointerEvents: 'none',
-										}}
+										color="var(--color-secondary)"
+										className="position-absolute org-search-icon"
 									/>
 									<input
 										placeholder="Cari event..."
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
-										style={{
-											paddingLeft: '30px',
-											paddingRight: '12px',
-											paddingTop: '7px',
-											paddingBottom: '7px',
-											border: `1px solid ${colors.border}`,
-											borderRadius: '7px',
-											fontSize: '13px',
-											fontFamily: FONT,
-											color: colors.text,
-											backgroundColor: colors.bg,
-											outline: 'none',
-											width: '200px',
-										}}
+										className="org-search-input border rounded-2 py-2 pe-2 fs-4"
 									/>
 								</div>
 							</div>
 
-							<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-								{filtered.map((event) => (
-									<div
-										key={event.id}
-										onMouseOver={() => setHoveredEvent(event.id)}
-										onMouseOut={() => setHoveredEvent(null)}
-										style={{
-											display: 'flex',
-											border: `1px solid ${hoveredEvent === event.id ? colors.borderHover : colors.border}`,
-											borderRadius: '10px',
-											padding: '14px 16px',
-											gap: '14px',
-											alignItems: 'center',
-											cursor: 'pointer',
-											transition: 'border-color 0.15s, background 0.15s',
-											backgroundColor:
-												hoveredEvent === event.id
-													? colors.bg
-													: colors.surface,
-										}}
-									>
-										{/* Thumbnail */}
-										<div
-											style={{
-												width: '56px',
-												height: '56px',
-												backgroundColor: colors.bg,
-												borderRadius: '8px',
-												border: `1px solid ${colors.border}`,
-												display: 'flex',
-												alignItems: 'center',
-												justifyContent: 'center',
-												flexShrink: 0,
-											}}
-										>
-											<ImageIcon
-												size={18}
-												color={colors.textFaint}
-												strokeWidth={1.5}
-											/>
-										</div>
-
-										{/* Info */}
-										<div style={{ flex: 1, minWidth: 0 }}>
-											<div
-												style={{
-													display: 'flex',
-													gap: '8px',
-													alignItems: 'center',
-													marginBottom: '5px',
-													flexWrap: 'wrap',
-												}}
-											>
-												<span
-													style={{
-														fontSize: '14px',
-														fontWeight: '600',
-														color: colors.text,
-														whiteSpace: 'nowrap',
-														overflow: 'hidden',
-														textOverflow: 'ellipsis',
-													}}
-												>
-													{event.title}
-												</span>
-												<StatusBadge status={event.status} />
-											</div>
-											<div
-												style={{
-													display: 'flex',
-													gap: '14px',
-													color: colors.textMuted,
-													fontSize: '12px',
-													marginBottom: '6px',
-												}}
-											>
-												<span
-													style={{
-														display: 'flex',
-														alignItems: 'center',
-														gap: '4px',
-													}}
-												>
-													<Calendar size={11} />{' '}
-													{formatDate(event.start_date)}
-												</span>
-												<span
-													style={{
-														display: 'flex',
-														alignItems: 'center',
-														gap: '4px',
-													}}
-												>
-													<Users size={11} />{' '}
-													{event.attendees.toLocaleString('id-ID')}
-												</span>
-												<span
-													style={{
-														display: 'flex',
-														alignItems: 'center',
-														gap: '4px',
-													}}
-												>
-													<Wallet size={11} /> {event.revenue}
-												</span>
-											</div>
-											{event.needsAttention && event.status === 'draft' && (
-												<div
-													style={{
-														display: 'inline-flex',
-														alignItems: 'center',
-														gap: '5px',
-														fontSize: '11px',
-														color: colors.amber,
-														backgroundColor: colors.amberLight,
-														borderRadius: '5px',
-														padding: '2px 8px',
-													}}
-												>
-													<Zap size={10} /> Butuh struktur alur sesi
-												</div>
-											)}
-											{event.needsAttention &&
-												event.status === 'completed' && (
-													<div
-														style={{
-															display: 'inline-flex',
-															alignItems: 'center',
-															gap: '5px',
-															fontSize: '11px',
-															color: colors.purple,
-															backgroundColor: colors.purpleLight,
-															borderRadius: '5px',
-															padding: '2px 8px',
-														}}
-													>
-														<FileText size={10} /> Sertifikat siap
-														distribusi (850 file)
-													</div>
-												)}
-										</div>
-
-										<button
-											style={{
-												backgroundColor: 'transparent',
-												border: `1px solid ${colors.border}`,
-												padding: '7px 13px',
-												borderRadius: '7px',
-												fontSize: '12px',
-												fontWeight: '500',
-												color: colors.textMuted,
-												cursor: 'pointer',
-												fontFamily: FONT,
-												whiteSpace: 'nowrap',
-												display: 'flex',
-												alignItems: 'center',
-												gap: '4px',
-												flexShrink: 0,
-												transition: 'all 0.15s',
-											}}
-											onMouseOver={(e) => {
-												e.currentTarget.style.borderColor = colors.text;
-												e.currentTarget.style.color = colors.text;
-											}}
-											onMouseOut={(e) => {
-												e.currentTarget.style.borderColor = colors.border;
-												e.currentTarget.style.color = colors.textMuted;
-											}}
-										>
-											Buka <ChevronRight size={12} />
-										</button>
+							<div className="d-flex flex-column gap-2">
+								{loading ? (
+									<div className="org-state-text-muted py-5 text-center fs-3">
+										Memuat data event...
 									</div>
-								))}
+								) : error ? (
+									<div className="org-state-text-danger py-5 text-center fs-3">
+										{error}
+									</div>
+								) : filtered.length === 0 ? (
+									<div className="org-state-text-muted py-5 text-center fs-3">
+										Tidak ada event ditemukan.
+									</div>
+								) : (
+									filtered.map((event) => (
+										<div
+											key={event.id}
+											onClick={() =>
+												navigate(`/organizer/${event.id}/event-dashboard`)
+											}
+											className="org-event-card d-flex align-items-center gap-3 p-3 border"
+										>
+											{/* Thumbnail */}
+											<div className="org-event-thumbnail d-flex align-items-center justify-content-center flex-shrink-0 border">
+												<ImageIcon
+													size={18}
+													color="var(--color-secondary)"
+													strokeWidth={1.5}
+												/>
+											</div>
+
+											{/* Info */}
+											<div className="flex-grow-1 min-w-0">
+												<div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+													<span className="org-event-title fs-3 fw-bold text-truncate">
+														{event.title}
+													</span>
+													<StatusBadge status={event.status} />
+												</div>
+												<div className="org-event-meta d-flex gap-3 mb-1 fs-5">
+													<span className="d-flex align-items-center gap-1">
+														<Calendar size={11} />{' '}
+														{formatDate(event.start_date)}
+													</span>
+													<span className="d-flex align-items-center gap-1">
+														<Users size={11} />{' '}
+														{(event.attendees || 0).toLocaleString(
+															'id-ID',
+														)}
+													</span>
+													<span className="d-flex align-items-center gap-1">
+														<Wallet size={11} />{' '}
+														{formatRupiah(event.revenue || 0)}
+													</span>
+												</div>
+												{event.needsAttention &&
+													event.status === 'draft' && (
+														<div className="org-attention-badge attention-draft d-inline-flex align-items-center gap-1 py-1 px-2 fw-medium">
+															<Zap size={10} />{' '}
+															{event.attentionMessage ||
+																'Butuh struktur alur sesi'}
+														</div>
+													)}
+												{event.needsAttention &&
+													event.status === 'completed' && (
+														<div className="org-attention-badge attention-completed d-inline-flex align-items-center gap-1 py-1 px-2 fw-medium">
+															<FileText size={10} />{' '}
+															{event.attentionMessage ||
+																'Sertifikat siap didistribusikan'}
+														</div>
+													)}
+											</div>
+
+											<button
+												onClick={(e) => {
+													e.stopPropagation();
+
+													navigate(
+														`/organizer/${event.id}/event-dashboard`,
+													);
+												}}
+												className="org-event-btn d-flex align-items-center gap-1 py-2 px-3 fw-medium text-nowrap flex-shrink-0 border fs-5"
+											>
+												Buka <ChevronRight size={12} />
+											</button>
+										</div>
+									))
+								)}
 							</div>
 						</div>
 					</div>

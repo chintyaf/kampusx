@@ -6,7 +6,7 @@ import { Ticket, DollarSign, UserCheck, UserMinus } from 'lucide-react';
 import '../../../../assets/css/dashboard.css';
 
 import PageHeader from './PageHeader';
-import StatCards from './StatCards';
+import StatCards from '@/components/dashboard/StatCards';
 import EventInfoCard from './EventInfoCard';
 import EventTimeline from './EventTimeline';
 import ReadinessStatus from './ReadinessStatus';
