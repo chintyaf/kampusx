@@ -22,6 +22,8 @@ class User extends Authenticatable
         'role',
         'status',
         'is_verified',
+        'avatar_path',
+        'university_id' // Just in case they want to update university_id from profile settings
     ];
 
     protected $hidden = [
@@ -62,4 +64,9 @@ class User extends Authenticatable
         return $this->hasMany(Event::class, 'organizer_id');
     }
 
+    // Minat user (Kategori event yang disukai)
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_user', 'user_id', 'category_id')->withTimestamps();
+    }
 }

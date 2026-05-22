@@ -40,6 +40,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
+
+// User Public Profile
+Route::get('/profile/{id}', [\App\Http\Controllers\Api\UserProfileController::class, 'show']);
+
 // Landing Page & Explore Event
 
 
@@ -69,6 +73,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    
+    // Pengaturan Akun Profil (Edit Profil)
+    Route::get('/user/settings', [\App\Http\Controllers\Api\UserSettingsController::class, 'getProfile']);
+    Route::post('/user/settings', [\App\Http\Controllers\Api\UserSettingsController::class, 'updateProfile']);
+    Route::put('/user/settings/password', [\App\Http\Controllers\Api\UserSettingsController::class, 'updatePassword']);
+
+    // Simpan personalisasi user (minat)
+    Route::post('/user/personalization', [\App\Http\Controllers\Api\PersonalizationController::class, 'saveInterests']);
 
     // Event
 
