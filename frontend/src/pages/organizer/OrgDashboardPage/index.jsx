@@ -168,7 +168,7 @@ export default function OrgDashboardPage() {
 	return (
 		<>
 			{/* Main */}
-			<div className="flex-grow-1 d-flex flex-column overflow-auto min-w-0">
+			<div className="flex-grow-1 d-flex flex-column min-w-0">
 				<div>
 					{/* Metrics */}
 					<StatCards stats={statsData} />

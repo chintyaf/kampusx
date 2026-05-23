@@ -193,36 +193,48 @@ p {
 	margin: 0px;
 }
 
-.btn {
-	/* border-radius: var(--border-radius) !important; */
-	font-family: var(--font-md);
-	/* transition: 0.2s; */
-}
-
+/*
+============================================================
+BUTTON
+============================================================
+*/
+/* --- PRIMARY BUTTON (Warna Utama Brand) --- */
 .btn-primary {
-	background-color: var(--color-primary) !important;
-	border-color: var(--color-primary) !important;
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+	color: var(--color-white); /* Tambahkan warna teks putih */
 }
 
 .btn-primary:hover {
-	background-color: var(--bahama-blue-900) !important;
-	border-color: var(--bahama-blue-900) !important;
+	background-color: var(--bahama-blue-800); /* Transisi lebih halus dibanding 900 */
+	border-color: var(--bahama-blue-800);
+	color: var(--color-white);
 }
 
+/* --- SECONDARY BUTTON (Warna Netral/Abu-abu) --- */
 .btn-secondary {
-	background-color: white !important;
-	color: var(--bahama-blue-600);
-	border: 2px solid var(--bahama-blue-600);
+	background-color: var(--neutral-bg);
+	color: var(--color-secondary); /* Menggunakan warna slate/abu-abu */
+	border: 2px solid var(--neutral-bg);
 }
 
 .btn-secondary:hover {
-	background-color: #eff1fc !important;
-	color: var(--bahama-blue-600);
-	border: 2px solid var(--bahama-blue-600);
+	background-color: var(--neutral-border); /* Menggelapkan background saat hover */
+	border-color: var(--neutral-border);
+	color: var(--color-text); /* Teks menjadi lebih gelap/hitam */
 }
 
-.btn-dark:hover {
-	background-color: #384657;
+/* --- OUTLINE SECONDARY BUTTON --- */
+.btn-outline-secondary {
+	background-color: transparent; /* Lebih baik transparent daripada white */
+	color: var(--color-secondary);
+	border: 2px solid var(--color-secondary);
+}
+
+.btn-outline-secondary:hover {
+	background-color: var(--color-secondary) !important;
+	color: var(--color-white);
+	border-color: var(--color-secondary);
 }
 
 .btn-add {
@@ -233,11 +245,9 @@ p {
 	padding: 7px;
 	background-color: transparent;
 
-	/* Garis putus-putus */
-	border: 1.5px dashed var(--color-border);
+	border: 1.5px dashed var(--neutral-border); /* atau bisa pakai var(--border) */
 	border-radius: 7px;
 
-	/* Tipografi */
 	color: var(--text-muted);
 	font-size: var(--font-sm);
 	font-weight: 500;
@@ -246,8 +256,16 @@ p {
 }
 
 .btn-add:hover {
-	color: var(--color-primary);
-	border-color: var(--color-primary);
+	background-color: transparent;
+	border-color: var(--primary-mid); /* Biru yang lebih pudar/kalem */
+	color: var(--primary-mid); /* Teks mengikuti warna border yang kalem */
+	transform: scale(1.02);
+}
+
+.btn-add:active {
+	background-color: var(--color-primary) !important; /* Sedikit lebih gelap dari state hover */
+	border-color: var(--color-primary) !important;
+	transform: scale(0.98);
 }
 
 .btn-add-session:hover {

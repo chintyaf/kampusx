@@ -1,0 +1,52 @@
+/* Styling Utama Kartu */
+.stat-card-modern {
+	border-radius: 16px; /* Lengkungan yang lebih modern */
+	background-color: #ffffff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); /* Shadow bawaan yang sangat lembut */
+	transition:
+		transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+		box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efek saat kursor diarahkan ke kartu */
+.stat-card-modern:hover {
+	transform: translateY(-5px); /* Kartu sedikit naik */
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08); /* Shadow membesar saat melayang */
+}
+
+/* Styling Kotak Ikon */
+.icon-wrapper {
+	width: 54px;
+	height: 54px;
+	border-radius: 14px; /* Sedikit melengkung tapi tetap kotak (squircle) */
+	transition: transform 0.25s ease;
+}
+
+/* Animasi mikro: Ikon sedikit membesar saat kartu di-hover */
+.stat-card-modern:hover .icon-wrapper {
+	transform: scale(1.1);
+}
+
+/* Tipografi untuk Label (Judul Kecil) */
+.stat-label {
+	font-size: 0.75rem; /* Ukuran font lebih kecil */
+	letter-spacing: 0.75px; /* Memberi jarak antar huruf agar kapital lebih elegan */
+	opacity: 0.8;
+}
+
+/* Tipografi untuk Value (Angka Besar) */
+.stat-value {
+	letter-spacing: -0.5px; /* Merapatkan angka agar terlihat kokoh */
+	font-size: 1.5rem;
+}
+
+/* Responsivitas dasar untuk layar HP */
+@media (max-width: 576px) {
+	.stat-value {
+		font-size: 1.25rem;
+	}
+	.icon-wrapper {
+		width: 48px;
+		height: 48px;
+	}
+}

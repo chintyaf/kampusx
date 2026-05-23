@@ -563,6 +563,28 @@ main {
 	letter-spacing: -0.5px;
 }
 
+/* Custom styling untuk mempercantik Bootstrap card */
+.custom-stat-card {
+	border-color: #eaeaea !important;
+	border-radius: 12px !important; /* Membuat sudut kartu lebih modern dan smooth */
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
+}
+
+/* Efek hover interaktif yang subtle saat diarahkan kursor */
+.custom-stat-card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Memastikan tulisan value tidak terlalu besar di layar hp */
+@media (max-width: 576px) {
+	.custom-stat-card h4 {
+		font-size: 1.25rem;
+	}
+}
+
 /* Table Card */
 .table-card {
 	background: var(--card);
@@ -870,3 +892,28 @@ tbody tr:hover {
 	padding: 0 4px;
 }
 
+/* ==========================================================================
+   5. CUSTOM COMPONENTS (TICKET & BADGE)
+   Komponen visual pendukung seperti card tiket dan badge nomor urut
+   ========================================================================== */
+/* Container Utama Ticket */
+.custom-card {
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+	background-color: hsl(0, 0%, 100%);
+	margin-bottom: 1.5rem;
+}
+
+/* Badge Nomor (1, 2, dst) */
+.custom-badge-number {
+	background-color: #f1f5f9;
+	color: #475569;
+	border-radius: 8px;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 500;
+	font-size: 14px;
+}

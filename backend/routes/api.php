@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\SessionMaterialController;
 
 
 // ==========================================
@@ -172,6 +173,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/certificate', [CertificateController::class, 'storeTemplate']);
             Route::post('/certificate/upload-background', [CertificateController::class, 'uploadBackground']);
             Route::delete('/certificate', [CertificateController::class, 'destroy']);
+
+            // 6. Post-Event Session Materials
+            Route::prefix('post-event')->group(function () {
+                Route::get('/sessions', [SessionMaterialController::class, 'getSessionsWithMaterials']);
+                Route::put('/sessions/{sessionId}/status', [SessionMaterialController::class, 'updateSessionStatus']);
+                Route::post('/sessions/{sessionId}/materials', [SessionMaterialController::class, 'storeMaterial']);
+                Route::delete('/sessions/{sessionId}/materials/{materialId}', [SessionMaterialController::class, 'destroyMaterial']);
+                Route::post('/sessions/{sessionId}/materials/reorder', [SessionMaterialController::class, 'reorderMaterials']);
+            });
         });
     });
 

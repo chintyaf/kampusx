@@ -22,7 +22,7 @@ const SessionCard = ({
 	const dayNumber = dayItem.day_number || dayIndex + 1;
 
 	return (
-		<div className="custom-ticket-card mb-3 shadow-sm">
+		<div className="custom-card mb-3 shadow-sm">
 			<div
 				className={`px-4 subtle py-3 d-flex justify-content-between align-items-center ${open ? 'border-bottom' : ''}`}
 				style={{

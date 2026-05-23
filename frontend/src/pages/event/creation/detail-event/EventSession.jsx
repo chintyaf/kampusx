@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Outlet } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import { Plus } from 'lucide-react';
 
 import EventLayout from '../../../../layouts/EventLayout';
@@ -403,10 +404,10 @@ const EventSession = () => {
 					/>
 				))}
 
-				<button className="btn-add gap-2 py-3 rounded-3 mt-4" onClick={handleAddDay}>
+				<Button className="btn btn-add gap-2 py-3 rounded-3 mt-4" onClick={handleAddDay}>
 					<Plus size={18} />
 					Tambah Hari Baru
-				</button>
+				</Button>
 			</div>
 		</EventLayout>
 	);

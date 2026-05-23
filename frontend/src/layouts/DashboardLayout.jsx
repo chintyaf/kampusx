@@ -42,8 +42,6 @@ const DashboardLayout = () => {
 		!pathname.includes('buat-acara') &&
 		!pathname.includes('organizer/dashboard');
 
-
-
 	return (
 		<div
 			className="d-flex flex-column"
@@ -65,6 +63,7 @@ const DashboardLayout = () => {
 				style={{
 					overflow: 'hidden',
 					height: '100vh',
+					backgroundColor: 'var(--color-bg)',
 				}}
 			>
 				{showSidebar && (
@@ -79,14 +78,14 @@ const DashboardLayout = () => {
 
 				<main
 					style={{
-						padding: '30px 60px',
-						backgroundColor: 'var(--color-bg)',
+						padding: '40px 50px',
 						// backgroundColor: 'white',
 						flex: 1,
 						overflowY: 'auto',
 						position: 'relative',
 						minHeight: '0',
 					}}
+					// className='container'
 				>
 					<Toaster position="top-right" containerStyle={{ top: 100, right: 40 }} />
 
