@@ -33,6 +33,8 @@ import CreateCertificatePage from '../pages/event/post-event/certificate/CreateC
 import PostEventContentUploadPage from '../pages/event/post-event/PostEventContentUploadPage/index';
 // import { Certificate } from 'node:crypto';
 import EventCertificatePage from '../pages/event/post-event/certificate/EventCertificatePage.jsx';
+import EventWalletSplitPage from '../pages/event/management/EventWalletSplitPage/index';
+import EventAnalyticsPage from '../pages/event/management/EventAnalyticsPage/index';
 
 export const OrganizerRoutes = (
 	<Route path="organizer">
@@ -68,6 +70,8 @@ export const OrganizerRoutes = (
 			<Route path="upload-sertifikat" element={<EventPosPage />} />
 
 			<Route path="statistik" element={<EventStatistics />} />
+			<Route path="wallet-split" element={<EventWalletSplitPage />} />
+			<Route path="analytics" element={<EventAnalyticsPage />} />
 			<Route path="promosi" element={<EventPromotion />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
 

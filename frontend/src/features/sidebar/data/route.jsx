@@ -18,6 +18,7 @@ import {
 	MapPin,
 	CalendarDays,
 	Building2,
+	Wallet,
 } from 'lucide-react';
 
 // ... (kode lainnya)
@@ -198,6 +199,18 @@ export const MENU_ITEMS = {
 			name: 'Statistik',
 			icon: <ChartColumn size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/statistik',
+		},
+		{
+			id: 'wallet-split',
+			name: 'Dompet & Bagi Hasil',
+			icon: <Wallet size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/wallet-split',
+		},
+		{
+			id: 'analytics',
+			name: 'Analisis & Laporan',
+			icon: <ChartColumn size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/analytics',
 		},
 	],
 };
