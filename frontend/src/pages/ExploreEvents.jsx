@@ -13,7 +13,8 @@ import {
 	SlidersHorizontal,
 	X,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import EventCard from '../components/event/EventCard';
 import api from '../api/axios';
 import { STORAGE_URL } from '../api/storage';
 
@@ -37,180 +38,7 @@ const formatDate = (dateString) => {
 	});
 };
 
-// ── EventCard ─────────────────────────────────────────────────────────────────
-const EventCard = ({ ev }) => (
-	<Link
-		to={`/event/${ev.id}`}
-		style={{ textDecoration: 'none', color: 'inherit', display: 'block', height: '100%' }}>
-		<Card
-			className="h-100"
-			style={{
-				borderRadius: 12,
-				border: '1px solid var(--color-border)',
-				boxShadow: '0 2px 8px rgba(0,105,158,0.06)',
-				overflow: 'hidden',
-				transition: 'transform .15s, box-shadow .15s',
-				background: 'var(--color-white)',
-			}}
-			onMouseEnter={(e) => {
-				e.currentTarget.style.transform = 'translateY(-3px)';
-				e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,105,158,0.12)';
-			}}
-			onMouseLeave={(e) => {
-				e.currentTarget.style.transform = 'translateY(0)';
-				e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,105,158,0.06)';
-			}}>
-			{/* Badges */}
-			<div
-				style={{
-					padding: '10px 12px 0',
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					minHeight: 34,
-				}}>
-				<div style={{ display: 'flex', gap: 6 }}>
-					{ev.is_in_person && (
-						<span
-							style={{
-								fontSize: 10,
-								color: 'var(--color-primary)',
-								border: '1px solid var(--color-primary)',
-								borderRadius: 99,
-								padding: '2px 8px',
-								fontWeight: 600,
-								display: 'flex',
-								alignItems: 'center',
-								gap: 3,
-							}}>
-							<Users size={10} /> In-Person
-						</span>
-					)}
-					{ev.is_online && (
-						<span
-							style={{
-								fontSize: 10,
-								color: 'var(--color-primary)',
-								border: '1px solid var(--color-primary)',
-								borderRadius: 99,
-								padding: '2px 8px',
-								fontWeight: 600,
-								display: 'flex',
-								alignItems: 'center',
-								gap: 3,
-							}}>
-							<Wifi size={10} /> Online
-						</span>
-					)}
-				</div>
-				{ev.is_featured && (
-					<span
-						style={{
-							fontSize: 10,
-							background: 'var(--bahama-blue-500)',
-							color: '#fff',
-							borderRadius: 99,
-							padding: '2px 9px',
-							fontWeight: 700,
-						}}>
-						Featured
-					</span>
-				)}
-			</div>
-
-			{/* Image */}
-			<img
-				src={ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`}
-				alt={ev.title}
-				style={{ width: '100%', height: 165, objectFit: 'cover', marginTop: 8 }}
-			/>
-
-			<Card.Body
-				style={{ padding: '12px 14px 14px', display: 'flex', flexDirection: 'column' }}>
-				{/* Date & price */}
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						fontSize: 'var(--font-sm)',
-						color: 'var(--color-primary)',
-						fontWeight: 600,
-						marginBottom: 8,
-					}}>
-					<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-						<Calendar size={13} />
-						{formatDate(ev.date || ev.start_date)}
-					</span>
-					<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-						<Ticket size={13} />
-						{formatPrice(ev.price)}
-					</span>
-				</div>
-
-				{/* Title */}
-				<Card.Title
-					style={{
-						fontSize: 'var(--font-md)',
-						fontWeight: 700,
-						color: 'var(--color-text)',
-						lineHeight: 1.4,
-						marginBottom: 'auto',
-					}}>
-					{ev.title}
-				</Card.Title>
-
-				<hr style={{ margin: '10px 0', borderColor: 'var(--color-border)', opacity: 1 }} />
-
-				{/* Location & org */}
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'space-between',
-						fontSize: 'var(--font-sm)',
-						color: 'var(--color-primary)',
-						fontWeight: 500,
-					}}>
-					<span
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 5,
-							overflow: 'hidden',
-							maxWidth: '60%',
-						}}>
-						<MapPin size={13} style={{ flexShrink: 0 }} />
-						<span
-							style={{
-								overflow: 'hidden',
-								textOverflow: 'ellipsis',
-								whiteSpace: 'nowrap',
-							}}>
-							{ev.location || 'TBA'}
-						</span>
-					</span>
-					<span
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 5,
-							overflow: 'hidden',
-							maxWidth: '40%',
-						}}>
-						<User size={13} style={{ flexShrink: 0 }} />
-						<span
-							style={{
-								overflow: 'hidden',
-								textOverflow: 'ellipsis',
-								whiteSpace: 'nowrap',
-							}}>
-							{ev.org || ev.institution?.name || 'KampusX'}
-						</span>
-					</span>
-				</div>
-			</Card.Body>
-		</Card>
-	</Link>
-);
+// EventCard is imported globally from '../components/event/EventCard'
 
 // ── FilterSidebar ─────────────────────────────────────────────────────────────
 const FilterSidebar = ({ filters, onChange, onReset, onApply }) => (
@@ -404,6 +232,7 @@ const FilterSidebar = ({ filters, onChange, onReset, onApply }) => (
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 const ExploreEvents = () => {
+	const navigate = useNavigate();
 	const [events, setEvents] = useState([]);
 	const [filtered, setFiltered] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -772,7 +601,7 @@ const ExploreEvents = () => {
 							<Row className="g-4">
 								{filtered.map((ev) => (
 									<Col xs={12} md={6} xl={4} key={ev.id}>
-										<EventCard ev={ev} />
+										<EventCard ev={ev} onClick={() => navigate(`/event/${ev.id}`)} />
 									</Col>
 								))}
 							</Row>

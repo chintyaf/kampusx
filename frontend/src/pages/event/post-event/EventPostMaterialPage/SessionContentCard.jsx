@@ -5,8 +5,12 @@ import FilePreviewModal from './FilePreviewModal';
 import VideoPreviewModal from './VideoPreviewModal';
 import MaterialList from './MaterialList';
 import AddMaterialForm from './AddMaterialForm';
+import api from '../../../../api/axios';
+import { useParams } from 'react-router-dom';
+import { notify } from '../../../../utils/notify';
 
-const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPreviousSession }) => {
+const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefresh, hasPreviousSession }) => {
+	const { eventId } = useParams();
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [previewMaterial, setPreviewMaterial] = useState(null);
 	const [showVideoPreview, setShowVideoPreview] = useState(false);
@@ -15,59 +19,131 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPre
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveSuccess, setSaveSuccess] = useState(false);
 
-	// Handler yang disesuaikan untuk menerima File List langsung dari AddMaterialForm
-	const addMaterial = (files) => {
-		const fileArray = Array.from(files || []);
-		const newMaterials = fileArray.map((f) => ({
-			id: Date.now().toString() + f.name,
-			name: f.name,
-			type: f.name.split('.').pop()?.toUpperCase() || 'FILE',
-			size:
-				f.size > 1048576
-					? `${(f.size / 1048576).toFixed(1)} MB`
-					: `${Math.round(f.size / 1024)} KB`,
-			url: URL.createObjectURL(f),
-		}));
-		onUpdate({ materials: [...(session.materials || []), ...newMaterials] });
-	};
-
-	const removeMaterial = (id) => {
-		onUpdate({ materials: session.materials.filter((m) => m.id !== id) });
-	};
-
-	// Fungsi utama penerima data dari AddMaterialForm
-	const handleAddMaterial = ({ type, url, files }) => {
-		if (type === 'url' && url) {
-			onUpdate({ videoUrl: url });
-		} else if (type === 'video_file' && files) {
-			onUpdate({ videoFileName: files[0].name });
-		} else if (type === 'document' && files) {
-			addMaterial(files);
+	const handleDeleteMaterial = async (materialId) => {
+		try {
+			setIsSaving(true);
+			const res = await api.delete(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials/${materialId}`);
+			if (res.data?.status === 'success') {
+				onRefresh();
+				notify('success', 'Berhasil', 'Materi berhasil dihapus.');
+			}
+		} catch (error) {
+			console.error("Gagal menghapus materi:", error);
+			notify('error', 'Gagal', error.response?.data?.message || 'Gagal menghapus materi.');
+		} finally {
+			setIsSaving(false);
 		}
 	};
 
-	// Simulasi penyimpanan dengan efek loading
-	const handleSave = (publishState) => {
-		setIsSaving(true);
-		setTimeout(() => {
-			onUpdate({ published: publishState });
+	// Fungsi utama penerima data dari AddMaterialForm
+	const handleAddMaterial = async ({ type, url, files }) => {
+		try {
+			setIsSaving(true);
+			if (type === 'url') {
+				if (!url) return;
+				const res = await api.post(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`, {
+					type: 'url',
+					url: url,
+					name: 'YouTube Replay'
+				});
+				if (res.data?.status === 'success') {
+					onRefresh();
+					notify('success', 'Berhasil', 'Tautan replay video disimpan.');
+				}
+			} else if (type === 'video_file' && files && files.length > 0) {
+				const file = files[0];
+				const formData = new FormData();
+				formData.append('type', 'video_file');
+				formData.append('file', file);
+				formData.append('name', file.name);
+
+				const res = await api.post(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`, formData, {
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				});
+				if (res.data?.status === 'success') {
+					onRefresh();
+					notify('success', 'Berhasil', 'Video replay berhasil diunggah.');
+				}
+			} else if (type === 'document' && files && files.length > 0) {
+				for (let i = 0; i < files.length; i++) {
+					const file = files[i];
+					const formData = new FormData();
+					formData.append('type', 'document');
+					formData.append('file', file);
+					formData.append('name', file.name);
+
+					await api.post(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`, formData, {
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					});
+				}
+				onRefresh();
+				notify('success', 'Berhasil', 'Dokumen berhasil diunggah.');
+			}
+		} catch (error) {
+			console.error("Gagal mengunggah materi:", error);
+			notify('error', 'Gagal', error.response?.data?.message || 'Gagal menyimpan materi.');
+		} finally {
 			setIsSaving(false);
-			setSaveSuccess(true);
-			setTimeout(() => setSaveSuccess(false), 3000);
-		}, 800);
+		}
 	};
 
-	const completionColorClass =
-		session.stats?.completionRate >= 70
-			? 'text-success bg-success-subtle'
-			: session.stats?.completionRate >= 40
-				? 'text-warning bg-warning-subtle'
-				: 'text-danger bg-danger-subtle';
+	// Simpan Draft / Publikasikan
+	const handleSave = async (publishState) => {
+		setIsSaving(true);
+		try {
+			const response = await api.put(`event-dashboard/${eventId}/post-event/sessions/${session.id}/status`, {
+				published: publishState,
+			});
+			if (response.data?.status === 'success') {
+				onUpdate({ published: publishState });
+				setSaveSuccess(true);
+				setTimeout(() => setSaveSuccess(false), 3000);
+				notify('success', 'Berhasil', response.data.message);
+			}
+		} catch (error) {
+			console.error("Gagal memperbarui status sesi:", error);
+			notify('error', 'Gagal', error.response?.data?.message || 'Gagal memperbarui status.');
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
+	const getCompletionStyle = (rate) => {
+		if (rate >= 70) {
+			return {
+				backgroundColor: '#dcfce7',
+				color: '#15803d',
+			};
+		}
+		if (rate >= 40) {
+			return {
+				backgroundColor: '#fef3c7',
+				color: '#b45309',
+			};
+		}
+		return {
+			backgroundColor: '#fee2e2',
+			color: '#b91c1c',
+		};
+	};
+
+	const completionStyle = getCompletionStyle(session.stats?.completionRate || 0);
 
 	return (
 		<>
 			<div
-				className={`custom-card border transition-shadow ${isExpanded ? ' border-primary' : 'border-secondary-subtle'}`}
+				className="custom-card border"
+				style={{
+					boxShadow: 'none',
+					border: isExpanded ? '1px solid #00699e' : '1px solid #e2e8f0',
+					borderRadius: '12px',
+					backgroundColor: '#ffffff',
+					transition: 'border-color 0.2s, background-color 0.2s',
+				}}
 			>
 				{/* Header Sesi */}
 				<div
@@ -78,6 +154,12 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPre
 						borderColor: '#e2e8f0',
 					}}
 					onClick={() => setIsExpanded(!isExpanded)}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.backgroundColor = '#f8fafc';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.backgroundColor = '';
+					}}
 				>
 					<div className="d-flex align-items-center gap-3 flex-grow-1 text-truncate">
 						<div className="custom-badge-number flex-shrink-0">{sessionNumber}</div>
@@ -91,15 +173,25 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPre
 								</span>
 								{session.published ? (
 									<Badge
-										bg="success"
-										className="d-flex align-items-center gap-1 rounded-pill fw-normal"
+										bg="transparent"
+										className="d-flex align-items-center gap-1 rounded-pill fw-normal border-0"
+										style={{
+											backgroundColor: '#dcfce7',
+											color: '#15803d',
+											padding: '4px 10px',
+										}}
 									>
-										<CheckCircle size={12} /> Dipublikasikan
+										<CheckCircle size={12} style={{ color: '#15803d' }} /> Dipublikasikan
 									</Badge>
 								) : (
 									<Badge
-										bg="secondary"
-										className="rounded-pill fw-normal bg-opacity-25 text-secondary border border-secondary-subtle"
+										bg="transparent"
+										className="rounded-pill fw-normal border-0"
+										style={{
+											backgroundColor: '#f1f5f9',
+											color: '#475569',
+											padding: '4px 10px',
+										}}
 									>
 										Draft
 									</Badge>
@@ -119,9 +211,13 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPre
 								</div>
 								<Badge
 									bg="transparent"
-									className={`d-flex align-items-center gap-1 rounded-pill border ${completionColorClass}`}
+									className="d-flex align-items-center gap-1 rounded-pill border-0"
+									style={{
+										...completionStyle,
+										padding: '4px 10px',
+									}}
 								>
-									<BarChart2 size={14} /> {session.stats.completionRate}% selesai
+									<BarChart2 size={14} style={{ color: completionStyle.color }} /> {session.stats.completionRate}% selesai
 								</Badge>
 							</div>
 						)}
@@ -161,9 +257,17 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPre
 							{/* Komponen Daftar Materi */}
 							<MaterialList
 								session={session}
-								onClearVideoUrl={() => onUpdate({ videoUrl: '' })}
-								onClearVideoFile={() => onUpdate({ videoFileName: null })}
-								onRemoveDocument={removeMaterial}
+								onClearVideoUrl={async () => {
+									if (session.videoMaterialId) {
+										await handleDeleteMaterial(session.videoMaterialId);
+									}
+								}}
+								onClearVideoFile={async () => {
+									if (session.videoFileMaterialId) {
+										await handleDeleteMaterial(session.videoFileMaterialId);
+									}
+								}}
+								onRemoveDocument={handleDeleteMaterial}
 								onPreviewMaterial={setPreviewMaterial}
 							/>
 
@@ -172,8 +276,57 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, hasPre
 						</div>
 
 						{/* --- Footer Action Bar --- */}
-						<div className="p-3 border-top rounded-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
-							{/* Tempat Footer Actions Anda ... */}
+						<div 
+							className="p-3 border-top rounded-bottom d-flex align-items-center justify-content-between flex-wrap gap-3"
+							style={{ backgroundColor: '#f8fafc' }}
+						>
+							<div className="text-muted small">
+								{saveSuccess ? (
+									<span className="text-success d-flex align-items-center gap-1">
+										<CheckCircle size={14} /> Tersimpan
+									</span>
+								) : isSaving ? (
+									<span className="d-flex align-items-center gap-1">
+										<Spinner animation="border" size="sm" style={{ width: '12px', height: '12px' }} /> Menyimpan...
+									</span>
+								) : (
+									<span>Status: <strong>{session.published ? 'Dipublikasikan' : 'Draft'}</strong></span>
+								)}
+							</div>
+							<div className="d-flex gap-2">
+								{session.published ? (
+									<Button
+										variant="outline-secondary"
+										size="sm"
+										className="small"
+										disabled={isSaving}
+										onClick={() => handleSave(false)}
+									>
+										Ubah ke Draft
+									</Button>
+								) : (
+									<>
+										<Button
+											variant="light"
+											size="sm"
+											className="border border-secondary-subtle small bg-white text-dark"
+											disabled={isSaving}
+											onClick={() => handleSave(false)}
+										>
+											Simpan sebagai Draft
+										</Button>
+										<Button
+											variant="primary"
+											size="sm"
+											className="small"
+											disabled={isSaving}
+											onClick={() => handleSave(true)}
+										>
+											Publikasikan Sesi
+										</Button>
+									</>
+								)}
+							</div>
 						</div>
 					</div>
 				</Collapse>

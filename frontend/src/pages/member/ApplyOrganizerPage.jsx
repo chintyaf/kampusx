@@ -14,8 +14,12 @@ const ApplyOrganizerPage = () => {
 	const [submitting, setSubmitting] = useState(false);
 
 	useEffect(() => {
+		if (!user) {
+			navigate('/register');
+			return;
+		}
 		fetchRequestStatus();
-	}, []);
+	}, [user]);
 
 	const fetchRequestStatus = async () => {
 		try {

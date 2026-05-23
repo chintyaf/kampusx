@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { STORAGE_URL } from "../../api/storage";
+import EventCard from "../../components/event/EventCard";
 import {
   Carousel, Container, Row, Col, Card, Button,
   InputGroup, Form, Spinner,
@@ -10,7 +11,7 @@ import {
   ShieldCheck, Wallet, FileText, Users, Search, CreditCard,
   Ticket, Calendar, MapPin, User, Wifi, Briefcase, BookOpen,
   Cpu, Scale, Stethoscope, Calculator, FlaskConical, Globe,
-  Palette, Music, Cat, ChevronRight, ArrowRight,
+  Palette, Music, Cat, ChevronRight, ArrowRight, Award, QrCode,
 } from "lucide-react";
 
 // ── Kategori ──────────────────────────────────────────────────────────────────
@@ -49,68 +50,7 @@ const PARTNERS = [
   { id: 4, name: "Kampus D", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+D" },
 ];
 
-// ── EventCard ─────────────────────────────────────────────────────────────────
-const EventCard = ({ ev, onClick }) => (
-  <Card
-    onClick={onClick}
-    className="h-100 shadow-sm"
-    style={{ borderRadius: 12, border: "1px solid var(--color-border)", cursor: "pointer", transition: "transform .15s, box-shadow .15s", overflow: "hidden" }}
-    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,105,158,0.12)"; }}
-    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)";    e.currentTarget.style.boxShadow = ""; }}
-  >
-    {/* Badges baris atas */}
-    <div style={{ padding: "12px 12px 0", display: "flex", justifyContent: "space-between", alignItems: "center", minHeight: 36 }}>
-      <div style={{ display: "flex", gap: 6 }}>
-        {ev.isInPerson && (
-          <span style={{ fontSize: 11, color: "var(--color-primary)", border: "1px solid var(--color-primary)", borderRadius: 99, padding: "2px 8px", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-            <Users size={11} /> In-Person
-          </span>
-        )}
-        {ev.isOnline && (
-          <span style={{ fontSize: 11, color: "var(--color-primary)", border: "1px solid var(--color-primary)", borderRadius: 99, padding: "2px 8px", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-            <Wifi size={11} /> Online
-          </span>
-        )}
-      </div>
-      {ev.isFeatured && (
-        <span style={{ fontSize: 11, background: "var(--bahama-blue-500)", color: "#fff", borderRadius: 99, padding: "2px 10px", fontWeight: 700 }}>
-          Featured
-        </span>
-      )}
-    </div>
-
-    {/* Gambar */}
-    <img src={ev.image} alt={ev.title}
-      style={{ width: "100%", height: 170, objectFit: "cover", marginTop: 10 }} />
-
-    <Card.Body style={{ padding: "12px 14px 14px", display: "flex", flexDirection: "column" }}>
-      {/* Tanggal & harga */}
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--font-sm)", color: "var(--color-primary)", fontWeight: 600, marginBottom: 8 }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Calendar size={14} />{ev.date}</span>
-        <span style={{ display: "flex", alignItems: "center", gap: 5 }}><Ticket size={14} />{ev.price}</span>
-      </div>
-
-      {/* Judul */}
-      <Card.Title style={{ fontSize: "var(--font-md)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.4, marginBottom: "auto" }}>
-        {ev.title}
-      </Card.Title>
-
-      <hr style={{ margin: "10px 0", borderColor: "var(--color-border)", opacity: 1 }} />
-
-      {/* Lokasi & organizer */}
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--font-sm)", color: "var(--color-primary)", fontWeight: 500 }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden", maxWidth: "60%" }}>
-          <MapPin size={14} style={{ flexShrink: 0 }} />
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.location}</span>
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden", maxWidth: "40%" }}>
-          <User size={14} style={{ flexShrink: 0 }} />
-          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.org}</span>
-        </span>
-      </div>
-    </Card.Body>
-  </Card>
-);
+// EventCard is imported globally from '../../components/event/EventCard'
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 const LandingPage = () => {
@@ -363,6 +303,99 @@ const LandingPage = () => {
               </Col>
             ))}
           </Row>
+        </Container>
+      </section>
+
+      {/* ── 6.5. JOIN ORGANIZER CTA ────────────────────────────────────────── */}
+      <section style={{ background: "var(--color-bg)", padding: "64px 0", borderTop: "1px solid var(--color-border)" }}>
+        <Container>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #003652 0%, #00699e 100%)",
+              borderRadius: "24px",
+              padding: "48px 40px",
+              color: "#ffffff",
+              boxShadow: "0 12px 32px rgba(0, 105, 158, 0.2)",
+              position: "relative",
+              overflow: "hidden"
+            }}
+          >
+            {/* Hiasan Dekoratif */}
+            <div
+              style={{
+                position: "absolute",
+                top: "-10%",
+                right: "-5%",
+                width: "300px",
+                height: "300px",
+                borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.05)",
+                pointerEvents: "none"
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-20%",
+                left: "-5%",
+                width: "200px",
+                height: "200px",
+                borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.03)",
+                pointerEvents: "none"
+              }}
+            />
+
+            <Row className="align-items-center g-4 position-relative">
+              <Col lg={7}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.15)", borderRadius: "99px", padding: "6px 16px", marginBottom: "20px", fontSize: "var(--font-xs)", fontWeight: 600 }}>
+                  <Award size={14} /> Kemitraan KampusX
+                </div>
+                <h2 style={{ fontSize: "clamp(24px, 4.5vw, 36px)", fontWeight: 800, lineHeight: 1.25, marginBottom: "16px" }}>
+                  Ingin Mengadakan Acaramu Sendiri secara Profesional?
+                </h2>
+                <p style={{ color: "rgba(255, 255, 255, 0.85)", fontSize: "var(--font-md)", lineHeight: 1.7, marginBottom: "32px", maxWidth: "600px" }}>
+                  Gabung sebagai Penyelenggara Acara (Organizer) di KampusX. Dapatkan akses ke dashboard kelola event terlengkap, mulai dari ticketing mandiri, check-in QR Code, hingga penerbitan e-sertifikat resmi otomatis!
+                </p>
+
+                {/* Grid Fitur Kecil */}
+                <Row className="g-3">
+                  {[
+                    { title: "Manajemen Cerdas", desc: "Kelola detail event, pembicara & sesi secara rapi.", icon: Calendar },
+                    { title: "Scanner Tiket QR", desc: "Check-in kehadiran instan di lokasi acara.", icon: QrCode },
+                    { title: "E-Sertifikat Otomatis", desc: "Kirim sertifikat massal langsung ke email peserta.", icon: FileText }
+                  ].map((feat, i) => (
+                    <Col sm={4} key={i}>
+                      <div className="d-flex flex-column gap-2">
+                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyItems: "center", justifyContent: "center" }}>
+                          <feat.icon size={18} />
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: "14px" }}>{feat.title}</div>
+                        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "12px", lineHeight: 1.4 }}>{feat.desc}</div>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </Col>
+
+              <Col lg={5} className="text-lg-end d-flex flex-column align-items-lg-end justify-content-center">
+                <div style={{ maxWidth: "340px", width: "100%", background: "rgba(255,255,255,0.1)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "18px", padding: "28px", textAlign: "center" }}>
+                  <h4 style={{ fontWeight: 700, fontSize: "18px", marginBottom: "8px" }}>Gabung Gratis Sekarang!</h4>
+                  <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", marginBottom: "20px" }}>Proses peninjauan cepat dalam 1-2 hari kerja oleh tim KampusX.</p>
+                  
+                  <Link
+                    to="/apply-organizer"
+                    className="btn btn-light w-100 py-2.5 fw-bold text-decoration-none d-flex align-items-center justify-content-center gap-2"
+                    style={{ color: "#00527c", borderRadius: "10px", transition: "transform 0.2s, box-shadow 0.2s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(255,255,255,0.25)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = ""; }}
+                  >
+                    Daftar Sebagai Organizer <ArrowRight size={16} />
+                  </Link>
+                </div>
+              </Col>
+            </Row>
+          </div>
         </Container>
       </section>
 

@@ -78,6 +78,16 @@ class AdminUserController extends Controller
             'is_verified' => 'required|boolean',
         ]);
 
+        // Prevent logged-in admin from demoting or disabling themselves
+        if (auth()->id() === $user->id) {
+            if ($request->role !== 'admin' || $request->status !== 'active') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak diperbolehkan mengubah peran atau menonaktifkan akun Admin Anda sendiri yang sedang digunakan.'
+                ], 400);
+            }
+        }
+
         try {
             $data = [
                 'name' => $request->name,

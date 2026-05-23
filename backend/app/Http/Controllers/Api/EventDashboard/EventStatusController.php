@@ -85,8 +85,8 @@ class EventStatusController extends Controller
         $errors = $event->getPublishErrors();
         if (count($errors) > 0) {
             return response()->json([
-                'status' => `false`,
-            'message' => 'Tidak dapat mem-publish event karena data belum lengkap.',
+                'status'  => 'error',
+                'message' => 'Tidak dapat mem-publish event karena data belum lengkap.',
                 'errors'  => $errors
             ], 422);
         }

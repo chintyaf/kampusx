@@ -54,12 +54,18 @@ class SessionMaterialController extends Controller
                     'id' => $session->id,
                     'title' => $session->title,
                     'description' => $session->description,
-                    'date' => $session->date ? $session->date->format('d M Y') : 'Belum dijadwalkan',
+                    'date' => $session->date 
+                        ? ($session->date instanceof \Carbon\Carbon || $session->date instanceof \DateTime 
+                            ? $session->date->format('d M Y') 
+                            : \Carbon\Carbon::parse($session->date)->format('d M Y')) 
+                        : 'Belum dijadwalkan',
                     'start_time' => $session->start_time,
                     'end_time' => $session->end_time,
                     'speakers' => $session->speakers->pluck('name')->implode(', '),
                     'videoUrl' => $session->materials->where('type', 'url')->first()?->path_or_url ?? '',
+                    'videoMaterialId' => $session->materials->where('type', 'url')->first()?->id ?? null,
                     'videoFileName' => $session->materials->where('type', 'video_file')->first()?->name ?? null,
+                    'videoFileMaterialId' => $session->materials->where('type', 'video_file')->first()?->id ?? null,
                     'materials' => $materials->whereIn('type', ['document'])->values(),
                     'published' => $session->is_published,
                 ];

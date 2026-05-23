@@ -31,15 +31,37 @@ const AddMaterialForm = ({ onSave }) => {
 
 	if (!isAddingMaterial) {
 		return (
-			<Button className="btn btn-add py-3" onClick={() => setIsAddingMaterial(true)}>
-				<Plus size={20}/>
-				<span className="fs-4">Tambah Materi</span>
-			</Button>
+			<div className="d-flex justify-content-start mt-2">
+				<Button
+					variant="link"
+					className="p-0 text-muted d-flex align-items-center gap-1 text-decoration-none fw-medium"
+					style={{
+						fontSize: '14px',
+						transition: 'color 0.2s',
+					}}
+					onClick={() => setIsAddingMaterial(true)}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.color = '#00699e';
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.color = '';
+					}}
+				>
+					<Plus size={16} />
+					<span>Tambah Materi Baru</span>
+				</Button>
+			</div>
 		);
 	}
 
 	return (
-		<div className="border border-secondary-subtle rounded p-4 bg-light bg-opacity-25 d-flex flex-column gap-4">
+		<div
+			className="rounded p-4 d-flex flex-column gap-4"
+			style={{
+				backgroundColor: '#f8fafc',
+				border: '1px solid #e2e8f0',
+			}}
+		>
 			{/* Langkah 1: Pilih Jenis */}
 			<div>
 				<label className="small fw-medium mb-2 text-dark">Pilih Jenis Materi</label>
@@ -74,7 +96,7 @@ const AddMaterialForm = ({ onSave }) => {
 			</div>
 
 			{/* Langkah 2: Input Area */}
-			<div className="bg-white p-3 rounded border border-secondary-subtle">
+			<div className="bg-white p-3 rounded" style={{ border: '1px solid #e2e8f0' }}>
 				{materialFormType === 'url' && (
 					<div>
 						<label className="small text-muted mb-2">Masukkan URL Video</label>

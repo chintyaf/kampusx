@@ -106,7 +106,7 @@ const StatusConfirmationModal = ({ show, onHide, pendingStatus, onConfirm }) => 
 				{/* PublishForm mengisi body + footer sekaligus */}
 				<Modal.Body
 					className="p-4"
-					// style={{ backgroundColor: "#f8fafc" }}
+				// style={{ backgroundColor: "#f8fafc" }}
 				>
 					<PublishForm show={show} onCancel={onHide} onConfirm={onConfirm} />
 				</Modal.Body>
