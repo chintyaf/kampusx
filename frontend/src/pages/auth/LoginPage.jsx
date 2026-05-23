@@ -40,8 +40,12 @@ const SignIn = () => {
 			// console.log('User Info:', response.data.data);
 			navigate(from, { replace: true });
 		} catch (error) {
-			if (error.response && error.response.data.errors) {
-				setErrorMsg(error.response.data.errors.email[0]);
+			if (error.response && error.response.status === 422) {
+				// Laravel validation errors are under error.response.data.errors
+				const errors = error.response.data.errors;
+				// Get the first error message from any field
+				const firstError = Object.values(errors).flat()[0] || 'Invalid credentials.';
+				setErrorMsg(firstError);
 			} else if (error.response && error.response.data.message) {
 				setErrorMsg(error.response.data.message);
 			} else {

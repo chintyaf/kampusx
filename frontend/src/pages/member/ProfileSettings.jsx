@@ -5,7 +5,9 @@ import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
 const ProfileSettings = () => {
-    const { user: authUser, setUser: setAuthUser } = useAuth();
+    // const [authUser, setAuthUser] = useAuth();
+    const { user: authUser, updateUser } = useAuth();
+    // const { user: authUser, setUser: setAuthUser } = useAuth();
     const [activeTab, setActiveTab] = useState('personal');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -141,13 +143,20 @@ const ProfileSettings = () => {
             setMessage({ type: 'success', text: response.data.message });
             
             // Update global auth state if name/avatar changed
-            setAuthUser({
+            // setAuthUser({
+            //     ...authUser,
+            //     name: response.data.data.name,
+            //     avatar_path: response.data.data.avatar_path
+            // });
+
+            updateUser({
                 ...authUser,
                 name: response.data.data.name,
                 avatar_path: response.data.data.avatar_path
             });
             
         } catch (err) {
+            console.error(err);
             setMessage({ type: 'danger', text: err.response?.data?.message || 'Gagal memperbarui profil.' });
         } finally {
             setSaving(false);
