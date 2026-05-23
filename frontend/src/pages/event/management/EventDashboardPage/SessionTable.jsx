@@ -77,43 +77,51 @@ export default function SessionTable({ sessions = defaultSessions }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((s, i) => {
-              const dc = dayColors[s.day] || dayColors[1];
-              const sc = statusConfig[s.materialStatus] || statusConfig.not_required;
-              return (
-                <tr
-                  key={i}
-                  style={{ transition: 'background 0.1s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                >
-                  <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', fontWeight: 500, color: 'var(--text)' }}>
-                    {s.title}
-                  </td>
-                  <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)' }}>
-                    <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600, background: dc.bg, color: dc.color }}>
-                      Day {s.day}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: 12 }}>
-                    {s.time}
-                  </td>
-                  <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', color: 'var(--text)' }}>
-                    {s.speaker
-                      ? s.speaker
-                      : <span className="tag tag-danger">TBA</span>}
-                  </td>
-                  <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)' }}>
-                    <span className={`tag ${sc.cls}`}>{sc.label}</span>
-                  </td>
-                  <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)' }}>
-                    {s.prerequisite
-                      ? <span className="tag tag-primary">{s.prerequisite}</span>
-                      : <span style={{ color: 'var(--text-muted)' }}>-</span>}
-                  </td>
-                </tr>
-              );
-            })}
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, fontWeight: 500 }}>
+                  Tidak ada data
+                </td>
+              </tr>
+            ) : (
+              filtered.map((s, i) => {
+                const dc = dayColors[s.day] || dayColors[1];
+                const sc = statusConfig[s.materialStatus] || statusConfig.not_required;
+                return (
+                  <tr
+                    key={i}
+                    style={{ transition: 'background 0.1s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', fontWeight: 500, color: 'var(--text)' }}>
+                      {s.title}
+                    </td>
+                    <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)' }}>
+                      <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 600, background: dc.bg, color: dc.color }}>
+                        Day {s.day}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', color: 'var(--text-muted)', fontFamily: 'monospace', fontSize: 12 }}>
+                      {s.time}
+                    </td>
+                    <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)', color: 'var(--text)' }}>
+                      {s.speaker
+                        ? s.speaker
+                        : <span className="tag tag-danger">TBA</span>}
+                    </td>
+                    <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)' }}>
+                      <span className={`tag ${sc.cls}`}>{sc.label}</span>
+                    </td>
+                    <td style={{ padding: '10px 16px', borderBottom: '0.5px solid var(--border)' }}>
+                      {s.prerequisite
+                        ? <span className="tag tag-primary">{s.prerequisite}</span>
+                        : <span style={{ color: 'var(--text-muted)' }}>-</span>}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
