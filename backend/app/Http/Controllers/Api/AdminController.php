@@ -80,4 +80,17 @@ class AdminController extends Controller
             'is_featured' => $event->is_featured
         ], 200);
     }
+
+    /**
+     * 5. View All Organizer Requests (Admin Verification)
+     */
+    public function getOrganizerRequests()
+    {
+        $requests = OrganizerRequest::with('user')->orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'success' => true,
+            'data' => $requests
+        ], 200);
+    }
 }
+

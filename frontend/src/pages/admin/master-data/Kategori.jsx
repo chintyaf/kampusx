@@ -6,6 +6,8 @@ import Table from '@/components/table/Table';
 import StatCard from '@/features/users/components/StatCard';
 import Pagination from '@/features/users/components/Pagination';
 import api from '@/api/axios';
+import ModalBox from '@/components/dashboard/ModalBox';
+import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
 const CategoryRow = ({ category, onEdit, onDelete }) => {
 	return (
@@ -78,6 +80,14 @@ const Kategori = () => {
 	const [perPage, setPerPage] = useState(10);
 	const [currentPage, setPage] = useState(1);
 
+	// Modal States
+	const [showFormModal, setShowFormModal] = useState(false);
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [currentCategory, setCurrentCategory] = useState(null);
+	const [actionType, setActionType] = useState('add'); // 'add' | 'edit'
+	const [categoryName, setCategoryName] = useState('');
+	const [submitting, setSubmitting] = useState(false);
+
 	useEffect(() => {
 		fetchCategories();
 	}, []);
@@ -130,6 +140,63 @@ const Kategori = () => {
 	const handlePer = (v) => {
 		setPerPage(Number(v));
 		setPage(1);
+	};
+
+	// Modal handlers
+	const handleAddClick = () => {
+		setActionType('add');
+		setCategoryName('');
+		setShowFormModal(true);
+	};
+
+	const handleEditClick = (c) => {
+		setActionType('edit');
+		setCurrentCategory(c);
+		setCategoryName(c.name || '');
+		setShowFormModal(true);
+	};
+
+	const handleDeleteClick = (c) => {
+		setCurrentCategory(c);
+		setShowConfirmModal(true);
+	};
+
+	const handleFormSubmit = async (e) => {
+		e.preventDefault();
+		try {
+			setSubmitting(true);
+			const payload = {
+				name: categoryName,
+			};
+
+			if (actionType === 'add') {
+				await api.post('/admin/categories', payload);
+			} else {
+				await api.put(`/admin/categories/${currentCategory.id}`, payload);
+			}
+
+			setShowFormModal(false);
+			fetchCategories();
+		} catch (error) {
+			console.error('Gagal menyimpan kategori:', error);
+			alert(error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.');
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	const handleConfirmDelete = async () => {
+		try {
+			setSubmitting(true);
+			await api.delete(`/admin/categories/${currentCategory.id}`);
+			setShowConfirmModal(false);
+			fetchCategories();
+		} catch (error) {
+			console.error('Gagal menghapus kategori:', error);
+			alert(error.response?.data?.message || 'Terjadi kesalahan saat menghapus kategori.');
+		} finally {
+			setSubmitting(false);
+		}
 	};
 
 	const stats = [
@@ -213,7 +280,7 @@ const Kategori = () => {
 					<button className="btn btn-outline" disabled={loading}>
 						<Download size={14} /> Export
 					</button>
-					<button className="btn btn-primary" disabled={loading}>
+					<button className="btn btn-primary" onClick={handleAddClick} disabled={loading}>
 						<Plus size={14} /> Tambah Kategori
 					</button>
 				</div>
@@ -226,8 +293,8 @@ const Kategori = () => {
 						<CategoryRow
 							key={c.id}
 							category={c}
-							onEdit={(c) => alert(`Edit kategori: ${c.name}`)}
-							onDelete={(c) => alert(`Hapus kategori: ${c.name}`)}
+							onEdit={handleEditClick}
+							onDelete={handleDeleteClick}
 						/>
 					)}
 				/>
@@ -240,6 +307,65 @@ const Kategori = () => {
 					onPageChange={setPage}
 				/>
 			</div>
+
+			{/* Modal Form (Tambah / Edit Kategori) */}
+			<ModalBox
+				show={showFormModal}
+				onHide={() => setShowFormModal(false)}
+				title={actionType === 'add' ? 'Tambah Kategori' : 'Edit Kategori'}
+				subtitle={actionType === 'add' ? 'Buat kategori baru untuk dikelompokkan pada acara' : 'Perbarui nama kategori yang dipilih'}
+			>
+				<form onSubmit={handleFormSubmit}>
+					<div className="mb-4">
+						<label className="form-label fw-semibold text-dark small">Nama Kategori</label>
+						<input
+							type="text"
+							className="form-control"
+							style={{ borderRadius: 8, fontSize: 13 }}
+							required
+							value={categoryName}
+							onChange={(e) => setCategoryName(e.target.value)}
+							placeholder="Masukkan nama kategori (contoh: Seminar, Teknologi)"
+						/>
+					</div>
+					<div className="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+						<button
+							type="button"
+							className="btn btn-light border px-4"
+							style={{ borderRadius: 9, fontSize: 13 }}
+							onClick={() => setShowFormModal(false)}
+							disabled={submitting}
+						>
+							Batal
+						</button>
+						<button
+							type="submit"
+							className="btn btn-primary px-4 fw-semibold"
+							style={{ borderRadius: 9, fontSize: 13 }}
+							disabled={submitting}
+						>
+							{submitting ? 'Menyimpan...' : 'Simpan Kategori'}
+						</button>
+					</div>
+				</form>
+			</ModalBox>
+
+			{/* Modal Konfirmasi Hapus */}
+			<ConfirmationModal
+				show={showConfirmModal}
+				onHide={() => setShowConfirmModal(false)}
+				onConfirm={handleConfirmDelete}
+				loading={submitting}
+				config={{
+					title: 'Hapus Kategori',
+					desc: `Apakah Anda yakin ingin menghapus kategori "${currentCategory?.name}"? Tindakan ini permanen dan tidak dapat dibatalkan.`,
+					icon: Trash2,
+					iconColor: 'var(--danger-text)',
+					iconBg: 'var(--danger-bg)',
+					iconBorder: 'var(--danger-border)',
+					btnVariant: 'danger',
+				}}
+			/>
 		</div>
 	);
 };

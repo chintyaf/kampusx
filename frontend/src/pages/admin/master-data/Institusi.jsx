@@ -6,8 +6,20 @@ import Table from '@/components/table/Table';
 import StatCard from '@/features/users/components/StatCard';
 import Pagination from '@/features/users/components/Pagination';
 import api from '@/api/axios';
+import ModalBox from '@/components/dashboard/ModalBox';
+import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
 const InstitutionRow = ({ institution, onEdit, onDelete }) => {
+	const getTypeLabel = (type) => {
+		switch (type) {
+			case 'university': return 'Universitas';
+			case 'company': return 'Perusahaan';
+			case 'student_org': return 'Organisasi Mahasiswa';
+			case 'community': return 'Komunitas';
+			default: return type;
+		}
+	};
+
 	return (
 		<tr>
 			<td>
@@ -17,7 +29,7 @@ const InstitutionRow = ({ institution, onEdit, onDelete }) => {
 					</div>
 					<div>
 						<div className="user-name">{institution.name}</div>
-						<div className="user-email">{institution.type}</div>
+						<div className="user-email">{getTypeLabel(institution.type)}</div>
 					</div>
 				</div>
 			</td>
@@ -78,6 +90,21 @@ const Institusi = () => {
 	const [perPage, setPerPage] = useState(10);
 	const [currentPage, setPage] = useState(1);
 
+	// Modal States
+	const [showFormModal, setShowFormModal] = useState(false);
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [currentInstitution, setCurrentInstitution] = useState(null);
+	const [actionType, setActionType] = useState('add'); // 'add' | 'edit'
+	const [submitting, setSubmitting] = useState(false);
+
+	// Form States
+	const [formState, setFormState] = useState({
+		name: '',
+		type: 'university',
+		description: '',
+		ownerEmail: '',
+	});
+
 	useEffect(() => {
 		fetchInstitutions();
 	}, []);
@@ -92,6 +119,7 @@ const Institusi = () => {
 				id: item.id,
 				name: item.name,
 				type: item.type,
+				description: item.description,
 				eventsCount: 0,
 				status: 'active',
 				joinedAt: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0]
@@ -129,6 +157,76 @@ const Institusi = () => {
 	const handlePer = (v) => {
 		setPerPage(Number(v));
 		setPage(1);
+	};
+
+	// Modal handlers
+	const handleAddClick = () => {
+		setActionType('add');
+		setFormState({
+			name: '',
+			type: 'university',
+			description: '',
+			ownerEmail: '',
+		});
+		setShowFormModal(true);
+	};
+
+	const handleEditClick = (i) => {
+		setActionType('edit');
+		setCurrentInstitution(i);
+		setFormState({
+			name: i.name || '',
+			type: i.type || 'university',
+			description: i.description || '',
+			ownerEmail: '',
+		});
+		setShowFormModal(true);
+	};
+
+	const handleDeleteClick = (i) => {
+		setCurrentInstitution(i);
+		setShowConfirmModal(true);
+	};
+
+	const handleFormSubmit = async (e) => {
+		e.preventDefault();
+		try {
+			setSubmitting(true);
+			const payload = {
+				name: formState.name,
+				type: formState.type,
+				description: formState.description || null,
+			};
+
+			if (actionType === 'add') {
+				payload.owner_email = formState.ownerEmail;
+				await api.post('/admin/institutions', payload);
+			} else {
+				await api.put(`/admin/institutions/${currentInstitution.id}`, payload);
+			}
+
+			setShowFormModal(false);
+			fetchInstitutions();
+		} catch (error) {
+			console.error('Gagal menyimpan institusi:', error);
+			alert(error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data.');
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	const handleConfirmDelete = async () => {
+		try {
+			setSubmitting(true);
+			await api.delete(`/admin/institutions/${currentInstitution.id}`);
+			setShowConfirmModal(false);
+			fetchInstitutions();
+		} catch (error) {
+			console.error('Gagal menghapus institusi:', error);
+			alert(error.response?.data?.message || 'Terjadi kesalahan saat menghapus institusi.');
+		} finally {
+			setSubmitting(false);
+		}
 	};
 
 	const stats = [
@@ -212,7 +310,7 @@ const Institusi = () => {
 					<button className="btn btn-outline" disabled={loading}>
 						<Download size={14} /> Export
 					</button>
-					<button className="btn btn-primary" disabled={loading}>
+					<button className="btn btn-primary" onClick={handleAddClick} disabled={loading}>
 						<Plus size={14} /> Tambah Institusi
 					</button>
 				</div>
@@ -225,8 +323,8 @@ const Institusi = () => {
 						<InstitutionRow
 							key={i.id}
 							institution={i}
-							onEdit={(i) => alert(`Edit institusi: ${i.name}`)}
-							onDelete={(i) => alert(`Hapus institusi: ${i.name}`)}
+							onEdit={handleEditClick}
+							onDelete={handleDeleteClick}
 						/>
 					)}
 				/>
@@ -239,6 +337,111 @@ const Institusi = () => {
 					onPageChange={setPage}
 				/>
 			</div>
+
+			{/* Modal Form (Tambah / Edit Institusi) */}
+			<ModalBox
+				show={showFormModal}
+				onHide={() => setShowFormModal(false)}
+				title={actionType === 'add' ? 'Tambah Institusi' : 'Edit Institusi'}
+				subtitle={actionType === 'add' ? 'Hubungkan institusi mitra penyelenggara baru ke sistem' : 'Perbarui profil institusi mitra terpilih'}
+			>
+				<form onSubmit={handleFormSubmit}>
+					<div className="mb-3">
+						<label className="form-label fw-semibold text-dark small">Nama Institusi</label>
+						<input
+							type="text"
+							className="form-control"
+							style={{ borderRadius: 8, fontSize: 13 }}
+							required
+							value={formState.name}
+							onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+							placeholder="Masukkan nama institusi penyelenggara"
+						/>
+					</div>
+					
+					<div className="mb-3">
+						<label className="form-label fw-semibold text-dark small">Tipe Institusi</label>
+						<select
+							className="form-select"
+							style={{ borderRadius: 8, fontSize: 13 }}
+							value={formState.type}
+							onChange={(e) => setFormState({ ...formState, type: e.target.value })}
+						>
+							<option value="university">Universitas / Sekolah</option>
+							<option value="company">Perusahaan / Korporat</option>
+							<option value="student_org">Organisasi Mahasiswa</option>
+							<option value="community">Komunitas Umum</option>
+						</select>
+					</div>
+
+					<div className="mb-3">
+						<label className="form-label fw-semibold text-dark small">Deskripsi Institusi</label>
+						<textarea
+							className="form-control"
+							rows={3}
+							style={{ borderRadius: 8, fontSize: 13 }}
+							value={formState.description}
+							onChange={(e) => setFormState({ ...formState, description: e.target.value })}
+							placeholder="Jelaskan mengenai institusi ini (opsional)"
+						/>
+					</div>
+
+					{actionType === 'add' && (
+						<div className="mb-3">
+							<label className="form-label fw-semibold text-dark small">Email Penanggung Jawab (Owner)</label>
+							<input
+								type="email"
+								className="form-control"
+								style={{ borderRadius: 8, fontSize: 13 }}
+								required
+								value={formState.ownerEmail}
+								onChange={(e) => setFormState({ ...formState, ownerEmail: e.target.value })}
+								placeholder="Email user yang terdaftar untuk dijadikan owner"
+							/>
+							<div className="form-text text-secondary" style={{ fontSize: 11 }}>
+								*User dengan email ini otomatis diangkat menjadi penanggung jawab (owner) institusi dan berpangkat **Organizer**.
+							</div>
+						</div>
+					)}
+
+					<div className="d-flex justify-content-end gap-2 border-top pt-3 mt-4">
+						<button
+							type="button"
+							className="btn btn-light border px-4"
+							style={{ borderRadius: 9, fontSize: 13 }}
+							onClick={() => setShowFormModal(false)}
+							disabled={submitting}
+						>
+							Batal
+						</button>
+						<button
+							type="submit"
+							className="btn btn-primary px-4 fw-semibold"
+							style={{ borderRadius: 9, fontSize: 13 }}
+							disabled={submitting}
+						>
+							{submitting ? 'Menyimpan...' : 'Simpan Institusi'}
+						</button>
+					</div>
+				</form>
+			</ModalBox>
+
+			{/* Modal Konfirmasi Hapus */}
+			<ConfirmationModal
+				show={showConfirmModal}
+				onHide={() => setShowConfirmModal(false)}
+				onConfirm={handleConfirmDelete}
+				loading={submitting}
+				config={{
+					title: 'Hapus Institusi',
+					desc: `Apakah Anda yakin ingin menghapus institusi "${currentInstitution?.name}"? Hubungan data acara yang terikat dapat terpengaruh.`,
+					icon: Trash2,
+					iconColor: 'var(--danger-text)',
+					iconBg: 'var(--danger-bg)',
+					iconBorder: 'var(--danger-border)',
+					btnVariant: 'danger',
+				}}
+			/>
 		</div>
 	);
 };

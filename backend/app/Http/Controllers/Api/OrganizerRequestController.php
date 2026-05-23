@@ -32,4 +32,20 @@ class OrganizerRequestController extends Controller
             'data' => $req
         ], 201);
     }
+
+    /**
+     * Get the latest organizer request status for the logged-in user.
+     */
+    public function checkStatus(Request $request)
+    {
+        $existing = OrganizerRequest::where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => $existing
+        ], 200);
+    }
 }
+

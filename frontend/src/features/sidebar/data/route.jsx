@@ -17,6 +17,7 @@ import {
 	ClipboardList,
 	MapPin,
 	CalendarDays,
+	Building2,
 } from 'lucide-react';
 
 // ... (kode lainnya)
@@ -29,6 +30,26 @@ export const MENU_ITEMS = {
 			icon: <LayoutDashboard size={16} className="me-2" />,
 			path: 'admin/dashboard',
 		},
+
+		{
+			id: '3',
+			name: 'Kelola Pengguna',
+			icon: <UsersRound size={16} className="me-2" />,
+			path: 'admin/kelola-pengguna',
+		},
+		{
+			id: '4',
+			name: 'Pantau Acara',
+			icon: <CalendarDays size={16} className="me-2" />,
+			path: 'admin/pantau-acara',
+		},
+		{
+			id: 'institusi',
+			name: 'Institusi',
+			icon: <Building2 size={16} className="me-2" />,
+			path: 'admin/master-data/institusi',
+		},
+
 		{
 			id: '2',
 			name: 'Verifikasi Organizer',
@@ -36,28 +57,16 @@ export const MENU_ITEMS = {
 			path: 'admin/verifikasi-organizer',
 		},
 		{
-			id: '3',
-			name: 'Kelola Pengguna',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/kelola-pengguna',
-		},
-		{
-			id: '4',
-			name: 'Pantau Acara',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/pantau-acara',
-		},
-		{
 			id: '5',
 			name: 'Kontrol Promosi',
-			icon: <UserCheck size={16} className="me-2" />,
+			icon: <Megaphone size={16} className="me-2" />,
 			path: 'admin/kontrol-promosi',
 		},
 
 		{
 			id: 'master-data',
 			name: 'Master Data',
-			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
+			icon: <FolderOpen size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
 			path: 'admin/master-data',
 			submenu: [
 				{

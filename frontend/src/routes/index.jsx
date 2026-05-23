@@ -24,6 +24,8 @@ import NotFound from '../pages/NotFoundPage';
 // Session Changelog Pages
 import AdminMasterDataPage from '../pages/admin/AdminMasterDataPage';
 import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
+import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage';
+
 
 // NEW: CERTIFICATES & AFTER EVENT MOCKUP
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
@@ -123,9 +125,11 @@ const AppRoutes = () => {
 				</Route>
 				<Route element={<MemberLayout />}>
 					<Route path="/my-tickets" element={<MyTickets />} />
+					<Route path="/apply-organizer" element={<ApplyOrganizerPage />} />
 					{/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
 					{/* Tambahkan halaman member lainnya di sini nanti */}
 				</Route>
+
 
 				{/* Group Dashboard */}
 				<Route element={<DashboardLayout />}>

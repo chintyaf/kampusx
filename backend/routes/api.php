@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AdminInstitutionController;
 use App\Http\Controllers\Api\OrganizerRequestController;
 use App\Http\Controllers\Api\InstitutionMemberController;
+use App\Http\Controllers\Api\AdminUserController;
 
 // Event Dashboard Controllers
 use App\Http\Controllers\Api\EventDashboardController;
@@ -84,7 +85,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
 
     // Mendaftar jadi Organizer
+    Route::get('/organizer-requests/status', [OrganizerRequestController::class, 'checkStatus']);
     Route::post('/organizer-requests/apply', [OrganizerRequestController::class, 'apply']);
+
 
     // ==========================================
     // --- ROLE: ORGANIZER & ADMIN ---
@@ -212,7 +215,9 @@ Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function 
 // ==========================================
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // 1. Organizer Management
+    Route::get('/admin/organizer-requests', [AdminController::class, 'getOrganizerRequests']);
     Route::post('/admin/organizer-requests/{id}/approve', [AdminController::class, 'approveOrganizer']);
+
 
     // 2. User Status Management
     Route::post('/admin/users/{id}/status', [AdminController::class, 'changeUserStatus']);
@@ -239,9 +244,16 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::put('/admin/event-types/{id}', [EventTypeController::class, 'update']);
     Route::delete('/admin/event-types/{id}', [EventTypeController::class, 'destroy']);
 
+    // 8. User Management CRUD
+    Route::get('/admin/users', [AdminUserController::class, 'index']);
+    Route::post('/admin/users', [AdminUserController::class, 'store']);
+    Route::put('/admin/users/{id}', [AdminUserController::class, 'update']);
+    Route::delete('/admin/users/{id}', [AdminUserController::class, 'destroy']);
+
     Route::resource('categories', CategoryController::class);
     Route::resource('event-types', EventTypeController::class);
     Route::resource('institutions', InstitutionController::class);
+
 
 });
 
