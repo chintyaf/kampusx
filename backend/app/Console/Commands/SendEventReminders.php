@@ -18,11 +18,12 @@ class SendEventReminders extends Command
     {
         $now = Carbon::now();
 
-        // Cari Event H-24
+        // Cari Event H-24 (H-1 Hari sebelum acara)
         $h24Events = Event::where('status', 'published')
             ->where('is_h24_sent', false)
             ->whereNotNull('start_date')
-            ->whereBetween('start_date', [$now->copy()->addHours(23)->addMinutes(50), $now->copy()->addHours(24)->addMinutes(10)])
+            ->where('start_date', '<=', $now->copy()->addHours(24))
+            ->where('start_date', '>', $now)
             ->get();
 
         foreach ($h24Events as $event) {
@@ -30,11 +31,12 @@ class SendEventReminders extends Command
             $event->update(['is_h24_sent' => true]);
         }
 
-        // Cari Event H-1
+        // Cari Event H-1 (1 Jam sebelum acara)
         $h1Events = Event::where('status', 'published')
             ->where('is_h1_sent', false)
             ->whereNotNull('start_date')
-            ->whereBetween('start_date', [$now->copy()->addMinutes(50), $now->copy()->addHours(1)->addMinutes(10)])
+            ->where('start_date', '<=', $now->copy()->addHours(1))
+            ->where('start_date', '>', $now)
             ->get();
 
         foreach ($h1Events as $event) {
@@ -42,11 +44,12 @@ class SendEventReminders extends Command
             $event->update(['is_h1_sent' => true]);
         }
 
-        // Cari Event M-15
+        // Cari Event M-15 (15 Menit sebelum acara)
         $m15Events = Event::where('status', 'published')
             ->where('is_m15_sent', false)
             ->whereNotNull('start_date')
-            ->whereBetween('start_date', [$now->copy()->addMinutes(5), $now->copy()->addMinutes(15)])
+            ->where('start_date', '<=', $now->copy()->addMinutes(15))
+            ->where('start_date', '>', $now)
             ->get();
 
         foreach ($m15Events as $event) {

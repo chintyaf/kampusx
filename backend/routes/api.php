@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\AdminInstitutionController;
 use App\Http\Controllers\Api\OrganizerRequestController;
 use App\Http\Controllers\Api\InstitutionMemberController;
 use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\NotificationController;
 
 // Event Dashboard Controllers
 use App\Http\Controllers\Api\EventDashboardController;
@@ -74,6 +75,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // --- NOTIFICATIONS ---
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     // ==========================================
     // --- ROLE: PARTICIPANT / UMUM ---

@@ -28,17 +28,28 @@ class EventReminderNotification extends Notification
     public function toArray($notifiable)
     {
         $timeStr = '';
-        if ($this->type === 'H-24') $timeStr = 'Besok (24 Jam lagi)';
+        if ($this->type === 'H-24') $timeStr = 'Besok (H-1)';
         if ($this->type === 'H-1') $timeStr = '1 Jam lagi';
         if ($this->type === 'M-15') $timeStr = '15 Menit lagi';
 
-        $msg = $this->role === 'organizer' 
-            ? "Siap-siap! Acara '{$this->event->title}' yang Anda kelola akan berlangsung dalam $timeStr."
-            : "Reminder: Acara '{$this->event->title}' akan segera dimulai dalam $timeStr. Bersiaplah!";
+        if ($this->role === 'organizer') {
+            $msg = "Siap-siap! Acara '{$this->event->title}' yang Anda kelola akan berlangsung dalam $timeStr.";
+        } else {
+            if ($this->type === 'H-24') {
+                $msg = "Pengingat H-1: Acara '{$this->event->title}' akan berlangsung besok. Silakan lakukan persiapan yang diperlukan!";
+            } else {
+                $location = $this->event->locationDetail;
+                $linkStr = '';
+                if ($location && $location->meeting_link && in_array($location->type, ['online', 'hybrid'])) {
+                    $linkStr = " melalui tautan: {$location->meeting_link}";
+                }
+                $msg = "Penting! Acara '{$this->event->title}' akan segera dimulai dalam $timeStr. Segera bersiap dan masuk ke virtual event{$linkStr}!";
+            }
+        }
 
         return [
             'event_id' => $this->event->id,
-            'title' => 'Pengingat Acara',
+            'title' => $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Mendesak Acara',
             'message' => $msg,
             'type' => $this->type,
         ];
