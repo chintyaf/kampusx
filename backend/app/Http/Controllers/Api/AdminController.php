@@ -153,12 +153,21 @@ class AdminController extends Controller
      */
     public function approveOrganizer(Request $request, $id)
     {
-        $request->validate(['status' => 'required|in:approved,rejected']);
-        $req = OrganizerRequest::findOrFail($id);
+        $request->validate([
+            'status' => 'required|in:approved,rejected,pending',
+            'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
+            'can_resubmit' => 'nullable|boolean',
+        ]);
         
-        $req->update(['status' => $request->status]);
-
+        $req = OrganizerRequest::findOrFail($id);
         $user = User::findOrFail($req->user_id);
+        
+        $req->update([
+            'status' => $request->status,
+            'rejection_reason' => $request->status === 'rejected' ? $request->input('rejection_reason') : null,
+            'can_resubmit' => $request->status === 'rejected' ? ($request->has('can_resubmit') ? (bool)$request->input('can_resubmit') : true) : true,
+        ]);
+
         if ($request->status === 'approved') {
             $updateData = [
                 'role' => 'organizer'
@@ -189,12 +198,28 @@ class AdminController extends Controller
                 'Selamat! Pengajuan Anda sebagai Organizer telah DI-SETUJUI oleh Admin Pusat. Afiliasi kampus Anda aktif otomatis selama 1 tahun. Silakan login kembali untuk menikmati akses fitur Organizer.',
                 'organizer_approved'
             ));
-        } else {
+        } elseif ($request->status === 'rejected') {
+            // Demote user role back to participant if they were approved before
+            $user->update([
+                'role' => 'participant',
+                'university_id' => null,
+                'affiliation_valid_until' => null,
+            ]);
+
+            $reason = $request->input('rejection_reason') ?? 'Maaf, pengajuan Anda belum memenuhi persyaratan.';
+            $resubmitText = $req->can_resubmit ? ' Silakan klik notifikasi ini untuk melakukan pengajuan ulang.' : ' Penolakan ini bersifat permanen.';
             $user->notify(new \App\Notifications\OperationalNotification(
                 'Persetujuan Organizer',
-                'Maaf, pengajuan Anda sebagai Organizer telah DI-TOLAK oleh Admin Pusat karena dokumen pendukung kurang lengkap atau belum memenuhi persyaratan.',
+                'Maaf, pengajuan Anda sebagai Organizer ditolak/ditangguhkan oleh Admin Pusat. Alasan: ' . $reason . $resubmitText,
                 'organizer_rejected'
             ));
+        } else {
+            // Reset to pending
+            $user->update([
+                'role' => 'participant',
+                'university_id' => null,
+                'affiliation_valid_until' => null,
+            ]);
         }
 
         return response()->json([

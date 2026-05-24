@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Spinner } from 'react-bootstrap';
 import { CheckCircle2, AlertCircle, ShieldAlert, Award, Calendar, Users, QrCode, Clock, FileText, ArrowLeft, Upload } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
 const ApplyOrganizerPage = () => {
 	const { token, user } = useAuth();
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [request, setRequest] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -36,7 +37,23 @@ const ApplyOrganizerPage = () => {
 		try {
 			setLoading(true);
 			const response = await api.get('/organizer-requests/status');
-			setRequest(response.data.data);
+			const reqData = response.data.data;
+			setRequest(reqData);
+
+			// Jika dipicu oleh klik notifikasi penolakan, otomatis buka form dengan prefill
+			if (reqData && reqData.status === 'rejected' && reqData.can_resubmit && location.state?.autoResubmit) {
+				setOrganizationName(reqData.organization_name || '');
+				setSelectedInstitutionId(reqData.institution_id || (reqData.custom_institution_name ? 'custom' : ''));
+				setCustomInstitutionName(reqData.custom_institution_name || '');
+				setNote(reqData.note || '');
+				setProofFileName(reqData.proof_path ? 'Dokumen Bukti Sebelumnya (Tetap digunakan jika tidak diganti)' : '');
+				setProofFile(null);
+				
+				setShowForm(true);
+
+				// Ganti router state agar jika direfresh form tidak terus-terusan mengembang
+				navigate(window.location.pathname, { replace: true });
+			}
 		} catch (error) {
 			console.error('Gagal mengambil status pengajuan:', error);
 		} finally {
@@ -68,7 +85,7 @@ const ApplyOrganizerPage = () => {
 			alert('Nama universitas kustom wajib diisi.');
 			return;
 		}
-		if (!proofFile) {
+		if (!proofFile && !request?.proof_path) {
 			alert('Mohon unggah berkas bukti fisik keanggotaan Anda.');
 			return;
 		}
@@ -82,7 +99,9 @@ const ApplyOrganizerPage = () => {
 			} else {
 				formData.append('custom_institution_name', customInstitutionName);
 			}
-			formData.append('proof', proofFile);
+			if (proofFile) {
+				formData.append('proof', proofFile);
+			}
 			if (note.trim()) {
 				formData.append('note', note);
 			}
@@ -93,6 +112,7 @@ const ApplyOrganizerPage = () => {
 				},
 			});
 
+			setShowForm(false);
 			fetchRequestStatus();
 		} catch (error) {
 			console.error('Gagal mengajukan permohonan:', error);
@@ -118,89 +138,10 @@ const ApplyOrganizerPage = () => {
 	}
 
 	const renderContent = () => {
-		// Jika belum pernah mengajukan, atau status ditolak dan ingin daftar ulang
-		if (!request) {
-			if (!showForm) {
-				return (
-					<div className="text-center py-4">
-						<div className="mb-4">
-							<span
-								className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary"
-								style={{ width: 80, height: 80 }}
-							>
-								<Award size={40} />
-							</span>
-						</div>
-
-						<h2 className="fw-bold mb-3" style={{ fontSize: 24, letterSpacing: '-0.5px' }}>
-							Gabung Sebagai Penyelenggara Acara (Organizer)
-						</h2>
-						<p className="text-secondary mx-auto mb-5" style={{ maxWidth: 520, fontSize: 14 }}>
-							Buka fitur eksklusif untuk menyelenggarakan acara, menerbitkan tiket secara mandiri, melacak kehadiran peserta via QR, dan mendesain sertifikat resmi!
-						</p>
-
-						{/* Benefits Grid */}
-						<div className="row g-4 justify-content-center text-start mb-5" style={{ maxWidth: 700, margin: '0 auto' }}>
-							<div className="col-md-6">
-								<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
-									<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
-										<Calendar size={20} />
-									</div>
-									<div>
-										<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Kelola Acara Sendiri</h6>
-										<p className="text-secondary m-0" style={{ fontSize: 12 }}>Buat event, workshop, seminar online atau offline dengan modul terlengkap.</p>
-									</div>
-								</div>
-							</div>
-							<div className="col-md-6">
-								<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
-									<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
-										<Users size={20} />
-									</div>
-									<div>
-										<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Kelola Anggota Tim</h6>
-										<p className="text-secondary m-0" style={{ fontSize: 12 }}>Bentuk institusi resmi dan undang anggota panitia/komite ke dalam event Anda.</p>
-									</div>
-								</div>
-							</div>
-							<div className="col-md-6">
-								<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
-									<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
-										<QrCode size={20} />
-									</div>
-									<div>
-										<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Validasi Tiket & Scanner</h6>
-										<p className="text-secondary m-0" style={{ fontSize: 12 }}>Scan kode QR tiket peserta di lokasi secara instan menggunakan perangkat apa pun.</p>
-									</div>
-								</div>
-							</div>
-							<div className="col-md-6">
-								<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
-									<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
-										<Award size={20} />
-									</div>
-									<div>
-										<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Sertifikat Digital Resmi</h6>
-										<p className="text-secondary m-0" style={{ fontSize: 12 }}>Mendesain e-sertifikat langsung di dashboard dan membagikannya ke peserta otomatis.</p>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<button
-							className="btn btn-primary px-5 py-2.5 fw-semibold"
-							style={{ borderRadius: 10, fontSize: 14 }}
-							onClick={() => setShowForm(true)}
-						>
-							Ajukan Permohonan Sekarang
-						</button>
-					</div>
-				);
-			}
-
-			// Form Registrasi Pengajuan
+		// 1. Jika showForm aktif, langsung tampilkan form registrasi/koreksi (bisa menyimpan context request)
+		if (showForm) {
 			return (
-				<form onSubmit={handleApply} className="py-2 text-start">
+				<form onSubmit={handleApply} className="py-2 text-start animate__animated animate__fadeIn">
 					<div className="d-flex align-items-center gap-2 mb-4">
 						<button
 							type="button"
@@ -214,6 +155,18 @@ const ApplyOrganizerPage = () => {
 							Formulir Pengajuan Organizer
 						</h3>
 					</div>
+
+					{/* Banner alasan penolakan jika pendaftaran ini adalah resubmission */}
+					{request && request.status === 'rejected' && request.rejection_reason && (
+						<div className="p-3 bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-3 mb-4 animate__animated animate__fadeIn">
+							<h6 className="fw-bold mb-1.5 d-flex align-items-center gap-1.5" style={{ fontSize: 13 }}>
+								<AlertCircle size={15} /> Alasan Penolakan dari Admin:
+							</h6>
+							<p className="m-0" style={{ fontSize: 12.5, lineHeight: 1.5 }}>
+								"{request.rejection_reason}"
+							</p>
+						</div>
+					)}
 
 					<div className="p-3 bg-light rounded-3 mb-4 d-flex gap-3 align-items-start" style={{ borderLeft: '4px solid var(--primary)' }}>
 						<AlertCircle size={20} className="text-primary flex-shrink-0 mt-0.5" />
@@ -392,6 +345,86 @@ const ApplyOrganizerPage = () => {
 			);
 		}
 
+		// 2. Jika belum pernah mengajukan pengajuan sama sekali
+		if (!request) {
+			return (
+				<div className="text-center py-4">
+					<div className="mb-4">
+						<span
+							className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary"
+							style={{ width: 80, height: 80 }}
+						>
+							<Award size={40} />
+						</span>
+					</div>
+
+					<h2 className="fw-bold mb-3" style={{ fontSize: 24, letterSpacing: '-0.5px' }}>
+						Gabung Sebagai Penyelenggara Acara (Organizer)
+					</h2>
+					<p className="text-secondary mx-auto mb-5" style={{ maxWidth: 520, fontSize: 14 }}>
+						Buka fitur eksklusif untuk menyelenggarakan acara, menerbitkan tiket secara mandiri, melacak kehadiran peserta via QR, dan mendesain sertifikat resmi!
+					</p>
+
+					{/* Benefits Grid */}
+					<div className="row g-4 justify-content-center text-start mb-5" style={{ maxWidth: 700, margin: '0 auto' }}>
+						<div className="col-md-6">
+							<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
+								<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
+									<Calendar size={20} />
+								</div>
+								<div>
+									<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Kelola Acara Sendiri</h6>
+									<p className="text-secondary m-0" style={{ fontSize: 12 }}>Buat event, workshop, seminar online atau offline dengan modul terlengkap.</p>
+								</div>
+							</div>
+						</div>
+						<div className="col-md-6">
+							<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
+								<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
+									<Users size={20} />
+								</div>
+								<div>
+									<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Kelola Anggota Tim</h6>
+									<p className="text-secondary m-0" style={{ fontSize: 12 }}>Bentuk institusi resmi dan undang anggota panitia/komite ke dalam event Anda.</p>
+								</div>
+							</div>
+						</div>
+						<div className="col-md-6">
+							<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
+								<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
+									<QrCode size={20} />
+								</div>
+								<div>
+									<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Validasi Tiket & Scanner</h6>
+									<p className="text-secondary m-0" style={{ fontSize: 12 }}>Scan kode QR tiket peserta di lokasi secara instan menggunakan perangkat apa pun.</p>
+								</div>
+							</div>
+						</div>
+						<div className="col-md-6">
+							<div className="d-flex gap-3 align-items-start p-3 bg-light rounded-3" style={{ height: '100%' }}>
+								<div className="p-2 bg-white rounded-2 text-primary shadow-sm">
+									<Award size={20} />
+								</div>
+								<div>
+									<h6 className="fw-bold mb-1" style={{ fontSize: 14 }}>Sertifikat Digital Resmi</h6>
+									<p className="text-secondary m-0" style={{ fontSize: 12 }}>Mendesain e-sertifikat langsung di dashboard dan membagikannya ke peserta otomatis.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<button
+						className="btn btn-primary px-5 py-2.5 fw-semibold"
+						style={{ borderRadius: 10, fontSize: 14 }}
+						onClick={() => setShowForm(true)}
+					>
+						Ajukan Permohonan Sekarang
+					</button>
+				</div>
+			);
+		}
+
+		// 3. Jika status permohonan adalah PENDING
 		if (request.status === 'pending') {
 			return (
 				<div className="text-center py-5">
@@ -433,6 +466,7 @@ const ApplyOrganizerPage = () => {
 			);
 		}
 
+		// 4. Jika status permohonan disetujui (APPROVED)
 		if (request.status === 'approved') {
 			return (
 				<div className="text-center py-5">
@@ -474,6 +508,7 @@ const ApplyOrganizerPage = () => {
 			);
 		}
 
+		// 5. Jika status permohonan ditolak (REJECTED)
 		if (request.status === 'rejected') {
 			return (
 				<div className="text-center py-5">
@@ -489,9 +524,28 @@ const ApplyOrganizerPage = () => {
 					<h3 className="fw-bold mb-3" style={{ fontSize: 22, letterSpacing: '-0.5px' }}>
 						Permohonan Belum Disetujui
 					</h3>
-					<p className="text-secondary mx-auto mb-4" style={{ maxWidth: 480, fontSize: 14 }}>
-						Mohon maaf, permohonan Anda untuk mendaftar sebagai Organizer saat ini belum memenuhi kriteria tim penilai kami. Hubungi support@kampusx.com untuk informasi selengkapnya.
-					</p>
+					
+					{request.rejection_reason && (
+						<div className="p-3 bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-3 mx-auto mb-4 text-start animate__animated animate__fadeIn" style={{ maxWidth: 500 }}>
+							<h6 className="fw-bold mb-1.5 d-flex align-items-center gap-1.5" style={{ fontSize: 13 }}>
+								<AlertCircle size={15} /> Alasan Penolakan dari Admin:
+							</h6>
+							<p className="m-0" style={{ fontSize: 12.5, lineHeight: 1.5 }}>
+								"{request.rejection_reason}"
+							</p>
+						</div>
+					)}
+
+					{!request.can_resubmit && (
+						<div className="p-3 bg-light rounded-3 mx-auto mb-4 text-start border" style={{ maxWidth: 500 }}>
+							<div className="d-flex align-items-center gap-2 text-danger fw-bold mb-1" style={{ fontSize: 13 }}>
+								<ShieldAlert size={16} /> Penolakan Permanen
+							</div>
+							<p className="text-secondary m-0" style={{ fontSize: 12, lineHeight: 1.5 }}>
+								Permohonan Anda ditolak secara permanen oleh Admin Pusat. Silakan hubungi dukungan pelanggan KampusX di <strong>support@kampusx.com</strong> jika Anda merasa ini adalah kekeliruan.
+							</p>
+						</div>
+					)}
 
 					<div className="d-flex justify-content-center gap-3">
 						<button
@@ -501,23 +555,25 @@ const ApplyOrganizerPage = () => {
 						>
 							Kembali
 						</button>
-						<button
-							className="btn btn-primary px-4 py-2 fw-semibold"
-							style={{ borderRadius: 8, fontSize: 13 }}
-							onClick={() => {
-								// Reset form inputs & status pengajuan
-								setOrganizationName('');
-								setSelectedInstitutionId('');
-								setCustomInstitutionName('');
-								setProofFile(null);
-								setProofFileName('');
-								setNote('');
-								setRequest(null);
-								setShowForm(true);
-							}} // Reset ke form pengajuan ulang
-						>
-							Ajukan Ulang
-						</button>
+						{request.can_resubmit && (
+							<button
+								className="btn btn-primary px-4 py-2 fw-semibold"
+								style={{ borderRadius: 8, fontSize: 13 }}
+								onClick={() => {
+									// Pre-populate form inputs & status pengajuan agar gampang diedit
+									setOrganizationName(request.organization_name || '');
+									setSelectedInstitutionId(request.institution_id || (request.custom_institution_name ? 'custom' : ''));
+									setCustomInstitutionName(request.custom_institution_name || '');
+									setNote(request.note || '');
+									setProofFileName(request.proof_path ? 'Dokumen Bukti Sebelumnya (Tetap digunakan jika tidak diganti)' : '');
+									setProofFile(null); 
+									
+									setShowForm(true);
+								}} // Reset ke form pengajuan ulang dengan prefill
+							>
+								Ajukan Ulang
+							</button>
+						)}
 					</div>
 				</div>
 			);

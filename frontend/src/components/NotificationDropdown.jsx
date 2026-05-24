@@ -52,6 +52,8 @@ const NotificationDropdown = () => {
             // Arahkan user ke halaman detail yang sesuai
             if (type === 'organizer_approved') {
                 navigate('/organizer/dashboard');
+            } else if (type === 'organizer_rejected') {
+                navigate('/apply-organizer', { state: { autoResubmit: true } });
             } else if (eventId) {
                 const isOrganizerPath = window.location.pathname.startsWith('/organizer');
                 if (isOrganizerPath) {

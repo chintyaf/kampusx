@@ -13,6 +13,8 @@ class OrganizerRequest extends Model
         'organization_name',
         'proof_path',
         'note',
+        'rejection_reason',
+        'can_resubmit',
         'status',
     ];
 
