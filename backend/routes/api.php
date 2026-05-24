@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\OrganizerRequestController;
 use App\Http\Controllers\Api\InstitutionMemberController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\SecureMediaController;
 
 // Event Dashboard Controllers
 use App\Http\Controllers\Api\EventDashboardController;
@@ -61,6 +62,10 @@ Route::get('/test', function () {
     return response()->json('hallo', 200);
 });
 
+// Secure Media serving endpoints
+Route::get('/secure-media/{id}', [SecureMediaController::class, 'serve'])->name('secure-media.serve');
+Route::get('/secure-media/{id}/thumbnail', [SecureMediaController::class, 'serveThumbnail'])->name('secure-media.thumbnail');
+
 
 // ==========================================
 // 2. PROTECTED ROUTES (Harus Login Sanctum)
@@ -95,6 +100,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mendaftar jadi Organizer
     Route::get('/organizer-requests/status', [OrganizerRequestController::class, 'checkStatus']);
     Route::post('/organizer-requests/apply', [OrganizerRequestController::class, 'apply']);
+
+    // Secure Media management endpoints
+    Route::post('/secure-media/upload', [SecureMediaController::class, 'upload'])->name('secure-media.upload');
+    Route::delete('/secure-media/{id}', [SecureMediaController::class, 'destroy'])->name('secure-media.destroy');
 
 
     // ==========================================

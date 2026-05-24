@@ -18,7 +18,24 @@ class EventMaterialController extends Controller
         $event = Event::findOrFail($eventId);
         $user = $request->user();
 
-        // 1. Cek apakah user punya tiket acara ini (akses dasar)
+        // Cek hak bypass: hanya pemilik event asli (organizer), admin, atau committee resmi
+        $isOrganizer = $user->role === 'organizer' && $event->organizer_id === $user->id;
+        $isAdmin = $user->role === 'admin';
+        $isCommittee = $user->role === 'committee';
+        $hasBypassAccess = $isOrganizer || $isAdmin || $isCommittee;
+
+        // 1. Cek status publikasi event (hanya untuk yang tidak memiliki bypass)
+        $activeStatuses = ['published', 'ongoing', 'completed', 'archived'];
+        if (!in_array($event->status, $activeStatuses) && !$hasBypassAccess) {
+            return response()->json(['message' => 'Akses ditolak. Event belum dipublikasikan atau sedang dalam draf.'], 403);
+        }
+
+        // 2. Cek waktu pelaksanaan event (materi pasca-event tidak boleh diakses sebelum acara selesai)
+        if ($event->end_date && now()->lt($event->end_date) && !$hasBypassAccess) {
+            return response()->json(['message' => 'Akses ditolak. Materi pasca-event belum tersedia karena acara belum selesai.'], 403);
+        }
+
+        // 3. Cek apakah user punya tiket acara ini (akses dasar)
         $hasTicket = DB::table('tickets')
             ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
@@ -27,15 +44,14 @@ class EventMaterialController extends Controller
             ->where('tickets.status', '!=', 'cancelled')
             ->exists();
 
-        if (!$hasTicket && !in_array($user->role, ['organizer', 'admin', 'committee'])) {
+        if (!$hasTicket && !$hasBypassAccess) {
             return response()->json(['message' => 'Akses ditolak. Anda tidak memiliki tiket aktif untuk acara ini.'], 403);
         }
 
-        // 2. Ambil material acaranya
+        // 4. Ambil material acaranya
         $materials = EventMaterial::where('event_id', $eventId)->get();
 
-        // 3. Filter material yang require_attendance == true
-        // Pastikan user punya log kehadiran di event tersebut
+        // 5. Cek kehadiran peserta untuk materi yang membutuhkan kehadiran
         $hasAttended = false;
         
         if ($hasTicket) {
@@ -47,7 +63,7 @@ class EventMaterialController extends Controller
         }
 
         // Jika dia panitia/organizer bypass filtering
-        if (in_array($user->role, ['organizer', 'admin', 'committee'])) {
+        if ($hasBypassAccess) {
             return response()->json(['data' => $materials], 200);
         }
 
@@ -86,9 +102,14 @@ class EventMaterialController extends Controller
         ]);
 
         $event = Event::findOrFail($eventId);
+        $user = $request->user();
 
-        // Pastikan yg insert adalah owner-nya
-        // (Bisa juga ditangani oleh middleware spesifik role+ownership)
+        // Defense-in-depth: Cek kepemilikan event secara langsung di controller
+        $isOrganizer = $user->role === 'organizer' && $event->organizer_id === $user->id;
+        $isAdmin = $user->role === 'admin';
+        if (!$isOrganizer && !$isAdmin) {
+            return response()->json(['message' => 'Akses ditolak. Anda bukan organizer dari event ini.'], 403);
+        }
 
         $material = EventMaterial::create([
             'event_id' => $event->id,
@@ -111,6 +132,16 @@ class EventMaterialController extends Controller
      */
     public function destroy($eventId, $id)
     {
+        $event = Event::findOrFail($eventId);
+        $user = auth()->user() ?? request()->user();
+
+        // Defense-in-depth: Cek kepemilikan event secara langsung di controller
+        $isOrganizer = $user->role === 'organizer' && $event->organizer_id === $user->id;
+        $isAdmin = $user->role === 'admin';
+        if (!$isOrganizer && !$isAdmin) {
+            return response()->json(['message' => 'Akses ditolak. Anda bukan organizer dari event ini.'], 403);
+        }
+
         $material = EventMaterial::where('event_id', $eventId)->findOrFail($id);
         $material->delete();
 

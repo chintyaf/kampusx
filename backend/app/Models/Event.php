@@ -39,6 +39,45 @@ class Event extends Model
         'is_featured' => 'boolean',
     ];
 
+    protected $appends = [
+        'banner_url',
+    ];
+
+    /**
+     * Get the resolved image path. If secure, returns the full dynamic serving URL.
+     */
+    public function getImagePathAttribute($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        if (str_starts_with($value, 'secure-media/')) {
+            $mediaId = explode('/', $value)[1];
+            return route('secure-media.serve', ['id' => $mediaId]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get the resolved secure or standard banner URL.
+     */
+    public function getBannerUrlAttribute(): ?string
+    {
+        $rawPath = $this->getRawOriginal('image_path');
+        if (!$rawPath) {
+            return null;
+        }
+
+        if (str_starts_with($rawPath, 'secure-media/')) {
+            $mediaId = explode('/', $rawPath)[1];
+            return route('secure-media.serve', ['id' => $mediaId]);
+        }
+
+        return url('storage/' . $rawPath);
+    }
+
     // Penyelenggara individu (User)
     public function organizer(): BelongsTo
     {

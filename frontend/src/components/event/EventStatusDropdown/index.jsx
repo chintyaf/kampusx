@@ -36,18 +36,18 @@ const STATUS_CONFIG = {
 		border: '#7bd6fe',
 		dot: '#0aabed',
 	},
-	archived: {
-		icon: Archive,
-		label: 'Archived',
-		desc: 'Disembunyikan dari publik',
-		color: '#92400e',
-		bg: '#fffbeb',
-		border: '#fde68a',
-		dot: '#d97706',
-	},
+	// archived: {
+	// 	icon: Archive,
+	// 	label: 'Archived',
+	// 	desc: 'Disembunyikan dari publik',
+	// 	color: '#92400e',
+	// 	bg: '#fffbeb',
+	// 	border: '#fde68a',
+	// 	dot: '#d97706',
+	// },
 };
 
-const ALL_STATUSES = ['draft', 'published', 'archived'];
+const ALL_STATUSES = ['draft', 'published' /*, 'archived'*/];
 
 const DUMMY_VALIDATION_ERRORS = [
 	'Deskripsi event belum diisi',

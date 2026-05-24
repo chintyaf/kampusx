@@ -34,7 +34,7 @@ class EventGeneralInfoController extends Controller
             'data' => [
                 'title'         => $event->title,
                 'description'   => $event->description,
-                'banner'        => $event->image_path ? url('storage/' . $event->image_path ) : null,
+                'banner'        => $event->banner_url,
 
                 // Menyesuaikan dengan response yang dibaca di useEffect React
                 'tags_kategori' => $event->categories->map(function($cat) {
@@ -86,23 +86,25 @@ class EventGeneralInfoController extends Controller
 
               // Di dalam method update(Request $request, $eventId)
                 if ($request->hasFile('banner')) {
-                    // 1. Ambil data event untuk cek file lama
-                    // Pastikan menggunakan kolom yang konsisten (image_path)
-                    if ($event->image_path && Storage::disk('public')->exists($event->image_path)) {
-                        Storage::disk('public')->delete($event->image_path);
+                    // 1. Cek dan hapus banner lama (mendukung model lama & secure_media)
+                    $rawPath = $event->getRawOriginal('image_path');
+                    if ($rawPath) {
+                        if (str_starts_with($rawPath, 'secure-media/')) {
+                            $oldMediaId = (int) explode('/', $rawPath)[1];
+                            $oldMedia = \App\Models\SecureMedia::find($oldMediaId);
+                            if ($oldMedia) {
+                                app(\App\Services\SecureMediaService::class)->delete($oldMedia);
+                            }
+                        } elseif (Storage::disk('public')->exists($rawPath)) {
+                            Storage::disk('public')->delete($rawPath);
+                        }
                     }
 
-                    // 2. Simpan file baru dengan path berdasarkan eventId
-                    // Opsi A: Folder berdasarkan eventId, nama file random (Direkomendasikan)
-                    // $path = $request->file('banner')->store("events/{$event->id}/banner", 'public');
+                    // 2. Simpan file baru secara aman di secure local disk (TNB)
+                    $secureMediaService = app(\App\Services\SecureMediaService::class);
+                    $media = $secureMediaService->store($request->file('banner'), 'local');
 
-                    // /* Opsi B: Jika ingin nama filenya juga mengandung ID, misal: banner_123.jpg
-                    $extension = $request->file('banner')->getClientOriginalExtension();
-                    $fileName = "banner_" . time() . "." . $extension;
-                    $path = $request->file('banner')->storeAs("events/{$event->id}", $fileName, 'public');
-
-
-                    $updateData['image_path'] = $path;
+                    $updateData['image_path'] = 'secure-media/' . $media->id;
                 }
 
                 $event->update($updateData);

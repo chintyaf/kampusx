@@ -80,15 +80,12 @@ class EventController extends Controller
 
                 // 3. Handle Upload File (Tanpa cek file lama karena ini data baru)
                 if ($request->hasFile('banner')) {
-                    $extension = $request->file('banner')->getClientOriginalExtension();
-                    // Gunakan nama unik karena ID event belum ada
-                    $fileName = "banner_" . time() . "_" . uniqid() . "." . $extension;
+                    // Simpan gambar secara aman menggunakan secure local disk (TNB)
+                    $secureMediaService = app(\App\Services\SecureMediaService::class);
+                    $media = $secureMediaService->store($request->file('banner'), 'local');
 
-                    // Simpan di folder general events/banners
-                    $path = $request->file('banner')->storeAs("events/banners", $fileName, 'public');
-
-                    // Masukkan ke array data yang akan di-insert
-                    $eventData['image_path'] = $path;
+                    // Masukkan path dinamis route secure ke array data yang akan di-insert
+                    $eventData['image_path'] = 'secure-media/' . $media->id;
                 }
 
                 // 4. Buat Event Utama
