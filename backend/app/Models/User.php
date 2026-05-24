@@ -21,6 +21,9 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'status_reason',
+        'university_id',
+        'affiliation_valid_until',
         'is_verified',
     ];
 

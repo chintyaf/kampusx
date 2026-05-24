@@ -21,8 +21,26 @@ class OrganizerRequestController extends Controller
             ], 400);
         }
 
+        $request->validate([
+            'institution_id' => 'nullable|exists:institutions,id',
+            'custom_institution_name' => 'nullable|string|max:255',
+            'organization_name' => 'required|string|max:255',
+            'proof' => 'required|file|mimes:jpeg,png,jpg,pdf|max:5120', // Maks 5MB
+            'note' => 'nullable|string|max:1000',
+        ]);
+
+        $proofPath = null;
+        if ($request->hasFile('proof')) {
+            $proofPath = $request->file('proof')->store('proofs', 'public');
+        }
+
         $req = OrganizerRequest::create([
             'user_id' => $request->user()->id,
+            'institution_id' => $request->filled('institution_id') ? $request->input('institution_id') : null,
+            'custom_institution_name' => $request->filled('custom_institution_name') ? $request->input('custom_institution_name') : null,
+            'organization_name' => $request->organization_name,
+            'proof_path' => $proofPath,
+            'note' => $request->input('note'),
             'status' => 'pending'
         ]);
 

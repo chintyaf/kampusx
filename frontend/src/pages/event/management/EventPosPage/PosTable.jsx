@@ -112,9 +112,27 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 					data={posList}
 					renderRow={(pos, idx) => (
 						<tr key={pos.id} className="border-bottom">
-							<td className="px-4 py-3 align-middle d-flex flex-column">
-								<span className="fw-semibold text-dark">{pos.name}</span>
-								<span className="text-muted">{pos.description}</span>
+							<td className="px-4 py-3 align-middle">
+								<div className="d-flex align-items-center gap-3">
+									{pos.photo_url ? (
+										<img
+											src={pos.photo_url}
+											alt={pos.name}
+											style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e0e0e0' }}
+										/>
+									) : (
+										<div
+											className="d-flex align-items-center justify-content-center bg-light text-muted fw-bold border rounded"
+											style={{ width: '48px', height: '48px', fontSize: '10px' }}
+										>
+											NO IMG
+										</div>
+									)}
+									<div className="d-flex flex-column">
+										<span className="fw-semibold text-dark">{pos.name}</span>
+										<span className="text-muted" style={{ fontSize: '12px' }}>{pos.description || '—'}</span>
+									</div>
+								</div>
 							</td>
 							<td className="py-3 align-middle">
 								<StatusBadge status={pos.status} />

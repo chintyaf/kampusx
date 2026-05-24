@@ -56,12 +56,26 @@ class EventController extends Controller
                     $pin = strtoupper(\Illuminate\Support\Str::random(6));
                 }
 
+                $user = $request->user();
+                $institutionId = null;
+                if ($user->university_id) {
+                    $isValid = true;
+                    // Cek jika masa berlaku afiliasi telah berakhir (demisioner)
+                    if ($user->affiliation_valid_until && now()->gt($user->affiliation_valid_until)) {
+                        $isValid = false;
+                    }
+                    if ($isValid) {
+                        $institutionId = $user->university_id;
+                    }
+                }
+
                 $eventData = [
-                    'organizer_id'  => $request->user()->id,
-                    'title'         => $validated['title'],
-                    'status'        => 'draft',
-                    'description'   => $validated['description'] ?? null,
-                    'pos_pin'       => $pin,
+                    'organizer_id'   => $user->id,
+                    'institution_id' => $institutionId, // Otomatis disematkan dari universitas organizer
+                    'title'          => $validated['title'],
+                    'status'         => 'draft',
+                    'description'    => $validated['description'] ?? null,
+                    'pos_pin'        => $pin,
                 ];
 
                 // 3. Handle Upload File (Tanpa cek file lama karena ini data baru)

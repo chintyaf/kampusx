@@ -15,7 +15,7 @@ class AdminUserController extends Controller
      */
     public function index()
     {
-        $users = User::orderBy('created_at', 'desc')->get();
+        $users = User::with('university')->orderBy('created_at', 'desc')->get();
         return response()->json([
             'success' => true,
             'data' => $users
@@ -34,6 +34,8 @@ class AdminUserController extends Controller
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin,organizer,committee,participant',
             'status' => 'required|in:active,suspended,banned',
+            'university_id' => 'nullable|exists:institutions,id',
+            'affiliation_valid_until' => 'nullable|date',
             'is_verified' => 'required|boolean',
         ]);
 
@@ -45,6 +47,8 @@ class AdminUserController extends Controller
                 'password' => Hash::make($request->password),
                 'role' => $request->role,
                 'status' => $request->status,
+                'university_id' => $request->filled('university_id') ? $request->input('university_id') : null,
+                'affiliation_valid_until' => $request->filled('affiliation_valid_until') ? $request->input('affiliation_valid_until') : null,
                 'is_verified' => $request->is_verified,
             ]);
 
@@ -75,6 +79,9 @@ class AdminUserController extends Controller
             'password' => 'nullable|string|min:8',
             'role' => 'required|in:admin,organizer,committee,participant',
             'status' => 'required|in:active,suspended,banned',
+            'status_reason' => 'required_if:status,suspended,banned|nullable|string|max:255',
+            'university_id' => 'nullable|exists:institutions,id',
+            'affiliation_valid_until' => 'nullable|date',
             'is_verified' => 'required|boolean',
         ]);
 
@@ -89,12 +96,27 @@ class AdminUserController extends Controller
         }
 
         try {
+            $statusReason = null;
+            if ($request->status !== 'active') {
+                $rawReason = $request->input('status_reason') ?? $request->input('reason');
+                $reasonMap = [
+                    'spam' => 'User melakukan spam',
+                    'ticket_fraud' => 'Penipuan tiket',
+                    'platform_violation' => 'Melanggar aturan platform',
+                    'multi_account' => 'Membuat banyak akun (multi-account fraud)',
+                ];
+                $statusReason = $reasonMap[$rawReason] ?? $rawReason ?? $user->status_reason;
+            }
+
             $data = [
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role' => $request->role,
                 'status' => $request->status,
+                'status_reason' => $statusReason,
+                'university_id' => $request->filled('university_id') ? $request->input('university_id') : null,
+                'affiliation_valid_until' => $request->filled('affiliation_valid_until') ? $request->input('affiliation_valid_until') : null,
                 'is_verified' => $request->is_verified,
             ];
 
@@ -102,10 +124,39 @@ class AdminUserController extends Controller
                 $data['password'] = Hash::make($request->password);
             }
 
+            $oldStatus = $user->status;
             $user->update($data);
 
-            // If the user's status is changed to banned, revoke all active sessions/tokens
-            if ($request->status === 'banned') {
+            // Jika status berubah menjadi suspended atau banned, hapus token dan beri notifikasi
+            if ($request->status !== $oldStatus && in_array($request->status, ['suspended', 'banned'])) {
+                if ($request->status === 'suspended') {
+                    $notificationMessage = 'PENTING: Akun Anda ditangguhkan (SUSPENDED) sementara oleh Admin Pusat.';
+                    if ($statusReason) {
+                        $notificationMessage .= ' Alasan penangguhan: ' . $statusReason . '.';
+                    }
+                    $notificationMessage .= ' Silakan hubungi dukungan pelanggan KampusX jika Anda merasa ini adalah kesalahan.';
+
+                    $user->notify(new \App\Notifications\OperationalNotification(
+                        'Keamanan Akun',
+                        $notificationMessage,
+                        'account_suspended'
+                    ));
+                } elseif ($request->status === 'banned') {
+                    $notificationMessage = 'PERINGATAN: Akun Anda telah diblokir secara permanen (BANNED) dari platform KampusX.';
+                    if ($statusReason) {
+                        $notificationMessage .= ' Alasan pemblokiran: ' . $statusReason . '.';
+                    }
+                    $notificationMessage .= ' Tindakan ini bersifat final.';
+
+                    $user->notify(new \App\Notifications\OperationalNotification(
+                        'Keamanan Akun',
+                        $notificationMessage,
+                        'account_banned'
+                    ));
+                    $user->update(['is_verified' => false]);
+                }
+
+                // Membatalkan semua token jika akun di-suspend atau di-banned agar langsung ter-logout
                 $user->tokens()->delete();
             }
 

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Download, CheckCircle2, XCircle, Users, Clock } from 'lucide-react';
+import { Search, Download, CheckCircle2, XCircle, Users, Clock, ChevronDown, ChevronUp, FileText, ExternalLink, AlertCircle } from 'lucide-react';
 
 import FormHeading from '@/components/dashboard/FormHeading';
 
@@ -11,6 +11,14 @@ import api from '@/api/axios';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
 const RequestRow = ({ request, onAction }) => {
+	const [isExpanded, setIsExpanded] = useState(false);
+
+	const isImageFile = (path) => {
+		if (!path) return false;
+		const ext = path.split('.').pop().toLowerCase();
+		return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+	};
+
 	const getStatusBadge = (status) => {
 		switch (status) {
 			case 'approved':
@@ -68,72 +76,273 @@ const RequestRow = ({ request, onAction }) => {
 	};
 
 	return (
-		<tr>
-			<td>
-				<div className="user-cell">
-					<div className="user-avatar" style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 600 }}>
-						{request.user?.name ? request.user.name.charAt(0).toUpperCase() : '?'}
-					</div>
-					<div>
-						<div className="user-name">{request.user?.name || 'Unknown User'}</div>
-						<div className="user-email">{request.user?.email || '—'}</div>
-					</div>
-				</div>
-			</td>
-			<td style={{ color: 'var(--text-muted)' }}>{request.user?.phone || '—'}</td>
-			<td>
-				{getStatusBadge(request.status)}
-			</td>
-			<td style={{ color: 'var(--text-muted)' }}>
-				{request.created_at ? request.created_at.split('T')[0] : '—'}
-			</td>
-			<td>
-				{request.status === 'pending' ? (
-					<div className="action-wrap gap-2">
+		<>
+			<tr 
+				style={{ 
+					cursor: 'pointer',
+					transition: 'background-color 0.2s',
+					backgroundColor: isExpanded ? 'var(--bg-light-subtle, #f8f9fa)' : 'transparent'
+				}}
+				onClick={() => setIsExpanded(!isExpanded)}
+			>
+				<td>
+					<div className="user-cell" style={{ gap: 8, alignItems: 'center' }}>
 						<button 
-							className="btn btn-sm" 
-							style={{ 
-								padding: '4px 10px', 
-								fontSize: 11, 
-								borderRadius: 6, 
-								display: 'inline-flex', 
-								alignItems: 'center', 
-								gap: 4, 
-								backgroundColor: 'var(--success-bg)', 
-								color: 'var(--success-text)', 
-								border: '1px solid var(--success-border)', 
-								fontWeight: 600 
+							onClick={(e) => {
+								e.stopPropagation();
+								setIsExpanded(!isExpanded);
 							}}
-							onClick={() => onAction(request, 'approved')}
-							title="Setujui"
-						>
-							<CheckCircle2 size={12} /> Setujui
-						</button>
-						<button 
-							className="btn btn-sm" 
 							style={{ 
-								padding: '4px 10px', 
-								fontSize: 11, 
-								borderRadius: 6, 
-								display: 'inline-flex', 
-								alignItems: 'center', 
-								gap: 4, 
-								backgroundColor: 'var(--danger-bg)', 
-								color: 'var(--danger-text)', 
-								border: '1px solid var(--danger-border)', 
-								fontWeight: 600 
+								background: 'none', 
+								border: 'none', 
+								cursor: 'pointer', 
+								color: 'var(--text-muted, #64748b)',
+								padding: '4px',
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								borderRadius: '50%',
+								transition: 'all 0.2s',
+								outline: 'none',
 							}}
-							onClick={() => onAction(request, 'rejected')}
-							title="Tolak"
+							className="chevron-toggle-btn"
 						>
-							<XCircle size={12} /> Tolak
+							{isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
 						</button>
+						<div className="user-avatar" style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontWeight: 600 }}>
+							{request.user?.name ? request.user.name.charAt(0).toUpperCase() : '?'}
+						</div>
+						<div>
+							<div className="user-name">{request.user?.name || 'Unknown User'}</div>
+							<div className="user-email">{request.user?.email || '—'}</div>
+						</div>
 					</div>
-				) : (
-					<span className="text-secondary" style={{ fontSize: 12 }}>Selesai Diproses</span>
-				)}
-			</td>
-		</tr>
+				</td>
+				<td style={{ color: 'var(--text-muted)' }}>{request.user?.phone || '—'}</td>
+				<td>
+					{getStatusBadge(request.status)}
+				</td>
+				<td style={{ color: 'var(--text-muted)' }}>
+					{request.created_at ? request.created_at.split('T')[0] : '—'}
+				</td>
+				<td>
+					{request.status === 'pending' ? (
+						<div className="action-wrap gap-2" onClick={(e) => e.stopPropagation()}>
+							<button 
+								className="btn btn-sm" 
+								style={{ 
+									padding: '4px 10px', 
+									fontSize: 11, 
+									borderRadius: 6, 
+									display: 'inline-flex', 
+									alignItems: 'center', 
+									gap: 4, 
+									backgroundColor: 'var(--success-bg)', 
+									color: 'var(--success-text)', 
+									border: '1px solid var(--success-border)', 
+									fontWeight: 600 
+								}}
+								onClick={() => onAction(request, 'approved')}
+								title="Setujui"
+							>
+								<CheckCircle2 size={12} /> Setujui
+							</button>
+							<button 
+								className="btn btn-sm" 
+								style={{ 
+									padding: '4px 10px', 
+									fontSize: 11, 
+									borderRadius: 6, 
+									display: 'inline-flex', 
+									alignItems: 'center', 
+									gap: 4, 
+									backgroundColor: 'var(--danger-bg)', 
+									color: 'var(--danger-text)', 
+									border: '1px solid var(--danger-border)', 
+									fontWeight: 600 
+								}}
+								onClick={() => onAction(request, 'rejected')}
+								title="Tolak"
+							>
+								<XCircle size={12} /> Tolak
+							</button>
+						</div>
+					) : (
+						<span className="text-secondary" style={{ fontSize: 12 }}>Selesai Diproses</span>
+					)}
+				</td>
+			</tr>
+			{isExpanded && (
+				<tr style={{ backgroundColor: 'var(--bg-light-subtle, #f8f9fa)' }}>
+					<td colSpan={5} style={{ padding: '12px 24px 24px 24px' }}>
+						<div style={{
+							display: 'grid',
+							gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+							gap: '24px',
+							backgroundColor: '#ffffff',
+							border: '1px solid var(--border-color, #e2e8f0)',
+							borderRadius: '12px',
+							padding: '20px',
+							boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
+						}} onClick={(e) => e.stopPropagation()}>
+							{/* Kolom Kiri: Informasi Afiliasi */}
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+								<h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-color, #1e293b)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+									<Users size={16} style={{ color: 'var(--primary)' }} />
+									Informasi Afiliasi & Organisasi
+								</h4>
+								
+								<div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '12px 16px', fontSize: '13px' }}>
+									<div style={{ color: 'var(--text-muted, #64748b)', fontWeight: 500 }}>Nama Organisasi:</div>
+									<div style={{ fontWeight: 600, color: 'var(--text-color, #1e293b)' }}>{request.organization_name || '—'}</div>
+									
+									<div style={{ color: 'var(--text-muted, #64748b)', fontWeight: 500 }}>Institusi / Kampus:</div>
+									<div>
+										{request.institution ? (
+											<span style={{ fontWeight: 600, color: 'var(--text-color, #1e293b)' }}>
+												{request.institution.name}
+											</span>
+										) : request.custom_institution_name ? (
+											<div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+												<span style={{ fontWeight: 600, color: 'var(--primary, #3b82f6)' }}>
+													{request.custom_institution_name}
+												</span>
+												<span style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: '4px',
+													fontSize: '11px',
+													fontWeight: 600,
+													color: 'var(--warning-text, #b45309)',
+													backgroundColor: 'var(--warning-bg, #fef3c7)',
+													padding: '2px 8px',
+													borderRadius: '4px',
+													width: 'fit-content'
+												}}>
+													<AlertCircle size={10} /> Kampus Baru (Akan otomatis didaftarkan jika disetujui)
+												</span>
+											</div>
+										) : (
+											<span style={{ color: 'var(--text-muted, #64748b)' }}>—</span>
+										)}
+									</div>
+									
+									<div style={{ color: 'var(--text-muted, #64748b)', fontWeight: 500 }}>Masa Berlaku Afiliasi:</div>
+									<div style={{ color: 'var(--success-text, #15803d)', fontWeight: 600 }}>
+										1 Tahun (Otomatis Aktif dari Tanggal Persetujuan)
+									</div>
+
+									{request.note && (
+										<>
+											<div style={{ color: 'var(--text-muted, #64748b)', fontWeight: 500 }}>Catatan Tambahan:</div>
+											<div style={{ 
+												padding: '8px 12px', 
+												backgroundColor: 'var(--bg-light, #f8fafc)', 
+												border: '1px solid #e2e8f0', 
+												borderRadius: '6px', 
+												fontSize: '12.5px',
+												color: '#334155',
+												whiteSpace: 'pre-line',
+												wordBreak: 'break-word',
+												maxHeight: '120px',
+												overflowY: 'auto'
+											}}>
+												{request.note}
+											</div>
+										</>
+									)}
+								</div>
+							</div>
+							
+							{/* Kolom Kanan: Berkas Bukti Keanggotaan */}
+							<div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+								<h4 style={{ margin: 0, fontSize: '15px', fontWeight: 600, color: 'var(--text-color, #1e293b)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+									<FileText size={16} style={{ color: 'var(--primary)' }} />
+									Dokumen Bukti Keanggotaan
+								</h4>
+								
+								{request.proof_url ? (
+									<div style={{
+										border: '1px dashed var(--border-color, #e2e8f0)',
+										borderRadius: '8px',
+										padding: '16px',
+										backgroundColor: 'var(--bg-light, #f8fafc)',
+										display: 'flex',
+										flexDirection: 'column',
+										gap: '16px',
+										alignItems: 'center',
+										justifyContent: 'center',
+										minHeight: '120px'
+									}}>
+										{isImageFile(request.proof_path) ? (
+											<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '100%' }}>
+												<a href={request.proof_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block', width: '100%', maxWidth: '200px', cursor: 'zoom-in' }}>
+													<img 
+														src={request.proof_url} 
+														alt="Bukti Keanggotaan" 
+														style={{
+															width: '100%',
+															maxHeight: '120px',
+															objectFit: 'contain',
+															borderRadius: '6px',
+															border: '1px solid #cbd5e1',
+															backgroundColor: '#ffffff'
+														}}
+													/>
+												</a>
+												<span style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)' }}>Klik gambar untuk memperbesar</span>
+											</div>
+										) : (
+											<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+												<FileText size={36} style={{ color: 'var(--text-muted, #64748b)' }} />
+												<span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-color, #1e293b)' }}>
+													Dokumen PDF / Berkas Bukti
+												</span>
+											</div>
+										)}
+										
+										<a 
+											href={request.proof_url} 
+											target="_blank" 
+											rel="noopener noreferrer"
+											className="btn btn-sm btn-outline"
+											style={{ 
+												padding: '6px 12px', 
+												fontSize: '12px', 
+												display: 'inline-flex', 
+												alignItems: 'center', 
+												gap: '6px',
+												textDecoration: 'none',
+												fontWeight: 600,
+												backgroundColor: '#ffffff',
+												border: '1px solid #cbd5e1',
+												borderRadius: '6px',
+												color: 'var(--text-color, #1e293b)'
+											}}
+										>
+											<ExternalLink size={12} /> Buka Dokumen di Tab Baru
+										</a>
+									</div>
+								) : (
+									<div style={{
+										border: '1px dashed var(--danger-border, #fecaca)',
+										borderRadius: '8px',
+										padding: '16px',
+										backgroundColor: 'var(--danger-bg, #fef2f2)',
+										color: 'var(--danger-text, #991b1b)',
+										fontSize: '13px',
+										textAlign: 'center',
+										fontWeight: 500
+									}}>
+										Tidak ada dokumen bukti yang diunggah.
+									</div>
+								)}
+							</div>
+						</div>
+					</td>
+				</tr>
+			)}
+		</>
 	);
 };
 

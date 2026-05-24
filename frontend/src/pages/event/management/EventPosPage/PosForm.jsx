@@ -18,6 +18,8 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 		description: '',
 		isActive: true, // Default true saat tambah baru
 	});
+	const [photo, setPhoto] = useState(null);
+	const [photoPreview, setPhotoPreview] = useState('');
 
 	// Cek apakah form dalam mode Edit
 	const isEditMode = Boolean(posData);
@@ -30,30 +32,54 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 		}));
 	};
 
+	const handleFileChange = (e) => {
+		const file = e.target.files[0];
+		if (file) {
+			setPhoto(file);
+			setPhotoPreview(URL.createObjectURL(file));
+		}
+	};
+
 	// Handle saat form disubmit
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setIsSubmitting(true);
 
 		try {
-			const payload = {
-				name: formData.namaPos,
-				description: formData.description,
-				is_active: formData.isActive,
-			};
-			console.log(payload);
+			const payload = new FormData();
+			payload.append('name', formData.namaPos);
+			payload.append('description', formData.description || '');
+			payload.append('is_active', formData.isActive ? 1 : 0);
+
+			if (photo) {
+				payload.append('photo', photo);
+			}
 
 			let response;
 			if (isEditMode) {
-				// Mode Edit: Gunakan PUT/PATCH (Sesuaikan dengan endpoint backend Anda)
-				response = await api.put(
+				// Spoof method PUT agar Laravel bisa membaca request multipart/form-data
+				payload.append('_method', 'PUT');
+				response = await api.post(
 					`/event-dashboard/${eventId}/stations/${posData.id}`,
 					payload,
+					{
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					}
 				);
 				notify('success', 'Berhasil', 'Data pos berhasil diperbarui.');
 			} else {
 				// Mode Tambah: Gunakan POST
-				response = await api.post(`/event-dashboard/${eventId}/stations`, payload);
+				response = await api.post(
+					`/event-dashboard/${eventId}/stations`,
+					payload,
+					{
+						headers: {
+							'Content-Type': 'multipart/form-data',
+						},
+					}
+				);
 				notify('success', 'Berhasil', 'Pos baru berhasil ditambahkan.');
 			}
 
@@ -72,10 +98,12 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 			// Mode Edit: Isi form dengan data yang diklik
 			setFormData({
 				namaPos: posData.name,
-				description: posData.description,
+				description: posData.description || '',
 				// Ubah string status "Aktif" / "Tidak Aktif" menjadi boolean untuk Switch
 				isActive: posData.status === 'Aktif',
 			});
+			setPhoto(null);
+			setPhotoPreview(posData.photo_url || '');
 		} else {
 			// Mode Tambah: Reset form
 			setFormData({
@@ -83,6 +111,8 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 				description: '',
 				isActive: true,
 			});
+			setPhoto(null);
+			setPhotoPreview('');
 		}
 	}, [posData]);
 
@@ -127,6 +157,53 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 						disabled={isSubmitting}
 					/>
 				</InputGroup>
+			</Form.Group>
+
+			{/* ── Input FOTO POS ── */}
+			<Form.Group className="mb-4">
+				<Form.Label className="fw-bold">Foto Pos (Optional)</Form.Label>
+				<div className="d-flex flex-column align-items-center gap-3 p-3 border rounded-3 bg-light text-center">
+					{photoPreview ? (
+						<div className="position-relative">
+							<img
+								src={photoPreview}
+								alt="Preview Pos"
+								style={{ width: '120px', height: '120px', borderRadius: '12px', objectFit: 'cover', border: '2px solid var(--primary, #000)' }}
+							/>
+							<Button
+								variant="danger"
+								size="sm"
+								className="position-absolute top-0 end-0 rounded-circle"
+								style={{ transform: 'translate(40%, -40%)', padding: '2px 6px', fontSize: '10px' }}
+								onClick={() => {
+									setPhoto(null);
+									setPhotoPreview('');
+								}}
+							>
+								✕
+							</Button>
+						</div>
+					) : (
+						<div 
+							className="d-flex align-items-center justify-content-center bg-white border border-dashed rounded-3 text-muted"
+							style={{ width: '120px', height: '120px', fontSize: '12px' }}
+						>
+							Belum ada foto
+						</div>
+					)}
+					<div className="w-100">
+						<Form.Control
+							type="file"
+							accept="image/*"
+							onChange={handleFileChange}
+							disabled={isSubmitting}
+							style={{ fontSize: '13px' }}
+						/>
+						<small className="text-muted mt-1 d-block" style={{ fontSize: '11px' }}>
+							Rekomendasi rasio 1:1, tipe file JPG/PNG maks. 2MB.
+						</small>
+					</div>
+				</div>
 			</Form.Group>
 
 			{/* ── Toggle STATUS POS ── */}

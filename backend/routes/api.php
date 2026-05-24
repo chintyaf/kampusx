@@ -220,6 +220,9 @@ Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function 
 // --- ROLE: ADMIN PUSAT ---
 // ==========================================
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    // 0. Dashboard Overview
+    Route::get('/admin/dashboard-overview', [AdminController::class, 'getDashboardOverview']);
+
     // 1. Organizer Management
     Route::get('/admin/organizer-requests', [AdminController::class, 'getOrganizerRequests']);
     Route::post('/admin/organizer-requests/{id}/approve', [AdminController::class, 'approveOrganizer']);

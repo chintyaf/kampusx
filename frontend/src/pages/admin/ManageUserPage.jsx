@@ -37,12 +37,28 @@ const ManageUserPage = () => {
 		password: '',
 		role: 'participant',
 		status: 'active',
+		status_reason: '',
+		custom_reason: '',
+		university_id: '',
+		affiliation_valid_until: '',
 		verified: true,
 	});
 
+	const [institutions, setInstitutions] = useState([]);
+
 	useEffect(() => {
 		fetchUsers();
+		fetchInstitutions();
 	}, []);
+
+	const fetchInstitutions = async () => {
+		try {
+			const response = await api.get('/institutions');
+			setInstitutions(response.data.data || []);
+		} catch (error) {
+			console.error('Gagal mengambil data institusi:', error);
+		}
+	};
 
 	const fetchUsers = async () => {
 		try {
@@ -55,6 +71,10 @@ const ManageUserPage = () => {
 				phone: u.phone,
 				role: u.role,
 				status: u.status,
+				status_reason: u.status_reason,
+				university_id: u.university_id || '',
+				affiliation_valid_until: u.affiliation_valid_until ? u.affiliation_valid_until.split('T')[0] : '',
+				university_name: u.university?.name || '',
 				verified: !!u.is_verified,
 				joined: u.created_at ? u.created_at.split('T')[0] : '',
 			}));
@@ -107,6 +127,10 @@ const ManageUserPage = () => {
 			password: '',
 			role: 'participant',
 			status: 'active',
+			status_reason: '',
+			custom_reason: '',
+			university_id: '',
+			affiliation_valid_until: '',
 			verified: true,
 		});
 		setShowFormModal(true);
@@ -115,6 +139,15 @@ const ManageUserPage = () => {
 	const handleEditClick = (u) => {
 		setActionType('edit');
 		setCurrentUser(u);
+		const presets = {
+			'User melakukan spam': 'spam',
+			'Penipuan tiket': 'ticket_fraud',
+			'Melanggar aturan platform': 'platform_violation',
+			'Membuat banyak akun (multi-account fraud)': 'multi_account',
+		};
+		const matchedPreset = presets[u.status_reason];
+		const isOther = u.status_reason && !matchedPreset;
+
 		setFormState({
 			name: u.name || '',
 			email: u.email || '',
@@ -122,6 +155,10 @@ const ManageUserPage = () => {
 			password: '',
 			role: u.role || 'participant',
 			status: u.status || 'active',
+			status_reason: matchedPreset ? matchedPreset : isOther ? 'other' : '',
+			custom_reason: isOther ? u.status_reason : '',
+			university_id: u.university_id || '',
+			affiliation_valid_until: u.affiliation_valid_until || '',
 			verified: !!u.verified,
 		});
 		setShowFormModal(true);
@@ -142,8 +179,17 @@ const ManageUserPage = () => {
 				phone: formState.phone || null,
 				role: formState.role,
 				status: formState.status,
+				university_id: formState.university_id || null,
+				affiliation_valid_until: formState.affiliation_valid_until || null,
 				is_verified: formState.verified ? 1 : 0,
 			};
+
+			if (formState.status !== 'active') {
+				payload.status_reason =
+					formState.status_reason === 'other'
+						? formState.custom_reason
+						: formState.status_reason;
+			}
 
 			if (formState.password) {
 				payload.password = formState.password;
@@ -212,12 +258,12 @@ const ManageUserPage = () => {
 
 	// Konfigurasi Kolom untuk Reusable Table
 	const tableColumns = [
-		{ label: 'Name', sortable: true },
+		{ label: 'Name', sortable: false },
 		{ label: 'Phone', sortable: false },
-		{ label: 'Role', sortable: true },
-		{ label: 'Status', sortable: true },
-		{ label: 'Verified', sortable: false },
-		{ label: 'Joined', sortable: true },
+		{ label: 'Role', sortable: false },
+		{ label: 'Status', sortable: false },
+		// { label: 'Verified', sortable: false },
+		{ label: 'Joined', sortable: false },
 		{ label: 'Action', sortable: false },
 	];
 
@@ -252,7 +298,8 @@ const ManageUserPage = () => {
 						<select
 							className="show-select"
 							value={perPage}
-							onChange={(e) => handlePer(e.target.value)}>
+							onChange={(e) => handlePer(e.target.value)}
+						>
 							<option value={5}>5</option>
 							<option value={10}>10</option>
 							<option value={25}>25</option>
@@ -262,7 +309,8 @@ const ManageUserPage = () => {
 					<select
 						className="filter-select"
 						value={roleFilter}
-						onChange={(e) => handleRole(e.target.value)}>
+						onChange={(e) => handleRole(e.target.value)}
+					>
 						<option value="">All Roles</option>
 						<option value="admin">Admin</option>
 						<option value="organizer">Organizer</option>
@@ -273,7 +321,8 @@ const ManageUserPage = () => {
 					<select
 						className="filter-select"
 						value={statusFilter}
-						onChange={(e) => handleStatus(e.target.value)}>
+						onChange={(e) => handleStatus(e.target.value)}
+					>
 						<option value="">All Status</option>
 						<option value="active">Active</option>
 						<option value="suspended">Suspended</option>
@@ -282,12 +331,12 @@ const ManageUserPage = () => {
 
 					<div className="toolbar-spacer" />
 
-					<button className="btn btn-outline" disabled={loading}>
+					{/* <button className="btn btn-outline" disabled={loading}>
 						<Filter size={14} /> Filter
 					</button>
 					<button className="btn btn-outline" disabled={loading}>
 						<Download size={14} /> Export
-					</button>
+					</button> */}
 					<button className="btn btn-primary" onClick={handleAddClick} disabled={loading}>
 						<Plus size={14} /> Add User
 					</button>
@@ -297,7 +346,9 @@ const ManageUserPage = () => {
 				<Table
 					columns={tableColumns}
 					data={pageData}
-					emptyMessage={loading ? "Loading users data..." : "No users found matching your filters."}
+					emptyMessage={
+						loading ? 'Loading users data...' : 'No users found matching your filters.'
+					}
 					renderRow={(u) => (
 						<UserRow
 							key={u.id}
@@ -323,7 +374,11 @@ const ManageUserPage = () => {
 				show={showFormModal}
 				onHide={() => setShowFormModal(false)}
 				title={actionType === 'add' ? 'Add User' : 'Edit User'}
-				subtitle={actionType === 'add' ? 'Create a brand new system user' : 'Modify existing user details'}
+				subtitle={
+					actionType === 'add'
+						? 'Create a brand new system user'
+						: 'Modify existing user details'
+				}
 			>
 				<form onSubmit={handleFormSubmit}>
 					<div className="mb-3">
@@ -363,7 +418,12 @@ const ManageUserPage = () => {
 					</div>
 					<div className="mb-3">
 						<label className="form-label fw-semibold text-dark small">
-							Password {actionType === 'edit' && <span className="text-muted fw-normal">(Leave blank to keep current)</span>}
+							Password{' '}
+							{actionType === 'edit' && (
+								<span className="text-muted fw-normal">
+									(Leave blank to keep current)
+								</span>
+							)}
 						</label>
 						<input
 							type="password"
@@ -371,7 +431,9 @@ const ManageUserPage = () => {
 							style={{ borderRadius: 8, fontSize: 13 }}
 							required={actionType === 'add'}
 							value={formState.password}
-							onChange={(e) => setFormState({ ...formState, password: e.target.value })}
+							onChange={(e) =>
+								setFormState({ ...formState, password: e.target.value })
+							}
 							placeholder="Min. 8 characters"
 						/>
 					</div>
@@ -382,7 +444,9 @@ const ManageUserPage = () => {
 								className="form-select"
 								style={{ borderRadius: 8, fontSize: 13 }}
 								value={formState.role}
-								onChange={(e) => setFormState({ ...formState, role: e.target.value })}
+								onChange={(e) =>
+									setFormState({ ...formState, role: e.target.value })
+								}
 							>
 								<option value="participant">Participant</option>
 								<option value="committee">Committee</option>
@@ -396,7 +460,9 @@ const ManageUserPage = () => {
 								className="form-select"
 								style={{ borderRadius: 8, fontSize: 13 }}
 								value={formState.status}
-								onChange={(e) => setFormState({ ...formState, status: e.target.value })}
+								onChange={(e) =>
+									setFormState({ ...formState, status: e.target.value })
+								}
 							>
 								<option value="active">Active</option>
 								<option value="suspended">Suspended</option>
@@ -404,6 +470,98 @@ const ManageUserPage = () => {
 							</select>
 						</div>
 					</div>
+
+					{formState.role === 'organizer' && (
+						<div className="border p-3 rounded mb-3 bg-light animate__animated animate__fadeIn">
+							<div className="fw-bold text-dark small mb-2">Afiliasi Kampus & Kepengurusan</div>
+							<div className="row">
+								<div className="col-md-6 mb-2">
+									<label className="form-label text-dark small">Universitas / Institusi</label>
+									<select
+										className="form-select"
+										style={{ borderRadius: 8, fontSize: 13 }}
+										value={formState.university_id}
+										onChange={(e) => setFormState({ ...formState, university_id: e.target.value })}
+									>
+										<option value="">-- Tanpa Afiliasi --</option>
+										{institutions.map((inst) => (
+											<option key={inst.id} value={inst.id}>
+												{inst.name}
+											</option>
+										))}
+									</select>
+								</div>
+								<div className="col-md-6 mb-2">
+									<label className="form-label text-dark small">Masa Berlaku Afiliasi</label>
+									<input
+										type="date"
+										className="form-control"
+										style={{ borderRadius: 8, fontSize: 13 }}
+										value={formState.affiliation_valid_until}
+										onChange={(e) => setFormState({ ...formState, affiliation_valid_until: e.target.value })}
+									/>
+									<small className="text-muted" style={{ fontSize: '10px' }}>
+										Afiliasi dilepas otomatis setelah tanggal ini (Misal: demisioner kepengurusan).
+									</small>
+								</div>
+							</div>
+						</div>
+					)}
+
+					{(formState.status === 'suspended' || formState.status === 'banned') && (
+						<div className="mb-3 animate__animated animate__fadeIn">
+							<label className="form-label fw-semibold text-dark small">
+								Alasan Penangguhan / Pemblokiran
+							</label>
+							<select
+								className="form-select"
+								style={{
+									borderRadius: 8,
+									fontSize: 13,
+									border: '1px solid var(--warning-border, #ffc107)',
+								}}
+								required
+								value={formState.status_reason}
+								onChange={(e) =>
+									setFormState({ ...formState, status_reason: e.target.value })
+								}
+							>
+								<option value="">-- Pilih Alasan --</option>
+								<option value="spam">User melakukan spam (Spamming)</option>
+								<option value="ticket_fraud">Penipuan tiket (Ticket Fraud)</option>
+								<option value="platform_violation">
+									Melanggar aturan platform (Community Violation)
+								</option>
+								<option value="multi_account">
+									Membuat banyak akun (Multi-account fraud)
+								</option>
+								<option value="other">Lainnya (Tulis alasan kustom)</option>
+							</select>
+						</div>
+					)}
+
+					{(formState.status === 'suspended' || formState.status === 'banned') &&
+						formState.status_reason === 'other' && (
+							<div className="mb-3 animate__animated animate__fadeIn">
+								<label className="form-label fw-semibold text-dark small">
+									Detail Alasan Kustom
+								</label>
+								<input
+									type="text"
+									className="form-control"
+									style={{ borderRadius: 8, fontSize: 13 }}
+									required
+									value={formState.custom_reason}
+									onChange={(e) =>
+										setFormState({
+											...formState,
+											custom_reason: e.target.value,
+										})
+									}
+									placeholder="Masukkan alasan pemblokiran secara detail..."
+								/>
+							</div>
+						)}
 					<div className="mb-4">
 						<div className="form-check">
 							<input
@@ -411,9 +569,14 @@ const ManageUserPage = () => {
 								className="form-check-input"
 								id="isVerifiedCheckbox"
 								checked={formState.verified}
-								onChange={(e) => setFormState({ ...formState, verified: e.target.checked })}
+								onChange={(e) =>
+									setFormState({ ...formState, verified: e.target.checked })
+								}
 							/>
-							<label className="form-check-label fw-semibold text-dark small" htmlFor="isVerifiedCheckbox">
+							<label
+								className="form-check-label fw-semibold text-dark small"
+								htmlFor="isVerifiedCheckbox"
+							>
 								Verified Account
 							</label>
 						</div>
@@ -461,4 +624,3 @@ const ManageUserPage = () => {
 };
 
 export default ManageUserPage;
-

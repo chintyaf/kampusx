@@ -177,6 +177,10 @@ html {
 	color: var(--bahama-blue-600) !important;
 }
 
+.text-warning {
+	color: var(--warning-text) !important;
+}
+
 .bg-primary {
 	background-color: var(--color-primary) !important;
 }
