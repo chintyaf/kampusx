@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Outlet } from 'react-router-dom';
+import { Button } from 'react-bootstrap';
 import { Plus } from 'lucide-react';
 
 import EventLayout from '../../../../layouts/EventLayout';
@@ -56,18 +57,20 @@ const EventSession = () => {
 						}));
 
 						// Konversi property mapping dan ekstrak pembicara
-						const formattedDays = groupedDaysArray.map(day => ({
+						const formattedDays = groupedDaysArray.map((day) => ({
 							...day,
-							sessions: day.sessions.map(session => {
+							sessions: day.sessions.map((session) => {
 								if (session.speakers) {
-									session.speakers.forEach(spk => extractedSpeakersMap.set(spk.id, spk));
+									session.speakers.forEach((spk) =>
+										extractedSpeakersMap.set(spk.id, spk),
+									);
 								}
 								return {
 									...session,
 									startTime: session.start_time || session.startTime,
-									endTime: session.end_time || session.endTime
+									endTime: session.end_time || session.endTime,
 								};
-							})
+							}),
 						}));
 
 						setDays(formattedDays);
@@ -132,7 +135,10 @@ const EventSession = () => {
 
 				return {
 					...speaker,
-					id: typeof speaker.id === 'string' && speaker.id.startsWith('spk-') ? null : speaker.id,
+					id:
+						typeof speaker.id === 'string' && speaker.id.startsWith('spk-')
+							? null
+							: speaker.id,
 					sessions: assignedSessions,
 				};
 			}),
@@ -158,13 +164,13 @@ const EventSession = () => {
 
 	const handleSaveSession = (updatedSession) => {
 		setDays((prevDays) => {
-			const newDays = [...prevDays.map(d => ({ ...d, sessions: [...d.sessions] }))];
+			const newDays = [...prevDays.map((d) => ({ ...d, sessions: [...d.sessions] }))];
 
 			let oldDayIndex = -1;
 			let oldSessionIndex = -1;
-			
+
 			for (let i = 0; i < newDays.length; i++) {
-				const sIndex = newDays[i].sessions.findIndex(s => s.id === updatedSession.id);
+				const sIndex = newDays[i].sessions.findIndex((s) => s.id === updatedSession.id);
 				if (sIndex !== -1) {
 					oldDayIndex = i;
 					oldSessionIndex = sIndex;
@@ -173,23 +179,31 @@ const EventSession = () => {
 			}
 
 			if (oldDayIndex !== -1) {
-				const oldDayNumber = newDays[oldDayIndex].day_number || (oldDayIndex + 1);
+				const oldDayNumber = newDays[oldDayIndex].day_number || oldDayIndex + 1;
 				const newDayNumber = parseInt(updatedSession.dayNumber);
 
 				if (oldDayNumber !== newDayNumber) {
 					newDays[oldDayIndex].sessions.splice(oldSessionIndex, 1);
-					
-					const newDayIndex = newDays.findIndex(d => (d.day_number || (newDays.indexOf(d) + 1)) === newDayNumber);
+
+					const newDayIndex = newDays.findIndex(
+						(d) => (d.day_number || newDays.indexOf(d) + 1) === newDayNumber,
+					);
 					if (newDayIndex !== -1) {
 						newDays[newDayIndex].sessions.push(updatedSession);
-						newDays[newDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+						newDays[newDayIndex].sessions.sort((a, b) =>
+							(a.startTime || '').localeCompare(b.startTime || ''),
+						);
 					} else {
 						newDays[oldDayIndex].sessions.push(updatedSession);
-						newDays[oldDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+						newDays[oldDayIndex].sessions.sort((a, b) =>
+							(a.startTime || '').localeCompare(b.startTime || ''),
+						);
 					}
 				} else {
 					newDays[oldDayIndex].sessions[oldSessionIndex] = updatedSession;
-					newDays[oldDayIndex].sessions.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+					newDays[oldDayIndex].sessions.sort((a, b) =>
+						(a.startTime || '').localeCompare(b.startTime || ''),
+					);
 				}
 			}
 			return newDays;
@@ -255,9 +269,9 @@ const EventSession = () => {
 	const handleDeleteSpeaker = (speakerId) => {
 		// Cek apakah pembicara ada di sesi
 		const isAssigned = days.some((day) =>
-			day.sessions.some((session) =>
-				session.speakers && session.speakers.some((s) => s.id === speakerId)
-			)
+			day.sessions.some(
+				(session) => session.speakers && session.speakers.some((s) => s.id === speakerId),
+			),
 		);
 
 		if (isAssigned) {
@@ -282,8 +296,8 @@ const EventSession = () => {
 			startTime: '',
 			endTime: '',
 			speakers: [],
-			dayNumber: days[dayIndex].day_number || (dayIndex + 1),
-			prerequisite_session_ids: []
+			dayNumber: days[dayIndex].day_number || dayIndex + 1,
+			prerequisite_session_ids: [],
 		};
 
 		setDays((prevDays) => {
@@ -315,6 +329,7 @@ const EventSession = () => {
 	};
 
 	const handleCloseForm = () => {
+		setSidebar('summary');
 		setSelectedRow(null);
 	};
 
@@ -365,16 +380,14 @@ const EventSession = () => {
 	// -- RENDER --
 	return (
 		<EventLayout
+			title="Schedule Breakdown"
+			description="Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
 			onSave={handleSave}
-			nextPath={'pembicara'}
+			nextPath={'tiket'}
 			prevPath={'tempat'}
 			sidebar={renderSidebar()}
 		>
 			<Outlet context={{ sidebar, setSidebar, setSelectedRow }} />
-			<FormHeading
-				heading="Schedule Breakdown"
-				subheading="Susun jadwal detail per hari dan sesi menggunakan matriks waktu"
-			/>
 
 			<div>
 				{days.map((dayItem, index) => (
@@ -391,10 +404,10 @@ const EventSession = () => {
 					/>
 				))}
 
-				<button className="btn-add gap-2 py-3 rounded-3 mt-4" onClick={handleAddDay}>
+				<Button className="btn btn-add gap-2 py-3 rounded-3 mt-4" onClick={handleAddDay}>
 					<Plus size={18} />
 					Tambah Hari Baru
-				</button>
+				</Button>
 			</div>
 		</EventLayout>
 	);

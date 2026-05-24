@@ -1,4 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
+import { Spinner } from 'react-bootstrap';
+import { toast, Toaster } from 'react-hot-toast';
+import api from '@/api/axios';
+import { STORAGE_URL } from '@/api/storage';
 import './EventCertificatePage.css';
 
 // Mengimpor komponen-komponen yang telah dipisah
@@ -6,35 +11,225 @@ import Topbar from './Topbar';
 import CanvasArea from './CanvasArea';
 import SidebarList from './SidebarList';
 import SidebarEdit from './SidebarEdit';
-import { INITIAL_ELEMENTS } from './constants';
+import { FIELDS } from './constants';
 import EventLayout from '@/layouts/EventLayout';
+import PreviewModal from './PreviewModal';
+
 const EventCertificatePage = () => {
+	const { eventId } = useParams();
+
 	// Global State
 	const [templateFile, setTemplateFile] = useState(null);
-	const [elements, setElements] = useState(INITIAL_ELEMENTS);
+	const [backgroundPath, setBackgroundPath] = useState('');
+	const [elements, setElements] = useState([]);
 	const [selectedId, setSelectedId] = useState(null);
 	const [saved, setSaved] = useState(false);
+	const [showPreview, setShowPreview] = useState(false);
+
+
+	const [isLoading, setIsLoading] = useState(true);
+	const [isSaving, setIsSaving] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
+
+	// Memuat Google Fonts premium ketika halaman dibuka
+	useEffect(() => {
+		const link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.href = 'https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;700&family=Great+Vibes&family=Montserrat:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700&display=swap';
+		document.head.appendChild(link);
+		return () => {
+			document.head.removeChild(link);
+		};
+	}, []);
 
 	// Derived State
 	const selectedEl = elements.find((e) => e.id === selectedId) ?? null;
 
-	// Handlers
-	const handleFileSelect = (file) => setTemplateFile(URL.createObjectURL(file));
+	// Mapping functions
+	const mapDbToElement = useCallback((el) => {
+		let fieldId = 'f7'; // fallback to teks kustom
+		if (el.element_type === 'nama_peserta') fieldId = 'f1';
+		else if (el.element_type === 'id_sertifikat') fieldId = 'f2';
+		else if (el.element_type === 'qr_code') fieldId = 'f3';
+		else if (el.element_type === 'nama_event') fieldId = 'f4';
+		else if (el.element_type === 'tanggal') fieldId = 'f5';
+		else if (el.element_type === 'instansi') fieldId = 'f6';
+		else if (el.element_type === 'teks_kustom') fieldId = 'f7';
 
-	const handleSave = () => {
-		setSaved(true);
-		setTimeout(() => setSaved(false), 2000);
+		const field = FIELDS.find((f) => f.id === fieldId);
+
+		// Parse bold dan fontFamily dari font_family
+		const rawFont = el.font_family || 'Arial';
+		const bold = rawFont.includes('|bold');
+		const fontFamily = rawFont.replace('|bold', '');
+
+		return {
+			id: el.id ? `db-${el.id}` : `ce-${Date.now()}-${Math.random()}`,
+			fieldId,
+			label: field?.key || '{ Kustom }',
+			x: el.position_x,
+			y: el.position_y,
+			fontSize: el.font_size || (fieldId === 'f1' ? 64 : fieldId === 'f3' ? 80 : 24),
+			bold: bold,
+			fontFamily: fontFamily,
+			color: el.font_color || '#0f172a',
+		};
+	}, []);
+
+	const mapElementToDb = (el) => {
+		let element_type = 'teks_kustom';
+		if (el.fieldId === 'f1') element_type = 'nama_peserta';
+		else if (el.fieldId === 'f2') element_type = 'id_sertifikat';
+		else if (el.fieldId === 'f3') element_type = 'qr_code';
+		else if (el.fieldId === 'f4') element_type = 'nama_event';
+		else if (el.fieldId === 'f5') element_type = 'tanggal';
+		else if (el.fieldId === 'f6') element_type = 'instansi';
+		else if (el.fieldId === 'f7') element_type = 'teks_kustom';
+
+		return {
+			element_type,
+			position_x: el.x,
+			position_y: el.y,
+			font_size: el.fontSize || (el.fieldId === 'f3' ? 80 : 14),
+			font_color: el.color || '#0f172a',
+			font_family: `${el.fontFamily || 'Arial'}${el.bold ? '|bold' : ''}`,
+			text_align: 'center',
+			custom_value: null,
+		};
 	};
+
+	// 1. Fetch Template data on Mount
+	useEffect(() => {
+		const fetchTemplate = async () => {
+			setIsLoading(true);
+			try {
+				const response = await api.get(`/event-dashboard/${eventId}/certificate`);
+				const template = response.data.data;
+				if (template) {
+					// Resolve background image URL menggunakan blob untuk menghindari isu CORS
+					let bgUrl = '';
+					if (template.background_path) {
+						try {
+							const imgRes = await api.get(
+								`/event-dashboard/${eventId}/certificate/background-file`,
+								{
+									responseType: 'blob',
+								},
+							);
+							bgUrl = URL.createObjectURL(imgRes.data);
+						} catch (err) {
+							console.error('Gagal memuat blob background gambar:', err);
+							// Fallback ke public storage URL
+							const cleanPath = template.background_path.startsWith('/')
+								? template.background_path.slice(1)
+								: template.background_path;
+							bgUrl = `${STORAGE_URL}/${cleanPath}`;
+						}
+					}
+					setTemplateFile(bgUrl);
+					setBackgroundPath(template.background_path);
+
+					// Map elements to fields
+					if (template.elements && template.elements.length > 0) {
+						const mappedFields = template.elements.map(mapDbToElement);
+						setElements(mappedFields);
+					} else {
+						setElements([]);
+					}
+				} else {
+					setElements([]);
+				}
+			} catch (error) {
+				console.error('Gagal memuat template sertifikat:', error);
+				toast.error('Gagal memuat data template sertifikat.');
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchTemplate();
+	}, [eventId, mapDbToElement]);
+
+	// Handlers
+	const handleFileSelect = async (file) => {
+		if (!file) return;
+		const formData = new FormData();
+		formData.append('background', file);
+
+		setIsUploading(true);
+		try {
+			const response = await api.post(
+				`/event-dashboard/${eventId}/certificate/upload-background`,
+				formData,
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				},
+			);
+
+			const data = response.data.data;
+			let bgUrl = URL.createObjectURL(file); // Langsung gunakan blob URL dari file lokal!
+			setTemplateFile(bgUrl);
+			setBackgroundPath(data.background_path);
+			toast.success('Gambar template berhasil diunggah!');
+		} catch (error) {
+			console.error('Gagal mengunggah template:', error);
+			toast.error('Gagal mengunggah gambar template.');
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
+	const handleSave = async () => {
+		if (!backgroundPath) {
+			toast.error('Silakan unggah gambar template terlebih dahulu.');
+			return;
+		}
+
+		// QR Code wajib dimasukkan
+		const hasQr = elements.some((el) => el.fieldId === 'f3');
+		if (!hasQr) {
+			toast.error('QR Code wajib dimasukkan ke dalam template sertifikat.');
+			return;
+		}
+
+
+		setIsSaving(true);
+		const elementsPayload = elements.map(mapElementToDb);
+
+		try {
+			await api.post(`/event-dashboard/${eventId}/certificate`, {
+				event_id: eventId,
+				background_path: backgroundPath,
+				canvas_width: 1920,
+				canvas_height: 1080,
+				elements: elementsPayload,
+			});
+
+			toast.success('Template Sertifikat berhasil disimpan!');
+			setSaved(true);
+			setTimeout(() => setSaved(false), 2000);
+		} catch (error) {
+			console.error('Gagal menyimpan template sertifikat:', error);
+			toast.error('Gagal menyimpan template sertifikat.');
+			throw error;
+		} finally {
+			setIsSaving(false);
+		}
+	};
+
 
 	const addField = (field) => {
 		const el = {
-			id: `ce${Date.now()}`,
+			id: `ce-${Date.now()}-${Math.random()}`,
 			fieldId: field.id,
 			label: field.key,
 			x: 30 + Math.random() * 40,
 			y: 30 + Math.random() * 40,
-			fontSize: field.id === 'f1' ? 24 : 14,
+			fontSize: field.id === 'f1' ? 64 : field.id === 'f3' ? 80 : 24,
 			bold: field.id === 'f1',
+			fontFamily: 'Arial',
 			color: '#0f172a',
 		};
 		setElements((p) => [...p, el]);
@@ -50,10 +245,26 @@ const EventCertificatePage = () => {
 		setSelectedId(null);
 	};
 
+	if (isLoading) {
+		return (
+			<EventLayout
+				title="Buat Sertifikat"
+				description="Klik elemen untuk mengedit · Tarik untuk memindahkan"
+			>
+				<Toaster position="top-right" />
+				<div className="d-flex flex-column align-items-center justify-content-center py-5">
+					<Spinner animation="border" variant="primary" className="mb-2" />
+					<span className="text-muted">Memuat data template sertifikat...</span>
+				</div>
+			</EventLayout>
+		);
+	}
+
 	return (
 		<EventLayout
 			title="Buat Sertifikat"
 			description="Klik elemen untuk mengedit · Tarik untuk memindahkan"
+			onSave={handleSave}
 			sidebar={
 				selectedEl ? (
 					<SidebarEdit
@@ -70,10 +281,12 @@ const EventCertificatePage = () => {
 						setSelectedId={setSelectedId}
 					/>
 				)
-			}>
+			}
+		>
+			<Toaster position="top-right" />
 			<div className="d-flex flex-column certificate-builder">
 				{/* Top Header */}
-				{/* <Topbar saved={saved} onSave={handleSave} /> */}
+				<Topbar saved={saved} onSave={handleSave} onPreview={() => setShowPreview(true)} />
 
 				{/* Main Body */}
 				{/* Canvas / Gambar Sertifikat */}
@@ -84,29 +297,18 @@ const EventCertificatePage = () => {
 					onFileSelect={handleFileSelect}
 					setSelectedId={setSelectedId}
 					updateEl={updateEl}
+					isUploading={isUploading}
 				/>
-
-				<div className="">
-					{/* Right Sidebar */}
-					{/* <div className="bg-white border-start d-flex flex-column sidebar-panel flex-shrink-0">
-						{selectedEl ? (
-							<SidebarEdit
-								selectedEl={selectedEl}
-								updateEl={updateEl}
-								deleteEl={deleteEl}
-								clearSelection={() => setSelectedId(null)}
-							/>
-						) : (
-							<SidebarList
-								elements={elements}
-								addField={addField}
-								deleteEl={deleteEl}
-								setSelectedId={setSelectedId}
-							/>
-						)}
-					</div> */}
-				</div>
 			</div>
+
+			{/* Modal Preview Sertifikat */}
+			<PreviewModal
+				show={showPreview}
+				onHide={() => setShowPreview(false)}
+				templateFile={templateFile}
+				elements={elements}
+			/>
+
 		</EventLayout>
 	);
 };

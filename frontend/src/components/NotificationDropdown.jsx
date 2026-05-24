@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dropdown, Badge } from "react-bootstrap";
 import {
     Bell,
@@ -7,60 +8,120 @@ import {
     Info,
     AlertCircle,
 } from "lucide-react";
+import api from "../api/axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const NotificationDropdown = () => {
-    const notifications = [
-        {
-            id: 1,
-            type: "success",
-            title: "Event Berhasil Dibuat",
-            message:
-                "Acara 'Workshop ReactJS' sudah live dan bisa diakses publik.",
-            time: "Baru saja",
-        },
-        {
-            id: 2,
-            type: "warning",
-            title: "Pengingat Acara",
-            message: "Tinggal 3 hari lagi untuk event 'Tech Conference 2026'!",
-            time: "2 jam yang lalu",
-        },
-        {
-            id: 3,
-            type: "info",
-            title: "Draft Disimpan",
-            message: "Draft event 'Webinar Tahunan' berhasil diperbarui.",
-            time: "5 jam yang lalu",
-        },
-        {
-            id: 4,
-            type: "error",
-            title: "Peringatan Kapasitas",
-            message:
-                "Pendaftaran untuk 'Seminar UI/UX' sudah melebihi kuota ruangan.",
-            time: "1 hari yang lalu",
-        },
-    ];
+    const navigate = useNavigate();
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    const fetchNotifications = async () => {
+        try {
+            const response = await api.get("notifications");
+            if (response.data && response.data.success) {
+                setNotifications(response.data.data);
+                setUnreadCount(response.data.unread_count);
+            }
+        } catch (error) {
+            console.error("Gagal memuat notifikasi:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+        
+        // Polling setiap 30 detik untuk real-time update
+        const interval = setInterval(fetchNotifications, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const markAsRead = async (id, eventId, type) => {
+        try {
+            await api.post(`notifications/${id}/read`);
+            
+            // Perbarui state lokal
+            setNotifications(prev => 
+                prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
+            );
+            setUnreadCount(prev => Math.max(0, prev - 1));
+
+            // Arahkan user ke halaman detail yang sesuai
+            if (type === 'organizer_approved') {
+                navigate('/organizer/dashboard');
+            } else if (eventId) {
+                const isOrganizerPath = window.location.pathname.startsWith('/organizer');
+                if (isOrganizerPath) {
+                    navigate(`/organizer/${eventId}/event-dashboard`);
+                } else {
+                    navigate(`/event-space/${eventId}`);
+                }
+            }
+        } catch (error) {
+            console.error("Gagal menandai dibaca:", error);
+        }
+    };
+
+    const markAllAsRead = async () => {
+        try {
+            await api.post("notifications/read-all");
+            setNotifications(prev => 
+                prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
+            );
+            setUnreadCount(0);
+        } catch (error) {
+            console.error("Gagal menandai semua dibaca:", error);
+        }
+    };
+
+    const timeAgo = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+        
+        if (seconds < 60) return "Baru saja";
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} menit yang lalu`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours} jam yang lalu`;
+        const days = Math.floor(hours / 24);
+        if (days === 1) return "Kemarin";
+        return `${days} hari yang lalu`;
+    };
 
     const getNotificationStyle = (type) => {
         switch (type) {
-            case "success":
-                return {
-                    icon: <CheckCircle2 size={20} className="text-success" />,
-                    bg: "bg-success",
-                };
-            case "warning":
-                return {
-                    icon: <AlertTriangle size={20} className="text-warning" />,
-                    bg: "bg-warning",
-                };
-            case "info":
+            case "H-24":
                 return {
                     icon: <Info size={20} className="text-primary" />,
                     bg: "bg-primary",
                 };
-            case "error":
+            case "H-1":
+                return {
+                    icon: <AlertTriangle size={20} className="text-warning" />,
+                    bg: "bg-warning",
+                };
+            case "M-15":
+                return {
+                    icon: <AlertCircle size={20} className="text-danger" />,
+                    bg: "bg-danger",
+                };
+            case "organizer_approved":
+                return {
+                    icon: <CheckCircle2 size={20} className="text-success" />,
+                    bg: "bg-success",
+                };
+            case "organizer_rejected":
+            case "account_suspended":
+                return {
+                    icon: <AlertTriangle size={20} className="text-warning" />,
+                    bg: "bg-warning",
+                };
+            case "account_banned":
                 return {
                     icon: <AlertCircle size={20} className="text-danger" />,
                     bg: "bg-danger",
@@ -83,110 +144,140 @@ const NotificationDropdown = () => {
                 aria-expanded="false"
             >
                 <Bell size={20} strokeWidth={2} className="text-dark" />
-                {/* Titik merah penanda */}
-                <span
-                    className="position-absolute bg-danger rounded-circle"
-                    style={{
-                        top: "8px",
-                        right: "8px",
-                        width: "10px",
-                        height: "10px",
-                        border: "2px solid white",
-                    }}
-                >
-                    <span className="visually-hidden">Notifikasi baru</span>
-                </span>
+                {/* Badge jumlah unread */}
+                {unreadCount > 0 && (
+                    <span
+                        className="position-absolute bg-danger rounded-circle d-flex align-items-center justify-content-center text-white font-bold"
+                        style={{
+                            top: "0px",
+                            right: "0px",
+                            width: "18px",
+                            height: "18px",
+                            fontSize: "10px",
+                            fontWeight: "700",
+                            border: "2px solid white",
+                        }}
+                    >
+                        {unreadCount}
+                    </span>
+                )}
             </div>
 
             {/* 2. Menu Dropdown: Menggunakan class pop-down milikmu */}
             <ul
-                className="dropdown-menu dropdown-menu-end border-1 mt-2 p-0 pop-down"
+                className="dropdown-menu dropdown-menu-end border-1 mt-2 p-0 pop-down shadow"
                 style={{
-                    width: "350px",
-                    borderRadius: "7px",
+                    width: "360px",
+                    borderRadius: "10px",
                     overflow: "hidden",
                 }}
             >
                 {/* Header */}
                 <li>
-                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
-                        <h6 className="m-0 fw-semibold">Notifikasi Event</h6>
-                        <span
-                            className="text-primary"
-                            style={{ fontSize: "12px", cursor: "pointer" }}
-                        >
-                            Tandai semua dibaca
-                        </span>
+                    <div className="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                        <h6 className="m-0 fw-semibold text-dark">Notifikasi Acara</h6>
+                        {unreadCount > 0 && (
+                            <span
+                                className="text-primary fw-medium"
+                                style={{ fontSize: "12px", cursor: "pointer" }}
+                                onClick={markAllAsRead}
+                            >
+                                Tandai semua dibaca
+                            </span>
+                        )}
                     </div>
                 </li>
 
                 {/* List Notifikasi (Scrollable) */}
                 <li>
                     <div style={{ maxHeight: "350px", overflowY: "auto" }}>
-                        {notifications.map((notif) => {
-                            const { icon, bg } = getNotificationStyle(
-                                notif.type,
-                            );
+                        {loading ? (
+                            <div className="text-center py-4 text-muted" style={{ fontSize: "14px" }}>
+                                Memuat notifikasi...
+                            </div>
+                        ) : notifications.length === 0 ? (
+                            <div className="text-center py-4 text-muted" style={{ fontSize: "14px" }}>
+                                Tidak ada notifikasi baru
+                            </div>
+                        ) : (
+                            notifications.map((notif) => {
+                                const data = typeof notif.data === "string" ? JSON.parse(notif.data) : (notif.data || {});
+                                const isUnread = !notif.read_at;
+                                const { icon, bg } = getNotificationStyle(data.type);
 
-                            return (
-                                <a
-                                    key={notif.id}
-                                    href="#"
-                                    className="dropdown-item d-flex p-3 border-bottom text-wrap align-items-start"
-                                    style={{ whiteSpace: "normal" }}
-                                >
+                                return (
                                     <div
-                                        className={`rounded d-flex align-items-center justify-content-center me-3 ${bg} bg-opacity-10`}
-                                        style={{
-                                            width: "36px",
-                                            height: "36px",
-                                            flexShrink: 0,
+                                        key={notif.id}
+                                        onClick={() => markAsRead(notif.id, data.event_id, data.type)}
+                                        className="d-flex p-3 border-bottom text-wrap align-items-start notification-item"
+                                        style={{ 
+                                            whiteSpace: "normal", 
+                                            cursor: "pointer",
+                                            backgroundColor: isUnread ? "rgba(247, 250, 252, 1)" : "transparent",
+                                            transition: "background-color 0.2s"
                                         }}
                                     >
-                                        {icon}
-                                    </div>
-                                    <div>
-                                        <h6
-                                            className="mb-1 fw-semibold"
+                                        <div
+                                            className={`rounded d-flex align-items-center justify-content-center me-3 ${bg} bg-opacity-10`}
                                             style={{
-                                                fontSize: "14px",
-                                                color: "#2d3748",
+                                                width: "36px",
+                                                height: "36px",
+                                                flexShrink: 0,
                                             }}
                                         >
-                                            {notif.title}
-                                        </h6>
-                                        <p
-                                            className="mb-1 text-muted"
-                                            style={{
-                                                fontSize: "13px",
-                                                lineHeight: "1.4",
-                                            }}
-                                        >
-                                            {notif.message}
-                                        </p>
-                                        <small
-                                            className="text-secondary"
-                                            style={{ fontSize: "11px" }}
-                                        >
-                                            {notif.time}
-                                        </small>
+                                            {icon}
+                                        </div>
+                                        <div className="flex-grow-1">
+                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                <h6
+                                                    className="mb-0 fw-semibold"
+                                                    style={{
+                                                        fontSize: "13px",
+                                                        color: isUnread ? "#1a202c" : "#718096",
+                                                    }}
+                                                >
+                                                    {data.title || "Pengingat Acara"}
+                                                </h6>
+                                                {isUnread && (
+                                                    <span 
+                                                        className="bg-primary rounded-circle"
+                                                        style={{ width: "8px", height: "8px", flexShrink: 0 }}
+                                                    />
+                                                )}
+                                            </div>
+                                            <p
+                                                className="mb-1 text-muted"
+                                                style={{
+                                                    fontSize: "12px",
+                                                    lineHeight: "1.4",
+                                                    fontWeight: isUnread ? "500" : "normal"
+                                                }}
+                                            >
+                                                {data.message}
+                                            </p>
+                                            <small
+                                                className="text-secondary"
+                                                style={{ fontSize: "11px" }}
+                                            >
+                                                {timeAgo(notif.created_at)}
+                                            </small>
+                                        </div>
                                     </div>
-                                </a>
-                            );
-                        })}
+                                );
+                            })
+                        )}
                     </div>
                 </li>
 
                 {/* Footer */}
                 <li>
-                    <div className="pt-1 pb-2 px-2 text-center border-top">
-                        <a
-                            href="#"
-                            className="text-primary text-decoration-none"
-                            style={{ fontSize: "13px", fontWeight: "500" }}
+                    <div className="pt-2 pb-2 px-2 text-center border-top bg-light">
+                        <span
+                            className="text-primary text-decoration-none fw-semibold"
+                            style={{ fontSize: "13px", cursor: "default" }}
                         >
-                            Lihat semua notifikasi
-                        </a>
+                            Pusat Notifikasi KampusX
+                        </span>
                     </div>
                 </li>
             </ul>

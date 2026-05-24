@@ -8,6 +8,9 @@ import {
     MonitorPlay,
     Clock,
     LogOut,
+    Award,
+    LayoutDashboard,
+    ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
@@ -106,13 +109,23 @@ const NavbarPublic = () => {
                         >
                             Eksplor Event
                         </Link>
-                        <Link
-                            to="/organizer/buat-acara"
-                            className="text-decoration-none"
-                            style={{ color: "var(--color-text)" }}
-                        >
-                            Buat Event
-                        </Link>
+                        {user && (user.role === 'admin' || user.role === 'organizer') ? (
+                            <Link
+                                to="/organizer/buat-acara"
+                                className="text-decoration-none"
+                                style={{ color: "var(--color-text)" }}
+                            >
+                                Buat Event
+                            </Link>
+                        ) : (
+                            <Link
+                                to="/apply-organizer"
+                                className="text-decoration-none"
+                                style={{ color: "var(--color-text)" }}
+                            >
+                                Daftar Organizer
+                            </Link>
+                        )}
                         <Link
                             to="/about"
                             className="text-decoration-none"
@@ -160,6 +173,39 @@ const NavbarPublic = () => {
                                             Halo, {user.name || "Peserta"}
                                         </p>
                                     </div>
+                                    {user.role === 'admin' || user.role === 'organizer' ? (
+                                        <Link
+                                            to="/organizer/dashboard"
+                                            className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-dark hover-bg-light text-decoration-none"
+                                            onClick={() => setShowProfileMenu(false)}
+                                        >
+                                            <LayoutDashboard size={16} className="text-primary" />
+                                            <span style={{ fontSize: "var(--font-sm)" }}>Masuk Organizer</span>
+                                        </Link>
+                                    ) : (
+                                        <Link
+                                            to="/apply-organizer"
+                                            className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-dark hover-bg-light text-decoration-none"
+                                            onClick={() => setShowProfileMenu(false)}
+                                        >
+                                            <Award size={16} className="text-success" />
+                                            <span style={{ fontSize: "var(--font-sm)" }}>Daftar Organizer</span>
+                                        </Link>
+                                    )}
+
+                                    {user.role === 'admin' && (
+                                        <Link
+                                            to="/admin/dashboard"
+                                            className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-dark hover-bg-light text-decoration-none"
+                                            onClick={() => setShowProfileMenu(false)}
+                                        >
+                                            <ShieldCheck size={16} className="text-warning" />
+                                            <span style={{ fontSize: "var(--font-sm)" }}>Masuk Admin</span>
+                                        </Link>
+                                    )}
+
+                                    <div className="dropdown-divider my-1 opacity-10" />
+
                                     <button
                                         className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-danger hover-bg-light"
                                         onClick={handleLogout}

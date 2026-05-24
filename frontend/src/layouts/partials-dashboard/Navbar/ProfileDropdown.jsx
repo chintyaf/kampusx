@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Dropdown, Badge } from 'react-bootstrap';
 import { useAuth } from '../../../context/AuthContext';
 import userImg from '../../../assets/images/user-placeholder.avif';
-import { LogOut, Home, LayoutDashboard, ShieldCheck, ChevronRight, User } from 'lucide-react';
+import { LogOut, Home, LayoutDashboard, ShieldCheck, ChevronRight, User, Award } from 'lucide-react';
 
 // Komponen kustom untuk Trigger/Tombol Dropdown
 const CustomToggle = React.forwardRef(({ children, onClick, isOpen }, ref) => (
@@ -73,6 +73,15 @@ const ProfileDropdown = () => {
 			iconBorder: '#b9e7fe',
 			iconColor: '#00699e',
 			show: role === 'admin' || role === 'organizer',
+		},
+		{
+			icon: Award,
+			label: 'Daftar Organizer',
+			to: '/apply-organizer',
+			iconBg: '#f0fdf4',
+			iconBorder: '#bbf7d0',
+			iconColor: '#16a34a',
+			show: role !== 'admin' && role !== 'organizer',
 		},
 		{
 			icon: ShieldCheck,

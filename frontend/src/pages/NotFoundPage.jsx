@@ -18,7 +18,7 @@ const NotFound = () => {
 			<main className="flex-grow-1 d-flex align-items-center justify-content-center px-3">
 				<div className="text-center">
 					{/* 404 Number */}
-					<div>
+					{/* <div>
 						<span
 							style={{
 								fontSize: 'clamp(100px, 22vw, 180px)',
@@ -33,7 +33,7 @@ const NotFound = () => {
 							}}>
 							404
 						</span>
-					</div>
+					</div> */}
 
 					{/* Text & CTA */}
 					<div className="mt-3">

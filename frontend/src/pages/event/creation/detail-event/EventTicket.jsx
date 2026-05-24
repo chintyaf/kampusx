@@ -52,6 +52,7 @@ export default function EventTicket() {
 				const response = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
 				const result = response.data;
 				setTickets(result.data || []);
+				// console.log(result.data);
 			} catch (err) {
 				console.error('Error saving tickets:', err);
 			}

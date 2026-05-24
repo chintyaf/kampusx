@@ -20,10 +20,22 @@ class AdminController extends Controller
         
         $req->update(['status' => $request->status]);
 
+        $user = User::findOrFail($req->user_id);
         if ($request->status === 'approved') {
-            $user = User::findOrFail($req->user_id);
             // Hanya ubah ke organizer jika sebelumnya participant/committee
             $user->update(['role' => 'organizer']);
+
+            $user->notify(new \App\Notifications\OperationalNotification(
+                'Persetujuan Organizer',
+                'Selamat! Pengajuan Anda sebagai Organizer telah DI-SETUJUI oleh Admin Pusat. Silakan login kembali untuk menikmati akses fitur Organizer.',
+                'organizer_approved'
+            ));
+        } else {
+            $user->notify(new \App\Notifications\OperationalNotification(
+                'Persetujuan Organizer',
+                'Maaf, pengajuan Anda sebagai Organizer telah DI-TOLAK oleh Admin Pusat karena dokumen pendukung kurang lengkap atau belum memenuhi persyaratan.',
+                'organizer_rejected'
+            ));
         }
 
         return response()->json([
@@ -42,7 +54,19 @@ class AdminController extends Controller
         
         $user->update(['status' => $request->status]);
         
-        if ($request->status === 'banned') {
+        if ($request->status === 'suspended') {
+            $user->notify(new \App\Notifications\OperationalNotification(
+                'Keamanan Akun',
+                'PENTING: Akun Anda ditangguhkan (SUSPENDED) sementara oleh Admin Pusat karena terdeteksi melanggar pedoman komunitas KampusX.',
+                'account_suspended'
+            ));
+        } elseif ($request->status === 'banned') {
+            $user->notify(new \App\Notifications\OperationalNotification(
+                'Keamanan Akun',
+                'PERINGATAN: Akun Anda telah diblokir secara permanen (BANNED) dari platform KampusX karena pelanggaran fatal terhadap syarat dan ketentuan.',
+                'account_banned'
+            ));
+
             $user->update(['is_verified' => false]);
             // Membatalkan semua token jika akun di-banned
             $user->tokens()->delete();
@@ -80,4 +104,17 @@ class AdminController extends Controller
             'is_featured' => $event->is_featured
         ], 200);
     }
+
+    /**
+     * 5. View All Organizer Requests (Admin Verification)
+     */
+    public function getOrganizerRequests()
+    {
+        $requests = OrganizerRequest::with('user')->orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'success' => true,
+            'data' => $requests
+        ], 200);
+    }
 }
+

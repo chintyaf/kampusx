@@ -1,0 +1,150 @@
+/* =========================================
+   ORGANIZER DASHBOARD STYLES (NO INLINE CSS)
+   ========================================= */
+
+/* Navigation Sidebar Styles */
+.org-nav-item {
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.15s;
+	background-color: transparent;
+	color: var(--color-text-muted);
+}
+
+.org-nav-item:hover:not(.active) {
+	background-color: var(--color-border) !important;
+	color: var(--color-text) !important;
+}
+
+.org-nav-item.active {
+	background-color: var(--color-text) !important;
+	color: #ffffff !important;
+}
+
+/* Status Badge Styles */
+.org-status-badge {
+	border-radius: 5px;
+	font-size: 11px;
+	font-family: 'DM Mono', 'Fira Mono', monospace;
+	letter-spacing: 0.02em;
+}
+
+.org-status-badge.status-draft {
+	background-color: var(--warning-bg);
+	color: var(--warning-text);
+}
+
+.org-status-badge.status-published {
+	background-color: var(--success-bg);
+	color: var(--success-text);
+}
+
+.org-status-badge.status-ongoing {
+	background-color: var(--bahama-blue-50);
+	color: var(--bahama-blue-600);
+}
+
+.org-status-badge.status-completed {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+}
+
+/* Section Header Styles */
+.org-content-container {
+	flex: 2 1 0%;
+	background-color: var(--color-white);
+	border-color: var(--color-border);
+	border-radius: 12px;
+}
+
+.org-section-title {
+	color: var(--color-text);
+}
+
+.org-search-icon {
+	left: 10px;
+	pointer-events: none;
+}
+
+.org-search-input {
+	padding-left: 30px;
+	color: var(--color-text);
+	background-color: var(--color-bg);
+	outline: none;
+	width: 200px;
+	border-color: var(--color-border);
+}
+
+/* State Warning Styles */
+.org-state-text-muted {
+	color: var(--color-text-muted);
+}
+
+.org-state-text-danger {
+	color: var(--danger-text);
+}
+
+/* Event Card Item Styles */
+.org-event-card {
+	cursor: pointer;
+	background-color: var(--color-white);
+	border-color: var(--color-border);
+	border-radius: 10px;
+	transition:
+		border-color 0.15s ease,
+		background-color 0.15s ease,
+		box-shadow 0.15s ease !important;
+}
+
+.org-event-card:hover {
+	border-color: var(--bahama-blue-300) !important;
+	background-color: var(--color-bg) !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.org-event-thumbnail {
+	width: 56px;
+	height: 56px;
+	background-color: var(--color-bg);
+	border-radius: 8px;
+	border-color: var(--color-border);
+}
+
+.org-event-title {
+	color: var(--color-text);
+	display: block;
+	max-width: 100%;
+}
+
+.org-event-meta {
+	color: var(--color-text-muted);
+}
+
+.org-attention-badge {
+	font-size: 11px;
+	border-radius: 5px;
+}
+
+.org-attention-badge.attention-draft {
+	color: var(--warning-text);
+	background-color: var(--warning-bg);
+}
+
+.org-attention-badge.attention-completed {
+	color: var(--purple-text);
+	background-color: var(--purple-bg);
+}
+
+.org-event-btn {
+	cursor: pointer;
+	transition: all 0.15s;
+	background-color: transparent;
+	color: var(--color-text-muted);
+	border-radius: 7px;
+	border-color: var(--color-border);
+}
+
+.org-event-btn:hover {
+	border-color: var(--color-text) !important;
+	color: var(--color-text) !important;
+}

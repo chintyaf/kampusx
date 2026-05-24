@@ -12,7 +12,8 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 			<div className="p-3 border-bottom">
 				<label
 					className="text-muted text-uppercase fw-bold small mb-3"
-					style={{ letterSpacing: '1px', fontSize: '0.75rem' }}>
+					style={{ letterSpacing: '1px', fontSize: '0.75rem' }}
+				>
 					Elemen Dinamis
 				</label>
 				<div className="d-flex flex-column gap-1">
@@ -22,14 +23,17 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 							<div
 								key={field.id}
 								onClick={() => !added && addField(field)}
-								className={`d-flex align-items-center gap-3 p-2 rounded-3 dynamic-element-item ${added ? 'added-item' : 'cursor-pointer'}`}>
+								className={`d-flex align-items-center gap-3 p-2 rounded-3 dynamic-element-item ${added ? 'added-item' : 'cursor-pointer'}`}
+							>
 								<div
-									className={`p-2 rounded bg-white border d-flex align-items-center justify-content-center ${added ? 'text-primary border-primary-subtle' : 'text-muted'}`}>
+									className={`p-2 rounded bg-white border d-flex align-items-center justify-content-center ${added ? 'text-primary border-primary-subtle' : 'text-muted'}`}
+								>
 									{field.icon}
 								</div>
 								<span
-									className={`flex-grow-1 fs-6 ${added ? 'text-dark' : 'text-body'}`}>
-									{field.label}
+									className={`flex-grow-1 fs-6 ${added ? 'text-dark' : 'text-body'}`}
+								>
+									{field.label} {field.id === 'f3' && <span className="text-danger small fw-bold">*</span>}
 								</span>
 								{added ? (
 									<Check size={16} className="text-primary" />
@@ -48,7 +52,8 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 					<>
 						<label
 							className="text-muted text-uppercase fw-bold small mb-3 ps-1"
-							style={{ letterSpacing: '1px', fontSize: '0.75rem' }}>
+							style={{ letterSpacing: '1px', fontSize: '0.75rem' }}
+						>
 							Di Canvas
 						</label>
 						<div className="d-flex flex-column gap-1">
@@ -58,7 +63,8 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 									<div
 										key={el.id}
 										onClick={() => setSelectedId(el.id)}
-										className="d-flex align-items-center gap-2 p-2 rounded-2 cursor-pointer on-canvas-item">
+										className="d-flex align-items-center gap-2 p-2 rounded-2 cursor-pointer on-canvas-item"
+									>
 										<GripVertical size={14} className="text-muted" />
 										<div className="p-1 rounded bg-light border d-flex align-items-center justify-content-center text-secondary">
 											{field?.icon}
@@ -72,7 +78,8 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 											onClick={(e) => {
 												e.stopPropagation();
 												deleteEl(el.id);
-											}}>
+											}}
+										>
 											<X size={14} />
 										</Button>
 									</div>

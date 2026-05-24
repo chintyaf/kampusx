@@ -27,6 +27,23 @@ export default function DemographicsCard({
     { label: 'Jurusan Unik',  value: 5 },
   ],
 }) {
+  const totalParticipants = totals.find(t => t.label === 'Total Peserta')?.value || 0;
+
+  if (totalParticipants === 0 || data.length === 0 || (data.length === 1 && data[0].pct === 0)) {
+    return (
+      <div className="card h-100">
+        <div className="card-title">
+          <Users size={15} />
+          {title}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px 0', minHeight: 220, color: 'var(--text-muted)' }}>
+          <Users size={32} style={{ marginBottom: 10, opacity: 0.4, color: 'var(--text-muted)' }} />
+          <span style={{ fontSize: 13, fontWeight: 500 }}>Tidak ada data</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card h-100">
       <div className="card-title">

@@ -17,6 +17,8 @@ import {
 	ClipboardList,
 	MapPin,
 	CalendarDays,
+	Building2,
+	Wallet,
 } from 'lucide-react';
 
 // ... (kode lainnya)
@@ -29,6 +31,26 @@ export const MENU_ITEMS = {
 			icon: <LayoutDashboard size={16} className="me-2" />,
 			path: 'admin/dashboard',
 		},
+
+		{
+			id: '3',
+			name: 'Kelola Pengguna',
+			icon: <UsersRound size={16} className="me-2" />,
+			path: 'admin/kelola-pengguna',
+		},
+		{
+			id: '4',
+			name: 'Pantau Acara',
+			icon: <CalendarDays size={16} className="me-2" />,
+			path: 'admin/pantau-acara',
+		},
+		{
+			id: 'institusi',
+			name: 'Institusi',
+			icon: <Building2 size={16} className="me-2" />,
+			path: 'admin/master-data/institusi',
+		},
+
 		{
 			id: '2',
 			name: 'Verifikasi Organizer',
@@ -36,22 +58,31 @@ export const MENU_ITEMS = {
 			path: 'admin/verifikasi-organizer',
 		},
 		{
-			id: '3',
-			name: 'Kelola Pengguna',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/kelola-pengguna',
-		},
-		{
-			id: '4',
-			name: 'Pantau Acara',
-			icon: <UserCheck size={16} className="me-2" />,
-			path: 'admin/pantau-acara',
-		},
-		{
 			id: '5',
 			name: 'Kontrol Promosi',
-			icon: <UserCheck size={16} className="me-2" />,
+			icon: <Megaphone size={16} className="me-2" />,
 			path: 'admin/kontrol-promosi',
+		},
+
+		{
+			id: 'master-data',
+			name: 'Master Data',
+			icon: <FolderOpen size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
+			path: 'admin/master-data',
+			submenu: [
+				{
+					name: 'Kategori',
+					path: 'kategori',
+				},
+				{
+					name: 'Tipe Event',
+					path: 'tipe-event',
+				},
+				{
+					name: 'Institusi',
+					path: 'institusi',
+				},
+			],
 		},
 	],
 	organizer: [
@@ -82,10 +113,26 @@ export const MENU_ITEMS = {
 			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
 			path: '/organizer/:eventId/event-dashboard/detail',
 			submenu: [
-				{ name: 'Informasi Umum', path: 'info', isCompleted: true },
-				{ name: 'Tempat Pelaksanaan', path: 'tempat', isCompleted: true },
-				{ name: 'Jadwal', path: 'sesi', isCompleted: true },
-				{ name: 'Kategori Tiket', path: 'tiket', isCompleted: false },
+				{
+					name: 'Informasi Umum',
+					path: 'info',
+					// isCompleted: true
+				},
+				{
+					name: 'Tempat Pelaksanaan',
+					path: 'tempat',
+					// isCompleted: true
+				},
+				{
+					name: 'Jadwal',
+					path: 'sesi',
+					// isCompleted: true
+				},
+				{
+					name: 'Kategori Tiket',
+					path: 'tiket',
+					// isCompleted: false
+				},
 			],
 		},
 		{
@@ -107,9 +154,21 @@ export const MENU_ITEMS = {
 			icon: <BookOpen size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/modul-belajar',
 			submenu: [
-				{ name: 'Materi Acara', path: 'materi-acara', isCompleted: true },
-				{ name: 'Materi Pasca-Acara', path: 'materi-after', isCompleted: false },
-				{ name: 'Kelola Kuis', path: 'kuis', isCompleted: false },
+				{
+					name: 'Materi Acara',
+					path: 'materi-acara',
+					// isCompleted: true
+				},
+				{
+					name: 'Materi Pasca-Acara',
+					path: 'materi-after',
+					//  isCompleted: false
+				},
+				{
+					name: 'Kelola Kuis',
+					path: 'kuis',
+					// isCompleted: false
+				},
 			],
 		},
 		{
@@ -122,7 +181,7 @@ export const MENU_ITEMS = {
 			id: 'sertifikat-event',
 			name: 'Sertifikat',
 			icon: <Award size={16} className="me-2" />, // Icon medali/penghargaan sangat pas untuk sertifikat
-			path: '/organizer/:eventId/event-dashboard/sertifikat/sertifikat',
+			path: '/organizer/:eventId/event-dashboard/sertifikat',
 			// submenu: [
 			// 	{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
 			// 	{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
@@ -140,6 +199,18 @@ export const MENU_ITEMS = {
 			name: 'Statistik',
 			icon: <ChartColumn size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/statistik',
+		},
+		{
+			id: 'wallet-split',
+			name: 'Dompet & Bagi Hasil',
+			icon: <Wallet size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/wallet-split',
+		},
+		{
+			id: 'analytics',
+			name: 'Analisis & Laporan',
+			icon: <ChartColumn size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/analytics',
 		},
 	],
 };

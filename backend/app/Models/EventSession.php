@@ -4,6 +4,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EventSession extends Model
 {
@@ -16,10 +17,12 @@ class EventSession extends Model
         'start_time',
         'end_time',
         'prerequisite_session_ids',
+        'is_published',
     ];
 
     protected $casts = [
         'prerequisite_session_ids' => 'array', // Casting kolom JSON ke Array
+        'is_published' => 'boolean',
     ];
 
     public function event(): BelongsTo
@@ -36,6 +39,12 @@ class EventSession extends Model
             'session_id',
             'speaker_id'
         );
+    }
+
+    // Relasi One-to-Many ke SessionMaterial
+    public function materials(): HasMany
+    {
+        return $this->hasMany(SessionMaterial::class, 'event_session_id')->orderBy('sort_order');
     }
 
 }

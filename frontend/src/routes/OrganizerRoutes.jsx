@@ -1,5 +1,6 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
+import EventOrganizerGuard from '@/components/guards/EventOrganizerGuard';
 
 import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
@@ -32,6 +33,8 @@ import CreateCertificatePage from '../pages/event/post-event/certificate/CreateC
 import PostEventContentUploadPage from '../pages/event/post-event/PostEventContentUploadPage/index';
 // import { Certificate } from 'node:crypto';
 import EventCertificatePage from '../pages/event/post-event/certificate/EventCertificatePage.jsx';
+import EventWalletSplitPage from '../pages/event/management/EventWalletSplitPage/index';
+import EventAnalyticsPage from '../pages/event/management/EventAnalyticsPage/index';
 
 export const OrganizerRoutes = (
 	<Route path="organizer">
@@ -41,7 +44,7 @@ export const OrganizerRoutes = (
 		<Route path="buat-acara" element={<CreateEvent />} />
 
 		{/* Event Routes untuk Detail Event */}
-		<Route path=":eventId/event-dashboard">
+		<Route path=":eventId/event-dashboard" element={<EventOrganizerGuard />}>
 			<Route path="" element={<EventDashboardPage />} />
 			<Route path="detail">
 				<Route path="info" element={<EventGeneralInfo />} />
@@ -67,14 +70,16 @@ export const OrganizerRoutes = (
 			<Route path="upload-sertifikat" element={<EventPosPage />} />
 
 			<Route path="statistik" element={<EventStatistics />} />
+			<Route path="wallet-split" element={<EventWalletSplitPage />} />
+			<Route path="analytics" element={<EventAnalyticsPage />} />
 			<Route path="promosi" element={<EventPromotion />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
 
 			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
 			<Route path="sertifikat">
-				<Route path="atur-template" element={<CreateCertificatePage />} />
-				<Route path="kirim-sertifikat" element={<CertificateListPage />} />
-				<Route path="sertifikat" element={<EventCertificatePage />} />
+				<Route index element={<EventCertificatePage />} />
+				{/* <Route path="atur-template" element={<CreateCertificatePage />} /> */}
+				{/* <Route path="kirim-sertifikat" element={<CertificateListPage />} /> */}
 			</Route>
 
 			<Route path="event-location-test" element={<EventLocationTest />} />

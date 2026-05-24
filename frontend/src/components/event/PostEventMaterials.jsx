@@ -11,7 +11,7 @@ const PostEventMaterials = ({ eventId }) => {
 
     useEffect(() => {
         if (!eventId) return;
-        
+
         const fetchMaterials = async () => {
             try {
                 const res = await axios.get(`/api/events/${eventId}/materials`);
@@ -38,7 +38,7 @@ const PostEventMaterials = ({ eventId }) => {
             <Alert variant="danger" className="d-flex align-items-center mt-3 shadow-sm rounded-4 border-0">
                 <Lock className="me-3" size={24} />
                 <div>
-                    <strong>Konten Terkunci</strong><br/>
+                    <strong>Konten Terkunci</strong><br />
                     {errorMsg}
                 </div>
             </Alert>
@@ -77,9 +77,9 @@ const PostEventMaterials = ({ eventId }) => {
                                 <div className="flex-grow-1">
                                     <h6 className="mb-1 fw-bold">{mat.title}</h6>
                                     {mat.description && <p className="text-muted small mb-0 mb-2">{mat.description}</p>}
-                                    <Button 
-                                        variant={mat.type === 'video' ? 'outline-danger' : 'outline-primary'} 
-                                        size="sm" 
+                                    <Button
+                                        variant={mat.type === 'video' ? 'outline-danger' : 'outline-primary'}
+                                        size="sm"
                                         className="rounded-pill px-3"
                                         href={mat.url}
                                         target="_blank"
@@ -93,7 +93,7 @@ const PostEventMaterials = ({ eventId }) => {
                     </div>
                 ))}
             </div>
-            
+
             {!isAttended && (
                 <Alert variant="warning" className="mt-4 border-0 rounded-4 d-flex align-items-start shadow-sm">
                     <Lock size={20} className="me-2 mt-1 flex-shrink-0" />

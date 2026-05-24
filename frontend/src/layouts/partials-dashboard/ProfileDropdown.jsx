@@ -16,6 +16,8 @@ const ProfileDropdown = () => {
         console.log("Logging out...");
     };
 
+    if (!user) return null;
+
     return (
         <>
             <div className="dropdown">
@@ -52,6 +54,17 @@ const ProfileDropdown = () => {
                         </NavLink>
                     </li>
                 )}
+                {user.role === "participant" && (
+                    <li>
+                        <NavLink
+                            to="/apply-organizer"
+                            className="dropdown-item d-flex align-items-center gap-2 py-2"
+                        >
+                            <SquarePen size={16} />
+                            <span>Daftar Penyelenggara</span>
+                        </NavLink>
+                    </li>
+                )}
                 {(user.role === "admin") && (
                     <li>
                         <NavLink
@@ -63,6 +76,7 @@ const ProfileDropdown = () => {
                         </NavLink>
                     </li>
                 )}
+
                     <li>
                         <button
                             className="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"

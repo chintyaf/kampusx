@@ -14,11 +14,12 @@ const EventListSection = ({ title, events, seeAllUrl, style }) => {
       />
       <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }}>
         {events.map((ev) => (
-          <EventCard
-            key={ev.id}
-            ev={ev}
-            onClick={() => navigate(`/event/${ev.id}`)}
-          />
+          <div key={ev.id} style={{ width: '280px', flexShrink: 0 }}>
+            <EventCard
+              ev={ev}
+              onClick={() => navigate(`/event/${ev.id}`)}
+            />
+          </div>
         ))}
       </div>
     </section>

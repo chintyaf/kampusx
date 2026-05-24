@@ -7,12 +7,16 @@ const iconStyles = {
 	red: { backgroundColor: '#fee2e2', color: '#991b1b' },
 };
 
-const StatCard = ({ Icon, label, value, type }) => {
-	const style = iconStyles[type] || iconStyles.blue;
+const StatCard = ({ Icon, label, value, type, className, style: customStyle, iconBg, iconColor }) => {
+	const defaultStyle = iconStyles[type] || iconStyles.blue;
+	const iconStyle = {
+		backgroundColor: iconBg || defaultStyle.backgroundColor,
+		color: iconColor || defaultStyle.color,
+	};
 
 	return (
-		<div className="stat-card">
-			<div style={style} className="stat-card__icon">
+		<div className={`stat-card ${className || ''}`} style={customStyle}>
+			<div style={iconStyle} className="stat-card__icon">
 				{Icon ? <Icon size={17} /> : <div className="placeholder-icon" />}
 			</div>
 			<div>

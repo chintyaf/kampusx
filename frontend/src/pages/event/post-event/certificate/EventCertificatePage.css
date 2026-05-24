@@ -7,8 +7,8 @@
 }
 
 .cert-sidebar {
-    min-width: 300px;
-    max-width: 300px;
+	min-width: 300px;
+	max-width: 300px;
 }
 
 .canvas-area {
@@ -80,4 +80,37 @@
 .sidebar-scrollable::-webkit-scrollbar-thumb {
 	background-color: #ced4da;
 	border-radius: 4px;
+}
+
+/* Certificate Preview Modal Classes */
+.cert-preview-wrapper {
+	width: 100%;
+	max-width: 900px;
+}
+
+.cert-preview-area {
+	display: block;
+	width: 100%;
+	user-select: none;
+	break-inside: avoid;
+	page-break-inside: avoid;
+}
+
+.cert-preview-bg {
+	width: 100%;
+	height: auto;
+	display: block;
+	pointer-events: none;
+}
+
+.cert-preview-element {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	user-select: none;
+}
+
+.cert-preview-qr {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
 }

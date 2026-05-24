@@ -60,6 +60,21 @@ function DonutChart({ segments, total }) {
 export default function TicketDistribution({ tickets = defaultTickets }) {
   const total = tickets.reduce((s, t) => s + t.count, 0);
 
+  if (total === 0) {
+    return (
+      <div className="card h-100">
+        <div className="card-title">
+          <TicketIcon size={15} />
+          Ticket Distribution
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px 0', minHeight: 220, color: 'var(--text-muted)' }}>
+          <TicketIcon size={32} style={{ marginBottom: 10, opacity: 0.4, color: 'var(--text-muted)' }} />
+          <span style={{ fontSize: 13, fontWeight: 500 }}>Tidak ada data</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card h-100">
       <div className="card-title">

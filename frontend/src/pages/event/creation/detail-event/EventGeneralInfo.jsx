@@ -1,17 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
-import { Form } from 'react-bootstrap';
+import { Form, Modal, Button } from 'react-bootstrap';
 import Select from 'react-select';
+import Cropper from 'react-easy-crop';
 import EventLayout from '../../../../layouts/EventLayout';
 import api from '../../../../api/axios';
 import { STORAGE_URL } from '../../../../api/storage';
 import { notify } from '../../../../utils/notify';
 // ICON
-import { Image } from 'lucide-react';
+import { Image, Upload } from 'lucide-react';
+import getCroppedImg from '@/utils/cropImage';
+import UploadImage from './sections/event-info/UploadImage';
+import EventPreview from './sections/event-info/EventPreview';
 
 const EventGeneralInfo = () => {
 	const { eventId } = useParams();
-	const { setIsPageLoading } = useOutletContext() || {};
+	// const { setIsPageLoading } = useOutletContext() || {};
 
 	const [formData, setFormData] = useState({
 		title: '',
@@ -20,6 +24,15 @@ const EventGeneralInfo = () => {
 		kategori: [],
 		eventType: [],
 	});
+
+	// ==========================================
+	// STATE UNTUK CROP GAMBAR
+	// ==========================================
+	const [showCropModal, setShowCropModal] = useState(false);
+	const [imageSrc, setImageSrc] = useState(null);
+	const [crop, setCrop] = useState({ x: 0, y: 0 });
+	const [zoom, setZoom] = useState(1);
+	const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
 	// ==========================================
 	// STATE UNTUK OPTIONS & LOADING DROPDOWN
@@ -49,22 +62,44 @@ const EventGeneralInfo = () => {
 		setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
 	};
 
+	// ==========================================
+	// HANDLER CROP & UPLOAD GAMBAR
+	// ==========================================
 	const handleFileChange = (e) => {
 		const file = e.target.files[0];
-		if (file) {
-			file.preview = URL.createObjectURL(file);
-			setFormData((prev) => ({ ...prev, banner: file }));
+		if (!file) return;
+
+		if (!file.type.startsWith('image/')) {
+			notify('error', 'Gagal!', 'File yang diunggah harus berupa gambar.');
+			e.target.value = '';
+			return;
 		}
+
+		const reader = new FileReader();
+		reader.readAsDataURL(file);
+		reader.onload = () => {
+			setImageSrc(reader.result);
+			setShowCropModal(true); // Buka modal crop
+		};
+
+		e.target.value = ''; // Reset input
 	};
 
-	// Bersihkan URL object saat komponen unmount untuk mencegah memory leak dari preview image
-	useEffect(() => {
-		return () => {
-			if (formData.banner && formData.banner.preview) {
-				URL.revokeObjectURL(formData.banner.preview);
-			}
-		};
-	}, [formData.banner]);
+	const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+		setCroppedAreaPixels(croppedAreaPixels);
+	}, []);
+
+	const handleSaveCrop = async () => {
+		try {
+			const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels);
+
+			// Timpa banner lama dengan file hasil crop
+			setFormData((prev) => ({ ...prev, banner: croppedFile }));
+			setShowCropModal(false);
+		} catch (e) {
+			console.error('Error saat cropping:', e);
+		}
+	};
 
 	// ==========================================
 	// FETCH DATA ON DEMAND (SAAT DROPDOWN DIKLIK)
@@ -118,7 +153,7 @@ const EventGeneralInfo = () => {
 	// ==========================================
 	useEffect(() => {
 		const fetchEventData = async () => {
-			if (setIsPageLoading) setIsPageLoading(true);
+			// if (setIsPageLoading) setIsPageLoading(true);
 
 			try {
 				const response = await api.get(`event-dashboard/${eventId}/info-utama`);
@@ -148,14 +183,14 @@ const EventGeneralInfo = () => {
 			} catch (error) {
 				console.error('Gagal mengambil data event:', error);
 			} finally {
-				if (setIsPageLoading) setIsPageLoading(false);
+				// if (setIsPageLoading) setIsPageLoading(false);
 			}
 		};
 
 		if (eventId) {
 			fetchEventData();
 		}
-	}, [eventId, setIsPageLoading]);
+	}, [eventId]);
 
 	// ==========================================
 	// SUBMIT DATA
@@ -200,10 +235,12 @@ const EventGeneralInfo = () => {
 			title="Informasi Utama"
 			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
-			onSave={handleUpdate}>
+			onSave={handleUpdate}
+			sidebar={<EventPreview />}
+		>
 			<Form>
 				<Form.Group className="mb-4" controlId="formTitle">
-					<Form.Label>Nama Event</Form.Label>
+					<Form.Label className="required">Nama Event</Form.Label>
 					<Form.Control
 						required
 						type="text"
@@ -231,7 +268,7 @@ const EventGeneralInfo = () => {
 				</Form.Group>
 
 				<Form.Group className="mb-4">
-					<Form.Label>Tipe Event</Form.Label>
+					<Form.Label className="form-label">Tipe Event</Form.Label>
 					<Select
 						isMulti
 						value={formData.eventType}
@@ -239,8 +276,8 @@ const EventGeneralInfo = () => {
 						isLoading={isEventTypeLoading}
 						onMenuOpen={fetchEventTypes}
 						placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
-						className="basic-multi-select"
-						classNamePrefix="select test"
+						className="react-select-container"
+						classNamePrefix="react-select"
 						onChange={(selected) => handleSelectChange('eventType', selected)}
 					/>
 				</Form.Group>
@@ -254,61 +291,52 @@ const EventGeneralInfo = () => {
 						isLoading={isKategoriLoading}
 						onMenuOpen={fetchCategories}
 						placeholder="Pilih kategori (Bisa lebih dari satu)..."
-						className="basic-multi-select"
-						classNamePrefix="select form-select"
+						className="react-select-container"
+						classNamePrefix="react-select"
 						onChange={(selected) => handleSelectChange('kategori', selected)}
 					/>
 				</Form.Group>
 
-				<Form.Group className="mb-4">
-					<Form.Label>Banner Event</Form.Label>
-					<div className="upload-box-wrapper">
-						<input
-							type="file"
-							id="bannerUpload"
-							className="hidden-input"
-							accept="image/*"
-							onChange={handleFileChange}
-						/>
-						<label htmlFor="bannerUpload" className="upload-box-label">
-							<div className="text-center">
-								<Image size={32} color="#a1a1a1" />
-								<p className="mb-0 text-muted mt-2">
-									{formData.banner
-										? formData.banner.name || formData.banner.split('/').pop()
-										: 'Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)'}
-								</p>
-							</div>
-						</label>
-					</div>
-				</Form.Group>
-
-				<div>
-					{formData.banner && (
-						<div
-							className="w-100 border mt-3"
-							style={{
-								height: '200px',
-								overflow: 'hidden',
-								borderRadius: '8px',
-							}}>
-							<img
-								src={
-									formData.banner instanceof File
-										? formData.banner.preview
-										: formData.banner
-								}
-								alt="Banner Preview"
-								style={{
-									width: '100%',
-									height: '100%',
-									objectFit: 'cover',
-								}}
-							/>
-						</div>
-					)}
-				</div>
+				<UploadImage formData={formData} setFormData={setFormData} />
 			</Form>
+
+			{/* ========================================== */}
+			{/* MODAL CROP GAMBAR */}
+			{/* ========================================== */}
+			<Modal
+				show={showCropModal}
+				onHide={() => setShowCropModal(false)}
+				size="lg"
+				centered
+				backdrop="static"
+			>
+				<Modal.Header closeButton>
+					<Modal.Title>Sesuaikan Banner (Rasio 2:3)</Modal.Title>
+				</Modal.Header>
+				<Modal.Body
+					style={{ position: 'relative', height: '400px', backgroundColor: '#333' }}
+				>
+					{imageSrc && (
+						<Cropper
+							image={imageSrc}
+							crop={crop}
+							zoom={zoom}
+							aspect={3 / 2}
+							onCropChange={setCrop}
+							onCropComplete={onCropComplete}
+							onZoomChange={setZoom}
+						/>
+					)}
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setShowCropModal(false)}>
+						Batal
+					</Button>
+					<Button variant="primary" onClick={handleSaveCrop}>
+						Simpan Potongan
+					</Button>
+				</Modal.Footer>
+			</Modal>
 		</EventLayout>
 	);
 };

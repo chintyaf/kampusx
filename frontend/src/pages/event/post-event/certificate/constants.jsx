@@ -60,7 +60,7 @@ export const INITIAL_ELEMENTS = [
 		label: '{ Nama Peserta }',
 		x: 50,
 		y: 46,
-		fontSize: 24,
+		fontSize: 64,
 		bold: true,
 		color: '#0f172a',
 	},
@@ -70,14 +70,27 @@ export const INITIAL_ELEMENTS = [
 		label: '{ ID Sertifikat }',
 		x: 50,
 		y: 56,
-		fontSize: 12,
+		fontSize: 24,
 		bold: false,
 		color: '#6c757d',
 	},
 ];
 
-export const FONT_SIZES = [10, 12, 14, 16, 20, 24, 28];
+export const FONT_SIZES = [12, 16, 20, 24, 28, 36, 48, 64, 72, 80, 96, 120];
 export const COLORS = ['#0f172a', '#0d6efd', '#1e3a5f', '#6c757d', '#ffffff', '#fd7e14', '#198754'];
+
+export const FONTS = [
+	{ name: 'Arial', family: 'Arial, sans-serif' },
+	{ name: 'Georgia', family: 'Georgia, serif' },
+	{ name: 'Times New Roman', family: 'Times New Roman, Times, serif' },
+	{ name: 'Courier New', family: 'Courier New, monospace' },
+	{ name: 'Montserrat', family: 'Montserrat, sans-serif' },
+	{ name: 'Playfair Display', family: 'Playfair Display, serif' },
+	{ name: 'Great Vibes', family: 'Great Vibes, cursive' },
+	{ name: 'Cinzel', family: 'Cinzel, serif' },
+	{ name: 'Alex Brush', family: 'Alex Brush, cursive' },
+	{ name: 'Inter', family: 'Inter, sans-serif' }
+];
 
 export const QR_PATTERN = Array.from({ length: 25 }, (_, i) =>
 	[0, 1, 3, 5, 6, 7, 10, 12, 14, 17, 18, 19, 21, 23, 24].includes(i),

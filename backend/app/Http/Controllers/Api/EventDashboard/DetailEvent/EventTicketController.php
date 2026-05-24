@@ -13,7 +13,7 @@ class EventTicketController extends Controller
     /**
      * Menampilkan tiket event, jika belum ada buat otomatis berdasarkan tipe lokasi.
      */
-    public function index($eventId)
+    public function index(int $eventId)
     {
         // 1. Ambil data event beserta relasi lokasinya
         // Sesuaikan nama relasi 'location' dengan yang ada di model Event Anda
@@ -71,7 +71,7 @@ class EventTicketController extends Controller
 /**
      * Memperbarui atau menambahkan tiket baru untuk event tertentu secara massal.
      */
-    public function update(Request $request, $eventId)
+    public function update(Request $request, int $eventId)
     {
         // Validasi struktur data array tiket
         $request->validate([
