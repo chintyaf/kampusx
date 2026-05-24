@@ -110,7 +110,7 @@ const UploadImage = ({ formData, setFormData }) => {
 									src={
 										formData.banner instanceof File
 											? URL.createObjectURL(formData.banner) ||
-												formData.banner.preview
+											formData.banner.preview
 											: formData.banner
 									}
 									alt="Banner Preview"

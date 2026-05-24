@@ -167,16 +167,15 @@ class AdminController extends Controller
             'rejection_reason' => $request->status === 'rejected' ? $request->input('rejection_reason') : null,
             'can_resubmit' => $request->status === 'rejected' ? ($request->has('can_resubmit') ? (bool)$request->input('can_resubmit') : true) : true,
         ]);
-
         if ($request->status === 'approved') {
             $updateData = [
-                'role' => 'organizer'
+                'role' => 'organizer',
+                'affiliation_valid_until' => null, // Dynamic inactivity basis is used instead of fixed expiry date
             ];
             
             // Set university affiliation dynamically on user if it exists on request
             if ($req->institution_id) {
                 $updateData['university_id'] = $req->institution_id;
-                $updateData['affiliation_valid_until'] = now()->addYear(); // Masa kepengurusan otomatis aktif selama 1 tahun
             } elseif ($req->custom_institution_name) {
                 // Buat institusi baru secara otomatis jika nama kustom diisi
                 $newInstitution = \App\Models\Institution::create([
@@ -185,17 +184,19 @@ class AdminController extends Controller
                     'description' => 'Institusi baru terdaftar via pengajuan organizer.',
                 ]);
                 $updateData['university_id'] = $newInstitution->id;
-                $updateData['affiliation_valid_until'] = now()->addYear(); // Masa kepengurusan otomatis aktif selama 1 tahun
                 
                 // Update request agar terhubung ke institusi baru
                 $req->update(['institution_id' => $newInstitution->id]);
+            } else {
+                // EO Independen / Luar
+                $updateData['university_id'] = null;
             }
             
             $user->update($updateData);
 
             $user->notify(new \App\Notifications\OperationalNotification(
                 'Persetujuan Organizer',
-                'Selamat! Pengajuan Anda sebagai Organizer telah DI-SETUJUI oleh Admin Pusat. Afiliasi kampus Anda aktif otomatis selama 1 tahun. Silakan login kembali untuk menikmati akses fitur Organizer.',
+                'Selamat! Pengajuan Anda sebagai Organizer telah DI-SETUJUI oleh Admin Pusat. Akun Anda aktif secara permanen dan otomatis kembali menjadi member jika tidak membuat event baru dalam 1 tahun. Silakan login kembali untuk menikmati akses fitur Organizer.',
                 'organizer_approved'
             ));
         } elseif ($request->status === 'rejected') {

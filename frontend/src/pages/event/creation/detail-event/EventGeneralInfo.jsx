@@ -168,15 +168,15 @@ const EventGeneralInfo = () => {
 						banner: data.banner || null,
 						kategori: data.tags_kategori
 							? data.tags_kategori.map((cat) => ({
-									value: cat.id.toString(),
-									label: cat.name,
-								}))
+								value: cat.id.toString(),
+								label: cat.name,
+							}))
 							: [],
 						eventType: data.event_types
 							? data.event_types.map((type) => ({
-									value: type.id.toString(),
-									label: type.name,
-								}))
+								value: type.id.toString(),
+								label: type.name,
+							}))
 							: [],
 					}));
 				}
@@ -236,7 +236,7 @@ const EventGeneralInfo = () => {
 			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
 			onSave={handleUpdate}
-			// sidebar={<EventPreview />}
+		// sidebar={<EventPreview />}
 		>
 			<Form>
 				<Form.Group className="mb-4" controlId="formTitle">

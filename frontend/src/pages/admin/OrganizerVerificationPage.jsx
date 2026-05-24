@@ -314,7 +314,7 @@ const RequestRow = ({ request, onAction }) => {
 											fontWeight: 500,
 										}}
 									>
-										Institusi / Kampus:
+										Institusi Afiliasi:
 									</div>
 									<div>
 										{request.institution ? (
@@ -357,13 +357,26 @@ const RequestRow = ({ request, onAction }) => {
 														width: 'fit-content',
 													}}
 												>
-													<AlertCircle size={10} /> Kampus Baru (Akan
+													<AlertCircle size={10} /> Institusi Baru (Akan
 													otomatis didaftarkan jika disetujui)
 												</span>
 											</div>
 										) : (
-											<span style={{ color: 'var(--text-muted, #64748b)' }}>
-												—
+											<span
+												style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: '4px',
+													fontSize: '11.5px',
+													fontWeight: 600,
+													color: 'var(--primary, #2563eb)',
+													backgroundColor: '#eff6ff',
+													padding: '2px 8px',
+													borderRadius: '4px',
+													width: 'fit-content',
+												}}
+											>
+												Independent
 											</span>
 										)}
 									</div>
@@ -374,7 +387,7 @@ const RequestRow = ({ request, onAction }) => {
 											fontWeight: 500,
 										}}
 									>
-										Masa Berlaku Afiliasi:
+										Masa Aktif Akun:
 									</div>
 									<div
 										style={{
@@ -382,7 +395,7 @@ const RequestRow = ({ request, onAction }) => {
 											fontWeight: 600,
 										}}
 									>
-										1 Tahun (Otomatis Aktif dari Tanggal Persetujuan)
+										Aktif Selama Produktif (Kembali ke Member jika tidak membuat event &gt; 1 tahun)
 									</div>
 
 									{request.note && (
@@ -853,8 +866,7 @@ const OrganizerVerificationPage = () => {
 									Apakah Anda yakin ingin <strong>menyetujui</strong> permohonan
 									dari <strong>{currentRequest?.user?.name || 'User'}</strong>?
 									Akun mereka akan otomatis ditingkatkan menjadi{' '}
-									<strong>Organizer</strong> dan masa afiliasi aktif selama 1
-									tahun.
+									<strong>Organizer</strong> dengan masa aktif tanpa batas (otomatis kembali menjadi member jika tidak ada event baru yang dibuat dalam 1 tahun).
 								</>
 							) : (
 								<>

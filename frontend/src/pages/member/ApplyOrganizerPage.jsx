@@ -16,6 +16,7 @@ const ApplyOrganizerPage = () => {
 
 	// Form States
 	const [showForm, setShowForm] = useState(false);
+	const [organizerType, setOrganizerType] = useState('internal'); // 'internal' | 'independent'
 	const [institutions, setInstitutions] = useState([]);
 	const [organizationName, setOrganizationName] = useState('');
 	const [selectedInstitutionId, setSelectedInstitutionId] = useState('');
@@ -42,13 +43,15 @@ const ApplyOrganizerPage = () => {
 
 			// Jika dipicu oleh klik notifikasi penolakan, otomatis buka form dengan prefill
 			if (reqData && reqData.status === 'rejected' && reqData.can_resubmit && location.state?.autoResubmit) {
+				const isInternal = reqData.institution_id || reqData.custom_institution_name;
+				setOrganizerType(isInternal ? 'internal' : 'independent');
 				setOrganizationName(reqData.organization_name || '');
 				setSelectedInstitutionId(reqData.institution_id || (reqData.custom_institution_name ? 'custom' : ''));
 				setCustomInstitutionName(reqData.custom_institution_name || '');
 				setNote(reqData.note || '');
 				setProofFileName(reqData.proof_path ? 'Dokumen Bukti Sebelumnya (Tetap digunakan jika tidak diganti)' : '');
 				setProofFile(null);
-				
+
 				setShowForm(true);
 
 				// Ganti router state agar jika direfresh form tidak terus-terusan mengembang
@@ -74,19 +77,23 @@ const ApplyOrganizerPage = () => {
 		if (e) e.preventDefault();
 
 		if (!organizationName.trim()) {
-			alert('Nama organisasi / himpunan wajib diisi.');
+			alert('Nama organisasi / himpunan / komunitas / perusahaan wajib diisi.');
 			return;
 		}
-		if (!selectedInstitutionId) {
-			alert('Mohon pilih institusi / kampus afiliasi Anda.');
-			return;
+
+		if (organizerType === 'internal') {
+			if (!selectedInstitutionId) {
+				alert('Mohon pilih institusi / kampus afiliasi Anda.');
+				return;
+			}
+			if (selectedInstitutionId === 'custom' && !customInstitutionName.trim()) {
+				alert('Nama universitas kustom wajib diisi.');
+				return;
+			}
 		}
-		if (selectedInstitutionId === 'custom' && !customInstitutionName.trim()) {
-			alert('Nama universitas kustom wajib diisi.');
-			return;
-		}
+
 		if (!proofFile && !request?.proof_path) {
-			alert('Mohon unggah berkas bukti fisik keanggotaan Anda.');
+			alert('Mohon unggah berkas bukti fisik Anda.');
 			return;
 		}
 
@@ -94,11 +101,19 @@ const ApplyOrganizerPage = () => {
 			setSubmitting(true);
 			const formData = new FormData();
 			formData.append('organization_name', organizationName);
-			if (selectedInstitutionId !== 'custom') {
-				formData.append('institution_id', selectedInstitutionId);
+
+			if (organizerType === 'internal') {
+				if (selectedInstitutionId !== 'custom') {
+					formData.append('institution_id', selectedInstitutionId);
+				} else {
+					formData.append('custom_institution_name', customInstitutionName);
+				}
 			} else {
-				formData.append('custom_institution_name', customInstitutionName);
+				// Pastikan kosong untuk EO Independen / Luar
+				formData.append('institution_id', '');
+				formData.append('custom_institution_name', '');
 			}
+
 			if (proofFile) {
 				formData.append('proof', proofFile);
 			}
@@ -171,22 +186,107 @@ const ApplyOrganizerPage = () => {
 					<div className="p-3 bg-light rounded-3 mb-4 d-flex gap-3 align-items-start" style={{ borderLeft: '4px solid var(--primary)' }}>
 						<AlertCircle size={20} className="text-primary flex-shrink-0 mt-0.5" />
 						<div>
-							<h6 className="fw-bold mb-1" style={{ fontSize: 13 }}>Masa Afiliasi & Validasi Dokumen</h6>
+							<h6 className="fw-bold mb-1" style={{ fontSize: 13 }}>Persyaratan & Masa Aktif Akun</h6>
 							<p className="text-secondary m-0" style={{ fontSize: 12 }}>
-								Setelah disetujui, akun Anda otomatis ditingkatkan menjadi Organizer dan terhubung ke kampus pilihan selama 1 tahun. Unggah SK Kepengurusan BEM/Himpunan atau Kartu Mahasiswa aktif sebagai bukti fisik.
+								Akun Organizer Anda memiliki masa aktif tanpa batas, dan hanya otomatis kembali menjadi member (demisioner) jika Anda tidak membuat event baru dalam waktu 1 tahun. Pengajuan Anda wajib ditinjau dan disetujui oleh Superadmin sebelum Anda dapat mempublikasikan event.
 							</p>
+						</div>
+					</div>
+
+					{/* Tipe Penyelenggara */}
+					<div className="mb-4">
+						<label className="form-label fw-bold mb-2" style={{ fontSize: 13 }}>
+							Tipe Penyelenggara <span className="text-danger">*</span>
+						</label>
+						<div className="row g-3">
+							<div className="col-md-6">
+								<div
+									onClick={() => {
+										setOrganizerType('internal');
+										setSelectedInstitutionId('');
+										setCustomInstitutionName('');
+									}}
+									style={{
+										border: `2px solid ${organizerType === 'internal' ? 'var(--primary)' : '#e2e8f0'}`,
+										backgroundColor: organizerType === 'internal' ? 'var(--primary-light-subtle, #eff6ff)' : '#ffffff',
+										borderRadius: 10,
+										padding: 16,
+										cursor: 'pointer',
+										transition: 'all 0.2s',
+										height: '100%',
+									}}
+									className="d-flex align-items-start gap-2.5 hover-shadow-sm"
+								>
+									<input
+										type="radio"
+										name="organizerType"
+										checked={organizerType === 'internal'}
+										onChange={() => { }}
+										style={{ marginTop: 4, cursor: 'pointer' }}
+									/>
+									<div>
+										<h6 className="fw-bold mb-1" style={{ fontSize: 13.5, color: organizerType === 'internal' ? 'var(--primary)' : 'var(--text-color, #1e293b)' }}>
+											Institusi
+										</h6>
+										<p className="text-secondary m-0" style={{ fontSize: 11.5, lineHeight: 1.4 }}>
+											Untuk organisasi mahasiswa internal, BEM, Himpunan Mahasiswa Jurusan, atau Unit Kegiatan Mahasiswa (UKM) yang terasosiasi dengan kampus.
+										</p>
+									</div>
+								</div>
+							</div>
+							<div className="col-md-6">
+								<div
+									onClick={() => {
+										setOrganizerType('independent');
+										setSelectedInstitutionId('');
+										setCustomInstitutionName('');
+									}}
+									style={{
+										border: `2px solid ${organizerType === 'independent' ? 'var(--primary)' : '#e2e8f0'}`,
+										backgroundColor: organizerType === 'independent' ? 'var(--primary-light-subtle, #eff6ff)' : '#ffffff',
+										borderRadius: 10,
+										padding: 16,
+										cursor: 'pointer',
+										transition: 'all 0.2s',
+										height: '100%',
+									}}
+									className="d-flex align-items-start gap-2.5 hover-shadow-sm"
+								>
+									<input
+										type="radio"
+										name="organizerType"
+										checked={organizerType === 'independent'}
+										onChange={() => { }}
+										style={{ marginTop: 4, cursor: 'pointer' }}
+									/>
+									<div>
+										<h6 className="fw-bold mb-1" style={{ fontSize: 13.5, color: organizerType === 'independent' ? 'var(--primary)' : 'var(--text-color, #1e293b)' }}>
+											EO Independen / Luar
+										</h6>
+										<p className="text-secondary m-0" style={{ fontSize: 11.5, lineHeight: 1.4 }}>
+											Untuk Event Organizer profesional, perusahaan swasta, komunitas umum luar kampus, agensi swasta, atau sekelompok orang (independent team).
+										</p>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
 					{/* Input 1: Nama Organisasi */}
 					<div className="mb-4">
 						<label className="form-label fw-bold mb-1.5" style={{ fontSize: 13 }}>
-							Nama Organisasi / Himpunan Mahasiswa <span className="text-danger">*</span>
+							{organizerType === 'internal'
+								? 'Nama Organisasi / Himpunan Mahasiswa'
+								: 'Nama Komunitas / Perusahaan / EO Independen'
+							} <span className="text-danger">*</span>
 						</label>
 						<input
 							type="text"
 							className="form-control"
-							placeholder="Contoh: Himpunan Mahasiswa Informatika (HMIF) BEM FT"
+							placeholder={organizerType === 'internal'
+								? "Contoh: Himpunan Mahasiswa Informatika (HMIF) BEM FT"
+								: "Contoh: PT Kreatif Mandiri, Komunitas Berbagi, Event Organizer Jaya, dll."
+							}
 							value={organizationName}
 							onChange={(e) => setOrganizationName(e.target.value)}
 							required
@@ -194,30 +294,32 @@ const ApplyOrganizerPage = () => {
 						/>
 					</div>
 
-					{/* Input 2: Pilihan Kampus */}
-					<div className="mb-4">
-						<label className="form-label fw-bold mb-1.5" style={{ fontSize: 13 }}>
-							Kampus Asal Afiliasi <span className="text-danger">*</span>
-						</label>
-						<select
-							className="form-select"
-							value={selectedInstitutionId}
-							onChange={(e) => setSelectedInstitutionId(e.target.value)}
-							required
-							style={{ padding: '10px 14px', fontSize: 13.5, borderRadius: 8 }}
-						>
-							<option value="">-- Pilih Kampus --</option>
-							{institutions.map((inst) => (
-								<option key={inst.id} value={inst.id}>
-									{inst.name}
-								</option>
-							))}
-							<option value="custom">Kampus Saya Tidak Terdaftar (Tulis Manual)</option>
-						</select>
-					</div>
+					{/* Input 2: Pilihan Kampus (Hanya untuk Internal Kampus) */}
+					{organizerType === 'internal' && (
+						<div className="mb-4 animate__animated animate__fadeIn">
+							<label className="form-label fw-bold mb-1.5" style={{ fontSize: 13 }}>
+								Kampus Asal Afiliasi <span className="text-danger">*</span>
+							</label>
+							<select
+								className="form-select"
+								value={selectedInstitutionId}
+								onChange={(e) => setSelectedInstitutionId(e.target.value)}
+								required
+								style={{ padding: '10px 14px', fontSize: 13.5, borderRadius: 8 }}
+							>
+								<option value="">-- Pilih Kampus --</option>
+								{institutions.map((inst) => (
+									<option key={inst.id} value={inst.id}>
+										{inst.name}
+									</option>
+								))}
+								<option value="custom">Kampus Saya Tidak Terdaftar (Tulis Manual)</option>
+							</select>
+						</div>
+					)}
 
-					{/* Input 3: Tulis Kustom */}
-					{selectedInstitutionId === 'custom' && (
+					{/* Input 3: Tulis Kustom (Hanya untuk Internal Kampus jika custom selected) */}
+					{organizerType === 'internal' && selectedInstitutionId === 'custom' && (
 						<div className="mb-4 animate__animated animate__fadeIn">
 							<label className="form-label fw-bold mb-1.5" style={{ fontSize: 13 }}>
 								Nama Universitas Kustom <span className="text-danger">*</span>
@@ -240,7 +342,10 @@ const ApplyOrganizerPage = () => {
 					{/* Input 4: Bukti Fisik */}
 					<div className="mb-4">
 						<label className="form-label fw-bold mb-1.5" style={{ fontSize: 13 }}>
-							Unggah Berkas Bukti Fisik (Kartu Mahasiswa / SK Kepengurusan) <span className="text-danger">*</span>
+							{organizerType === 'internal'
+								? 'Unggah Berkas Bukti Fisik (Surat Keputusan Himpunan atau KTM Aktif)'
+								: 'Unggah Berkas Bukti Fisik (Portfolio Event, atau Instagram Komunitas)'
+							} <span className="text-danger">*</span>
 						</label>
 						<label
 							htmlFor="proof-upload"
@@ -291,7 +396,10 @@ const ApplyOrganizerPage = () => {
 								<div className="d-flex flex-column align-items-center gap-1.5">
 									<Upload size={32} className="text-secondary" style={{ opacity: 0.8 }} />
 									<span style={{ fontSize: '13.5px', fontWeight: 600, color: '#1e293b' }}>
-										Pilih File Pendukung (JPG, JPEG, PNG, PDF)
+										{organizerType === 'internal'
+											? 'Pilih SK Himpunan / KTM (JPG, JPEG, PNG, PDF)'
+											: 'Pilih Dokumen Portfolio / Link Instagram (JPG, JPEG, PNG, PDF)'
+										}
 									</span>
 									<span style={{ fontSize: '11px', color: '#64748b' }}>
 										Format gambar atau dokumen maksimal 5MB
@@ -309,7 +417,10 @@ const ApplyOrganizerPage = () => {
 						<textarea
 							className="form-control"
 							rows={3}
-							placeholder="Tuliskan catatan tambahan atau lampirkan tautan website/sosmed himpunan Anda untuk mempercepat verifikasi..."
+							placeholder={organizerType === 'internal'
+								? "Tuliskan catatan tambahan atau lampirkan tautan website/sosmed himpunan Anda untuk mempercepat verifikasi..."
+								: "Masukkan tautan Instagram Komunitas, LinkedIn Penanggung Jawab, link portfolio, atau catatan profil EO Anda..."
+							}
 							value={note}
 							onChange={(e) => setNote(e.target.value)}
 							style={{ padding: '10px 14px', fontSize: 13.5, borderRadius: 8, resize: 'none' }}
@@ -524,7 +635,7 @@ const ApplyOrganizerPage = () => {
 					<h3 className="fw-bold mb-3" style={{ fontSize: 22, letterSpacing: '-0.5px' }}>
 						Permohonan Belum Disetujui
 					</h3>
-					
+
 					{request.rejection_reason && (
 						<div className="p-3 bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-3 mx-auto mb-4 text-start animate__animated animate__fadeIn" style={{ maxWidth: 500 }}>
 							<h6 className="fw-bold mb-1.5 d-flex align-items-center gap-1.5" style={{ fontSize: 13 }}>
@@ -561,13 +672,15 @@ const ApplyOrganizerPage = () => {
 								style={{ borderRadius: 8, fontSize: 13 }}
 								onClick={() => {
 									// Pre-populate form inputs & status pengajuan agar gampang diedit
+									const isInternal = request.institution_id || request.custom_institution_name;
+									setOrganizerType(isInternal ? 'internal' : 'independent');
 									setOrganizationName(request.organization_name || '');
 									setSelectedInstitutionId(request.institution_id || (request.custom_institution_name ? 'custom' : ''));
 									setCustomInstitutionName(request.custom_institution_name || '');
 									setNote(request.note || '');
 									setProofFileName(request.proof_path ? 'Dokumen Bukti Sebelumnya (Tetap digunakan jika tidak diganti)' : '');
-									setProofFile(null); 
-									
+									setProofFile(null);
+
 									setShowForm(true);
 								}} // Reset ke form pengajuan ulang dengan prefill
 							>

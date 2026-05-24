@@ -65,4 +65,53 @@ class User extends Authenticatable
         return $this->hasMany(Event::class, 'organizer_id');
     }
 
+    /**
+     * Check if the organizer's role has expired (no events created in the last 1 year)
+     * and demote them back to a participant (general member) if they have.
+     */
+    public function checkAndDemoteIfExpired()
+    {
+        if ($this->role === 'organizer') {
+            // 1. Check if they have created any event
+            $latestEvent = \App\Models\Event::where('organizer_id', $this->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($latestEvent) {
+                $expiryBasis = $latestEvent->created_at;
+            } else {
+                // 2. If no event created, check their approval date
+                $approvedRequest = \App\Models\OrganizerRequest::where('user_id', $this->id)
+                    ->where('status', 'approved')
+                    ->orderBy('updated_at', 'desc')
+                    ->first();
+
+                if ($approvedRequest) {
+                    $expiryBasis = $approvedRequest->updated_at;
+                } else {
+                    // Fallback to user creation date
+                    $expiryBasis = $this->created_at;
+                }
+            }
+
+            if ($expiryBasis && \Carbon\Carbon::parse($expiryBasis)->addYear()->isPast()) {
+                // Demote user to participant (member)
+                $this->update([
+                    'role' => 'participant',
+                    'university_id' => null,
+                    'affiliation_valid_until' => null,
+                ]);
+
+                // Also update the organizer request status to rejected with resubmit allowed so they can apply again
+                \App\Models\OrganizerRequest::where('user_id', $this->id)
+                    ->where('status', 'approved')
+                    ->update([
+                        'status' => 'rejected',
+                        'rejection_reason' => 'Masa kepengurusan/aktif Organizer Anda telah kedaluwarsa karena tidak ada event baru yang dibuat dalam 1 tahun terakhir. Silakan ajukan permohonan kembali jika ingin mengaktifkan akun Organizer Anda.',
+                        'can_resubmit' => true,
+                    ]);
+            }
+        }
+    }
 }
+

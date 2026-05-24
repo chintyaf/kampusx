@@ -70,10 +70,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Ambil data user yang sedang login
     Route::get('/user/profile', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        if ($user) {
+            $user->checkAndDemoteIfExpired();
+        }
+        return $user;
     });
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        if ($user) {
+            $user->checkAndDemoteIfExpired();
+        }
+        return $user;
     });
 
     // --- NOTIFICATIONS ---
