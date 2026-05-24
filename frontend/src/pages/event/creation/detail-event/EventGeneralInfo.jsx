@@ -236,7 +236,7 @@ const EventGeneralInfo = () => {
 			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
 			onSave={handleUpdate}
-			sidebar={<EventPreview />}
+			// sidebar={<EventPreview />}
 		>
 			<Form>
 				<Form.Group className="mb-4" controlId="formTitle">

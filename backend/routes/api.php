@@ -89,6 +89,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);
     Route::get('/my-tickets', [TicketController::class, 'index']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
+    Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
+    Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
 
     // Mendaftar jadi Organizer
     Route::get('/organizer-requests/status', [OrganizerRequestController::class, 'checkStatus']);
@@ -190,6 +192,18 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::post('/sessions/{sessionId}/materials', [SessionMaterialController::class, 'storeMaterial']);
                 Route::delete('/sessions/{sessionId}/materials/{materialId}', [SessionMaterialController::class, 'destroyMaterial']);
                 Route::post('/sessions/{sessionId}/materials/reorder', [SessionMaterialController::class, 'reorderMaterials']);
+            });
+
+            // 7. Survey Analytics (Organizer view of participant responses)
+            Route::get('/survey-analytics', [\App\Http\Controllers\Api\SurveyController::class, 'getOrganizerAnalytics']);
+
+            // 8. Survey Form Builder (Organizer CRUD — create/manage custom survey)
+            Route::prefix('survey-form')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'show']);
+                Route::post('/', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'store']);
+                Route::put('/{surveyId}', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'update']);
+                Route::put('/{surveyId}/questions', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'syncQuestions']);
+                Route::delete('/{surveyId}', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'destroy']);
             });
         });
     });

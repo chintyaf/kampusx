@@ -42,6 +42,7 @@ import LandingPage from '../pages/public/LandingPage';
 import Checkout from '../pages/event/public/Checkout/index';
 import TicketDetail from '../pages/TicketDetail';
 import EventSpace from '../pages/member/EventSpace';
+import ParticipantSurveyPage from '../pages/event/management/EventSurveyPage/ParticipantSurveyPage';
 import { useAuth } from '../context/AuthContext';
 import MyTickets from '../pages/member/MyTickets';
 
@@ -122,6 +123,7 @@ const AppRoutes = () => {
 					<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
 					<Route path="/event-space/:id" element={<EventSpace />} />
 					<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
+					<Route path="/event-space/:id/survey" element={<ParticipantSurveyPage />} />
 				</Route>
 				<Route element={<MemberLayout />}>
 					<Route path="/my-tickets" element={<MyTickets />} />
