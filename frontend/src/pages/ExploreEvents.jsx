@@ -90,6 +90,31 @@ const FilterSidebar = ({ filters, onChange, onReset, dbCategories = [] }) => (
                         ))}
                     </Form.Select>
                 </Form.Group>
+				{/* Rentang Tanggal Event */}
+                <Form.Group style={{ marginBottom: 8 }}>
+                    <Form.Label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 12 }}>Tanggal Event</Form.Label>
+                    <Row className="g-2">
+                        <Col xs={6}>
+                            <Form.Control
+                                type="date"
+                                value={filters.dateStart}
+                                onChange={(e) => onChange('dateStart', e.target.value)}
+                                style={{ fontSize: '11px', borderRadius: 8, padding: '8px' }}
+                            />
+                            <div style={{ fontSize: '10px', color: 'var(--color-secondary)', marginTop: 4, textAlign: 'center' }}>Dari</div>
+                        </Col>
+                        <Col xs={6}>
+                            <Form.Control
+                                type="date"
+                                value={filters.dateEnd}
+                                min={filters.dateStart} // Mencegah user memilih tgl akhir yang mendahului tgl awal
+                                onChange={(e) => onChange('dateEnd', e.target.value)}
+                                style={{ fontSize: '11px', borderRadius: 8, padding: '8px' }}
+                            />
+                            <div style={{ fontSize: '10px', color: 'var(--color-secondary)', marginTop: 4, textAlign: 'center' }}>Sampai</div>
+                        </Col>
+                    </Row>
+                </Form.Group>
             </Form>
         </div>
     </Card>
@@ -118,7 +143,9 @@ const ExploreEvents = () => {
         search: sanitizeQueryParam(searchParams.get('search'), ''),
         locationType: [],
         price: sanitizeQueryParam(searchParams.get('price'), 'Semua'),
-        category: sanitizeQueryParam(searchParams.get('category'), '')
+        category: sanitizeQueryParam(searchParams.get('category'), ''),
+		dateStart: sanitizeQueryParam(searchParams.get('dateStart'), ''),
+		dateEnd: sanitizeQueryParam(searchParams.get('dateEnd'), ''),
     };
     
     // Single source of truth untuk filter (agar real-time)
@@ -153,7 +180,7 @@ const ExploreEvents = () => {
                 let resultData = raw;
 
                 // Client-side filtering untuk Location Type
-                // Client-side filtering untuk Location Type
+                
                 if (filters.locationType.includes('Online') && !filters.locationType.includes('In-Person')) {
                     resultData = raw.filter((ev) => ev.is_online || ev.location_type === 'online');
                 } else if (filters.locationType.includes('In-Person') && !filters.locationType.includes('Online')) {
@@ -167,6 +194,30 @@ const ExploreEvents = () => {
                     resultData = resultData.filter((ev) => Number(ev.price) > 0);
                 }
 
+				// Client-side filtering untuk Rentang Tanggal
+                if (filters.dateStart || filters.dateEnd) {
+                    resultData = resultData.filter((ev) => {
+                        if (!ev.start_date) return false;
+                        
+                        // Potong string dari DB ("2026-06-25 17:24:13") 
+                        // Ambil 10 karakter pertamanya saja menjadi "2026-06-25"
+                        const eventDateString = ev.start_date.substring(0, 10); 
+
+                        let isAfterStart = true;
+                        let isBeforeEnd = true;
+
+                        // Perbandingan string "YYYY-MM-DD" sangat aman di Javascript
+                        if (filters.dateStart) {
+                            isAfterStart = eventDateString >= filters.dateStart;
+                        }
+                        if (filters.dateEnd) {
+                            isBeforeEnd = eventDateString <= filters.dateEnd;
+                        }
+
+                        return isAfterStart && isBeforeEnd; 
+                    });
+                }
+
                 setFiltered(resultData);
                 setDbCategories(categoriesRes.data?.data ?? categoriesRes.data ?? []);
             } catch (err) {
@@ -178,13 +229,13 @@ const ExploreEvents = () => {
         };
 
         fetchEvents();
-    }, [debouncedSearch, filters.category, filters.price, filters.locationType]);
+    }, [debouncedSearch, filters.category, filters.price, filters.locationType, filters.dateStart, filters.dateEnd]);
 
     const handleChange = (key, val) => setFilters((prev) => ({ ...prev, [key]: val }));
-    const resetFilters = () => setFilters({ search: '', locationType: [], price: 'Semua', category: '' });
+    const resetFilters = () => setFilters({ search: '', locationType: [], price: 'Semua', category: '', dateStart: '', dateEnd: '' });
 
     // Hitung filter aktif (di luar search)
-    const activeCount = filters.locationType.length + (filters.price !== 'Semua' ? 1 : 0) + (filters.category ? 1 : 0);
+    const activeCount = filters.locationType.length + (filters.price !== 'Semua' ? 1 : 0) + (filters.category ? 1 : 0) + (filters.dateStart || filters.dateEnd ? 1 : 0);
 
     return (
         <div style={{ background: 'var(--color-bg, #F8FAFC)', minHeight: '100vh', paddingBottom: 56 }}>
@@ -270,6 +321,15 @@ const ExploreEvents = () => {
                                 )}
                                 {filters.category && (
                                     <span style={chipStyle}>{filters.category} <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleChange('category', '')} /></span>
+                                )}
+								{/* Chip Rentang Tanggal */}
+                                {(filters.dateStart || filters.dateEnd) && (
+                                    <span style={chipStyle}>
+                                        {filters.dateStart ? new Date(filters.dateStart).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Awal'} 
+                                        {' - '}
+                                        {filters.dateEnd ? new Date(filters.dateEnd).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : 'Akhir'}
+                                        <X size={12} style={{ cursor: 'pointer', marginLeft: 4 }} onClick={() => setFilters(prev => ({ ...prev, dateStart: '', dateEnd: '' }))} />
+                                    </span>
                                 )}
                                 <button onClick={resetFilters} style={{ background: 'none', border: 'none', fontSize: 'var(--font-xs)', color: 'var(--color-secondary)', cursor: 'pointer', fontWeight: 600, paddingLeft: 8 }}>Hapus semua</button>
                             </div>
