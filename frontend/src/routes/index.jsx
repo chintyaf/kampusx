@@ -44,12 +44,13 @@ import TicketDetail from '../pages/TicketDetail';
 import EventSpace from '../pages/member/EventSpace';
 import { useAuth } from '../context/AuthContext';
 import MyTickets from '../pages/member/MyTickets';
-import PublicProfile from '../pages/public/PublicProfile';
+import PublicProfile from '../pages/public/PublicProfile/index.jsx';
 import Personalization from '../pages/auth/Personalization';
 import ProfileSettings from '../pages/member/ProfileSettings';
 
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
+import BookmarkPage from '../pages/member/BookmarkPage';
 
 import CommitteePage from '../pages/committee/CommitteePage';
 
@@ -72,45 +73,38 @@ const AppRoutes = () => {
 		<Suspense fallback={<RouteProgressBar />}>
 			<Routes>
 				<Route path="/nearest-event" element={<NearestEventTest />} />
-				{/* 1. Jika BELUM login: Jadikan '/' sebagai Landing Page dengan VisitorLayout */}
-				<Route element={<MemberLayout />}>
-					<Route path="/test-location" />
-				</Route>
 
-				{!isAuthenticated && (
-					<Route element={<VisitorLayout />}>
-						<Route path="/" element={<LandingPage />} />
-					</Route>
-				)}
-
-				{/* 2. Jika SUDAH login: Jadikan '/' sebagai Member Dashboard dengan DashboardLayout */}
-				{isAuthenticated && (
-					<Route element={<PublicLayout />}>
-						{/* Ganti <Dashboard /> di bawah dengan halaman khusus Member jika ada */}
-						<Route path="/" element={<MemberDashboard />} />
-					</Route>
-				)}
-
-				{/* ========================================== */}
-
-				{/* Group Visitor (Explore, Detail Event, dsb) */}
+				{/* 1. VISITOR & MEMBER ROUTE GROUP (Shares the same VisitorLayout and NavbarPublic instance) */}
 				<Route element={<VisitorLayout />}>
-					{visitorRoutes.map((route, index) => {
-						// Abaikan route "/" dari daftar PublicRoutes agar tidak bentrok (double) dengan pengecekan di atas
-						if (route.path === '/') return null;
+					{/* Home Page conditional loading based on Auth state */}
+					{!isAuthenticated ? (
+						<Route path="/" element={<LandingPage />} />
+					) : (
+						<Route path="/" element={<MemberDashboard />} />
+					)}
 
+					{/* Public Visitor Pages */}
+					{visitorRoutes.map((route, index) => {
+						if (route.path === '/') return null;
 						return <Route key={index} path={route.path} element={route.element} />;
 					})}
-					{/* // {visitorRoutes.map((route, index) => (
-                    //     <Route key={index} path={route.path} element={route.element} />
-                    // ))} */}
-				</Route>
 
-				{/* TEST CHIN UI ROUTES (Tampilan Peserta - Tidak perlu login utuk testing) */}
-				<Route element={<VisitorLayout />}>
+					{/* Extra Visitor/Testing Pages */}
 					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
 					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
 					<Route path="/profile/:id" element={<PublicProfile />} />
+
+					{/* Protected Member Pages (Shares the same Layout/Navbar) */}
+					<Route element={<ProtectedRoute />}>
+						<Route path="/my-tickets" element={<MyTickets />} />
+						<Route path="/bookmarks" element={<BookmarkPage />} />
+						<Route path="/apply-organizer" element={<ApplyOrganizerPage />} />
+						<Route path="/settings" element={<ProfileSettings />} />
+						<Route path="/checkout/:id" element={<Checkout />} />
+						<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
+						<Route path="/event-space/:id" element={<EventSpace />} />
+						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
+					</Route>
 				</Route>
 
 				{/* AUTH */}
@@ -121,36 +115,14 @@ const AppRoutes = () => {
 					<Route path="/personalization" element={<Personalization />} />
 				</Route>
 
-				{/* MEMBER */}
-				<Route element={<ProtectedRoute />}>
-					<Route path="/settings" element={<ProfileSettings />} />
-					<Route path="/checkout/:id" element={<Checkout />} />
-					{/* Nanti bisa tambah rute profil peserta di sini: */}
-					{/* <Route path="/my-tickets" element={<MyTickets />} /> */}
-					<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
-					<Route path="/event-space/:id" element={<EventSpace />} />
-					<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
-				</Route>
-				<Route element={<MemberLayout />}>
-					<Route path="/my-tickets" element={<MyTickets />} />
-					<Route path="/apply-organizer" element={<ApplyOrganizerPage />} />
-					{/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
-					{/* Tambahkan halaman member lainnya di sini nanti */}
-				</Route>
-
-
 				{/* Group Dashboard */}
 				<Route element={<DashboardLayout />}>
 					{/* Admin */}
 					<Route element={<ProtectedRoute allowedRole={['admin']} />}>{AdminRoutes}</Route>
-
+					{/* Organizer / Admin */}
 					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>{OrganizerRoutes}</Route>
-
-					{/* <Route
-                    path="*"
-                    element={<Navigate to="/dashboard" replace />}
-                /> */}
 				</Route>
+
 				<Route path="/committee" element={<CommitteePage />} />
 
 				<Route path="*" element={<NotFound />} />

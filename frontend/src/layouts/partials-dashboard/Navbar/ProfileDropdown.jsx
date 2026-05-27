@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Dropdown, Badge } from 'react-bootstrap';
 import { useAuth } from '../../../context/AuthContext';
 import userImg from '../../../assets/images/user-placeholder.avif';
-import { LogOut, Home, LayoutDashboard, ShieldCheck, ChevronRight, User, Award } from 'lucide-react';
+import { LogOut, Home, LayoutDashboard, ShieldCheck, ChevronRight, User, Award, Settings } from 'lucide-react';
 
 // Komponen kustom untuk Trigger/Tombol Dropdown
 const CustomToggle = React.forwardRef(({ children, onClick, isOpen }, ref) => (
@@ -56,6 +56,15 @@ const ProfileDropdown = () => {
 	const role = user.role || 'user';
 
 	const menuItems = [
+		{
+			icon: Settings,
+			label: 'Pengaturan Akun',
+			to: '/settings',
+			iconBg: '#f1f5f9',
+			iconBorder: '#cbd5e1',
+			iconColor: '#64748b',
+			show: true,
+		},
 		{
 			icon: Home,
 			label: 'Halaman Utama',
@@ -111,7 +120,7 @@ const ProfileDropdown = () => {
 					</div>
 				)}
 				<span
-					className="text-truncate"
+					className="text-truncate d-none d-md-inline ms-2"
 					style={{
 						fontSize: '12px',
 						fontWeight: 600,
@@ -122,6 +131,7 @@ const ProfileDropdown = () => {
 					{displayName}
 				</span>
 				<ChevronRight
+					className="d-none d-md-inline ms-1"
 					size={13}
 					strokeWidth={2.5}
 					style={{
@@ -152,7 +162,7 @@ const ProfileDropdown = () => {
 					<div
 						onClick={() => {
 							handleToggle(false); // Tutup dropdown
-							navigate('/settings'); // Sesuaikan dengan rute halaman edit profilmu
+							navigate(`/profile/${user.id}`); // Sesuaikan dengan rute halaman edit profilmu
 						}}
 						className="d-flex align-items-center p-3 border-bottom"
 						style={{

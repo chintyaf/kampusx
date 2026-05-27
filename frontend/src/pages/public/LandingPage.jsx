@@ -14,21 +14,26 @@ import {
   Palette, Music, Cat, ChevronRight, ArrowRight, Award, QrCode,
 } from "lucide-react";
 
-// ── Kategori ──────────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  { id: 1,  name: "Sains Hewan",       Icon: Cat,          color: "#ef4444", bg: "#fee2e2" },
-  { id: 2,  name: "Bisnis & Ekonomi",  Icon: Briefcase,    color: "#52525b", bg: "#f4f4f5" },
-  { id: 3,  name: "Pendidikan",        Icon: BookOpen,     color: "#eab308", bg: "#fef9c3" },
-  { id: 4,  name: "Teknik & Tech",     Icon: Cpu,          color: "#22c55e", bg: "#dcfce7" },
-  { id: 5,  name: "Hukum",             Icon: Scale,        color: "#ca8a04", bg: "#fef9c3" },
-  { id: 6,  name: "Kesehatan",         Icon: Stethoscope,  color: "#3b82f6", bg: "#dbeafe" },
-  { id: 7,  name: "Matematika",        Icon: Calculator,   color: "#06b6d4", bg: "#cffafe" },
-  { id: 8,  name: "Sains Fisik",       Icon: FlaskConical, color: "#00699e", bg: "#dff3ff" },
-  { id: 9,  name: "Studi Regional",    Icon: Globe,        color: "#f59e0b", bg: "#fef3c7" },
-  { id: 10, name: "Ilmu Sosial",       Icon: Users,        color: "#ec4899", bg: "#fce7f3" },
-  { id: 11, name: "Seni & Desain",     Icon: Palette,      color: "#f43f5e", bg: "#ffe4e6" },
-  { id: 12, name: "Musik & Hiburan",   Icon: Music,        color: "#6366f1", bg: "#e0e7ff" },
-];
+// ── Kategori Metadata Helper ──────────────────────────────────────────────────
+const getCategoryMeta = (name) => {
+  const metaMap = {
+    "Sains Hewan": { Icon: Cat, color: "#ef4444", bg: "#fee2e2" },
+    "Bisnis & Ekonomi": { Icon: Briefcase, color: "#52525b", bg: "#f4f4f5" },
+    "Pendidikan": { Icon: BookOpen, color: "#eab308", bg: "#fef9c3" },
+    "Teknik & Tech": { Icon: Cpu, color: "#22c55e", bg: "#dcfce7" },
+    "Teknik & Teknologi": { Icon: Cpu, color: "#22c55e", bg: "#dcfce7" },
+    "Hukum": { Icon: Scale, color: "#ca8a04", bg: "#fef9c3" },
+    "Kesehatan": { Icon: Stethoscope, color: "#3b82f6", bg: "#dbeafe" },
+    "Matematika": { Icon: Calculator, color: "#06b6d4", bg: "#cffafe" },
+    "Sains Fisik": { Icon: FlaskConical, color: "#00699e", bg: "#dff3ff" },
+    "Studi Regional": { Icon: Globe, color: "#f59e0b", bg: "#fef3c7" },
+    "Ilmu Sosial": { Icon: Users, color: "#ec4899", bg: "#fce7f3" },
+    "Seni & Desain": { Icon: Palette, color: "#f43f5e", bg: "#ffe4e6" },
+    "Musik & Hiburan": { Icon: Music, color: "#6366f1", bg: "#e0e7ff" },
+  };
+
+  return metaMap[name] || { Icon: Ticket, color: "#00699e", bg: "#dff3ff" };
+};
 
 const FEATURES = [
   { id: 1, title: "Event Terverifikasi", desc: "Semua event dijamin resmi dari instansi terpercaya.",      Icon: ShieldCheck },
@@ -58,6 +63,7 @@ const LandingPage = () => {
   const [allEvents, setAllEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail]         = useState("");
+  const [categories, setCategories] = useState([]);
 
   const banners = [
     { id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
@@ -68,8 +74,11 @@ const LandingPage = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res  = await api.get("events");
-        const data = res.data?.data ?? res.data;
+        const [eventsRes, categoriesRes] = await Promise.all([
+          api.get("events"),
+          api.get("categories")
+        ]);
+        const data = eventsRes.data?.data ?? eventsRes.data ?? [];
         setAllEvents(
           data.map((ev) => {
             const loc       = ev.location || {};
@@ -93,8 +102,10 @@ const LandingPage = () => {
             };
           })
         );
+        const cats = categoriesRes.data?.data ?? categoriesRes.data ?? [];
+        setCategories(cats);
       } catch (err) {
-        console.error("Gagal fetch events:", err);
+        console.error("Gagal fetch data landing page:", err);
       } finally {
         setIsLoading(false);
       }
@@ -166,21 +177,25 @@ const LandingPage = () => {
             <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: 0 }}>Temukan event sesuai bidang studimu</p>
           </div>
           <Row className="g-3 justify-content-center">
-            {CATEGORIES.map((cat) => (
-              <Col xs={6} sm={4} md={3} lg={2} key={cat.id}>
-                <div
-                  style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", cursor: "pointer", padding: "12px 8px", borderRadius: 12, transition: "background .15s" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-2)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <div style={{ width: 68, height: 68, borderRadius: "50%", background: cat.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                    <cat.Icon size={28} color={cat.color} />
+            {categories.map((cat) => {
+              const meta = getCategoryMeta(cat.name);
+              return (
+                <Col xs={6} sm={4} md={3} lg={2} key={cat.id}>
+                  <div
+                    onClick={() => navigate(`/explore-events?category=${encodeURIComponent(cat.name)}`)}
+                    style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", cursor: "pointer", padding: "12px 8px", borderRadius: 12, transition: "background .15s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg-2)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  >
+                    <div style={{ width: 68, height: 68, borderRadius: "50%", background: meta.bg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                      <meta.Icon size={28} color={meta.color} />
+                    </div>
+                    <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>{cat.name}</span>
+                    <span style={{ fontSize: "var(--font-xs)", color: "var(--color-secondary)", marginTop: 2 }}>Explore</span>
                   </div>
-                  <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>{cat.name}</span>
-                  <span style={{ fontSize: "var(--font-xs)", color: "var(--color-secondary)", marginTop: 2 }}>Explore</span>
-                </div>
-              </Col>
-            ))}
+                </Col>
+              );
+            })}
           </Row>
           <div style={{ textAlign: "center", marginTop: 36 }}>
             <Button

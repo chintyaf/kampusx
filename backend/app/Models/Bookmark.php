@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Bookmark extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'event_id'
+    ];
+
+    /**
+     * Relasi: Bookmark ini milik seorang User.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relasi: Bookmark ini merujuk ke sebuah Event.
+     */
+    public function event(): BelongsTo
+    {
+        return $this->belongsTo(Event::class);
+    }
+}

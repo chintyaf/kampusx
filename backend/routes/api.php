@@ -105,6 +105,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
     Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);
     Route::get('/my-tickets', [TicketController::class, 'index']);
+    Route::post('/v1/events/{id}/bookmark', [\App\Http\Controllers\Api\BookmarkController::class, 'toggle']);
+    Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
 
     // Mendaftar jadi Organizer

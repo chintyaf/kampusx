@@ -40,7 +40,8 @@ class Event extends Model
     ];
 
     protected $appends = [
-        'price'
+        'price',
+        'is_bookmarked'
     ];
 
     // Penyelenggara individu (User)
@@ -199,6 +200,21 @@ class Event extends Model
             return 0;
         }
         return (int) $ticket->price;
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    public function getIsBookmarkedAttribute(): bool
+    {
+        // Mendapatkan user yang login via token Sanctum secara aman
+        $user = auth('sanctum')->user();
+        if (!$user) {
+            return false;
+        }
+        return $this->bookmarks()->where('user_id', $user->id)->exists();
     }
 }
 

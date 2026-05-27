@@ -68,27 +68,59 @@ class UserProfileController extends Controller
                 if ($eventEndDate->isPast()) {
                     $pastEvents[] = $event;
                 } else {
-                    $upcomingEvents[] = $event;
                 }
             }
         }
 
-        // 4. Return data JSON
+        // 4. Hitung points & level dinamis
+        $points = $user->points ?? 0;
+        $level = floor($points / 500) + 1;
+
+        // 5. Cek kepemilikan profil (is_own_profile)
+        $isOwnProfile = false;
+        $authUser = auth('sanctum')->user();
+        if ($authUser && $authUser->id === $user->id) {
+            $isOwnProfile = true;
+        }
+
+        // 6. Bangun list sertifikat dinamis dari event masa lalu (past events)
+        $certificates = [];
+        foreach ($pastEvents as $index => $event) {
+            $certificates[] = [
+                'id' => 'CERT-' . (10000 + $event->id),
+                'eventName' => $event->title,
+                'date' => Carbon::parse($event->start_date)->format('d M Y'),
+                'organizer' => $event->organizer ? $event->organizer->name : 'KampusX Organizer',
+                'status' => 'unlocked',
+                'image' => $event->image_path 
+                    ? asset('storage/' . $event->image_path)
+                    : 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                'validation_url' => url('/verify/CERT-' . (10000 + $event->id))
+            ];
+        }
+
+        // 7. Return data JSON
         return response()->json([
             'success' => true,
             'data' => [
                 'profile' => [
                     'id' => $user->id,
                     'name' => $user->name,
+                    'email' => $user->email,
                     'avatar' => $avatarUrl,
                     'institution' => $institutionName,
                     'joined_at' => $user->created_at->format('F Y'),
+                    'points' => $points,
+                    'level' => $level,
+                    'total_events' => count($orders),
                 ],
                 'interests' => $interests,
+                'certificates' => $certificates,
                 'history' => [
                     'upcoming' => $upcomingEvents,
                     'past' => $pastEvents
-                ]
+                ],
+                'is_own_profile' => $isOwnProfile
             ]
         ], 200);
     }

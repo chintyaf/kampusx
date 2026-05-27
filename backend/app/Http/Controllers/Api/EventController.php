@@ -16,10 +16,55 @@ use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // 1. UPDATE DI SINI: Gunakan with() dan panggil relasi 'location' sesuai nama di Model Event.php
-        $events = Event::with(['organizer', 'locationDetail'])->get();
+        $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets']);
+
+        // 1. Pencarian berdasarkan judul atau nama creator (organizer)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhereHas('organizer', function ($sq) use ($search) {
+                      $sq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // 2. Filter berdasarkan nama kategori
+        if ($request->filled('category')) {
+            $category = $request->input('category');
+            $query->whereHas('categories', function ($q) use ($category) {
+                $q->where('name', $category);
+            });
+        }
+
+        // 3. Filter berdasarkan harga tiket (gratis / berbayar)
+        if ($request->filled('price')) {
+            $priceFilter = strtolower($request->input('price'));
+            if ($priceFilter === 'gratis' || $priceFilter === 'free') {
+                $query->where(function ($q) {
+                    $q->whereDoesntHave('eventTickets')
+                      ->orWhereHas('eventTickets', function ($sq) {
+                          $sq->where('price', 0);
+                      });
+                });
+            } elseif ($priceFilter === 'berbayar' || $priceFilter === 'paid') {
+                $query->whereHas('eventTickets', function ($q) {
+                    $q->where('price', '>', 0);
+                });
+            }
+        }
+
+        // 4. Filter berdasarkan range tanggal
+        if ($request->filled('start_date')) {
+            $query->where('start_date', '>=', $request->input('start_date'));
+        }
+        if ($request->filled('end_date')) {
+            $query->where('end_date', '<=', $request->input('end_date'));
+        }
+
+        $events = $query->get();
 
         return response()->json([
             'success' => true,
@@ -124,8 +169,8 @@ class EventController extends Controller
 
     public function show(Request $request, $id)
     {
-        // 2. UPDATE DI SINI: Ubah 'event_locations' menjadi 'location'
-        $event = Event::with(['organizer', 'locationDetail'])->findOrFail($id);
+        // Memuat detail event beserta organizer, lokasi, kategori, tiket, dan agenda rundown (sessions.speakers)
+        $event = Event::with(['organizer', 'locationDetail', 'sessions.speakers', 'categories', 'eventTickets'])->findOrFail($id);
 
         return response()->json([
             'success' => true,
