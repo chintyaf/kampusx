@@ -126,9 +126,12 @@ class EventSessionController extends Controller
                     $event->sessions()->whereNotIn('id', $activeSessionIds)->delete();
                 }
 
+                $notified = $event->notifyParticipantsOfUpdate();
+
                 return response()->json([
                     'status'  => 'success',
                     'message' => 'Konfigurasi sesi dan waktu berhasil disimpan',
+                    'notified_participants' => $notified,
                 ]);
             });
         } catch (\Exception $e) {

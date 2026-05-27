@@ -16,7 +16,7 @@ class EventGeneralInfoController extends Controller
      */
     public function index($eventId)
     {
-        $event = Event::select('id', 'title', 'description', 'image_path') // Hapus slug jika tidak dipakai
+        $event = Event::select('id', 'title', 'description', 'image_path', 'timezone') // Hapus slug jika tidak dipakai
             ->with([
                 'categories' => function($query) {
                     $query->select('categories.id', 'categories.name');
@@ -35,6 +35,7 @@ class EventGeneralInfoController extends Controller
                 'title'         => $event->title,
                 'description'   => $event->description,
                 'banner'        => $event->image_path ? url('storage/' . $event->image_path ) : null,
+                'timezone'      => $event->timezone,
 
                 // Menyesuaikan dengan response yang dibaca di useEffect React
                 'tags_kategori' => $event->categories->map(function($cat) {
@@ -73,6 +74,7 @@ class EventGeneralInfoController extends Controller
             'banner'             => $request->hasFile('banner')
                             ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
                             : 'nullable',
+            'timezone'           => 'required|string|max:50',
         ]);
 
         try {
@@ -82,6 +84,7 @@ class EventGeneralInfoController extends Controller
                 $updateData = [
                     'title'       => $validated['title'],
                     'description' => $validated['description'] ?? null,
+                    'timezone'    => $validated['timezone'],
                 ];
 
               // Di dalam method update(Request $request, $eventId)
@@ -116,9 +119,12 @@ class EventGeneralInfoController extends Controller
                 // Sesuaikan nama relasi dengan yang ada di Model Event
                 $event->eventTypes()->sync($eventTypeIds);
 
+                $notified = $event->notifyParticipantsOfUpdate();
+
                 return response()->json([
                     'status'  => 'success',
                     'message' => 'Informasi event berhasil diperbarui',
+                    'notified_participants' => $notified,
                 ]);
             });
 

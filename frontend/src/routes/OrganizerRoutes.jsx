@@ -20,6 +20,7 @@ import EventQuiz from '../pages/event/management/EventQuizPage/index';
 import EventLocationTest from '../pages/event/creation/EventLocationTest/index';
 
 import EventDashboardPage from '../pages/event/management/EventDashboardPage';
+import EventPreviewPage from '../pages/event/management/EventDashboardPage/EventPreviewPage';
 import EventPosPage from '../pages/event/management/EventPosPage/index';
 import EventParticipantList from '../pages/event/management/EventParticipantListPage/index';
 import EventMaterialDistributionPage from '../pages/event/management/EventMaterialDistributionPage/index';
@@ -46,6 +47,7 @@ export const OrganizerRoutes = (
 		{/* Event Routes untuk Detail Event */}
 		<Route path=":eventId/event-dashboard" element={<EventOrganizerGuard />}>
 			<Route path="" element={<EventDashboardPage />} />
+			<Route path="preview" element={<EventPreviewPage />} />
 			<Route path="detail">
 				<Route path="info" element={<EventGeneralInfo />} />
 				<Route path="tempat" element={<EventScheduleLocation />} />

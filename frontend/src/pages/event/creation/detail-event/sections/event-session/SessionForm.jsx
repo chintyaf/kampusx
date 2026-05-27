@@ -108,9 +108,9 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 
 	// Reusable inline style untuk flat input agar tidak berulang
 	const flatInputStyle = {
-		borderRadius: '12px',
-		borderColor: '#cbd5e1',
-		fontSize: '0.95rem',
+		borderRadius: '8px',
+		border: '1.5px solid #cbd5e1',
+		fontSize: '14px',
 		backgroundColor: '#f8fafc',
 		boxShadow: 'none',
 	};
@@ -210,7 +210,7 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 					</div> */}
 
 				{/* Judul Sesi */}
-				<Form.Group className="mb-4">
+				<Form.Group className="mb-3">
 					<Form.Label className="form-label">
 						<AlignLeft size={14} className="me-1" /> Judul Sesi
 					</Form.Label>
@@ -219,12 +219,13 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 						name="title"
 						value={sessionData.title}
 						onChange={handleChange}
+						className="form-control shadow-none"
 						style={flatInputStyle}
 					/>
 				</Form.Group>
 
 				{/* Deskripsi */}
-				<Form.Group className="mb-4">
+				<Form.Group className="mb-3">
 					<Form.Label className="form-label">
 						<AlignLeft size={14} className="me-1" /> Deskripsi{' '}
 						<span className="text-muted fw-normal text-lowercase">(opsional)</span>
@@ -235,13 +236,14 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 						name="description"
 						value={sessionData.description}
 						onChange={handleChange}
+						className="form-control shadow-none"
 						style={{ ...flatInputStyle, resize: 'none' }}
 					/>
 				</Form.Group>
 
 				{/* Hari & Waktu */}
 				<Row>
-					<Col xs={12} className="mb-4">
+					<Col xs={12} className="mb-3">
 						<Form.Label className="form-label">
 							<Calendar size={14} className="me-1" /> Hari
 						</Form.Label>
@@ -249,6 +251,7 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 							name="dayNumber"
 							value={sessionData.dayNumber}
 							onChange={handleChange}
+							className="form-select shadow-none"
 							style={flatInputStyle}
 						>
 							{days.map((day, idx) => {
@@ -261,7 +264,7 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 							})}
 						</Form.Select>
 					</Col>
-					<Col xs={12} className="mb-4">
+					<Col xs={12} className="mb-3">
 						<Form.Label className="form-label">
 							<Clock size={14} className="me-1" /> Waktu
 						</Form.Label>
@@ -271,7 +274,7 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 								name="startTime"
 								value={sessionData.startTime}
 								onChange={handleChange}
-								className="text-center px-1"
+								className="form-control shadow-none text-center px-1"
 								style={flatInputStyle}
 							/>
 							<span className="text-muted">-</span>
@@ -280,7 +283,7 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 								name="endTime"
 								value={sessionData.endTime}
 								onChange={handleChange}
-								className="text-center px-1"
+								className="form-control shadow-none text-center px-1"
 								style={flatInputStyle}
 							/>
 						</div>
@@ -288,13 +291,14 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 				</Row>
 
 				{/* Prasyarat Sesi */}
-				<Form.Group className="mb-4">
+				<Form.Group className="mb-3">
 					<Form.Label className="form-label">
 						<LinkIcon size={14} /> Prasyarat Sesi
 					</Form.Label>
 					<Form.Select 
 						value={sessionData.prerequisite_session_ids?.[0] || ''}
 						onChange={handlePrerequisiteChange}
+						className="form-select shadow-none"
 						style={flatInputStyle}
 					>
 						<option value="">Tidak ada prasyarat</option>
@@ -365,7 +369,7 @@ const SessionForm = ({ data, days = [], onClose, onSaveSession, onDeleteSession,
 									style={{ width: '48px', height: '48px' }}
 								>
 									<img
-										src={speaker.avatarUrl || speaker.avatar || `https://i.pravatar.cc/150?u=${speaker.id || index}`}
+										src={speaker.image_url || speaker.avatarUrl || speaker.avatar || `https://i.pravatar.cc/150?u=${speaker.id || index}`}
 										alt={speaker.name}
 										className="rounded-circle w-100 h-100"
 										style={{ objectFit: 'cover' }}

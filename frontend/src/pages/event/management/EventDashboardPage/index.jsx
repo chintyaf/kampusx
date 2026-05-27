@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../../api/axios';
 import { Row, Col } from 'react-bootstrap';
-import { Ticket, DollarSign, UserCheck, UserMinus } from 'lucide-react';
+import { Ticket, DollarSign, UserCheck, UserMinus, Users } from 'lucide-react';
 import '../../../../assets/css/dashboard.css';
 
 import PageHeader from './PageHeader';
@@ -96,6 +96,7 @@ export default function EventDashboardPage() {
 	const [eventStatus, setEventStatus] = useState('draft'); // 'draft', 'published', 'ongoing', 'completed'
 	const [eventData, setEventData] = useState(null);
 	const [issues, setIssues] = useState([]);
+	const [speakers, setSpeakers] = useState([]);
 	const [loading, setLoading] = useState(true);
 
 	const handleFix = (issue) => {
@@ -135,14 +136,22 @@ export default function EventDashboardPage() {
 		const fetchOverview = async () => {
 			try {
 				setLoading(true);
-				const [overviewRes, statusRes] = await Promise.all([
+				const [overviewRes, statusRes, speakersRes] = await Promise.all([
 					api.get(`/event-dashboard/${eventId}/overview`),
 					api.get(`/events/${eventId}/check-status`),
+					api.get(`/event-dashboard/${eventId}/info-utama/speaker`).catch(err => {
+						console.error('Gagal mengambil data pembicara', err);
+						return { data: { success: false, data: [] } };
+					}),
 				]);
 
 				if (overviewRes.data?.status === 'success') {
 					setEventData(overviewRes.data.data);
 					setEventStatus(overviewRes.data.data.status || 'draft');
+				}
+
+				if (speakersRes.data?.success && speakersRes.data?.data) {
+					setSpeakers(speakersRes.data.data);
 				}
 
 				if (statusRes.data?.status === 'success') {
@@ -210,6 +219,7 @@ export default function EventDashboardPage() {
 				subtitle="Pusat kendali untuk monitoring dan manajemen event"
 				status={eventStatus}
 				onBuat={() => navigate('/organizer/buat-acara')}
+				onPreview={() => navigate(`/organizer/${eventId}/event-dashboard/preview`)}
 			/>
 
 			{/* 2. Stat Cards */}
@@ -230,8 +240,94 @@ export default function EventDashboardPage() {
 			{/* 5. Readiness + Missing Info */}
 			<MissingInformation issues={issues} onFix={handleFix} />
 
-			{/* 6. Session Table */}
-			<SessionTable sessions={eventData.sessions || []} />
+			{/* 6. Sesi & Pembicara */}
+			<Row className="g-3 mb-4">
+				<Col xs={12} lg={8}>
+					<SessionTable
+						sessions={eventData.sessions || []}
+						eventStatus={eventStatus}
+						onAddSession={() => navigate(`/organizer/${eventId}/event-dashboard/detail/sesi`)}
+					/>
+				</Col>
+				<Col xs={12} lg={4}>
+					<div className="card h-100" style={{ display: 'flex', flexDirection: 'column' }}>
+						<div className="card-title" style={{ borderBottom: '0.5px solid var(--border)', paddingBottom: 12, marginBottom: 16 }}>
+							<Users size={15} color="var(--text-muted)" />
+							<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Pembicara & Narasumber</span>
+						</div>
+						{eventStatus === 'draft' || speakers.length === 0 ? (
+							<div style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								justifyContent: 'center',
+								flex: 1,
+								padding: '24px 16px',
+								background: '#fafafa',
+								borderRadius: '6px',
+								border: '1.5px dashed #cbd5e1',
+								textAlign: 'center',
+								minHeight: '220px'
+							}}>
+								<Users size={32} style={{ color: '#94a3b8', marginBottom: 12, opacity: 0.6 }} />
+								<span style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 4 }}>
+									Belum ada pembicara
+								</span>
+								<span style={{ fontSize: 11, color: '#64748b', marginBottom: 16 }}>
+									Silakan tambah pembicara baru untuk event ini.
+								</span>
+								<button
+									onClick={() => navigate(`/organizer/${eventId}/event-dashboard/detail/pembicara`)}
+									style={{
+										fontSize: 12,
+										fontWeight: 600,
+										padding: '8px 16px',
+										background: 'white',
+										border: '1.5px solid #00699e',
+										color: '#00699e',
+										borderRadius: '6px',
+										cursor: 'pointer',
+										transition: 'background 0.15s, color 0.15s',
+										fontFamily: 'var(--font)'
+									}}
+									onMouseEnter={e => {
+										e.currentTarget.style.background = '#00699e';
+										e.currentTarget.style.color = 'white';
+									}}
+									onMouseLeave={e => {
+										e.currentTarget.style.background = 'white';
+										e.currentTarget.style.color = '#00699e';
+									}}
+								>
+									Tambah Pembicara
+								</button>
+							</div>
+						) : (
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1, overflowY: 'auto', maxHeight: '320px', paddingRight: 4 }}>
+								{speakers.map((s, idx) => (
+									<div key={s.id || idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#f8fafc' }}>
+										{s.image_url ? (
+											<img src={s.image_url} alt={s.name} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+										) : (
+											<div style={{ width: 36, height: 36, borderRadius: '50%', background: '#dff3ff', color: '#00699e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13 }}>
+												{s.name ? s.name.charAt(0).toUpperCase() : 'S'}
+											</div>
+										)}
+										<div style={{ flex: 1, minWidth: 0 }}>
+											<div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+												{s.name}
+											</div>
+											<div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+												{s.role || 'Pembicara'}
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</Col>
+			</Row>
 
 			{/* 7. Demographics + Ticket Distribution */}
 			<Row className="g-3">
@@ -244,6 +340,7 @@ export default function EventDashboardPage() {
 								{ label: 'Institusi Asal', value: 0 },
 							]
 						}
+						eventStatus={eventStatus}
 					/>
 				</Col>
 				<Col xs={12} md={6}>

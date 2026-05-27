@@ -30,6 +30,7 @@ import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage';
 // NEW: CERTIFICATES & AFTER EVENT MOCKUP
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
 import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
+import CertificateVerificationPage from '../pages/certificate/CertificateVerificationPage';
 
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
@@ -101,6 +102,9 @@ const AppRoutes = () => {
                     //     <Route key={index} path={route.path} element={route.element} />
                     // ))} */}
 				</Route>
+
+				{/* Public Certificate Verification Portal */}
+				<Route path="/certificate/verify/:ticketCode" element={<CertificateVerificationPage />} />
 
 				{/* TEST CHIN UI ROUTES (Tampilan Peserta - Tidak perlu login utuk testing) */}
 				<Route element={<VisitorLayout />}>

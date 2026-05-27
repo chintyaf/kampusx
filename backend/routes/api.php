@@ -57,6 +57,10 @@ Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi i
 Route::get('/events/explore', [EventController::class, 'explore']);
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
+// Certificate Public Verification & Rendering
+Route::get('/certificate/verify/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'verifyCertificate']);
+Route::get('/certificate/render/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'getCertificateRenderData']);
+
 Route::get('/test', function () {
     return response()->json('hallo', 200);
 });

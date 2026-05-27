@@ -91,6 +91,11 @@ export default function EventTicket() {
 			);
 			console.log('Sukses update:', response.data);
 			setSaved(true);
+			if (response.data?.notified_participants) {
+				notify('success', 'Berhasil!', 'Data tiket berhasil disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
+			} else {
+				notify('success', 'Berhasil!', 'Data tiket berhasil disimpan.');
+			}
 		} catch (error) {
 			// Log error dari response Laravel agar tahu persis kolom mana yang gagal validasi
 			console.error('Gagal update data:', error.response?.data?.errors || error.message);

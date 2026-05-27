@@ -20,6 +20,7 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 			>
 				<Image
 					src={
+						speaker.image_url ||
 						speaker.avatarUrl ||
 						speaker.avatar ||
 						`https://i.pravatar.cc/150?u=${speaker.id}`

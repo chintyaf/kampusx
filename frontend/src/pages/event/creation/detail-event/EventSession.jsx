@@ -116,38 +116,62 @@ const EventSession = () => {
 			sessions: flatSessions,
 		};
 
-		// 2. Format Payload Speaker
-		const speakerPayload = {
-			speakers: allSpeakers.map((speaker) => {
-				const assignedSessions = [];
-				days.forEach((day) => {
-					if (day.sessions) {
-						day.sessions.forEach((s) => {
-							if (s.speakers && s.speakers.some((spk) => spk.id === speaker.id)) {
-								// Cegah ID "new-..." terkirim ke backend untuk relasi pivot
-								if (typeof s.id === 'number' || !String(s.id).startsWith('new-')) {
-									assignedSessions.push(s.id);
-								}
-							}
-						});
-					}
-				});
+		// 2. Format Payload Speaker dengan FormData untuk Mendukung Upload Gambar
+		const speakerFormData = new FormData();
+		allSpeakers.forEach((speaker, index) => {
+			const cleanId =
+				typeof speaker.id === 'string' && speaker.id.startsWith('spk-')
+					? ''
+					: speaker.id;
 
-				return {
-					...speaker,
-					id:
-						typeof speaker.id === 'string' && speaker.id.startsWith('spk-')
-							? null
-							: speaker.id,
-					sessions: assignedSessions,
-				};
-			}),
-		};
+			speakerFormData.append(`speakers[${index}][id]`, cleanId || '');
+			speakerFormData.append(`speakers[${index}][name]`, speaker.name || '');
+			speakerFormData.append(`speakers[${index}][role]`, speaker.role || '');
+			speakerFormData.append(`speakers[${index}][bio]`, speaker.bio || '');
+
+			// Social links
+			const socialLinks = speaker.social_link || [];
+			socialLinks.forEach((link, linkIndex) => {
+				speakerFormData.append(`speakers[${index}][social_link][${linkIndex}][platform]`, link.platform || '');
+				speakerFormData.append(`speakers[${index}][social_link][${linkIndex}][url]`, link.url || '');
+			});
+
+			const assignedSessions = [];
+			days.forEach((day) => {
+				if (day.sessions) {
+					day.sessions.forEach((s) => {
+						if (s.speakers && s.speakers.some((spk) => spk.id === speaker.id)) {
+							// Cegah ID "new-..." terkirim ke backend untuk relasi pivot
+							if (typeof s.id === 'number' || !String(s.id).startsWith('new-')) {
+								assignedSessions.push(s.id);
+							}
+						}
+					});
+				}
+			});
+
+			assignedSessions.forEach((sessId, sessIdx) => {
+				speakerFormData.append(`speakers[${index}][sessions][${sessIdx}]`, sessId);
+			});
+
+			// Kirim file gambar pembicara baru jika ada
+			if (speaker._imageFile) {
+				speakerFormData.append(`speakers_image_${index}`, speaker._imageFile);
+			}
+		});
 
 		try {
-			await api.post(`event-dashboard/${eventId}/info-utama/session`, sessionPayload);
-			await api.post(`event-dashboard/${eventId}/info-utama/speaker`, speakerPayload);
-			notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan.');
+			const res1 = await api.post(`event-dashboard/${eventId}/info-utama/session`, sessionPayload);
+			const res2 = await api.post(`event-dashboard/${eventId}/info-utama/speaker`, speakerFormData, {
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			});
+			if (res1.data?.notified_participants || res2.data?.notified_participants) {
+				notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
+			} else {
+				notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan.');
+			}
 		} catch (error) {
 			const errorMsg = error.response?.data?.message || 'Terjadi kesalahan pada server.';
 			if (error.response?.data?.errors) console.table(error.response.data.errors);

@@ -117,6 +117,11 @@ const NotificationDropdown = () => {
                     icon: <CheckCircle2 size={20} className="text-success" />,
                     bg: "bg-success",
                 };
+            case "event_updated":
+                return {
+                    icon: <Info size={20} className="text-info" />,
+                    bg: "bg-info",
+                };
             case "organizer_rejected":
             case "account_suspended":
                 return {

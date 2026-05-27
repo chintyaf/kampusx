@@ -138,8 +138,18 @@ class EventController extends Controller
 
     public function show(Request $request, $id)
     {
-        // 2. UPDATE DI SINI: Ubah 'event_locations' menjadi 'location'
-        $event = Event::with(['organizer', 'locationDetail'])->findOrFail($id);
+        // Eager load all necessary relations for rich detail and preview modes
+        $event = Event::with([
+            'organizer',
+            'locationDetail',
+            'categories',
+            'eventTypes',
+            'sessions' => function($q) {
+                $q->orderBy('day_number', 'asc')
+                  ->orderBy('start_time', 'asc')
+                  ->with('speakers');
+            }
+        ])->findOrFail($id);
 
         return response()->json([
             'success' => true,

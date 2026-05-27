@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\CertificateTemplate;
 use App\Models\CertificateElement;
+use App\Models\Ticket;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -217,6 +218,135 @@ class CertificateController extends Controller
             return response()->file(Storage::disk('public')->path($path));
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Memverifikasi keaslian sertifikat berdasarkan ticket_code.
+     * Dapat diakses secara publik (tanpa login).
+     */
+    public function verifyCertificate(string $ticketCode)
+    {
+        try {
+            $ticket = Ticket::with([
+                'orderItem.order.event.organizer',
+                'orderItem.order.event.institution'
+            ])
+            ->where('ticket_code', $ticketCode)
+            ->first();
+
+            if (!$ticket) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Sertifikat tidak ditemukan atau tidak valid.'
+                ], 404);
+            }
+
+            $event = $ticket->orderItem?->order?->event;
+            if (!$event) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Event terkait sertifikat ini tidak ditemukan.'
+                ], 404);
+            }
+
+            // Tentukan nama institusi penyelenggara atau nama organizer
+            $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
+
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'message' => 'Sertifikat terverifikasi dengan sukses.',
+                'data' => [
+                    'certificate_number' => $ticket->ticket_code,
+                    'attendee_name' => $ticket->attendee_name,
+                    'event_title' => $event->title,
+                    'event_date' => $event->start_date ? $event->start_date->translatedFormat('d F Y') : null,
+                    'organizer_name' => $organizerName,
+                    'status' => $ticket->status,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Gagal memverifikasi sertifikat: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengambil data lengkap template sertifikat beserta informasi peserta
+     * untuk dirender di sisi client.
+     */
+    public function getCertificateRenderData(string $ticketCode)
+    {
+        try {
+            $ticket = Ticket::with([
+                'orderItem.order.event.certificateTemplate.elements',
+                'orderItem.order.event.organizer',
+                'orderItem.order.event.institution'
+            ])
+            ->where('ticket_code', $ticketCode)
+            ->first();
+
+            if (!$ticket) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Sertifikat tidak ditemukan.'
+                ], 404);
+            }
+
+            $event = $ticket->orderItem?->order?->event;
+            if (!$event) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Event terkait sertifikat ini tidak ditemukan.'
+                ], 404);
+            }
+
+            $template = $event->certificateTemplate;
+            if (!$template) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Template sertifikat belum dibuat oleh pihak penyelenggara.'
+                ], 404);
+            }
+
+            $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
+            $template->background_url = Storage::disk('public')->url($template->background_path);
+
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'data' => [
+                    'ticket' => [
+                        'ticket_code' => $ticket->ticket_code,
+                        'attendee_name' => $ticket->attendee_name,
+                        'status' => $ticket->status
+                    ],
+                    'event' => [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'start_date' => $event->start_date ? $event->start_date->translatedFormat('d F Y') : null,
+                        'organizer_name' => $organizerName
+                    ],
+                    'template' => $template
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Gagal memuat data cetak sertifikat: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

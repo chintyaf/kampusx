@@ -112,7 +112,7 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 												}}
 											>
 												<QRCode
-													value={`${window.location.origin}/test-chin/sertifikat/${eventId || 'PREVIEW-TEMP'}`}
+													value={`${window.location.origin}/certificate/verify/PREVIEW-TICKET`}
 													size={Math.max(16, Math.round(((el.fontSize || 80) / 1920) * previewWidth) - 8)}
 													fgColor={el.color === '#ffffff' ? '#000000' : el.color}
 													bgColor="#ffffff"

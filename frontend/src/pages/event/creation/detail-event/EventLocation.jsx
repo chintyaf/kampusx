@@ -156,7 +156,7 @@ const EventLocation = () => {
         }
 
         try {
-            await api.post(
+            const response = await api.post(
                 `event-dashboard/${eventId}/info-utama/location`,
                 payload,
                 {
@@ -167,11 +167,19 @@ const EventLocation = () => {
                 },
             );
 
-            notify(
-                "success",
-                "Berhasil!",
-                "Perubahan informasi utama telah disimpan.",
-            );
+            if (response.data?.notified_participants) {
+                notify(
+                    "success",
+                    "Berhasil!",
+                    "Perubahan tempat acara telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.",
+                );
+            } else {
+                notify(
+                    "success",
+                    "Berhasil!",
+                    "Perubahan informasi utama telah disimpan.",
+                );
+            }
         } catch (error) {
             if (error.response && error.response.status === 422) {
                 setErrors(error.response.data.errors);
