@@ -187,7 +187,19 @@ const EventCard = ({ ev = {}, onClick }) => {
 					</span>
 					<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
 						<Ticket size={14} />
-						{price}
+						{ev.price === undefined ? (
+							<span style={{ color: 'var(--color-secondary)', opacity: 0.6, fontStyle: 'italic' }}>Memuat...</span>
+						) : Number(ev.price) === 0 ? (
+							<span style={{ color: '#22c55e', fontWeight: 700 }}>Gratis</span>
+						) : (
+							<span>
+								{new Intl.NumberFormat('id-ID', {
+									style: 'currency',
+									currency: 'IDR',
+									maximumFractionDigits: 0,
+								}).format(ev.price)}
+							</span>
+						)}
 					</span>
 				</div>
 

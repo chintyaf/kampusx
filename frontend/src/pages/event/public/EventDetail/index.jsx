@@ -177,7 +177,11 @@ const EventDetail = () => {
                                             <div className="ms-4 mt-1 d-flex justify-content-between align-items-center">
                                                 <span className="small text-muted">Akses ke semua materi</span>
                                                 <span className="fw-bold" style={{ color: 'var(--color-primary)' }}>
-                                                    {eventDetails.price === 0 || eventDetails.price === 'Free' ? 'Gratis' : `Rp ${eventDetails.price}`}
+                                                    {eventDetails.price === undefined ? 'Memuat...' : (
+                                                        Number(eventDetails.price) === 0 
+                                                            ? 'Gratis' 
+                                                            : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(eventDetails.price)
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -188,7 +192,9 @@ const EventDetail = () => {
                                             style={{ backgroundColor: 'var(--color-primary)' }}
                                             disabled={eventDetails.quota <= 0} // Disable jika kuota habis
                                         >
-                                            {eventDetails.quota <= 0 ? 'Kouta Habis' : 'Lanjutkan ke Pembayaran'}
+                                            {eventDetails.quota <= 0 ? 'Kuota Habis' : (
+                                                Number(eventDetails.price) === 0 ? 'Klaim Tiket Gratis' : 'Lanjutkan ke Pembayaran'
+                                            )}
                                         </Button>
                                     </Form>
 

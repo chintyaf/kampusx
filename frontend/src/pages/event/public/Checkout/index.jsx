@@ -185,36 +185,28 @@ const Checkout = () => {
 		setStep(2);
 
 		try {
-			const res = await api.post('checkout', {
+			// Generate a unique order_id locally
+			const generatedOrderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+			const res = await api.post('v1/payment/charge', {
+				order_id: generatedOrderId,
+				amount: total,
 				event_id: id,
 				name: formData.name,
 				email: formData.email,
 				phone: formData.phone,
-				quantity: 1,
 			});
 
-			const snapToken = res.data.snap_token;
-			const ticketCode = res.data.ticket_code;
-			const orderId = res.data.order_id;
+			const { is_paid, payment_url, redirect_url } = res.data;
 
-			if (!orderId) throw new Error('Order ID tidak diterima dari server.');
-
-			if (snapToken) {
-				window.snap.pay(snapToken, {
-					onSuccess: () => navigate(`/ticket/${ticketCode}`, { replace: true }),
-					onPending: () => navigate('/my-tickets', { replace: true }),
-					onError: () => {
-						setSubmitError('Pembayaran gagal. Silakan coba lagi.');
-						setStep(1);
-					},
-					onClose: () => {
-						setSubmitError('Kamu menutup pop-up sebelum selesai.');
-						setStep(1);
-					},
-				});
+			if (is_paid) {
+				// Event Berbayar: arahkan ke simulator sandbox
+				window.location.href = payment_url;
+			} else if (redirect_url) {
+				// Event Gratis: arahkan langsung ke halaman sukses/tiket gratis
+				window.location.href = redirect_url;
 			} else {
-				// Tiket gratis
-				navigate(`/ticket/${ticketCode}`, { replace: true });
+				throw new Error('Respons tidak valid dari server simulator.');
 			}
 		} catch (err) {
 			setSubmitError(err.response?.data?.message ?? 'Terjadi kesalahan sistem.');

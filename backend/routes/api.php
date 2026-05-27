@@ -71,6 +71,8 @@ Route::get('/test', function () {
     return response()->json('hallo', 200);
 });
 
+Route::post('/v1/payment/callback', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'callback']);
+
 
 // ==========================================
 // 2. PROTECTED ROUTES (Harus Login Sanctum)
@@ -111,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- ROLE: PARTICIPANT / UMUM ---
     // ==========================================
     Route::post('/checkout', [CheckoutController::class, 'store']);
+    Route::post('/v1/payment/charge', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'charge']);
     Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
     Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);
     Route::get('/my-tickets', [TicketController::class, 'index']);

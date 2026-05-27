@@ -43,34 +43,56 @@ const MemberDashboard = () => {
 				const res = await api.get('events');
 				const data = res.data?.data ?? res.data;
 				setAllEvents(
-					data.map((ev) => ({
-						id: ev.id,
-						title: ev.title,
-						org: ev.organizer?.name ?? 'Unknown',
-						image: ev.image_path
-							? `${STORAGE_URL}/${ev.image_path}`
-							: `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
-						date: ev.start_date
-							? new Date(ev.start_date).toLocaleDateString('id-ID', {
-									day: 'numeric',
-									month: 'short',
-									year: 'numeric',
-								})
-							: 'TBD',
-						location:
-							ev.location_type === 'online' ? 'Online' : (ev.venue ?? 'Offline'),
-						lat: ev.latitude ?? null,
-						lng: ev.longitude ?? null,
-						isOnline: ['online', 'hybrid'].includes(ev.location_type),
-						isInPerson: ['offline', 'hybrid'].includes(ev.location_type),
-						isFeatured: ev.id % 2 === 0,
-						price: ev.price
-							? `Rp ${Number(ev.price).toLocaleString('id-ID')}`
-							: 'Gratis',
-					})),
+					data.map((ev) => {
+								const loc       = ev.location || {};
+								const eventType = loc.type || ev.location_type || "offline";
+								const display   = eventType === "online"
+								  ? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
+								  : (loc.location || "Offline Venue");
+								return {
+								  id:         ev.id,
+								  title:      ev.title,
+								  org:        ev.organizer?.name ?? "Unknown",
+								  image:      ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
+								  date:       ev.start_date
+									? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+									: "Tanggal Belum Ditentukan",
+								  price:      ev.price,
+								  location:   display,
+								  isOnline:   ["online","hybrid"].includes(eventType),
+								  isInPerson: ["offline","hybrid"].includes(eventType),
+								  isFeatured: ev.id % 2 === 0,
+								};
+							  })
+					// data.map((ev) => ({
+					// 	id: ev.id,
+					// 	title: ev.title,
+					// 	org: ev.organizer?.name ?? 'Unknown',
+					// 	image: ev.image_path
+					// 		? `${STORAGE_URL}/${ev.image_path}`
+					// 		: `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
+					// 	date: ev.start_date
+					// 		? new Date(ev.start_date).toLocaleDateString('id-ID', {
+					// 				day: 'numeric',
+					// 				month: 'short',
+					// 				year: 'numeric',
+					// 			})
+					// 		: 'TBD',
+					// 	location:
+					// 		ev.location_type === 'online' ? 'Online' : (ev.venue ?? 'Offline'),
+					// 	lat: ev.latitude ?? null,
+					// 	lng: ev.longitude ?? null,
+					// 	isOnline: ['online', 'hybrid'].includes(ev.location_type),
+					// 	isInPerson: ['offline', 'hybrid'].includes(ev.location_type),
+					// 	isFeatured: ev.id % 2 === 0,
+					// 	price: ev.price,
+					// 		// ? `Rp ${Number(ev.price).toLocaleString('id-ID')}`
+					// 		// : 'Gratis',
+					// })),
 				);
 			} catch (err) {
 				console.error('Gagal fetch events:', err);
+			} finally {setIsLoading(false);
 			}
 		})();
 	}, []);
