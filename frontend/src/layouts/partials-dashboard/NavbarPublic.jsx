@@ -7,27 +7,23 @@ import {
     Crosshair,
     MonitorPlay,
     Clock,
-    LogOut,
-    Award,
-    LayoutDashboard,
-    ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 import LogoKampusX from "../../assets/images/logo/Logo_KampusX.svg";
 import userImg from "../../assets/images/user-placeholder.avif";
+import ProfileDropdown from "./Navbar/ProfileDropdown";
+import "../../assets/css/dashboard.css";
 
 const NavbarPublic = () => {
     // === AUTH STATE ===
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     // === DROPDOWN STATE ===
     const [showLocDropdown, setShowLocDropdown] = useState(false);
-    const [showProfileMenu, setShowProfileMenu] = useState(false); // State untuk dropdown profil
 
     const dropdownRef = useRef(null);
-    const profileRef = useRef(null); // Ref untuk klik di luar profil
 
     // Fungsi tutup dropdown kalau klik di luar
     useEffect(() => {
@@ -38,24 +34,11 @@ const NavbarPublic = () => {
             ) {
                 setShowLocDropdown(false);
             }
-            if (
-                profileRef.current &&
-                !profileRef.current.contains(event.target)
-            ) {
-                setShowProfileMenu(false);
-            }
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
-    // Fungsi Logout
-    const handleLogout = async () => {
-        await logout();
-        setShowProfileMenu(false);
-        navigate("/");
-    };
 
     // Fungsi Lokasi (Tetap sama seperti aslinya)
     const handleGetCurrentLocation = () => {
@@ -137,91 +120,7 @@ const NavbarPublic = () => {
 
                     {/* === CONDITIONAL RENDERING AUTH === */}
                     {user ? (
-                        // JIKA USER SUDAH LOGIN: Tampilkan Profil
-                        <div
-                            className="position-relative"
-                            ref={profileRef}
-                            style={{ cursor: "pointer" }}
-                        >
-                            <div
-                                onClick={() =>
-                                    setShowProfileMenu(!showProfileMenu)
-                                }
-                            >
-                                <img
-                                    className="rounded-circle object-fit-cover shadow-sm border"
-                                    src={userImg}
-                                    alt="User"
-                                    width="40px"
-                                    height="40px"
-                                />
-                            </div>
-
-                            {/* Dropdown Menu Profil */}
-                            {showProfileMenu && (
-                                <div
-                                    className="position-absolute bg-white rounded shadow border mt-2 end-0"
-                                    style={{ width: "180px", zIndex: 1000 }}
-                                >
-                                    <div className="px-3 py-2 border-bottom">
-                                        <p
-                                            className="m-0 fw-semibold text-truncate"
-                                            style={{
-                                                fontSize: "var(--font-sm)",
-                                            }}
-                                        >
-                                            Halo, {user.name || "Peserta"}
-                                        </p>
-                                    </div>
-                                    {user.role === 'admin' || user.role === 'organizer' ? (
-                                        <Link
-                                            to="/organizer/dashboard"
-                                            className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-dark hover-bg-light text-decoration-none"
-                                            onClick={() => setShowProfileMenu(false)}
-                                        >
-                                            <LayoutDashboard size={16} className="text-primary" />
-                                            <span style={{ fontSize: "var(--font-sm)" }}>Masuk Organizer</span>
-                                        </Link>
-                                    ) : (
-                                        <Link
-                                            to="/apply-organizer"
-                                            className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-dark hover-bg-light text-decoration-none"
-                                            onClick={() => setShowProfileMenu(false)}
-                                        >
-                                            <Award size={16} className="text-success" />
-                                            <span style={{ fontSize: "var(--font-sm)" }}>Daftar Organizer</span>
-                                        </Link>
-                                    )}
-
-                                    {user.role === 'admin' && (
-                                        <Link
-                                            to="/admin/dashboard"
-                                            className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-dark hover-bg-light text-decoration-none"
-                                            onClick={() => setShowProfileMenu(false)}
-                                        >
-                                            <ShieldCheck size={16} className="text-warning" />
-                                            <span style={{ fontSize: "var(--font-sm)" }}>Masuk Admin</span>
-                                        </Link>
-                                    )}
-
-                                    <div className="dropdown-divider my-1 opacity-10" />
-
-                                    <button
-                                        className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 border-0 bg-transparent w-100 text-start text-danger hover-bg-light"
-                                        onClick={handleLogout}
-                                    >
-                                        <LogOut size={16} />
-                                        <span
-                                            style={{
-                                                fontSize: "var(--font-sm)",
-                                            }}
-                                        >
-                                            Logout
-                                        </span>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                        <ProfileDropdown />
                     ) : (
                         // JIKA USER GUEST: Tampilkan Tombol Masuk
                         <Link to="/login">

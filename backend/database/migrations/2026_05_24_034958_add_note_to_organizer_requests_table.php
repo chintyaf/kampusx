@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('organizer_requests', function (Blueprint $table) {
-            $table->text('note')->nullable()->after('proof_path');
+            $table->text('note')->nullable()->after('status');
         });
     }
 

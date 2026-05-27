@@ -232,6 +232,20 @@ main {
 	transition: all 0.15s ease;
 }
 
+@media (max-width: 576px) {
+	.profile-toggle {
+		padding: 2px !important;
+		border-color: transparent !important;
+		background-color: transparent !important;
+		box-shadow: none !important;
+	}
+	.profile-toggle.open {
+		border-color: transparent !important;
+		background-color: transparent !important;
+		box-shadow: none !important;
+	}
+}
+
 .profile-toggle.open {
 	border-color: #0089cb;
 	background-color: #f0f9ff;

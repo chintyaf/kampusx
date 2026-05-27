@@ -118,8 +118,9 @@ const ProfileDropdown = () => {
 						<User size={14} strokeWidth={2} />
 					</div>
 				)}
+
 				<span
-					className="text-truncate"
+					className="text-truncate d-none d-sm-inline"
 					style={{
 						fontSize: '12px',
 						fontWeight: 600,
@@ -132,6 +133,7 @@ const ProfileDropdown = () => {
 				<ChevronRight
 					size={13}
 					strokeWidth={2.5}
+					className="d-none d-sm-inline"
 					style={{
 						color: '#94a3b8',
 						transition: 'transform 0.2s ease',
