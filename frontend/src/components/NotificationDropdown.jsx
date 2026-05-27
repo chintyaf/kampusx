@@ -278,12 +278,19 @@ const NotificationDropdown = () => {
 
                 {/* Footer */}
                 <li>
-                    <div className="pt-2 pb-2 px-2 text-center border-top bg-light">
+                    <div 
+                        className="pt-2.5 pb-2.5 px-2 text-center border-top bg-light text-primary hover-bg-light"
+                        style={{ cursor: "pointer", transition: 'background-color 0.2s' }}
+                        onClick={() => {
+                            document.body.click();
+                            navigate("/notifications");
+                        }}
+                    >
                         <span
-                            className="text-primary text-decoration-none fw-semibold"
-                            style={{ fontSize: "13px", cursor: "default" }}
+                            className="text-decoration-none fw-semibold"
+                            style={{ fontSize: "13px" }}
                         >
-                            Pusat Notifikasi KampusX
+                            Lihat Semua Notifikasi
                         </span>
                     </div>
                 </li>

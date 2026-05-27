@@ -3,7 +3,7 @@ import { Form, Button } from 'react-bootstrap';
 import { ArrowLeft, Upload, Check } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
+const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) => {
 	const fileInputRef = useRef(null);
 	const [imagePreview, setImagePreview] = useState('');
 	const [imageFile, setImageFile] = useState(null);
@@ -78,9 +78,10 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
 		<div
 			className="d-flex flex-column"
 			style={{
-				width: '400px',
+				width: isModal ? '100%' : '400px',
+				height: isModal ? 'auto' : '100vh',
 				backgroundColor: '#ffffff',
-				borderLeft: '1px solid #e2e8f0',
+				borderLeft: isModal ? 'none' : '1px solid #e2e8f0',
 				fontFamily: 'Inter, system-ui, sans-serif',
 			}}
 		>
@@ -129,10 +130,10 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
 							}}
 						>
 							{imagePreview ? (
-								<img 
-									src={imagePreview} 
-									alt="Preview" 
-									style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+								<img
+									src={imagePreview}
+									alt="Preview"
+									style={{ width: '100%', height: '100%', objectFit: 'cover' }}
 								/>
 							) : (
 								<>

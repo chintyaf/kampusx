@@ -164,7 +164,7 @@ class Event extends Model
                     $errors[] = "Waktu pelaksanaan pada '{$sessionTitle}' belum lengkap.";
                 }
 
-                if ($session->speakers()->count() === 0) {
+                if ($session->speakers()->count() === 0 && !$session->no_speaker) {
                     $errors[] = "Sesi '{$sessionTitle}' belum memiliki pembicara.";
                 }
             }

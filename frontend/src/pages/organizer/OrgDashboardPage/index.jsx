@@ -24,6 +24,7 @@ import {
 	Zap,
 } from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
+import { getEventImageUrl } from '@/utils/eventUtils';
 
 import './org-dashboard.css';
 
@@ -219,12 +220,20 @@ export default function OrgDashboardPage() {
 											className="org-event-card d-flex align-items-center gap-3 p-3 border"
 										>
 											{/* Thumbnail */}
-											<div className="org-event-thumbnail d-flex align-items-center justify-content-center flex-shrink-0 border">
-												<ImageIcon
-													size={18}
-													color="var(--color-secondary)"
-													strokeWidth={1.5}
-												/>
+											<div className="org-event-thumbnail d-flex align-items-center justify-content-center flex-shrink-0 border overflow-hidden">
+												{event.image_path ? (
+													<img
+														src={getEventImageUrl(event)}
+														alt={event.title}
+														className="w-100 h-100 object-fit-cover"
+													/>
+												) : (
+													<ImageIcon
+														size={18}
+														color="var(--color-secondary)"
+														strokeWidth={1.5}
+													/>
+												)}
 											</div>
 
 											{/* Info */}

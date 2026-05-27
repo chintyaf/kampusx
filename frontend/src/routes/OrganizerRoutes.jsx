@@ -11,8 +11,6 @@ import CreateEvent from '../pages/event/creation/CreateEvent/index';
 import EventGeneralInfo from '../pages/event/creation/detail-event/EventGeneralInfo';
 import EventScheduleLocation from '../pages/event/creation/detail-event/EventLocation';
 import EventSession from '../pages/event/creation/detail-event/EventSession';
-import EventSpeaker from '../pages/event/creation/detail-event/EventSpeaker';
-import EventRegistrationForm from '../pages/event/creation/detail-event/EventRegistrationForm';
 import EventTicket from '../pages/event/creation/detail-event/EventTicket';
 import EventMaterial from '../pages/event/management/EventMaterialPage/index';
 import EventPostMaterial from '../pages/event/post-event/EventPostMaterialPage/index';
@@ -52,8 +50,6 @@ export const OrganizerRoutes = (
 				<Route path="info" element={<EventGeneralInfo />} />
 				<Route path="tempat" element={<EventScheduleLocation />} />
 				<Route path="sesi" element={<EventSession />} />
-				<Route path="pembicara" element={<EventSpeaker />} />
-				<Route path="formulir" element={<EventRegistrationForm />} />
 				<Route path="tiket" element={<EventTicket />} />
 			</Route>
 

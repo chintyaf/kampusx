@@ -19,9 +19,7 @@ import TicketCard from '@/pages/event/creation/detail-event/sections/event-ticke
 import TicketSummary from '@/pages/event/creation/detail-event/sections/event-ticket/TicketSummary';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
-// ── Seed data ─────────────────────────────────────────────────────────────────
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
+import useEventMeta from '@/hooks/useEventMeta';
 
 function formatRp(val) {
 	if (!val) return '';
@@ -39,6 +37,7 @@ export default function EventTicket() {
 	const [tickets, setTickets] = useState([]);
 	const [saved, setSaved] = useState(true);
 	const { eventId } = useParams();
+	const { eventStatus, hasParticipants, participantCount } = useEventMeta(eventId);
 
 	const update = (id, patch) => {
 		setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -63,7 +62,7 @@ export default function EventTicket() {
 		}
 	}, [tickets, eventId]);
 
-	const handleUpdate = async () => {
+	const handleUpdate = async (shouldNotify = false) => {
 		// 1. Format ulang data agar sesuai dengan validasi Laravel (snake_case)
 		const formattedTickets = tickets.map((t) => ({
 			id: t.id,
@@ -91,7 +90,7 @@ export default function EventTicket() {
 			);
 			console.log('Sukses update:', response.data);
 			setSaved(true);
-			if (response.data?.notified_participants) {
+			if (response.data?.notified_participants || shouldNotify) {
 				notify('success', 'Berhasil!', 'Data tiket berhasil disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
 			} else {
 				notify('success', 'Berhasil!', 'Data tiket berhasil disimpan.');
@@ -108,7 +107,36 @@ export default function EventTicket() {
 			description="Konfigurasikan skema tiket, kapasitas, dan jadwal penjualan."
 			sidebar={<TicketSummary tickets={tickets} />}
 			onSave={handleUpdate}
+			prevPath="sesi"
+			eventStatus={eventStatus}
+			hasParticipants={hasParticipants}
 		>
+			{/* Banner peringatan harga terkunci */}
+			{hasParticipants && (
+				<div style={{
+					display: 'flex',
+					alignItems: 'flex-start',
+					gap: 12,
+					padding: '14px 16px',
+					background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+					border: '1.5px solid #f59e0b',
+					borderRadius: 10,
+					marginBottom: 16,
+				}}>
+					<span style={{ fontSize: 20, lineHeight: 1, marginTop: 2 }}>⚠️</span>
+					<div>
+						<p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: '#92400e' }}>
+							Harga tiket tidak dapat diubah
+						</p>
+						<p style={{ margin: 0, fontSize: '0.82rem', color: '#78350f', marginTop: 3, lineHeight: 1.5 }}>
+							Sudah ada <strong>{participantCount} peserta</strong> yang mendaftar dengan harga yang berlaku saat ini.
+							Untuk menjaga keadilan, harga dan status gratis/berbayar tidak bisa dimodifikasi.
+							Kamu masih bisa mengubah kapasitas, deskripsi, dan periode penjualan.
+						</p>
+					</div>
+				</div>
+			)}
+
 			{/* Ticket cards */}
 			<div className="d-flex flex-column gap-2">
 				{tickets &&
@@ -120,6 +148,7 @@ export default function EventTicket() {
 							onChange={(patch) => update(t.id, patch)}
 							onDelete={() => remove(t.id)}
 							canDelete={tickets.length > 1}
+							priceLocked={hasParticipants}
 						/>
 					))}
 			</div>

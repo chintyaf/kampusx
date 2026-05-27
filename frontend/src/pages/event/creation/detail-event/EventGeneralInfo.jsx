@@ -7,6 +7,7 @@ import EventLayout from '../../../../layouts/EventLayout';
 import api from '../../../../api/axios';
 import { STORAGE_URL } from '../../../../api/storage';
 import { notify } from '../../../../utils/notify';
+import useEventMeta from '../../../../hooks/useEventMeta';
 // ICON
 import { Image, Upload } from 'lucide-react';
 import getCroppedImg from '@/utils/cropImage';
@@ -15,6 +16,7 @@ import EventPreview from './sections/event-info/EventPreview';
 
 const EventGeneralInfo = () => {
 	const { eventId } = useParams();
+	const { eventStatus, hasParticipants } = useEventMeta(eventId);
 	// const { setIsPageLoading } = useOutletContext() || {};
 
 	const [formData, setFormData] = useState({
@@ -197,7 +199,7 @@ const EventGeneralInfo = () => {
 	// ==========================================
 	// SUBMIT DATA
 	// ==========================================
-	const handleUpdate = async () => {
+	const handleUpdate = async (shouldNotify = false) => {
 		const submitData = new FormData();
 
 		submitData.append('title', formData.title);
@@ -220,7 +222,7 @@ const EventGeneralInfo = () => {
 				},
 			);
 
-			if (response.data?.notified_participants) {
+			if (response.data?.notified_participants || shouldNotify) {
 				notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
 			} else {
 				notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan.');
@@ -243,6 +245,8 @@ const EventGeneralInfo = () => {
 			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
 			onSave={handleUpdate}
+			eventStatus={eventStatus}
+			hasParticipants={hasParticipants}
 		// sidebar={<EventPreview />}
 		>
 			<Form>

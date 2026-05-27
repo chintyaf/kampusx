@@ -49,6 +49,7 @@ import MyTickets from '../pages/member/MyTickets';
 import PublicProfile from '../pages/public/PublicProfile';
 import Personalization from '../pages/auth/Personalization';
 import ProfileSettings from '../pages/member/ProfileSettings';
+import NotificationsPage from '../pages/member/NotificationsPage';
 
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
@@ -136,6 +137,7 @@ const AppRoutes = () => {
 					<Route path="/event-space/:id" element={<EventSpace />} />
 					<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 					<Route path="/event-space/:id/survey" element={<ParticipantSurveyPage />} />
+					<Route path="/notifications" element={<NotificationsPage />} />
 				</Route>
 				<Route element={<MemberLayout />}>
 					<Route path="/my-tickets" element={<MyTickets />} />

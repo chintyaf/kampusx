@@ -2,6 +2,7 @@ import React from 'react';
 import { Dot, UserCircle } from 'lucide-react'; // Tambah icon UserCircle untuk fallback pembicara
 import { Badge } from 'react-bootstrap';
 import { calculateTotalDuration } from '@/utils/dateUtils';
+import { getSpeakerAvatar } from './SpeakerList';
 
 const SessionRow = ({ session, selectedRow, onClick }) => {
 	// 1. Cek jika data session tidak ada sama sekali
@@ -60,7 +61,7 @@ const SessionRow = ({ session, selectedRow, onClick }) => {
 						session.speakers.map((speaker, index) => (
 								<img
 								key={index}
-								src={speaker.avatarUrl || speaker.avatar || `https://i.pravatar.cc/150?u=${speaker.id || index}`}
+								src={getSpeakerAvatar(speaker)}
 								alt={speaker.name || 'Speaker'}
 								className="rounded-circle object-fit-cover bg-light"
 								width="25"

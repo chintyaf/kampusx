@@ -16,10 +16,12 @@ import SpeakerForm from './sections/event-session/SpeakerForm';
 
 import api from '../../../../api/axios';
 import { notify } from '../../../../utils/notify';
+import useEventMeta from '../../../../hooks/useEventMeta';
 import './sections/event-session/EventSession.css';
 
 const EventSession = () => {
 	const { eventId } = useParams();
+	const { eventStatus, hasParticipants } = useEventMeta(eventId);
 
 	// summary, session-form, speaker-list, speaker-add
 	const [sidebar, setSidebar] = useState('summary');
@@ -42,12 +44,30 @@ const EventSession = () => {
 			if (!eventId) return;
 
 			try {
-				const response = await api.get(`event-dashboard/${eventId}/info-utama/session`);
+				const [sessionRes, speakerRes] = await Promise.all([
+					api.get(`event-dashboard/${eventId}/info-utama/session`),
+					api.get(`event-dashboard/${eventId}/info-utama/speaker`).catch(err => {
+						console.error("Gagal mengambil data speaker:", err);
+						return { data: { data: [] } };
+					})
+				]);
 
-				const sessionResult = response.data;
+				const sessionResult = sessionRes.data;
+				const speakerResult = speakerRes.data;
+
+				let dbSpeakers = [];
+				if ((speakerResult.status === 'success' || speakerResult.success) && speakerResult.data) {
+					dbSpeakers = speakerResult.data;
+				}
+
 				if (sessionResult.status === 'success' && sessionResult.data) {
 					const groupedDaysArray = Object.values(sessionResult.data);
 					const extractedSpeakersMap = new Map();
+
+					// Tambahkan pembicara dari master list pembicara event terlebih dahulu
+					dbSpeakers.forEach((spk) => {
+						extractedSpeakersMap.set(spk.id, spk);
+					});
 
 					if (groupedDaysArray.length > 0) {
 						setFormData((prev) => ({
@@ -91,7 +111,7 @@ const EventSession = () => {
 	}, [eventId]);
 
 	// -- HANDLERS --
-	const handleSave = async () => {
+	const handleSave = async (shouldNotify = false) => {
 		// 1. Format Payload Sesi
 		const flatSessions = [];
 		days.forEach((day, index) => {
@@ -106,6 +126,7 @@ const EventSession = () => {
 						startTime: s.startTime || s.start_time,
 						endTime: s.endTime || s.end_time,
 						prerequisite_session_ids: s.prerequisite_session_ids || [],
+						no_speaker: s.no_speaker || false,
 					});
 				});
 			}
@@ -167,7 +188,7 @@ const EventSession = () => {
 					'Content-Type': 'multipart/form-data',
 				},
 			});
-			if (res1.data?.notified_participants || res2.data?.notified_participants) {
+			if (res1.data?.notified_participants || res2.data?.notified_participants || shouldNotify) {
 				notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
 			} else {
 				notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan.');
@@ -372,6 +393,9 @@ const EventSession = () => {
 						onSaveSession={handleSaveSession}
 						onDeleteSession={() => handleDeleteSession(selectedRow?.id)}
 						onToggleHideSession={() => handleToggleHideSession(selectedRow?.id)}
+						allSpeakers={allSpeakers}
+						onSaveSpeaker={handleSaveSpeaker}
+						onDeleteSpeaker={handleDeleteSpeaker}
 					/>
 				);
 			case 'speaker-list':
@@ -410,6 +434,8 @@ const EventSession = () => {
 			nextPath={'tiket'}
 			prevPath={'tempat'}
 			sidebar={renderSidebar()}
+			eventStatus={eventStatus}
+			hasParticipants={hasParticipants}
 		>
 			<Outlet context={{ sidebar, setSidebar, setSelectedRow }} />
 

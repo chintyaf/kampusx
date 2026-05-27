@@ -417,11 +417,10 @@ class EventSeeder2 extends Seeder
                     ['institution' => 0, 'role' => 'sponsor'],
                 ],
             ],
-        ];
-
-        // ─────────────────────────────────────────
+        ];        // ─────────────────────────────────────────
         // Loop & Insert setiap event
         // ─────────────────────────────────────────
+        $i = 1;
         foreach ($eventsData as $eventData) {
             $meta = $eventData['meta'];
 
@@ -432,7 +431,7 @@ class EventSeeder2 extends Seeder
                 'title'          => $meta['title'],
                 'slug'           => Str::slug($meta['title']),
                 'description'    => $meta['description'],
-                'image_path'     => null,
+                'image_path'     => "event-banners/{$i}.jpg",
                 'start_date'     => $meta['start_date'],
                 'end_date'       => $meta['end_date'],
                 'timezone'       => $meta['timezone'],
@@ -441,7 +440,7 @@ class EventSeeder2 extends Seeder
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ]);
-
+            $i++;
             // -- 2. Insert event_categories --
             foreach ($eventData['categories'] as $catName) {
                 $catId = $categories[$catName] ?? null;

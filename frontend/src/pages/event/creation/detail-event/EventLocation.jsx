@@ -7,11 +7,13 @@ import Step1_TypeSelection from "./sections/event-location/Step1_TypeSelection";
 import Step2_DetailLocation from "./sections/event-location/Step2_DetailLocation";
 import api from "../../../../api/axios";
 import { notify } from "../../../../utils/notify";
+import useEventMeta from "../../../../hooks/useEventMeta";
 
 const EventLocation = () => {
     const { eventId } = useParams();
     const [errors, setErrors] = useState({});
     const [selectedType, setSelectedType] = useState(null);
+    const { eventStatus, hasParticipants } = useEventMeta(eventId);
 
     const [formData, setFormData] = useState({
         type: "", // 'online', 'offline', atau 'hybrid'
@@ -115,7 +117,7 @@ const EventLocation = () => {
         }));
     };
 
-    const handleSave = async () => {
+    const handleSave = async (shouldNotify = false) => {
         setErrors({});
 
         // FIX: Cleaner payload mapping based on selectedType
@@ -167,7 +169,7 @@ const EventLocation = () => {
                 },
             );
 
-            if (response.data?.notified_participants) {
+            if (response.data?.notified_participants || shouldNotify) {
                 notify(
                     "success",
                     "Berhasil!",
@@ -198,6 +200,8 @@ const EventLocation = () => {
             nextPath="sesi"
             prevPath="info"
             onSave={handleSave}
+            eventStatus={eventStatus}
+            hasParticipants={hasParticipants}
         >
             <Step1_TypeSelection
                 selectedType={selectedType}
