@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from 'react-bootstrap';
-import { toast, Toaster } from 'react-hot-toast';
 import api from '@/api/axios';
 import { STORAGE_URL } from '@/api/storage';
 import './EventCertificatePage.css';
+import { notify } from '@/utils/notify';
 
 // Mengimpor komponen-komponen yang telah dipisah
 import Topbar from './Topbar';
@@ -17,6 +17,7 @@ import PreviewModal from './PreviewModal';
 
 const EventCertificatePage = () => {
 	const { eventId } = useParams();
+	const fileInputRef = useRef(null);
 
 	// Global State
 	const [templateFile, setTemplateFile] = useState(null);
@@ -26,7 +27,6 @@ const EventCertificatePage = () => {
 	const [saved, setSaved] = useState(false);
 	const [showPreview, setShowPreview] = useState(false);
 
-
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
@@ -35,7 +35,8 @@ const EventCertificatePage = () => {
 	useEffect(() => {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
-		link.href = 'https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;700&family=Great+Vibes&family=Montserrat:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700&display=swap';
+		link.href =
+			'https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;700&family=Great+Vibes&family=Montserrat:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;700&display=swap';
 		document.head.appendChild(link);
 		return () => {
 			document.head.removeChild(link);
@@ -141,7 +142,6 @@ const EventCertificatePage = () => {
 				}
 			} catch (error) {
 				console.error('Gagal memuat template sertifikat:', error);
-				toast.error('Gagal memuat data template sertifikat.');
 			} finally {
 				setIsLoading(false);
 			}
@@ -172,32 +172,45 @@ const EventCertificatePage = () => {
 			let bgUrl = URL.createObjectURL(file); // Langsung gunakan blob URL dari file lokal!
 			setTemplateFile(bgUrl);
 			setBackgroundPath(data.background_path);
-			toast.success('Gambar template berhasil diunggah!');
 		} catch (error) {
 			console.error('Gagal mengunggah template:', error);
-			toast.error('Gagal mengunggah gambar template.');
 		} finally {
 			setIsUploading(false);
 		}
 	};
 
 	const handleSave = async () => {
+		console.log('1. Tombol save ditekan!');
+
 		if (!backgroundPath) {
-			toast.error('Silakan unggah gambar template terlebih dahulu.');
+			// Tambahkan parameter kedua untuk Title, dan ketiga untuk Message
+			notify('error', 'Validasi Gagal', 'Silakan unggah gambar template terlebih dahulu.');
 			return;
 		}
 
-		// QR Code wajib dimasukkan
 		const hasQr = elements.some((el) => el.fieldId === 'f3');
 		if (!hasQr) {
-			toast.error('QR Code wajib dimasukkan ke dalam template sertifikat.');
+			notify(
+				'error',
+				'Validasi Gagal',
+				'QR Code wajib dimasukkan ke dalam template sertifikat.',
+			);
 			return;
 		}
 
+		const hasName = elements.some((el) => el.fieldId === 'f1');
+		if (!hasName) {
+			notify(
+				'error',
+				'Validasi Gagal',
+				'Nama peserta wajib dimasukkan ke dalam template sertifikat.',
+			);
+			return;
+		}
 
-		setIsSaving(true);
 		const elementsPayload = elements.map(mapElementToDb);
 
+		setIsSaving(true);
 		try {
 			await api.post(`/event-dashboard/${eventId}/certificate`, {
 				event_id: eventId,
@@ -207,18 +220,18 @@ const EventCertificatePage = () => {
 				elements: elementsPayload,
 			});
 
-			toast.success('Template Sertifikat berhasil disimpan!');
+			notify('success', 'Berhasil', 'Template Sertifikat berhasil disimpan!');
+
 			setSaved(true);
 			setTimeout(() => setSaved(false), 2000);
 		} catch (error) {
 			console.error('Gagal menyimpan template sertifikat:', error);
-			toast.error('Gagal menyimpan template sertifikat.');
+			notify('error', 'Gagal', 'Tidak bisa menyimpan template sertifikat');
 			throw error;
 		} finally {
 			setIsSaving(false);
 		}
 	};
-
 
 	const addField = (field) => {
 		const el = {
@@ -251,7 +264,6 @@ const EventCertificatePage = () => {
 				title="Buat Sertifikat"
 				description="Klik elemen untuk mengedit · Tarik untuk memindahkan"
 			>
-				<Toaster position="top-right" />
 				<div className="d-flex flex-column align-items-center justify-content-center py-5">
 					<Spinner animation="border" variant="primary" className="mb-2" />
 					<span className="text-muted">Memuat data template sertifikat...</span>
@@ -262,8 +274,6 @@ const EventCertificatePage = () => {
 
 	return (
 		<EventLayout
-			title="Buat Sertifikat"
-			description="Klik elemen untuk mengedit · Tarik untuk memindahkan"
 			onSave={handleSave}
 			sidebar={
 				selectedEl ? (
@@ -283,10 +293,16 @@ const EventCertificatePage = () => {
 				)
 			}
 		>
-			<Toaster position="top-right" />
 			<div className="d-flex flex-column certificate-builder">
 				{/* Top Header */}
-				<Topbar saved={saved} onSave={handleSave} onPreview={() => setShowPreview(true)} />
+				<Topbar
+					saved={saved}
+					onSave={handleSave}
+					onPreview={() => setShowPreview(true)}
+					templateFile={templateFile}
+					onFileTrigger={() => fileInputRef.current?.click()}
+					isSaving={isSaving}
+				/>
 
 				{/* Main Body */}
 				{/* Canvas / Gambar Sertifikat */}
@@ -298,8 +314,21 @@ const EventCertificatePage = () => {
 					setSelectedId={setSelectedId}
 					updateEl={updateEl}
 					isUploading={isUploading}
+					onFileTrigger={() => fileInputRef.current?.click()}
 				/>
 			</div>
+
+			<input
+				ref={fileInputRef}
+				type="file"
+				accept="image/*"
+				className="d-none"
+				onChange={(e) => {
+					const f = e.target.files?.[0];
+					if (f) handleFileSelect(f);
+					e.target.value = '';
+				}}
+			/>
 
 			{/* Modal Preview Sertifikat */}
 			<PreviewModal
@@ -308,7 +337,6 @@ const EventCertificatePage = () => {
 				templateFile={templateFile}
 				elements={elements}
 			/>
-
 		</EventLayout>
 	);
 };

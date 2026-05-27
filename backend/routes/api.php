@@ -114,6 +114,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
     Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);
     Route::get('/my-tickets', [TicketController::class, 'index']);
+    Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);

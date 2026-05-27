@@ -24,6 +24,9 @@ class SurveyController extends Controller
             $user = $request->user();
             $event = Event::with('organizer', 'institution')->findOrFail($eventId);
 
+            // Check if user is the organizer of the event or an admin
+            $isOrganizerOrAdmin = ($event->organizer_id === $user->id || $user->role === 'admin');
+
             // 1. Check if user has a ticket for this event
             $hasTicket = Ticket::where('participant_id', $user->id)
                 ->whereHas('orderItem.order', function ($query) use ($eventId) {
@@ -31,7 +34,7 @@ class SurveyController extends Controller
                 })
                 ->exists();
 
-            if (!$hasTicket) {
+            if (!$hasTicket && !$isOrganizerOrAdmin) {
                 return response()->json([
                     'success' => false,
                     'status' => 'error',
@@ -64,24 +67,28 @@ class SurveyController extends Controller
             }
 
             // 5. Get ticket code
-            $ticket = Ticket::where('participant_id', $user->id)
-                ->whereHas('orderItem.order', function ($query) use ($eventId) {
-                    $query->where('event_id', $eventId);
-                })
-                ->first();
+            $ticket = null;
+            if ($hasTicket) {
+                $ticket = Ticket::where('participant_id', $user->id)
+                    ->whereHas('orderItem.order', function ($query) use ($eventId) {
+                        $query->where('event_id', $eventId);
+                    })
+                    ->first();
+            }
 
             return response()->json([
                 'success' => true,
                 'status' => 'success',
                 'data' => [
                     'event' => $event,
-                    'has_ticket' => true,
-                    'already_submitted' => $alreadySubmitted,
-                    'survey_response' => $response,
+                    'has_ticket' => $hasTicket,
+                    'is_preview_only' => $isOrganizerOrAdmin,
+                    'already_submitted' => $isOrganizerOrAdmin ? false : $alreadySubmitted,
+                    'survey_response' => $isOrganizerOrAdmin ? null : $response,
                     'custom_survey' => $customSurvey,  // null if organizer hasn't built one
                     'certificate_template' => $template,
                     'participant_name' => $user->name,
-                    'ticket_code' => $ticket ? $ticket->ticket_code : 'TKT-PENDING',
+                    'ticket_code' => $ticket ? $ticket->ticket_code : 'TKT-PREVIEW',
                 ]
             ], 200);
 
@@ -101,6 +108,16 @@ class SurveyController extends Controller
     public function submitSurvey(Request $request, $eventId)
     {
         $user = $request->user();
+        $event = Event::findOrFail($eventId);
+
+        // Penyelenggara/Admin tidak boleh submit survei
+        if ($event->organizer_id === $user->id || $user->role === 'admin') {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Penyelenggara acara tidak dapat mengirimkan jawaban survei.'
+            ], 403);
+        }
 
         // 1. Verify ticket
         $hasTicket = Ticket::where('participant_id', $user->id)
@@ -270,6 +287,72 @@ class SurveyController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data analitik: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all certificates (used tickets) for the logged-in participant
+     */
+    public function getMyCertificates(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // 1. Get all tickets with status 'used' (meaning participant checked-in/attended)
+            $tickets = Ticket::with('orderItem.order.event.institution', 'orderItem.order.event.organizer')
+                ->where('participant_id', $user->id)
+                ->where('status', 'used')
+                ->get();
+
+            $certificates = [];
+
+            foreach ($tickets as $ticket) {
+                $event = $ticket->orderItem->order->event;
+                if (!$event) continue;
+
+                // 2. Check if a survey response exists for this user and event
+                $surveyResponse = SurveyResponse::where('user_id', $user->id)
+                    ->where('event_id', $event->id)
+                    ->first();
+
+                $isUnlocked = !is_null($surveyResponse);
+
+                // 3. Get certificate template (if exists)
+                $template = CertificateTemplate::where('event_id', $event->id)
+                    ->with('elements')
+                    ->first();
+
+                if ($template && $template->background_path) {
+                    $template->background_url = Storage::disk('public')->url($template->background_path);
+                }
+
+                $certificates[] = [
+                    'ticket_code' => $ticket->ticket_code,
+                    'event' => [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'date' => $event->date,
+                        'location' => $event->location,
+                        'organizer_name' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
+                    ],
+                    'is_unlocked' => $isUnlocked,
+                    'survey_response' => $surveyResponse,
+                    'certificate_template' => $template,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => 'success',
+                'data' => $certificates
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Gagal mengambil data sertifikat: ' . $e->getMessage()
             ], 500);
         }
     }

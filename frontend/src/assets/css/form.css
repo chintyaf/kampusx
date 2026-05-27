@@ -35,12 +35,13 @@ form {
 	font-weight: 600;
 	font-size: 14px;
 	color: var(--color-text-label);
+	
 }
 
 /* Tanda bintang untuk field wajib isi */
 .required::after {
-	content: '*'; /* Adds the asterisk */
-	/* color: #ef4444;     */
+	content: ' *'; /* Adds the asterisk */
+	color: var(--error-text, #dc2626); /* Warna merah untuk tanda wajib */
 	/* font-size: 1.1em;  */
 	/* font-weight: bold; */
 }

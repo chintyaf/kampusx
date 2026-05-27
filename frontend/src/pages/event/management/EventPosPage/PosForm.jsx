@@ -66,20 +66,16 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 						headers: {
 							'Content-Type': 'multipart/form-data',
 						},
-					}
+					},
 				);
 				notify('success', 'Berhasil', 'Data pos berhasil diperbarui.');
 			} else {
 				// Mode Tambah: Gunakan POST
-				response = await api.post(
-					`/event-dashboard/${eventId}/stations`,
-					payload,
-					{
-						headers: {
-							'Content-Type': 'multipart/form-data',
-						},
-					}
-				);
+				response = await api.post(`/event-dashboard/${eventId}/stations`, payload, {
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
+				});
 				notify('success', 'Berhasil', 'Pos baru berhasil ditambahkan.');
 			}
 
@@ -126,10 +122,11 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 					? 'Perbarui nama dan status pos akses ini.'
 					: 'Buat pos baru dan atur kode akses (PIN) untuk petugas scan.'
 			}
-			size="md">
+			size="md"
+		>
 			{/* ── Input NAMA POS ── */}
 			<Form.Group className="mb-4">
-				<Form.Label className="fw-bold">Nama Pos</Form.Label>
+				<Form.Label className="fw-bold required">Nama Pos</Form.Label>
 				<InputGroup>
 					<Form.Control
 						type="text"
@@ -144,7 +141,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 			</Form.Group>
 
 			<Form.Group className="mb-4">
-				<Form.Label className="fw-bold">Deskripsi</Form.Label>
+				<Form.Label className="fw-bold required">Deskripsi</Form.Label>
 				<InputGroup>
 					<Form.Control
 						as="textarea"
@@ -168,13 +165,23 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 							<img
 								src={photoPreview}
 								alt="Preview Pos"
-								style={{ width: '120px', height: '120px', borderRadius: '12px', objectFit: 'cover', border: '2px solid var(--primary, #000)' }}
+								style={{
+									width: '120px',
+									height: '120px',
+									borderRadius: '12px',
+									objectFit: 'cover',
+									border: '2px solid var(--primary, #000)',
+								}}
 							/>
 							<Button
 								variant="danger"
 								size="sm"
 								className="position-absolute top-0 end-0 rounded-circle"
-								style={{ transform: 'translate(40%, -40%)', padding: '2px 6px', fontSize: '10px' }}
+								style={{
+									transform: 'translate(40%, -40%)',
+									padding: '2px 6px',
+									fontSize: '10px',
+								}}
 								onClick={() => {
 									setPhoto(null);
 									setPhotoPreview('');
@@ -184,7 +191,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 							</Button>
 						</div>
 					) : (
-						<div 
+						<div
 							className="d-flex align-items-center justify-content-center bg-white border border-dashed rounded-3 text-muted"
 							style={{ width: '120px', height: '120px', fontSize: '12px' }}
 						>
@@ -214,7 +221,8 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 					style={{
 						cursor: isSubmitting ? 'not-allowed' : 'pointer',
 						opacity: isSubmitting ? 0.7 : 1,
-					}}>
+					}}
+				>
 					<div>
 						<p className="mb-0 fw-bold text-dark" style={{ fontSize: '14px' }}>
 							Pos Aktif
@@ -241,7 +249,8 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 					variant="light"
 					onClick={onHide}
 					className="px-4 text-secondary border"
-					disabled={isSubmitting}>
+					disabled={isSubmitting}
+				>
 					Batal
 				</Button>
 				<Button
@@ -250,7 +259,8 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 					onClick={handleSubmit}
 					disabled={isSubmitting || !formData.namaPos.trim()} // Validasi jika nama kosong
 					className="d-flex align-items-center gap-2 px-4 fw-bold shadow-sm"
-					style={{ backgroundColor: '#000', border: 'none' }}>
+					style={{ backgroundColor: '#000', border: 'none' }}
+				>
 					{isSubmitting ? (
 						<>
 							<Spinner animation="border" size="sm" />

@@ -72,13 +72,7 @@ export const OrganizerRoutes = (
 			<Route path="analytics" element={<EventAnalyticsPage />} />
 			<Route path="promosi" element={<EventPromotion />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
-
-			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
-			<Route path="sertifikat">
-				<Route index element={<EventCertificatePage />} />
-				{/* <Route path="atur-template" element={<CreateCertificatePage />} /> */}
-				{/* <Route path="kirim-sertifikat" element={<CertificateListPage />} /> */}
-			</Route>
+			<Route path="sertifikat" element={<EventCertificatePage />} />
 
 			<Route path="event-location-test" element={<EventLocationTest />} />
 		</Route>

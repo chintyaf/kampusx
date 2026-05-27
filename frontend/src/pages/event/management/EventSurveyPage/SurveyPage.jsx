@@ -16,7 +16,7 @@ import QRCode from 'react-qr-code';
 import html2pdf from 'html2pdf.js';
 import api from '../../../../api/axios';
 
-export default function ParticipantSurveyPage() {
+export default function SurveyPage() {
 	const { id: eventId } = useParams();
 	const navigate = useNavigate();
 
@@ -28,6 +28,7 @@ export default function ParticipantSurveyPage() {
 	const [surveyResponse, setSurveyResponse] = useState(null);
 	const [certificateTemplate, setCertificateTemplate] = useState(null);
 	const [customSurvey, setCustomSurvey] = useState(null);
+	const [isPreviewOnly, setIsPreviewOnly] = useState(false);
 
 	// Dynamic form answers: { [question_id]: value }
 	const [answers, setAnswers] = useState({});
@@ -60,6 +61,7 @@ export default function ParticipantSurveyPage() {
 					certificate_template,
 					participant_name,
 					custom_survey,
+					is_preview_only,
 				} = response.data.data;
 				setEvent(event);
 				setAlreadySubmitted(already_submitted);
@@ -67,6 +69,7 @@ export default function ParticipantSurveyPage() {
 				setCertificateTemplate(certificate_template);
 				setParticipantName(participant_name);
 				setCustomSurvey(custom_survey || null);
+				setIsPreviewOnly(!!is_preview_only);
 
 				if (already_submitted && survey_response && !custom_survey) {
 					setRating(survey_response.rating || 0);
@@ -94,6 +97,10 @@ export default function ParticipantSurveyPage() {
 
 	const handleSubmitCustomSurvey = async (e) => {
 		e.preventDefault();
+		if (isPreviewOnly) {
+			alert('Mode Pratinjau: Penyelenggara tidak dapat mengirimkan jawaban survei.');
+			return;
+		}
 
 		// Validate required questions
 		const required = customSurvey.questions.filter((q) => q.is_required);
@@ -137,6 +144,10 @@ export default function ParticipantSurveyPage() {
 
 	const handleSubmitLegacySurvey = async (e) => {
 		e.preventDefault();
+		if (isPreviewOnly) {
+			alert('Mode Pratinjau: Penyelenggara tidak dapat mengirimkan jawaban survei.');
+			return;
+		}
 		if (rating === 0) {
 			alert('Silakan berikan penilaian kepuasan keseluruhan acara!');
 			return;
@@ -354,7 +365,7 @@ export default function ParticipantSurveyPage() {
 																		}}
 																	>
 																		<QRCode
-																			value={`https://kampusx.id/verify/${certId}`}
+																			value={`${window.location.origin}/certificate/verify/${certId}`}
 																			size={50}
 																		/>
 																	</div>
@@ -363,7 +374,7 @@ export default function ParticipantSurveyPage() {
 																el.element_type === 'nama_peserta'
 																	? participantName
 																	: el.element_type ===
-																		  'id_sertifikat'
+																		'id_sertifikat'
 																		? certId
 																		: el.custom_value || '';
 															return (
@@ -385,7 +396,7 @@ export default function ParticipantSurveyPage() {
 																			'Georgia, serif',
 																		fontWeight:
 																			el.element_type ===
-																			'nama_peserta'
+																				'nama_peserta'
 																				? 'bold'
 																				: 'normal',
 																		pointerEvents: 'none',
@@ -515,6 +526,17 @@ export default function ParticipantSurveyPage() {
 									{error && (
 										<Alert variant="danger" className="rounded-3 mb-4">
 											{error}
+										</Alert>
+									)}
+
+									{isPreviewOnly && (
+										<Alert variant="info" className="border-0 shadow-sm rounded-3 mb-4 p-3 d-flex align-items-start gap-2 bg-info-subtle text-info-emphasis">
+											<Sparkles size={20} className="text-info flex-shrink-0 mt-0.5" />
+											<div className="small">
+												<strong>Mode Pratinjau Penyelenggara</strong>
+												<br />
+												Anda adalah pembuat event ini. Anda dapat menguji formulir survei tetapi tidak dapat mengirimkan jawaban.
+											</div>
 										</Alert>
 									)}
 
@@ -671,10 +693,10 @@ export default function ParticipantSurveyPage() {
 																					.target.checked
 																					? [...curr, opt]
 																					: curr.filter(
-																							(v) =>
-																								v !==
-																								opt,
-																						);
+																						(v) =>
+																							v !==
+																							opt,
+																					);
 																				setAnswers({
 																					...answers,
 																					[q.id]: updated.join(
@@ -694,15 +716,22 @@ export default function ParticipantSurveyPage() {
 
 											<Button
 												type="submit"
-												className="w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mt-4"
+												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mt-4 ${
+													isPreviewOnly ? 'opacity-75' : ''
+												}`}
 												style={{
-													background:
-														'linear-gradient(135deg,#3b82f6,#7c3aed)',
+													background: isPreviewOnly
+														? 'linear-gradient(135deg, #6c757d, #adb5bd)'
+														: 'linear-gradient(135deg,#3b82f6,#7c3aed)',
 													border: 'none',
 												}}
-												disabled={submitting}
+												disabled={submitting || isPreviewOnly}
 											>
-												{submitting ? (
+												{isPreviewOnly ? (
+													<>
+														<Lock size={16} /> Hanya Pratinjau
+													</>
+												) : submitting ? (
 													<>
 														<Spinner animation="border" size="sm" />{' '}
 														Mengirim...
@@ -812,13 +841,13 @@ export default function ParticipantSurveyPage() {
 															onMouseLeave={() => setMaterialHover(0)}
 															fill={
 																(materialHover || materialRating) >=
-																s
+																	s
 																	? '#f59e0b'
 																	: 'none'
 															}
 															color={
 																(materialHover || materialRating) >=
-																s
+																	s
 																	? '#f59e0b'
 																	: '#ced4da'
 															}
@@ -848,15 +877,22 @@ export default function ParticipantSurveyPage() {
 
 											<Button
 												type="submit"
-												className="w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
+												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm ${
+													isPreviewOnly ? 'opacity-75' : ''
+												}`}
 												style={{
-													background:
-														'linear-gradient(135deg,#3b82f6,#7c3aed)',
+													background: isPreviewOnly
+														? 'linear-gradient(135deg, #6c757d, #adb5bd)'
+														: 'linear-gradient(135deg,#3b82f6,#7c3aed)',
 													border: 'none',
 												}}
-												disabled={submitting}
+												disabled={submitting || isPreviewOnly}
 											>
-												{submitting ? (
+												{isPreviewOnly ? (
+													<>
+														<Lock size={16} /> Hanya Pratinjau
+													</>
+												) : submitting ? (
 													<>
 														<Spinner animation="border" size="sm" />{' '}
 														Mengirim...
@@ -985,7 +1021,7 @@ function FallbackCertificate({ participantName, certId, event, surveyResponse })
 						borderRadius: '4px',
 					}}
 				>
-					<QRCode value={`https://kampusx.id/verify/${certId}`} size={48} />
+					<QRCode value={`${window.location.origin}/certificate/verify/${certId}`} size={48} />
 				</div>
 				<div style={{ textAlign: 'right' }}>
 					<p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Diterbitkan:</p>

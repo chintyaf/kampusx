@@ -11,9 +11,9 @@ const CanvasArea = ({
 	setSelectedId,
 	updateEl,
 	isUploading = false,
+	onFileTrigger,
 }) => {
 	const [isDragOver, setIsDragOver] = useState(false);
-	const fileRef = useRef(null);
 	const containerRef = useRef(null);
 	const [canvasWidth, setCanvasWidth] = useState(1920);
 
@@ -55,7 +55,7 @@ const CanvasArea = ({
 				<div
 					onClick={(e) => {
 						e.stopPropagation();
-						fileRef.current?.click();
+						onFileTrigger();
 					}}
 					onDragOver={(e) => {
 						e.preventDefault();
@@ -116,30 +116,8 @@ const CanvasArea = ({
 						</div>
 					</div>
 
-					<Button
-						variant="light"
-						size="sm"
-						className="position-absolute top-0 start-0 m-3 d-flex align-items-center gap-2 border shadow-sm"
-						onClick={(e) => {
-							e.stopPropagation();
-							fileRef.current?.click();
-						}}
-					>
-						<Upload size={14} /> Ganti template
-					</Button>
 				</>
 			)}
-
-			<input
-				ref={fileRef}
-				type="file"
-				accept="image/*"
-				className="d-none"
-				onChange={(e) => {
-					const f = e.target.files?.[0];
-					if (f) onFileSelect(f);
-				}}
-			/>
 		</div>
 	);
 };

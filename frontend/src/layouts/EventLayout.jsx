@@ -84,39 +84,45 @@ const EventLayout = ({
 			>
 				<Modal.Body style={{ padding: '32px 28px' }}>
 					{/* Icon */}
-					<div style={{
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						width: 56,
-						height: 56,
-						borderRadius: '50%',
-						background: 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
-						margin: '0 auto 20px auto',
-						border: '2px solid #ffc107',
-					}}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							width: 56,
+							height: 56,
+							borderRadius: '50%',
+							background: 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)',
+							margin: '0 auto 20px auto',
+							border: '2px solid #ffc107',
+						}}
+					>
 						<AlertTriangle size={26} color="#e67e22" />
 					</div>
 
-					<h5 style={{
-						textAlign: 'center',
-						fontWeight: 700,
-						fontSize: '1.05rem',
-						color: '#1e293b',
-						marginBottom: 8,
-					}}>
+					<h5
+						style={{
+							textAlign: 'center',
+							fontWeight: 700,
+							fontSize: '1.05rem',
+							color: '#1e293b',
+							marginBottom: 8,
+						}}
+					>
 						Event Ini Sudah Dipublikasikan
 					</h5>
-					<p style={{
-						textAlign: 'center',
-						color: '#64748b',
-						fontSize: '0.9rem',
-						lineHeight: 1.6,
-						marginBottom: 28,
-					}}>
-						Perubahan yang Anda simpan akan langsung terlihat di halaman event.
-						Apakah Anda ingin <strong>mengumumkan perubahan ini</strong> kepada
-						peserta yang sudah mendaftar?
+					<p
+						style={{
+							textAlign: 'center',
+							color: '#64748b',
+							fontSize: '0.9rem',
+							lineHeight: 1.6,
+							marginBottom: 28,
+						}}
+					>
+						Perubahan yang Anda simpan akan langsung terlihat di halaman event. Apakah
+						Anda ingin <strong>mengumumkan perubahan ini</strong> kepada peserta yang
+						sudah mendaftar?
 					</p>
 
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -141,17 +147,25 @@ const EventLayout = ({
 								opacity: isSaving ? 0.7 : 1,
 							}}
 						>
-							<div style={{
-								width: 36, height: 36, borderRadius: '50%',
-								background: 'rgba(255,255,255,0.2)',
-								display: 'flex', alignItems: 'center', justifyContent: 'center',
-								flexShrink: 0,
-							}}>
+							<div
+								style={{
+									width: 36,
+									height: 36,
+									borderRadius: '50%',
+									background: 'rgba(255,255,255,0.2)',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									flexShrink: 0,
+								}}
+							>
 								<Bell size={18} />
 							</div>
 							<div>
 								<div>Ya, Beritahu Peserta</div>
-								<div style={{ fontSize: '0.78rem', fontWeight: 400, opacity: 0.85 }}>
+								<div
+									style={{ fontSize: '0.78rem', fontWeight: 400, opacity: 0.85 }}
+								>
 									Kirim notifikasi perubahan ke semua peserta terdaftar
 								</div>
 							</div>
@@ -254,7 +268,7 @@ const EventLayout = ({
 					</div>
 
 					{/* Footer Buttons */}
-					<div className="w-100 d-flex justify-content-end mt-5 pt-3 border-top gap-3">
+					<div className="w-100 d-flex justify-content-end mt-3 pt-3 border-top gap-1">
 						{prevPath && (
 							<Button
 								variant="outline-secondary"

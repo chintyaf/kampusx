@@ -11,6 +11,7 @@ import {
 	ChevronRight,
 	User,
 	Award,
+	Ticket,
 } from 'lucide-react';
 
 // Komponen kustom untuk Trigger/Tombol Dropdown
@@ -71,6 +72,24 @@ const ProfileDropdown = () => {
 			iconBg: '#f1f5f9',
 			iconBorder: '#cbd5e1',
 			iconColor: '#64748b',
+			show: true,
+		},
+		{
+			icon: Ticket,
+			label: 'Tiket Saya',
+			to: '/my-tickets',
+			iconBg: '#fdf2f8',
+			iconBorder: '#fbcfe8',
+			iconColor: '#db2777',
+			show: true,
+		},
+		{
+			icon: Award,
+			label: 'Sertifikat Saya',
+			to: '/certificates',
+			iconBg: '#f5f3ff',
+			iconBorder: '#ddd6fe',
+			iconColor: '#7c3aed',
 			show: true,
 		},
 		{
