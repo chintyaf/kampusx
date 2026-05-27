@@ -156,9 +156,20 @@ const ProfileDropdown = () => {
 					}}
 				>
 					{/* User Card Header */}
+					{/* User Card Header */}
 					<div
+						onClick={() => {
+							handleToggle(false); // Tutup dropdown
+							navigate('/settings'); // Sesuaikan dengan rute halaman edit profilmu
+						}}
 						className="d-flex align-items-center p-3 border-bottom"
-						style={{ gap: '11px' }}
+						style={{
+							gap: '11px',
+							cursor: 'pointer', // Tambahkan kursor pointer agar terlihat bisa diklik
+							transition: 'background-color 0.2s ease',
+						}}
+						onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+						onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
 					>
 						{!imgError ? (
 							<img

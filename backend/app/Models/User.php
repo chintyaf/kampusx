@@ -25,6 +25,8 @@ class User extends Authenticatable
         'university_id',
         'affiliation_valid_until',
         'is_verified',
+        'avatar_path',
+        'university_id' // Just in case they want to update university_id from profile settings
     ];
 
     protected $hidden = [
@@ -113,5 +115,10 @@ class User extends Authenticatable
             }
         }
     }
-}
 
+    // Minat user (Kategori event yang disukai)
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_user', 'user_id', 'category_id')->withTimestamps();
+    }
+}

@@ -46,9 +46,14 @@ import EventSpace from '../pages/member/EventSpace';
 import ParticipantSurveyPage from '../pages/event/management/EventSurveyPage/ParticipantSurveyPage';
 import { useAuth } from '../context/AuthContext';
 import MyTickets from '../pages/member/MyTickets';
+import PublicProfile from '../pages/public/PublicProfile';
+import Personalization from '../pages/auth/Personalization';
+import ProfileSettings from '../pages/member/ProfileSettings';
 
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
+
+import CommitteePage from '../pages/committee/CommitteePage';
 
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -110,6 +115,7 @@ const AppRoutes = () => {
 				<Route element={<VisitorLayout />}>
 					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
 					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
+					<Route path="/profile/:id" element={<PublicProfile />} />
 				</Route>
 
 				{/* AUTH */}
@@ -117,10 +123,12 @@ const AppRoutes = () => {
 					<Route path="/login" element={<LoginPage />} />
 					<Route path="/register" element={<RegisterPage />} />
 					<Route path="/forgot-password" element={<ForgotPassword />} />
+					<Route path="/personalization" element={<Personalization />} />
 				</Route>
 
 				{/* MEMBER */}
 				<Route element={<ProtectedRoute />}>
+					<Route path="/settings" element={<ProfileSettings />} />
 					<Route path="/checkout/:id" element={<Checkout />} />
 					{/* Nanti bisa tambah rute profil peserta di sini: */}
 					{/* <Route path="/my-tickets" element={<MyTickets />} /> */}
@@ -149,6 +157,8 @@ const AppRoutes = () => {
                     element={<Navigate to="/dashboard" replace />}
                 /> */}
 				</Route>
+				<Route path="/committee" element={<CommitteePage />} />
+
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</Suspense>

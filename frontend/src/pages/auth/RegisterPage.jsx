@@ -36,8 +36,8 @@ const SignUp = () => {
 
 			login(response.data.access_token, response.data.data);
 
-			// alert('Registrasi Berhasil!');
-			navigate(from, { replace: true });
+			// Arahkan ke halaman personalisasi setelah sukses daftar
+			navigate('/personalization', { replace: true });
 		} catch (error) {
 			if (error.response && error.response.data.errors) {
 				// Menampilkan error validasi dari Laravel (misal: email sudah dipakai)

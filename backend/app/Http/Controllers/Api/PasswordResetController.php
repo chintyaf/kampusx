@@ -13,33 +13,46 @@ use Carbon\Carbon;
 
 class PasswordResetController extends Controller
 {
-    // Tahap 1: Mengirim OTP ke Email
+    // Tahap 1: Mengirim OTP ke Email atau Nomor HP
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
-        ], [
-            'email.exists' => 'Email tidak terdaftar di sistem kami.'
+            'identifier' => 'required|string',
         ]);
+
+        // Cari user berdasarkan email atau nomor HP
+        $user = User::where('email', $request->identifier)
+                    ->orWhere('phone', $request->identifier)
+                    ->first();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Email atau Nomor HP tidak terdaftar di sistem kami.'
+            ], 404);
+        }
 
         // Buat 6 digit angka acak
         $otp = rand(100000, 999999);
 
-        // Simpan/Update ke database
+        // Simpan/Update ke database (tetap pakai email user sebagai key di db password_reset_otps)
         DB::table('password_reset_otps')->updateOrInsert(
-            ['email' => $request->email],
+            ['email' => $user->email],
             [
                 'otp' => $otp,
                 'created_at' => Carbon::now()
             ]
         );
 
-        // Kirim email
-        Mail::to($request->email)->send(new ResetPasswordOtpMail($otp));
+        // Kirim email (kalau mau SMS di kemudian hari, bisa tambah kondisional di sini)
+        Mail::to($user->email)->send(new ResetPasswordOtpMail($otp));
+
+        $isEmail = filter_var($request->identifier, FILTER_VALIDATE_EMAIL);
 
         return response()->json([
             'status' => true,
-            'message' => 'Kode OTP berhasil dikirim ke email Anda.'
+            'message' => 'Kode OTP berhasil dikirim ke ' . ($isEmail ? 'email Anda.' : 'kontak Anda (via Email untuk saat ini).'),
+            'email' => $user->email // Kirim balik email asli untuk proses selanjutnya
         ], 200);
     }
 
@@ -82,7 +95,7 @@ class PasswordResetController extends Controller
         $request->validate([
             'email' => 'required|email|exists:users,email',
             'otp' => 'required|digits:6',
-            'password' => 'required|min:6', // Kamu bisa tambahkan rule 'confirmed' kalau ada konfirmasi password
+            'password' => 'required|min:8|confirmed', // Min 8 dan confirmed
         ]);
 
         $resetRequest = DB::table('password_reset_otps')->where([

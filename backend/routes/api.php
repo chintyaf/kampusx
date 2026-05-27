@@ -42,6 +42,9 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\SessionMaterialController;
 
 
+// use App\Http\Controllers\CommitteeController;
+use App\Http\Controllers\Api\CommitteeController;
+
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
 // ==========================================
@@ -50,6 +53,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
+
+// User Public Profile
+Route::get('/profile/{id}', [\App\Http\Controllers\Api\UserProfileController::class, 'show']);
 
 // Landing Page & Explore Event
 Route::get('/events/nearest', [EventController::class, 'getNearest']);
@@ -87,6 +93,14 @@ Route::middleware('auth:sanctum')->group(function () {
         }
         return $user;
     });
+    
+    // Pengaturan Akun Profil (Edit Profil)
+    Route::get('/user/settings', [\App\Http\Controllers\Api\UserSettingsController::class, 'getProfile']);
+    Route::post('/user/settings', [\App\Http\Controllers\Api\UserSettingsController::class, 'updateProfile']);
+    Route::put('/user/settings/password', [\App\Http\Controllers\Api\UserSettingsController::class, 'updatePassword']);
+
+    // Simpan personalisasi user (minat)
+    Route::post('/user/personalization', [\App\Http\Controllers\Api\PersonalizationController::class, 'saveInterests']);
 
     // --- NOTIFICATIONS ---
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -300,6 +314,13 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
 // Klaim Poin Engagement (Peserta)
 Route::post('/engagement/claim', [EngagementController::class, 'claimPoints']);
 
+// Institution
+Route::get('/institutions', [InstitutionController::class, 'index']);
+
+// Committee
+Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
+Route::post('/committee/scan', [CommitteeController::class, 'scan']);
+Route::get('/committee/stats', [CommitteeController::class, 'stats']);
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('event-types', [EventTypeController::class, 'index']);
-Route::get('institutions', [InstitutionController::class, 'index']);
+// Route::get('institutions', [InstitutionController::class, 'index']);
