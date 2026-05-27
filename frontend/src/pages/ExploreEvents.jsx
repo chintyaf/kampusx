@@ -153,10 +153,18 @@ const ExploreEvents = () => {
                 let resultData = raw;
 
                 // Client-side filtering untuk Location Type
+                // Client-side filtering untuk Location Type
                 if (filters.locationType.includes('Online') && !filters.locationType.includes('In-Person')) {
                     resultData = raw.filter((ev) => ev.is_online || ev.location_type === 'online');
                 } else if (filters.locationType.includes('In-Person') && !filters.locationType.includes('Online')) {
                     resultData = raw.filter((ev) => ev.is_in_person || ev.location_type === 'offline' || ev.location_type === 'hybrid');
+                }
+
+                // TAMBAHAN: Client-side filtering untuk Harga
+                if (filters.price === 'Gratis') {
+                    resultData = resultData.filter((ev) => Number(ev.price) === 0);
+                } else if (filters.price === 'Berbayar') {
+                    resultData = resultData.filter((ev) => Number(ev.price) > 0);
                 }
 
                 setFiltered(resultData);
