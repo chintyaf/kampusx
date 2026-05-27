@@ -160,10 +160,9 @@ const ProfileDropdown = () => {
 					{displayName}
 				</span>
 				<ChevronRight
-					className="d-none d-md-inline ms-1"
+					className="d-none d-sm-inline ms-1"
 					size={13}
 					strokeWidth={2.5}
-					className="d-none d-sm-inline"
 					style={{
 						color: '#94a3b8',
 						transition: 'transform 0.2s ease',
