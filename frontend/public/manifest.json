@@ -1,0 +1,21 @@
+{
+  "short_name": "KampusX Staff",
+  "name": "KampusX Staff QR Scanner & Check-in",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "Logo_KampusX_NoText.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/staff/login",
+  "background_color": "#ffffff",
+  "theme_color": "#1A365D",
+  "display": "standalone",
+  "orientation": "portrait"
+}

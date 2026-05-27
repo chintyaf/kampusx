@@ -58,7 +58,9 @@ import ExploreEvents from '../pages/ExploreEvents';
 import BookmarkPage from '../pages/member/BookmarkPage';
 
  
-import CommitteePage from '../pages/committee/CommitteePage';
+import StaffLogin from '../pages/staff/StaffLogin';
+import SelectPost from '../pages/staff/SelectPost';
+import StaffDashboard from '../pages/staff/StaffDashboard';
  
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -190,7 +192,9 @@ const AppRoutes = () => {
 					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>{OrganizerRoutes}</Route>
 				</Route>
 
-				<Route path="/committee" element={<CommitteePage />} />
+				<Route path="/staff/login" element={<StaffLogin />} />
+				<Route path="/staff/select-post" element={<SelectPost />} />
+				<Route path="/staff/dashboard" element={<StaffDashboard />} />
 
 				<Route path="*" element={<NotFound />} />
 			</Routes>

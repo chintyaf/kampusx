@@ -73,6 +73,12 @@ Route::get('/test', function () {
 
 Route::post('/v1/payment/callback', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'callback']);
 
+// --- STAFF QR SCANNER & CHECK-IN ---
+Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::class, 'verifyPin']);
+Route::post('/v1/staff/scan', [\App\Http\Controllers\Api\StaffController::class, 'scan']);
+Route::post('/v1/staff/manual-checkin', [\App\Http\Controllers\Api\StaffController::class, 'manualCheckin']);
+Route::get('/v1/staff/search-tickets', [\App\Http\Controllers\Api\StaffController::class, 'searchTickets']);
+
 
 // ==========================================
 // 2. PROTECTED ROUTES (Harus Login Sanctum)
