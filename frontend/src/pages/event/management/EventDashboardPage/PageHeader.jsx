@@ -21,12 +21,13 @@ export default function PageHeader({
 	subtitle = 'Pusat kendali untuk monitoring dan manajemen event',
 	status,
 	onBuat,
+	onPreview,
 }) {
 	const cfg = statusConfig[status] || statusConfig.draft;
 
 	return (
 		<Row className="align-items-center mb-4 g-3">
-			<Col xs={12} sm={8}>
+			<Col xs={12} sm={onPreview ? 8 : 12}>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
 					<h1
 						style={{
@@ -73,6 +74,25 @@ export default function PageHeader({
 					{subtitle}
 				</p>
 			</Col>
+			{onPreview && (
+				<Col xs={12} sm={4} className="d-flex justify-content-sm-end justify-content-start">
+					<button
+						className="btn btn-outline shadow-none"
+						style={{
+							fontSize: 12,
+							padding: '8px 16px',
+							fontWeight: 600,
+							border: '1.5px solid #cbd5e1',
+							borderRadius: '8px',
+							backgroundColor: 'white',
+							color: '#475569'
+						}}
+						onClick={onPreview}
+					>
+						Preview Event
+					</button>
+				</Col>
+			)}
 		</Row>
 	);
 }

@@ -66,3 +66,12 @@ color: var(--color-primary);
 .seamless-date-input:hover {
     color: var(--color-primary); /* Warna biru saat di-hover */
 }
+
+/* Hover effect for speaker card selection */
+.speaker-card-hover {
+	transition: all 0.2s ease-in-out;
+}
+
+.speaker-card-hover:hover {
+	background-color: #f8fafc;
+}

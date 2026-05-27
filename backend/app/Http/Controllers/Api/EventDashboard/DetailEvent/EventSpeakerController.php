@@ -122,10 +122,14 @@ class EventSpeakerController extends Controller
 
             DB::commit();
 
+            $event = \App\Models\Event::find($eventId);
+            $notified = $event ? $event->notifyParticipantsOfUpdate() : false;
+
             return response()->json([
                 'success' => true,
                 'status'  => 'success',
                 'message' => 'Data pembicara berhasil disimpan',
+                'notified_participants' => $notified,
             ], 200);
 
         } catch (\Exception $e) {

@@ -63,6 +63,7 @@ class EventSessionController extends Controller
             'sessions.*.startTime'   => 'nullable',
             'sessions.*.endTime'     => 'nullable',
             'sessions.*.prerequisite_session_ids' => 'nullable|array',
+            'sessions.*.no_speaker'  => 'nullable|boolean',
         ]);
 
         try {
@@ -104,6 +105,7 @@ class EventSessionController extends Controller
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
                                 'prerequisite_session_ids' => $sessionData['prerequisite_session_ids'] ?? [],
+                                'no_speaker'  => $sessionData['no_speaker'] ?? false,
                             ]);
                         } else {
                             // Sesi tidak ditemukan ATAU ID berupa UUID dari Frontend, lakukan CREATE
@@ -114,6 +116,7 @@ class EventSessionController extends Controller
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
                                 'prerequisite_session_ids' => $sessionData['prerequisite_session_ids'] ?? [],
+                                'no_speaker'  => $sessionData['no_speaker'] ?? false,
                             ]);
                         }
 
@@ -126,9 +129,12 @@ class EventSessionController extends Controller
                     $event->sessions()->whereNotIn('id', $activeSessionIds)->delete();
                 }
 
+                $notified = $event->notifyParticipantsOfUpdate();
+
                 return response()->json([
                     'status'  => 'success',
                     'message' => 'Konfigurasi sesi dan waktu berhasil disimpan',
+                    'notified_participants' => $notified,
                 ]);
             });
         } catch (\Exception $e) {

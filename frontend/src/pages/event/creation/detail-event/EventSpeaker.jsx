@@ -149,11 +149,19 @@ const EventSpeaker = () => {
                 },
             );
 
-            notify(
-                "success",
-                "Berhasil!",
-                "Data pembicara telah berhasil disimpan.",
-            );
+            if (response.data?.notified_participants) {
+                notify(
+                    "success",
+                    "Berhasil!",
+                    "Data pembicara telah berhasil disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.",
+                );
+            } else {
+                notify(
+                    "success",
+                    "Berhasil!",
+                    "Data pembicara telah berhasil disimpan.",
+                );
+            }
 
             // 4. Panggil ulang fetch untuk mendapatkan ID asli & relasi nama sesi dari DB
             fetchEventSpeakers();

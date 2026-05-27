@@ -169,7 +169,7 @@ class Event extends Model
                     $errors[] = "Waktu pelaksanaan pada '{$sessionTitle}' belum lengkap.";
                 }
 
-                if ($session->speakers()->count() === 0) {
+                if ($session->speakers()->count() === 0 && !$session->no_speaker) {
                     $errors[] = "Sesi '{$sessionTitle}' belum memiliki pembicara.";
                 }
             }
@@ -188,6 +188,57 @@ class Event extends Model
         return $this->hasOne(CertificateTemplate::class);
     }
 
+    /**
+     * Notify all registered participants that this event's information has been updated.
+     * Includes a 1-minute anti-spam throttle per participant per event.
+     *
+     * @return bool
+     */
+    public function notifyParticipantsOfUpdate()
+    {
+        if ($this->status !== 'published') {
+            return false;
+        }
+
+        $oneMinuteAgo = now()->subMinute();
+
+        // Get recently notified participants for this event to avoid spamming
+        $recentNotifications = \Illuminate\Support\Facades\DB::table('notifications')
+            ->where('notifiable_type', \App\Models\User::class)
+            ->where('created_at', '>=', $oneMinuteAgo)
+            ->where('data', 'like', '%"event_id":' . $this->id . '%')
+            ->where('data', 'like', '%"type":"event_updated"%')
+            ->pluck('notifiable_id');
+
+        $participantIds = \App\Models\Ticket::whereHas('orderItem.order', function ($q) {
+            $q->where('event_id', $this->id);
+        })
+        ->whereIn('status', ['active', 'checked_in'])
+        ->pluck('participant_id')
+        ->unique();
+
+        // Filter out recently notified participants
+        $participantIds = $participantIds->diff($recentNotifications);
+
+        if ($participantIds->isEmpty()) {
+            return false;
+        }
+
+        $participants = \App\Models\User::whereIn('id', $participantIds)->get();
+
+        foreach ($participants as $participant) {
+            $participant->notify(new \App\Notifications\OperationalNotification(
+                "Perubahan Acara",
+                "Terdapat perubahan informasi pada acara '{$this->title}' yang Anda ikuti. Silakan periksa kembali detail acara.",
+                "event_updated",
+                ['event_id' => $this->id]
+            ));
+        }
+
+        return true;
+    }
+
+    
     public function eventTickets(): HasMany
     {
         return $this->hasMany(EventTicket::class);
@@ -217,4 +268,3 @@ class Event extends Model
         return $this->bookmarks()->where('user_id', $user->id)->exists();
     }
 }
-

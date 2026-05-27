@@ -87,7 +87,7 @@ const DashboardLayout = () => {
 					}}
 					// className='container'
 				>
-					<Toaster position="top-right" containerStyle={{ top: 100, right: 40 }} />
+					<Toaster position="top-right" containerStyle={{ top: 100, right: 40, zIndex: 99999 }} />
 
 					{/* GLOBAL LOADING OVERLAY HAS BEEN MOVED TO LoadingContext */}
 

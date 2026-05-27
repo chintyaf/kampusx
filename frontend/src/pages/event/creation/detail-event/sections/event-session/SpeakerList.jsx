@@ -4,11 +4,34 @@ import { Search, X, Plus, CheckCircle } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { Edit2, Trash2 } from 'lucide-react';
+import { STORAGE_URL } from '../../../../../../api/storage';
+
+export const getSpeakerAvatar = (speaker) => {
+	if (!speaker) return '';
+	if (speaker.image_url) {
+		if (speaker.image_url.startsWith('http')) return speaker.image_url;
+		if (speaker.image_url.startsWith('/storage')) {
+			const cleanPath = speaker.image_url.replace('/storage/', '');
+			return `${STORAGE_URL}/${cleanPath}`;
+		}
+		return speaker.image_url;
+	}
+	if (speaker.image_path) {
+		return `${STORAGE_URL}/${speaker.image_path}`;
+	}
+	if (speaker.avatarUrl) return speaker.avatarUrl;
+	if (speaker.avatar) return speaker.avatar;
+	return `https://i.pravatar.cc/150?u=${speaker.id}`;
+};
 
 // --- KOMPONEN SPEAKER CARD ---
 const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) => {
 	return (
-		<div className="d-flex align-items-center mb-4">
+		<div
+			className="d-flex align-items-center mb-4 p-2 rounded-3 speaker-card-hover"
+			style={{ cursor: 'pointer' }}
+			onClick={() => onEditSpeaker && onEditSpeaker(speaker)}
+		>
 			{/* Avatar with Status */}
 			<div
 				style={{
@@ -19,11 +42,7 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 				}}
 			>
 				<Image
-					src={
-						speaker.avatarUrl ||
-						speaker.avatar ||
-						`https://i.pravatar.cc/150?u=${speaker.id}`
-					}
+					src={getSpeakerAvatar(speaker)}
 					roundedCircle
 					style={{
 						width: '50px',
@@ -72,7 +91,7 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 			</div>
 
 			{/* Action Button/Badge */}
-			<div className="ms-2 d-flex align-items-center gap-1">
+			<div className="ms-2 d-flex align-items-center gap-1" onClick={(e) => e.stopPropagation()}>
 				{speaker.added ? (
 					<div
 						style={{
@@ -150,6 +169,7 @@ const SpeakerList = ({
 	onEditSpeaker,
 	onDeleteSpeaker,
 	onChangeSidebar,
+	isModal = false,
 }) => {
 	const [searchQuery, setSearchQuery] = useState('');
 
@@ -172,10 +192,10 @@ const SpeakerList = ({
 		<div
 			className="d-flex flex-column"
 			style={{
-				width: '400px',
-				// height: '100vh',
+				width: isModal ? '100%' : '400px',
+				height: isModal ? '80vh' : '100%',
 				backgroundColor: '#ffffff',
-				borderLeft: '1px solid #e0e0e0', // Border tegas tanpa shadow
+				borderLeft: isModal ? 'none' : '1px solid #e0e0e0', // Border tegas tanpa shadow
 			}}
 		>
 			{/* Header Section */}

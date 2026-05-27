@@ -24,6 +24,15 @@ class Speaker extends Model
         'social_link' => 'array',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image_path
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path)
+            : null;
+    }
+
     // Relasi Many-to-Many ke Sessions
     public function sessions(): BelongsToMany
     {

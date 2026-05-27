@@ -110,7 +110,6 @@ const CreateEvent = () => {
                 submitData.append('banner', formData.banner);
             }
 
-      
             const response = await api.post(`/events`, submitData);
 
             const newEventId = response.data.data.id;
@@ -214,57 +213,59 @@ const CreateEvent = () => {
                         </Form.Group>
                     </Col>
 
-                    <Col xs={12}>
-                        <Form.Group className="mb-4">
-                            <Form.Label>
-                                Banner Event <span className="text-danger">*</span>
-                            </Form.Label>
-                            <div className="upload-box-wrapper w-100">
-                                <input
-                                    required
-                                    type="file"
-                                    id="bannerUpload"
-                                    className="hidden-input"
-                                    accept="image/*"
-                                    onChange={handleFileChange}
-                                    style={{ display: 'none' }}
-                                />
-                                <label
-                                    htmlFor="bannerUpload"
-                                    className="upload-box-label w-100 d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded"
-                                    style={{ cursor: 'pointer', backgroundColor: '#f8f9fa' }}>
-                                    <div className="text-center">
-                                        <Image size={32} color="#a1a1a1" />
-                                        <p className="mb-0 text-muted mt-2">
-                                            {formData.banner
-                                                ? formData.banner.name
-                                                : 'Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)'}
-                                        </p>
-                                    </div>
-                                </label>
-                            </div>
-                        </Form.Group>
+                    {/* <Col xs={12}>
+						<Form.Group className="mb-4">
+							<Form.Label>
+								Banner Event <span className="text-danger">*</span>
+							</Form.Label>
+							<div className="upload-box-wrapper w-100">
+								<input
+									required
+									type="file"
+									id="bannerUpload"
+									className="hidden-input"
+									accept="image/*"
+									onChange={handleFileChange}
+									style={{ display: 'none' }}
+								/>
+								<label
+									htmlFor="bannerUpload"
+									className="upload-box-label w-100 d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded"
+									style={{ cursor: 'pointer', backgroundColor: '#f8f9fa' }}
+								>
+									<div className="text-center">
+										<Image size={32} color="#a1a1a1" />
+										<p className="mb-0 text-muted mt-2">
+											{formData.banner
+												? formData.banner.name
+												: 'Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)'}
+										</p>
+									</div>
+								</label>
+							</div>
+						</Form.Group>
 
-                        {formData.banner && (
-                            <div
-                                className="w-100 border mt-3"
-                                style={{
-                                    height: '200px',
-                                    overflow: 'hidden',
-                                    borderRadius: '8px',
-                                }}>
-                                <img
-                                    src={
-                                        formData.banner instanceof File
-                                            ? formData.banner.preview
-                                            : formData.banner
-                                    }
-                                    alt="Banner Preview"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                            </div>
-                        )}
-                    </Col>
+						{formData.banner && (
+							<div
+								className="w-100 border mt-3"
+								style={{
+									height: '200px',
+									overflow: 'hidden',
+									borderRadius: '8px',
+								}}
+							>
+								<img
+									src={
+										formData.banner instanceof File
+											? formData.banner.preview
+											: formData.banner
+									}
+									alt="Banner Preview"
+									style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+								/>
+							</div>
+						)}
+					</Col> */}
                 </Row>
 
                 <div className="d-flex justify-content-end py-4 gap-2">

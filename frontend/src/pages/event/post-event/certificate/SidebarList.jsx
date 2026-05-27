@@ -7,7 +7,7 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 	const isAdded = (fid) => elements.some((e) => e.fieldId === fid);
 
 	return (
-		<div className="bg-white px-3 rounded-4 border cert-sidebar">
+		<div className="bg-white px-3 rounded-4 border cert-sidebar overflow-auto h-100">
 			{/* ── Elemen Dinamis ── */}
 			<div className="p-3 border-bottom">
 				<label
@@ -33,7 +33,10 @@ const SidebarList = ({ elements, addField, deleteEl, setSelectedId }) => {
 								<span
 									className={`flex-grow-1 fs-6 ${added ? 'text-dark' : 'text-body'}`}
 								>
-									{field.label} {field.id === 'f3' && <span className="text-danger small fw-bold">*</span>}
+									{field.label}{' '}
+									{field.required && (
+										<span className="text-danger small fw-bold">*</span>
+									)}
 								</span>
 								{added ? (
 									<Check size={16} className="text-primary" />

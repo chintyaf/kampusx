@@ -63,6 +63,10 @@ Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi i
 Route::get('/events/explore', [EventController::class, 'explore']);
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
+// Certificate Public Verification & Rendering
+Route::get('/certificate/verify/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'verifyCertificate']);
+Route::get('/certificate/render/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'getCertificateRenderData']);
+
 Route::get('/test', function () {
     return response()->json('hallo', 200);
 });
@@ -78,10 +82,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Ambil data user yang sedang login
     Route::get('/user/profile', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        if ($user) {
+            $user->checkAndDemoteIfExpired();
+        }
+        return $user;
     });
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        $user = $request->user();
+        if ($user) {
+            $user->checkAndDemoteIfExpired();
+        }
+        return $user;
     });
     
     // Pengaturan Akun Profil (Edit Profil)
@@ -107,7 +119,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-tickets', [TicketController::class, 'index']);
     Route::post('/v1/events/{id}/bookmark', [\App\Http\Controllers\Api\BookmarkController::class, 'toggle']);
     Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
+    Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
+    Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
+    Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
 
     // Mendaftar jadi Organizer
     Route::get('/organizer-requests/status', [OrganizerRequestController::class, 'checkStatus']);
@@ -210,6 +225,18 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::delete('/sessions/{sessionId}/materials/{materialId}', [SessionMaterialController::class, 'destroyMaterial']);
                 Route::post('/sessions/{sessionId}/materials/reorder', [SessionMaterialController::class, 'reorderMaterials']);
             });
+
+            // 7. Survey Analytics (Organizer view of participant responses)
+            Route::get('/survey-analytics', [\App\Http\Controllers\Api\SurveyController::class, 'getOrganizerAnalytics']);
+
+            // 8. Survey Form Builder (Organizer CRUD — create/manage custom survey)
+            Route::prefix('survey-form')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'show']);
+                Route::post('/', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'store']);
+                Route::put('/{surveyId}', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'update']);
+                Route::put('/{surveyId}/questions', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'syncQuestions']);
+                Route::delete('/{surveyId}', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'destroy']);
+            });
         });
     });
 
@@ -239,6 +266,9 @@ Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function 
 // --- ROLE: ADMIN PUSAT ---
 // ==========================================
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    // 0. Dashboard Overview
+    Route::get('/admin/dashboard-overview', [AdminController::class, 'getDashboardOverview']);
+
     // 1. Organizer Management
     Route::get('/admin/organizer-requests', [AdminController::class, 'getOrganizerRequests']);
     Route::post('/admin/organizer-requests/{id}/approve', [AdminController::class, 'approveOrganizer']);

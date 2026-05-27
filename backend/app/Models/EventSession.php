@@ -18,11 +18,13 @@ class EventSession extends Model
         'end_time',
         'prerequisite_session_ids',
         'is_published',
+        'no_speaker',
     ];
 
     protected $casts = [
         'prerequisite_session_ids' => 'array', // Casting kolom JSON ke Array
         'is_published' => 'boolean',
+        'no_speaker' => 'boolean',
     ];
 
     public function event(): BelongsTo

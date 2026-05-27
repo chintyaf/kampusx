@@ -3,7 +3,17 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Dropdown, Badge } from 'react-bootstrap';
 import { useAuth } from '../../../context/AuthContext';
 import userImg from '../../../assets/images/user-placeholder.avif';
-import { LogOut, Home, LayoutDashboard, ShieldCheck, ChevronRight, User, Award, Settings } from 'lucide-react';
+import {
+	LogOut,
+	Home,
+	LayoutDashboard,
+	ShieldCheck,
+	ChevronRight,
+	User,
+	Award,
+	Ticket,
+	Settings,
+} from 'lucide-react';
 
 // Komponen kustom untuk Trigger/Tombol Dropdown
 const CustomToggle = React.forwardRef(({ children, onClick, isOpen }, ref) => (
@@ -67,7 +77,7 @@ const ProfileDropdown = () => {
 		},
 		{
 			icon: Home,
-			label: 'Halaman Utama',
+			label: 'Beranda',
 			to: '/',
 			iconBg: '#f1f5f9',
 			iconBorder: '#cbd5e1',
@@ -75,8 +85,26 @@ const ProfileDropdown = () => {
 			show: true,
 		},
 		{
+			icon: Ticket,
+			label: 'Tiket Saya',
+			to: '/my-tickets',
+			iconBg: '#fdf2f8',
+			iconBorder: '#fbcfe8',
+			iconColor: '#db2777',
+			show: true,
+		},
+		{
+			icon: Award,
+			label: 'Sertifikat Saya',
+			to: '/certificates',
+			iconBg: '#f5f3ff',
+			iconBorder: '#ddd6fe',
+			iconColor: '#7c3aed',
+			show: true,
+		},
+		{
 			icon: LayoutDashboard,
-			label: 'Masuk Organizer',
+			label: 'Kelola Event',
 			to: '/organizer/dashboard',
 			iconBg: '#f0f9ff',
 			iconBorder: '#b9e7fe',
@@ -85,7 +113,7 @@ const ProfileDropdown = () => {
 		},
 		{
 			icon: Award,
-			label: 'Daftar Organizer',
+			label: 'Pengajuan Organizer',
 			to: '/apply-organizer',
 			iconBg: '#f0fdf4',
 			iconBorder: '#bbf7d0',
@@ -94,7 +122,7 @@ const ProfileDropdown = () => {
 		},
 		{
 			icon: ShieldCheck,
-			label: 'Masuk Admin',
+			label: 'Pusat Admin',
 			to: '/admin/dashboard',
 			iconBg: '#fefce8',
 			iconBorder: '#fde68a',
@@ -119,8 +147,9 @@ const ProfileDropdown = () => {
 						<User size={14} strokeWidth={2} />
 					</div>
 				)}
+
 				<span
-					className="text-truncate d-none d-md-inline ms-2"
+					className="text-truncate d-none d-sm-inline"
 					style={{
 						fontSize: '12px',
 						fontWeight: 600,
@@ -134,6 +163,7 @@ const ProfileDropdown = () => {
 					className="d-none d-md-inline ms-1"
 					size={13}
 					strokeWidth={2.5}
+					className="d-none d-sm-inline"
 					style={{
 						color: '#94a3b8',
 						transition: 'transform 0.2s ease',

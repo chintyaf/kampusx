@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Collapse, Form, Row, Col } from 'react-bootstrap';
-import { Trash2, ChevronDown, ChevronUp } from 'lucide-react'; // Pastikan Anda menggunakan lucide-react
+import { Trash2, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 
 function formatRp(val) {
 	if (!val) return '';
@@ -9,7 +9,7 @@ function formatRp(val) {
 	return n.toLocaleString('id-ID');
 }
 
-function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
+function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked = false }) {
 	const [open, setOpen] = useState(true);
 
 	// Helper format Rupiah (pastikan fungsi ini ada di scope komponen atau file Anda)
@@ -82,7 +82,24 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 							{/* Kolom Harga */}
 							<Col md={6} className="mb-3 mb-md-0">
 								<div className="d-flex justify-content-between align-items-center mb-2">
-									<label className="form-label required mb-0">Harga (Rp)</label>
+									<label className="form-label required mb-0" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+										Harga (Rp)
+										{priceLocked && (
+											<span
+												title="Harga tidak dapat diubah karena sudah ada peserta terdaftar"
+												style={{
+													display: 'inline-flex', alignItems: 'center',
+													background: '#fef3c7', color: '#92400e',
+													borderRadius: 4, padding: '1px 6px',
+													fontSize: '0.73rem', fontWeight: 600, gap: 3,
+													cursor: 'help',
+												}}
+											>
+												<Lock size={10} strokeWidth={2.5} />
+												Terkunci
+											</span>
+										)}
+									</label>
 									<Form.Check
 										type="switch"
 										id={`free-switch-${index}`}
@@ -90,19 +107,28 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete }) {
 										label="Gratis"
 										checked={ticket.isFree}
 										onChange={(e) => onChange({ isFree: e.target.checked })}
+										disabled={priceLocked}
+										title={priceLocked ? 'Tidak dapat diubah karena sudah ada peserta terdaftar' : ''}
 									/>
 								</div>
-								<div className="custom-unified-wrapper">
+								<div
+									className="custom-unified-wrapper"
+									style={priceLocked ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+								>
 									<span className="custom-unified-prefix">Rp</span>
 									<input
 										type="text"
 										value={ticket.isFree ? '' : formatRp(ticket.price)}
-										disabled={ticket.isFree}
+										disabled={ticket.isFree || priceLocked}
+										readOnly={priceLocked}
 										onChange={(e) => {
+											if (priceLocked) return;
 											const raw = e.target.value.replace(/\D/g, '');
 											onChange({ price: raw });
 										}}
 										placeholder={ticket.isFree ? '' : '75.000'}
+										title={priceLocked ? 'Harga tidak dapat diubah karena sudah ada peserta terdaftar' : ''}
+										style={priceLocked ? { cursor: 'not-allowed', background: '#f8fafc' } : {}}
 									/>
 								</div>
 							</Col>

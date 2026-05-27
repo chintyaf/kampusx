@@ -177,6 +177,10 @@ html {
 	color: var(--bahama-blue-600) !important;
 }
 
+.text-warning {
+	color: var(--warning-text) !important;
+}
+
 .bg-primary {
 	background-color: var(--color-primary) !important;
 }
@@ -211,11 +215,23 @@ BUTTON
 	color: var(--color-white);
 }
 
+.btn-primary:active {
+	background-color: var(--bahama-blue-950); /* Transisi lebih halus dibanding 900 */
+	border-color: var(--bahama-blue-950);
+	color: var(--color-white);
+}
+
+.btn-primary:disabled {
+	background-color: var(--bahama-blue-500); /* Transisi lebih halus dibanding 900 */
+	border-color: var(--bahama-blue-500);
+	color: var(--color-white);
+}
+
 /* --- SECONDARY BUTTON (Warna Netral/Abu-abu) --- */
 .btn-secondary {
 	background-color: var(--neutral-bg);
 	color: var(--color-secondary); /* Menggunakan warna slate/abu-abu */
-	border: 2px solid var(--neutral-bg);
+	border: 1px solid var(--neutral-bg);
 }
 
 .btn-secondary:hover {
@@ -228,7 +244,26 @@ BUTTON
 .btn-outline-secondary {
 	background-color: transparent; /* Lebih baik transparent daripada white */
 	color: var(--color-secondary);
-	border: 2px solid var(--color-secondary);
+	border: 1px solid var(--color-secondary);
+}
+
+.btn-outline-secondary:hover {
+	background-color: var(--color-secondary) !important;
+	color: var(--color-white);
+	border-color: var(--color-secondary);
+}
+
+/* --- OUTLINE DANGER BUTTON --- */
+.btn-outline-danger {
+	background-color: transparent; /* Lebih baik transparent daripada white */
+	color: var(--error-text);
+	border: 1px solid var(--error-text);
+}
+
+.btn-outline-danger:hover {
+	background-color: var(--error-text) !important;
+	color: var(--color-white);
+	border-color: var(--error-text);
 }
 
 .btn-outline-secondary:hover {
@@ -245,8 +280,8 @@ BUTTON
 	padding: 7px;
 	background-color: transparent;
 
-	border: 1.5px dashed var(--neutral-border); /* atau bisa pakai var(--border) */
-	border-radius: 7px;
+	/* border: 1.5px dashed var(--neutral-border); */
+	/* border-radius: 7px; */
 
 	color: var(--text-muted);
 	font-size: var(--font-sm);

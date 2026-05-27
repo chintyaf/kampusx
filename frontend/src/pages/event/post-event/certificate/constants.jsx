@@ -8,6 +8,7 @@ export const FIELDS = [
 		key: '{ Nama Peserta }',
 		icon: <User size={16} />,
 		example: 'Budi Santoso',
+		required: true,
 	},
 	{
 		id: 'f2',
@@ -15,6 +16,7 @@ export const FIELDS = [
 		key: '{ ID Sertifikat }',
 		icon: <Hash size={16} />,
 		example: 'CERT-2026-00123',
+		required: false,
 	},
 	{
 		id: 'f3',
@@ -22,6 +24,7 @@ export const FIELDS = [
 		key: '{ QR Code }',
 		icon: <QrCode size={16} />,
 		example: 'Kode verifikasi',
+		required: true,
 	},
 	{
 		id: 'f4',
@@ -29,6 +32,7 @@ export const FIELDS = [
 		key: '{ Nama Event }',
 		icon: <Sparkles size={16} />,
 		example: 'AI & Tech Summit 2026',
+		required: false,
 	},
 	{
 		id: 'f5',
@@ -36,6 +40,7 @@ export const FIELDS = [
 		key: '{ Tanggal }',
 		icon: <Calendar size={16} />,
 		example: '18–20 Agustus 2025',
+		required: false,
 	},
 	{
 		id: 'f6',
@@ -43,6 +48,7 @@ export const FIELDS = [
 		key: '{ Instansi }',
 		icon: <Building2 size={16} />,
 		example: 'Universitas Teknologi',
+		required: false,
 	},
 	{
 		id: 'f7',
@@ -50,6 +56,7 @@ export const FIELDS = [
 		key: '{ Kustom }',
 		icon: <Type size={16} />,
 		example: 'Teks bebas...',
+		required: false,
 	},
 ];
 
@@ -77,8 +84,14 @@ export const INITIAL_ELEMENTS = [
 ];
 
 export const FONT_SIZES = [12, 16, 20, 24, 28, 36, 48, 64, 72, 80, 96, 120];
-export const COLORS = ['#0f172a', '#0d6efd', '#1e3a5f', '#6c757d', '#ffffff', '#fd7e14', '#198754'];
-
+export const COLORS = [
+	'#0f172a', // Slate Dark (Sangat bagus untuk teks utama, lebih elegan dari hitam murni)
+	'#ffffff', // White (Teks di atas latar gelap atau sebaliknya)
+	'#2563eb', // Royal Blue (Warna primer yang modern dan bersih)
+	'#64748b', // Slate Gray (Untuk teks sekunder atau elemen netral)
+	'#f59e0b', // Warm Amber (Sebagai aksen/highlight yang tidak menyilaukan)
+	'#10b981', // Emerald Green (Untuk status sukses/positif yang segar)
+];
 export const FONTS = [
 	{ name: 'Arial', family: 'Arial, sans-serif' },
 	{ name: 'Georgia', family: 'Georgia, serif' },
@@ -89,7 +102,7 @@ export const FONTS = [
 	{ name: 'Great Vibes', family: 'Great Vibes, cursive' },
 	{ name: 'Cinzel', family: 'Cinzel, serif' },
 	{ name: 'Alex Brush', family: 'Alex Brush, cursive' },
-	{ name: 'Inter', family: 'Inter, sans-serif' }
+	{ name: 'Inter', family: 'Inter, sans-serif' },
 ];
 
 export const QR_PATTERN = Array.from({ length: 25 }, (_, i) =>

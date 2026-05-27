@@ -1,190 +1,146 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Button, Form, Badge, InputGroup } from 'react-bootstrap';
-import {
-	Menu,
-	Home,
-	Calendar,
-	Users,
-	FileText,
-	Award,
-	Package,
-	BarChart3,
-	Megaphone,
-	ChevronDown,
-	ChevronRight,
-	Bell,
-	Plus,
-	MessageSquare,
-	CheckCircle2,
-	Search,
-	Star,
-	CheckCheck,
-} from 'lucide-react';
-import SurveyDetailPage from './SurveyDetailPage';
-import EventLayout from '@/layouts/EventLayout';
-import StatCard from '@/components/dashboard/StatCard';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Button, Spinner } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
 import SurveyCard from './SurveyCard';
-const surveysData = [
-	{
-		id: '1',
-		title: 'Sesi 1 – UI/UX Basic',
-		description: 'Rating pembicara dan materi untuk sesi UI/UX Basic',
-		status: 'aktif',
-		responses: 138,
-		completionRate: 84,
-		avgRating: 4.4,
-		session: 'Sesi 1 – UI/UX Basic',
-		createdAt: '15 Mar 2026',
-	},
-	{
-		id: '2',
-		title: 'Sesi 2 – Advanced Prototyping',
-		description: 'Feedback khusus untuk kualitas pembicara dan metode penyampaian',
-		status: 'aktif',
-		responses: 45,
-		completionRate: 71,
-		avgRating: 4.1,
-		session: 'Sesi 2 – Advanced Prototyping',
-		createdAt: '15 Mar 2026',
-	},
-	{
-		id: '3',
-		title: 'Feedback Umum Event',
-		description: 'Survei keseluruhan event dan pengalaman peserta secara umum',
-		status: 'draft',
-		responses: 0,
-		completionRate: 0,
-		avgRating: null,
-		session: null,
-		createdAt: '20 Mar 2026',
-	},
-];
+import SurveyDetailPage from './SurveyDetailPage';
+import FormHeading from '@/components/dashboard/FormHeading';
+import api from '@/api/axios';
+import { notify } from '@/utils/notify';
 
-export default function SurveyManagementPage() {
-	const [filter, setFilter] = useState('semua');
-	const [search, setSearch] = useState('');
+// --- Komponen Halaman Utama (Index) ---
+const Index = () => {
+	const { eventId } = useParams();
+	// State untuk navigasi antar view: 'list' atau 'detail'
 	const [currentView, setCurrentView] = useState('list');
-	const [selectedSurveyId, setSelectedSurveyId] = useState(undefined);
+	const [selectedSurveyId, setSelectedSurveyId] = useState(null);
 
-	const totalSurveys = surveysData.length;
-	const aktifCount = surveysData.filter((s) => s.status === 'aktif').length;
-	const draftCount = surveysData.filter((s) => s.status === 'draft').length;
-	const totalResponses = surveysData.reduce((a, s) => a + s.responses, 0);
+	// State data kuesioner dinamis
+	const [surveys, setSurveys] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [rawSurvey, setRawSurvey] = useState(null);
 
-	const filtered = surveysData.filter((s) => {
-		const matchFilter = filter === 'semua' || s.status === filter;
-		const matchSearch =
-			s.title.toLowerCase().includes(search.toLowerCase()) ||
-			s.description.toLowerCase().includes(search.toLowerCase());
-		return matchFilter && matchSearch;
-	});
+	// Fungsi untuk mengambil data kuesioner dan analitik dari API
+	const fetchSurveyAndAnalytics = useCallback(async () => {
+		setIsLoading(true);
+		try {
+			// 1. Fetch kuesioner kustom dari backend
+			const surveyRes = await api.get(`/event-dashboard/${eventId}/survey-form`);
+			const dbSurvey = surveyRes.data.data;
+			setRawSurvey(dbSurvey);
 
-	if (currentView === 'detail' || currentView === 'new') {
-		return (
-			<SurveyDetailPage
-				surveyId={currentView === 'detail' ? selectedSurveyId : undefined}
-				onBack={() => {
-					setCurrentView('list');
-					setSelectedSurveyId(undefined);
-				}}
-			/>
-		);
-	}
+			if (dbSurvey) {
+				// 2. Fetch analitik jika kuesioner ditemukan
+				const analyticsRes = await api.get(`/event-dashboard/${eventId}/survey-analytics`);
+				const analytics = analyticsRes.data.data;
+
+				setSurveys([
+					{
+						id: dbSurvey.id,
+						title: dbSurvey.title,
+						status: dbSurvey.is_active ? 'aktif' : 'draft',
+						description: dbSurvey.description || 'Tidak ada deskripsi.',
+						responses: analytics?.total_responses ?? 0,
+						completionRate: analytics?.satisfaction_rate ?? 0,
+						avgRating: analytics?.avg_rating && analytics.avg_rating > 0 ? analytics.avg_rating : null,
+						session: null,
+						createdAt: new Date(dbSurvey.created_at).toLocaleDateString('id-ID', {
+							day: 'numeric',
+							month: 'long',
+							year: 'numeric',
+						}),
+					},
+				]);
+			} else {
+				setSurveys([]);
+			}
+		} catch (error) {
+			console.error('Error fetching survey:', error);
+			if (error.response?.status !== 404) {
+				notify('error', 'Gagal', 'Terjadi kesalahan saat memuat data survei.');
+			}
+		} finally {
+			setIsLoading(false);
+		}
+	}, [eventId]);
+
+	useEffect(() => {
+		if (eventId) {
+			fetchSurveyAndAnalytics();
+		}
+	}, [eventId, fetchSurveyAndAnalytics]);
+
+	// Fungsi untuk mengarahkan ke halaman buat survei baru
+	const handleCreateNewSurvey = () => {
+		setSelectedSurveyId(null); // Set null mengindikasikan kuesioner baru (isNew)
+		setCurrentView('detail');
+	};
 
 	return (
-		<EventLayout
-			title="Pengaturan Feedback & Survei"
-			description="Buat dan kelola form feedback untuk mengumpulkan penilaian peserta"
-		>
-			<div className="mb-4">
-				{/* Stats Cards */}
-				<Row className="g-3 mb-4">
-					<Col md={3}>
-						<StatCard
-							Icon={MessageSquare}
-							label={'Total'}
-							value={totalSurveys}
-							type="primary"
+		<div style={{ width: '100%' }}>
+			{/* Tampilkan daftar survei jika currentView adalah 'list' */}
+			{currentView === 'list' && (
+				<div style={{ margin: '0 auto', padding: '2rem 1rem' }}>
+					{/* Header Kelola Survei */}
+					<div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+						<FormHeading
+							title="Kelola Survei"
+							description="Buat dan kelola survei untuk mengumpulkan feedback dari peserta acara Anda."
 						/>
-					</Col>
-					<Col md={3}>
-						<StatCard
-							Icon={CheckCheck}
-							label={'Aktif'}
-							value={aktifCount}
-							type="green"
-						/>
-					</Col>
-					<Col md={3}>
-						<StatCard
-							Icon={CheckCheck}
-							label={'Draft'}
-							value={draftCount}
-							type="green"
-						/>
-					</Col>
-					<Col md={3}>
-						<StatCard
-							Icon={Users}
-							label={'Total Respons Terkumpul'}
-							value={totalResponses}
-							type="yellow"
-						/>
-					</Col>
-				</Row>
-
-				{/* Search & Filter */}
-				<div className="d-flex align-items-center gap-3 mb-4">
-					<div className="flex-grow-1">
-						<InputGroup className="border  rounded-3 overflow-hidden">
-							<InputGroup.Text className="bg-white border-0 text-muted">
-								<Search size={18} />
-							</InputGroup.Text>
-							<Form.Control
-								type="text"
-								value={search}
-								onChange={(e) => setSearch(e.target.value)}
-								placeholder="Cari survei..."
-								className="border-0 shadow-none bg-white rounded-0"
-							/>
-						</InputGroup>
-					</div>
-					<div className="d-flex bg-white rounded-3  overflow-hidden border">
-						{['semua', 'aktif', 'draft'].map((f) => (
+						{surveys.length === 0 && !isLoading && (
 							<Button
-								key={f}
-								variant={filter === f ? 'primary' : 'light'}
-								className={`border-0 rounded-0 text-capitalize px-4 ${filter === f ? 'text-white' : 'text-muted bg-white'}`}
-								onClick={() => setFilter(f)}
+								variant="primary"
+								className="fw-medium rounded-3"
+								onClick={handleCreateNewSurvey}
 							>
-								{f}
+								+ Buat Survei Baru
 							</Button>
-						))}
+						)}
+					</div>
+
+					{/* Rendering Daftar SurveyCard */}
+					<div className="d-flex flex-column gap-1">
+						{isLoading ? (
+							<div className="d-flex flex-column align-items-center justify-content-center py-5">
+								<Spinner animation="border" variant="primary" className="mb-2" />
+								<span className="text-muted small">Memuat data survei...</span>
+							</div>
+						) : (
+							surveys.map((survey) => (
+								<SurveyCard
+									key={survey.id}
+									survey={survey}
+									setSelectedSurveyId={setSelectedSurveyId}
+									setCurrentView={setCurrentView}
+								/>
+							))
+						)}
+
+						{/* Jika data survei kosong */}
+						{surveys.length === 0 && !isLoading && (
+							<Card className="border rounded-4 bg-light shadow-sm">
+								<Card.Body className="text-center py-5">
+									<p className="text-muted mb-0">Belum ada survei yang dibuat.</p>
+								</Card.Body>
+							</Card>
+						)}
 					</div>
 				</div>
+			)}
 
-				{/* Survey List */}
-				<div className="d-flex flex-column gap-3">
-					{filtered.map((survey) => (
-						<SurveyCard
-							survey={survey}
-							setSelectedSurveyId={setSelectedSurveyId}
-							setCurrentView={setCurrentView}
-						/>
-					))}
-
-					{filtered.length === 0 && (
-						<Card className="border-0  rounded-4 text-center p-5">
-							<div className="d-flex justify-content-center mb-3">
-								<div className="p-3 bg-light rounded-circle text-muted">
-									<MessageSquare size={32} />
-								</div>
-							</div>
-							<p className="text-muted mb-0">Tidak ada survei ditemukan</p>
-						</Card>
-					)}
-				</div>
-			</div>
-		</EventLayout>
+			{/* Tampilkan halaman form/detail kuesioner jika currentView adalah 'detail' */}
+			{currentView === 'detail' && (
+				<SurveyDetailPage
+					surveyId={selectedSurveyId}
+					eventId={eventId}
+					initialSurvey={rawSurvey}
+					onBack={() => {
+						setCurrentView('list');
+						fetchSurveyAndAnalytics();
+					}}
+				/>
+			)}
+		</div>
 	);
-}
+};
+
+export default Index;

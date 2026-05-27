@@ -7,6 +7,7 @@ import EventLayout from '../../../../layouts/EventLayout';
 import api from '../../../../api/axios';
 import { STORAGE_URL } from '../../../../api/storage';
 import { notify } from '../../../../utils/notify';
+import useEventMeta from '../../../../hooks/useEventMeta';
 // ICON
 import { Image, Upload } from 'lucide-react';
 import getCroppedImg from '@/utils/cropImage';
@@ -15,6 +16,7 @@ import EventPreview from './sections/event-info/EventPreview';
 
 const EventGeneralInfo = () => {
 	const { eventId } = useParams();
+	const { eventStatus, hasParticipants } = useEventMeta(eventId);
 	// const { setIsPageLoading } = useOutletContext() || {};
 
 	const [formData, setFormData] = useState({
@@ -23,6 +25,7 @@ const EventGeneralInfo = () => {
 		banner: null,
 		kategori: [],
 		eventType: [],
+		timezone: 'Asia/Jakarta',
 	});
 
 	// ==========================================
@@ -166,17 +169,18 @@ const EventGeneralInfo = () => {
 						title: data.title || '',
 						description: data.description || '',
 						banner: data.banner || null,
+						timezone: data.timezone || 'Asia/Jakarta',
 						kategori: data.tags_kategori
 							? data.tags_kategori.map((cat) => ({
-									value: cat.id.toString(),
-									label: cat.name,
-								}))
+								value: cat.id.toString(),
+								label: cat.name,
+							}))
 							: [],
 						eventType: data.event_types
 							? data.event_types.map((type) => ({
-									value: type.id.toString(),
-									label: type.name,
-								}))
+								value: type.id.toString(),
+								label: type.name,
+							}))
 							: [],
 					}));
 				}
@@ -195,11 +199,12 @@ const EventGeneralInfo = () => {
 	// ==========================================
 	// SUBMIT DATA
 	// ==========================================
-	const handleUpdate = async () => {
+	const handleUpdate = async (shouldNotify = false) => {
 		const submitData = new FormData();
 
 		submitData.append('title', formData.title);
 		submitData.append('description', formData.description);
+		submitData.append('timezone', formData.timezone);
 
 		formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
 		formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
@@ -217,7 +222,11 @@ const EventGeneralInfo = () => {
 				},
 			);
 
-			notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan.');
+			if (response.data?.notified_participants || shouldNotify) {
+				notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
+			} else {
+				notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan.');
+			}
 			return response;
 		} catch (error) {
 			console.error('Gagal update data:', error);
@@ -236,7 +245,9 @@ const EventGeneralInfo = () => {
 			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
 			onSave={handleUpdate}
-			sidebar={<EventPreview />}
+			eventStatus={eventStatus}
+			hasParticipants={hasParticipants}
+		// sidebar={<EventPreview />}
 		>
 			<Form>
 				<Form.Group className="mb-4" controlId="formTitle">
@@ -295,6 +306,29 @@ const EventGeneralInfo = () => {
 						classNamePrefix="react-select"
 						onChange={(selected) => handleSelectChange('kategori', selected)}
 					/>
+				</Form.Group>
+
+				{/* Zona Waktu (Timezone) */}
+				<Form.Group className="mb-4">
+					<Form.Label className="required">Zona Waktu (Timezone)</Form.Label>
+					<Form.Select
+						name="timezone"
+						value={formData.timezone}
+						onChange={handleTextChange}
+						className="form-select shadow-none"
+						style={{
+							border: '1.5px solid #cbd5e1',
+							borderRadius: '8px',
+							fontSize: '14px',
+							padding: '10px 12px',
+							backgroundColor: '#f8fafc'
+						}}
+					>
+						<option value="Asia/Jakarta">Asia/Jakarta (WIB - GMT+7)</option>
+						<option value="Asia/Makassar">Asia/Makassar (WITA - GMT+8)</option>
+						<option value="Asia/Jayapura">Asia/Jayapura (WIT - GMT+9)</option>
+						<option value="UTC">UTC (GMT+0)</option>
+					</Form.Select>
 				</Form.Group>
 
 				<UploadImage formData={formData} setFormData={setFormData} />

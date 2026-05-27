@@ -15,6 +15,9 @@ class CheckRole
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
+        // Jalankan pengecekan kedaluwarsa kepengurusan organizer secara dinamis
+        $request->user()->checkAndDemoteIfExpired();
+
         // Cek apakah role user ada di dalam daftar role yang diizinkan
         if (!in_array($request->user()->role, $roles)) {
             return response()->json(['message' => 'Akses ditolak. Anda tidak memiliki izin untuk tindakan ini.'], 403);

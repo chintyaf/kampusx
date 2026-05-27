@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Form, InputGroup, Button } from 'react-bootstrap';
-import { ArrowLeft, Upload, User, Building2, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Form, Button } from 'react-bootstrap';
+import { ArrowLeft, Upload, Check } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
-	const [status, setStatus] = useState('menunggu');
+const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) => {
+	const fileInputRef = useRef(null);
+	const [imagePreview, setImagePreview] = useState('');
+	const [imageFile, setImageFile] = useState(null);
+
 	const [formData, setFormData] = useState({
 		name: '',
 		role: '',
@@ -15,8 +18,12 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
 	useEffect(() => {
 		if (initialData) {
 			setFormData(initialData);
+			setImagePreview(initialData.image_url || initialData.avatarUrl || '');
+			setImageFile(null);
 		} else {
 			setFormData({ name: '', role: '', bio: '', avatarUrl: '' });
+			setImagePreview('');
+			setImageFile(null);
 		}
 	}, [initialData]);
 
@@ -25,46 +32,56 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
+	const handleFileChange = (e) => {
+		const file = e.target.files[0];
+		if (!file) return;
+
+		// Validation (limit to images and max 2MB)
+		const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+		if (!allowedTypes.includes(file.type)) {
+			alert('Format file tidak didukung. Gunakan JPG, PNG, atau WebP.');
+			return;
+		}
+
+		if (file.size > 2 * 1024 * 1024) {
+			alert('Ukuran file maksimal 2MB.');
+			return;
+		}
+
+		setImageFile(file);
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			setImagePreview(reader.result);
+		};
+		reader.readAsDataURL(file);
+	};
+
+	const handleRemoveImage = () => {
+		setImageFile(null);
+		setImagePreview('');
+		if (fileInputRef.current) {
+			fileInputRef.current.value = '';
+		}
+	};
+
 	const handleSubmit = () => {
-		if (onSave) onSave({ ...formData, status });
+		if (onSave) {
+			onSave({
+				...formData,
+				image_url: imagePreview, // to display in UI immediately
+				_imageFile: imageFile
+			});
+		}
 	};
-
-	// Common styles untuk flat design form
-	const inputStyle = {
-		backgroundColor: '#f8fafc',
-		border: '1px solid #cbd5e1',
-		boxShadow: 'none', // Menghilangkan glow/shadow bawaan bootstrap
-		color: '#334155',
-		fontSize: '14px',
-		padding: '10px 12px',
-	};
-
-	const iconContainerStyle = {
-		backgroundColor: '#f8fafc',
-		border: '1px solid #cbd5e1',
-		borderRight: 'none',
-		color: '#64748b',
-	};
-
-	const statusBtnStyle = (isActive) => ({
-		flex: 1,
-		backgroundColor: 'transparent',
-		border: isActive ? '2px solid #d97706' : '1px solid #cbd5e1',
-		color: isActive ? '#92400e' : '#64748b',
-		fontWeight: isActive ? 600 : 400,
-		boxShadow: 'none',
-		fontSize: '14px',
-		padding: '8px 0',
-	});
 
 	return (
 		<div
 			className="d-flex flex-column"
 			style={{
-				width: '400px',
-				// height: '100vh',
+				width: isModal ? '100%' : '400px',
+				height: isModal ? 'auto' : '100vh',
 				backgroundColor: '#ffffff',
-				borderLeft: '1px solid #e2e8f0',
+				borderLeft: isModal ? 'none' : '1px solid #e2e8f0',
 				fontFamily: 'Inter, system-ui, sans-serif',
 			}}
 		>
@@ -91,131 +108,166 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave }) => {
 
 			{/* Form Body (Scrollable) */}
 			<div className="flex-grow-1 overflow-auto p-3">
-				{/* Photo & Name/Title Section */}
-				<div className="d-flex gap-3 mb-3">
-					{/* Photo Upload Area */}
-					<div
-						className="d-flex flex-column align-items-center justify-content-center"
-						style={{
-							width: '72px',
-							height: '72px',
-							borderRadius: '50%',
-							border: '2px dashed #93c5fd',
-							backgroundColor: '#eff6ff',
-							color: '#3b82f6',
-							cursor: 'pointer',
-							flexShrink: 0,
-						}}
-					>
-						<Upload size={18} className="mb-1" />
-						<span style={{ fontSize: '12px', fontWeight: 500 }}>Foto</span>
-					</div>
-
-					{/* Name & Title Inputs */}
-					<div className="flex-grow-1 d-flex flex-column gap-2">
-						<InputGroup>
-							<InputGroup.Text style={iconContainerStyle}>
-								<User size={16} />
-							</InputGroup.Text>
-							<Form.Control
-								placeholder="Nama lengkap *"
-								name="name"
-								value={formData.name}
-								onChange={handleChange}
-								style={{ ...inputStyle, borderLeft: 'none', paddingLeft: 0 }}
-							/>
-						</InputGroup>
-
-						<Form.Control
-							placeholder="Jabatan / Posisi *"
-							name="role"
-							value={formData.role}
-							onChange={handleChange}
-							style={inputStyle}
+				{/* Foto Pembicara */}
+				<Form.Group className="mb-3">
+					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
+						Foto Pembicara
+					</Form.Label>
+					<div className="d-flex align-items-center gap-3">
+						<div
+							onClick={() => fileInputRef.current?.click()}
+							className="d-flex flex-column align-items-center justify-content-center position-relative"
+							style={{
+								width: '72px',
+								height: '72px',
+								borderRadius: '50%',
+								border: imagePreview ? '1.5px solid #cbd5e1' : '2px dashed #cbd5e1',
+								backgroundColor: '#f8fafc',
+								color: '#64748b',
+								cursor: 'pointer',
+								flexShrink: 0,
+								overflow: 'hidden'
+							}}
+						>
+							{imagePreview ? (
+								<img
+									src={imagePreview}
+									alt="Preview"
+									style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+								/>
+							) : (
+								<>
+									<Upload size={18} className="mb-1" />
+									<span style={{ fontSize: '11px', fontWeight: 500 }}>Upload</span>
+								</>
+							)}
+						</div>
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept="image/jpeg,image/png,image/webp,image/jpg"
+							onChange={handleFileChange}
+							className="d-none"
 						/>
+						<div className="d-flex flex-column">
+							{imagePreview ? (
+								<button
+									type="button"
+									className="btn btn-link text-danger p-0 text-start text-decoration-none"
+									style={{ fontSize: '13px', fontWeight: 500 }}
+									onClick={handleRemoveImage}
+								>
+									Hapus Foto
+								</button>
+							) : (
+								<span style={{ fontSize: '12px', color: '#64748b' }}>
+									Rekomendasi rasio 1:1. Maksimal 2 MB.
+								</span>
+							)}
+						</div>
 					</div>
-				</div>
+				</Form.Group>
 
-				{/* Topic Dropdown */}
-				<Form.Select className="mb-3" style={inputStyle}>
-					<option value="" disabled selected>
-						Topik (opsional)
-					</option>
-					<option value="1">Topik 1</option>
-					<option value="2">Topik 2</option>
-				</Form.Select>
+				{/* Nama Lengkap */}
+				<Form.Group className="mb-3">
+					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
+						Nama Lengkap <span className="text-danger">*</span>
+					</Form.Label>
+					<Form.Control
+						placeholder="Masukkan nama lengkap pembicara"
+						name="name"
+						value={formData.name || ''}
+						onChange={handleChange}
+						className="form-control shadow-none"
+						style={{
+							border: '1.5px solid #cbd5e1',
+							borderRadius: '8px',
+							fontSize: '14px',
+							padding: '10px 12px',
+							backgroundColor: '#f8fafc'
+						}}
+					/>
+				</Form.Group>
+
+				{/* Jabatan / Posisi */}
+				<Form.Group className="mb-3">
+					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
+						Jabatan / Posisi <span className="text-danger">*</span>
+					</Form.Label>
+					<Form.Control
+						placeholder="Contoh: CEO di TechCorp"
+						name="role"
+						value={formData.role || ''}
+						onChange={handleChange}
+						className="form-control shadow-none"
+						style={{
+							border: '1.5px solid #cbd5e1',
+							borderRadius: '8px',
+							fontSize: '14px',
+							padding: '10px 12px',
+							backgroundColor: '#f8fafc'
+						}}
+					/>
+				</Form.Group>
 
 				{/* Bio Textarea */}
-				<Form.Control
-					as="textarea"
-					rows={3}
-					placeholder="Bio singkat (opsional)..."
-					name="bio"
-					value={formData.bio}
-					onChange={handleChange}
-					style={{ ...inputStyle, resize: 'none' }}
-					className="mb-4"
-				/>
-
-				{/* Confirmation Status */}
-				<div>
-					<label style={{ fontSize: '14px', color: '#475569', marginBottom: '10px' }}>
-						Status Konfirmasi
-					</label>
-					<div className="d-flex gap-2">
-						<Button
-							style={statusBtnStyle(status === 'menunggu')}
-							onClick={() => setStatus('menunggu')}
-							variant="light"
-						>
-							Menunggu
-						</Button>
-						<Button
-							style={statusBtnStyle(status === 'diundang')}
-							onClick={() => setStatus('diundang')}
-							variant="light"
-						>
-							Diundang
-						</Button>
-						<Button
-							style={statusBtnStyle(status === 'terkonfirmasi')}
-							onClick={() => setStatus('terkonfirmasi')}
-							variant="light"
-						>
-							Terkonfirmasi
-						</Button>
-					</div>
-				</div>
+				<Form.Group className="mb-3">
+					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
+						Bio Singkat
+					</Form.Label>
+					<Form.Control
+						as="textarea"
+						rows={4}
+						placeholder="Bio singkat pembicara (opsional)..."
+						name="bio"
+						value={formData.bio || ''}
+						onChange={handleChange}
+						className="form-control shadow-none"
+						style={{
+							border: '1.5px solid #cbd5e1',
+							borderRadius: '8px',
+							fontSize: '14px',
+							padding: '10px 12px',
+							backgroundColor: '#f8fafc',
+							resize: 'none'
+						}}
+					/>
+				</Form.Group>
 			</div>
 
 			{/* Footer Actions */}
-			<div className="p-3 border-top d-flex gap-3" style={{ borderColor: '#e2e8f0' }}>
+			<div className="p-3 border-top d-flex gap-2" style={{ borderColor: '#e2e8f0' }}>
 				<Button
-					variant="light"
+					variant="outline-secondary"
+					className="shadow-none"
 					style={{
 						flex: 1,
+						fontSize: '14px',
+						borderRadius: '8px',
+						border: '1.5px solid #cbd5e1',
 						backgroundColor: '#ffffff',
-						border: '1px solid #cbd5e1',
-						color: '#475569',
-						boxShadow: 'none',
+						color: '#475569'
 					}}
+					onClick={() => onChangeSidebar('speaker-list')}
 				>
 					Batal
 				</Button>
 				<Button
+					variant="primary"
+					className="shadow-none"
 					style={{
 						flex: 2,
-						backgroundColor: formData.name ? '#3b82f6' : '#cbd5e1',
+						fontSize: '14px',
+						borderRadius: '8px',
+						backgroundColor: formData.name ? '#00699e' : '#cbd5e1',
 						border: 'none',
-						color: '#ffffff',
-						boxShadow: 'none',
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
 						gap: '6px',
 					}}
 					onClick={handleSubmit}
-					disabled={!formData.name} // Simple validation
+					disabled={!formData.name}
 				>
 					<Check size={16} /> Simpan Pembicara
 				</Button>

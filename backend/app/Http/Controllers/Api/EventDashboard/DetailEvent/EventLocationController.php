@@ -72,9 +72,12 @@ class EventLocationController extends Controller
                 // 4. Trigger pembuatan Tiket otomatis (MVP Concept)
                 // $this->autoGenerateTickets($event->id, $validated['type']);
 
+                $notified = $event->notifyParticipantsOfUpdate();
+
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Tempat Acara berhasil diperbarui.'
+                    'message' => 'Tempat Acara berhasil diperbarui.',
+                    'notified_participants' => $notified
                 ]);
             });
         } catch (\Exception $e) {

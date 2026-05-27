@@ -101,12 +101,26 @@ class EventController extends Controller
                     $pin = strtoupper(\Illuminate\Support\Str::random(6));
                 }
 
+                $user = $request->user();
+                $institutionId = null;
+                if ($user->university_id) {
+                    $isValid = true;
+                    // Cek jika masa berlaku afiliasi telah berakhir (demisioner)
+                    if ($user->affiliation_valid_until && now()->gt($user->affiliation_valid_until)) {
+                        $isValid = false;
+                    }
+                    if ($isValid) {
+                        $institutionId = $user->university_id;
+                    }
+                }
+
                 $eventData = [
-                    'organizer_id'  => $request->user()->id,
-                    'title'         => $validated['title'],
-                    'status'        => 'draft',
-                    'description'   => $validated['description'] ?? null,
-                    'pos_pin'       => $pin,
+                    'organizer_id'   => $user->id,
+                    'institution_id' => $institutionId, // Otomatis disematkan dari universitas organizer
+                    'title'          => $validated['title'],
+                    'status'         => 'draft',
+                    'description'    => $validated['description'] ?? null,
+                    'pos_pin'        => $pin,
                 ];
 
                 // 3. Handle Upload File (Tanpa cek file lama karena ini data baru)
@@ -170,7 +184,20 @@ class EventController extends Controller
     public function show(Request $request, $id)
     {
         // Memuat detail event beserta organizer, lokasi, kategori, tiket, dan agenda rundown (sessions.speakers)
-        $event = Event::with(['organizer', 'locationDetail', 'sessions.speakers', 'categories', 'eventTickets'])->findOrFail($id);
+        // $event = Event::with(['organizer', 'locationDetail', 'sessions.speakers', 'categories', 'eventTickets'])->findOrFail($id);
+        // Eager load all necessary relations for rich detail and preview modes
+        $event = Event::with([
+            'organizer',
+            'locationDetail',
+            'categories',
+            'eventTypes',
+            'eventTickets',
+            'sessions' => function($q) {
+                $q->orderBy('day_number', 'asc')
+                  ->orderBy('start_time', 'asc')
+                  ->with('speakers');
+            }
+        ])->findOrFail($id);
 
         return response()->json([
             'success' => true,

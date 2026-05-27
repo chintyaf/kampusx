@@ -11,8 +11,6 @@ import CreateEvent from '../pages/event/creation/CreateEvent/index';
 import EventGeneralInfo from '../pages/event/creation/detail-event/EventGeneralInfo';
 import EventScheduleLocation from '../pages/event/creation/detail-event/EventLocation';
 import EventSession from '../pages/event/creation/detail-event/EventSession';
-import EventSpeaker from '../pages/event/creation/detail-event/EventSpeaker';
-import EventRegistrationForm from '../pages/event/creation/detail-event/EventRegistrationForm';
 import EventTicket from '../pages/event/creation/detail-event/EventTicket';
 import EventMaterial from '../pages/event/management/EventMaterialPage/index';
 import EventPostMaterial from '../pages/event/post-event/EventPostMaterialPage/index';
@@ -20,6 +18,7 @@ import EventQuiz from '../pages/event/management/EventQuizPage/index';
 import EventLocationTest from '../pages/event/creation/EventLocationTest/index';
 
 import EventDashboardPage from '../pages/event/management/EventDashboardPage';
+import EventPreviewPage from '../pages/event/management/EventDashboardPage/EventPreviewPage';
 import EventPosPage from '../pages/event/management/EventPosPage/index';
 import EventParticipantList from '../pages/event/management/EventParticipantListPage/index';
 import EventMaterialDistributionPage from '../pages/event/management/EventMaterialDistributionPage/index';
@@ -46,12 +45,11 @@ export const OrganizerRoutes = (
 		{/* Event Routes untuk Detail Event */}
 		<Route path=":eventId/event-dashboard" element={<EventOrganizerGuard />}>
 			<Route path="" element={<EventDashboardPage />} />
+			<Route path="preview" element={<EventPreviewPage />} />
 			<Route path="detail">
 				<Route path="info" element={<EventGeneralInfo />} />
 				<Route path="tempat" element={<EventScheduleLocation />} />
 				<Route path="sesi" element={<EventSession />} />
-				<Route path="pembicara" element={<EventSpeaker />} />
-				<Route path="formulir" element={<EventRegistrationForm />} />
 				<Route path="tiket" element={<EventTicket />} />
 			</Route>
 
@@ -74,13 +72,7 @@ export const OrganizerRoutes = (
 			<Route path="analytics" element={<EventAnalyticsPage />} />
 			<Route path="promosi" element={<EventPromotion />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
-
-			{/* NEW: SERTIFIKAT & AFTER EVENT CHINTYA */}
-			<Route path="sertifikat">
-				<Route index element={<EventCertificatePage />} />
-				{/* <Route path="atur-template" element={<CreateCertificatePage />} /> */}
-				{/* <Route path="kirim-sertifikat" element={<CertificateListPage />} /> */}
-			</Route>
+			<Route path="sertifikat" element={<EventCertificatePage />} />
 
 			<Route path="event-location-test" element={<EventLocationTest />} />
 		</Route>

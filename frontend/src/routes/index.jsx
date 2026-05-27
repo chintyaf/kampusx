@@ -30,6 +30,7 @@ import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage';
 // NEW: CERTIFICATES & AFTER EVENT MOCKUP
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
 import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
+import CertificateVerificationPage from '../pages/certificate/CertificateVerificationPage';
 
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
@@ -42,30 +43,35 @@ import LandingPage from '../pages/public/LandingPage';
 import Checkout from '../pages/event/public/Checkout/index';
 import TicketDetail from '../pages/TicketDetail';
 import EventSpace from '../pages/member/EventSpace';
+import SurveyPage from '../pages/event/management/EventSurveyPage/SurveyPage';
 import { useAuth } from '../context/AuthContext';
 import MyTickets from '../pages/member/MyTickets';
 import PublicProfile from '../pages/public/PublicProfile/index.jsx';
+import MemberCertificatePage from '../pages/member/MemberCertificatePage';
+// import PublicProfile from '../pages/public/PublicProfile';
 import Personalization from '../pages/auth/Personalization';
 import ProfileSettings from '../pages/member/ProfileSettings';
-
+import NotificationsPage from '../pages/member/NotificationsPage';
+ 
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
 import BookmarkPage from '../pages/member/BookmarkPage';
 
+ 
 import CommitteePage from '../pages/committee/CommitteePage';
-
+ 
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
 	const { isAuthenticated, loading } = useAuth();
 	const location = useLocation();
-
+ 
 	// FIX: Membersihkan orphaned Bootstrap modal backdrop saat pindah halaman
 	useEffect(() => {
 		document.body.classList.remove('modal-open');
 		const backdrops = document.querySelectorAll('.modal-backdrop');
 		backdrops.forEach((b) => b.remove());
 	}, [location.pathname]);
-
+ 
 	if (loading) {
 		return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
 	}
@@ -88,8 +94,48 @@ const AppRoutes = () => {
 						if (route.path === '/') return null;
 						return <Route key={index} path={route.path} element={route.element} />;
 					})}
+				</Route>
 
 					{/* Extra Visitor/Testing Pages */}
+				{/* 1. Jika BELUM login: Jadikan '/' sebagai Landing Page dengan VisitorLayout */}
+				<Route element={<MemberLayout />}>
+					<Route path="/test-location" />
+				</Route>
+ 
+				{/* {!isAuthenticated && (
+					<Route element={<VisitorLayout />}>
+						<Route path="/" element={<LandingPage />} />
+					</Route>
+				)} */}
+ 
+				{/* 2. Jika SUDAH login: Jadikan '/' sebagai Member Dashboard dengan DashboardLayout */}
+				{isAuthenticated && (
+					<Route element={<PublicLayout />}>
+						{/* Ganti <Dashboard /> di bawah dengan halaman khusus Member jika ada */}
+						<Route path="/" element={<MemberDashboard />} />
+					</Route>
+				)}
+ 
+				{/* ========================================== */}
+ 
+				{/* Group Visitor (Explore, Detail Event, dsb) */}
+				<Route element={<VisitorLayout />}>
+					{visitorRoutes.map((route, index) => {
+						// Abaikan route "/" dari daftar PublicRoutes agar tidak bentrok (double) dengan pengecekan di atas
+						if (route.path === '/') return null;
+ 
+						return <Route key={index} path={route.path} element={route.element} />;
+					})}
+					{/* // {visitorRoutes.map((route, index) => (
+                    //     <Route key={index} path={route.path} element={route.element} />
+                    // ))} */}
+				</Route>
+ 
+				{/* Public Certificate Verification Portal */}
+				<Route path="/certificate/verify/:ticketCode" element={<CertificateVerificationPage />} />
+ 
+				{/* TEST CHIN UI ROUTES (Tampilan Peserta - Tidak perlu login utuk testing) */}
+				<Route element={<VisitorLayout />}>
 					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
 					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
 					<Route path="/profile/:id" element={<PublicProfile />} />
@@ -106,7 +152,7 @@ const AppRoutes = () => {
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 					</Route>
 				</Route>
-
+ 
 				{/* AUTH */}
 				<Route element={<AuthLayout />}>
 					<Route path="/login" element={<LoginPage />} />
@@ -114,6 +160,27 @@ const AppRoutes = () => {
 					<Route path="/forgot-password" element={<ForgotPassword />} />
 					<Route path="/personalization" element={<Personalization />} />
 				</Route>
+ 
+				{/* MEMBER */}
+				<Route element={<ProtectedRoute />}>
+					<Route path="/settings" element={<ProfileSettings />} />
+					<Route path="/checkout/:id" element={<Checkout />} />
+					{/* Nanti bisa tambah rute profil peserta di sini: */}
+					{/* <Route path="/my-tickets" element={<MyTickets />} /> */}
+					<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
+					<Route path="/event-space/:id" element={<EventSpace />} />
+					<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
+					<Route path="/event-space/:id/survey" element={<SurveyPage />} />
+					<Route path="/notifications" element={<NotificationsPage />} />
+				</Route>
+				<Route element={<MemberLayout />}>
+					<Route path="/my-tickets" element={<MyTickets />} />
+					<Route path="/certificates" element={<MemberCertificatePage />} />
+					<Route path="/apply-organizer" element={<ApplyOrganizerPage />} />
+					{/* <Route path="/member/dashboard" element={<MemberDashboard />} /> */}
+					{/* Tambahkan halaman member lainnya di sini nanti */}
+				</Route>
+
 
 				{/* Group Dashboard */}
 				<Route element={<DashboardLayout />}>

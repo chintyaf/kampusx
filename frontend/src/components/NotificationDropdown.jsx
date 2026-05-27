@@ -52,6 +52,8 @@ const NotificationDropdown = () => {
             // Arahkan user ke halaman detail yang sesuai
             if (type === 'organizer_approved') {
                 navigate('/organizer/dashboard');
+            } else if (type === 'organizer_rejected') {
+                navigate('/apply-organizer', { state: { autoResubmit: true } });
             } else if (eventId) {
                 const isOrganizerPath = window.location.pathname.startsWith('/organizer');
                 if (isOrganizerPath) {
@@ -114,6 +116,11 @@ const NotificationDropdown = () => {
                 return {
                     icon: <CheckCircle2 size={20} className="text-success" />,
                     bg: "bg-success",
+                };
+            case "event_updated":
+                return {
+                    icon: <Info size={20} className="text-info" />,
+                    bg: "bg-info",
                 };
             case "organizer_rejected":
             case "account_suspended":
@@ -271,12 +278,19 @@ const NotificationDropdown = () => {
 
                 {/* Footer */}
                 <li>
-                    <div className="pt-2 pb-2 px-2 text-center border-top bg-light">
+                    <div 
+                        className="pt-2.5 pb-2.5 px-2 text-center border-top bg-light text-primary hover-bg-light"
+                        style={{ cursor: "pointer", transition: 'background-color 0.2s' }}
+                        onClick={() => {
+                            document.body.click();
+                            navigate("/notifications");
+                        }}
+                    >
                         <span
-                            className="text-primary text-decoration-none fw-semibold"
-                            style={{ fontSize: "13px", cursor: "default" }}
+                            className="text-decoration-none fw-semibold"
+                            style={{ fontSize: "13px" }}
                         >
-                            Pusat Notifikasi KampusX
+                            Lihat Semua Notifikasi
                         </span>
                     </div>
                 </li>

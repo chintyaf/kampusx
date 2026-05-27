@@ -34,6 +34,7 @@ const EventPosPage = () => {
 				id: station.id,
 				name: station.name,
 				description: station.description,
+				photo_url: station.photo_url,
 				status: station.is_active ? 'Aktif' : 'Tidak Aktif',
 				totalScan: 0, // Placeholder
 			}));

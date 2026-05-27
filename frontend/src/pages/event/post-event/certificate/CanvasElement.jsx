@@ -66,8 +66,12 @@ const CanvasElement = ({ el, selected, onSelect, onMove, canvasWidth = 1920 }) =
 					}}
 				>
 					<QRCode
+						// TODO : Ganti value dengan link dinamis yang mengarah ke sertifikat digital penerima
 						value={`${window.location.origin}/test-chin/sertifikat/PREVIEW-TEMP`}
-						size={Math.max(16, Math.round(((el.fontSize || 80) / 1920) * canvasWidth) - 8)}
+						size={Math.max(
+							16,
+							Math.round(((el.fontSize || 80) / 1920) * canvasWidth) - 8,
+						)}
 						fgColor={el.color === '#ffffff' ? '#000000' : el.color}
 						bgColor="#ffffff"
 						style={{ height: '100%', width: '100%' }}
