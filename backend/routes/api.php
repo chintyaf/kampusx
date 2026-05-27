@@ -113,6 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- ROLE: PARTICIPANT / UMUM ---
     // ==========================================
     Route::post('/checkout', [CheckoutController::class, 'store']);
+    Route::get('/checkout/check/{eventId}', [CheckoutController::class, 'checkRegistration']);
     Route::post('/v1/payment/charge', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'charge']);
     Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
     Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);

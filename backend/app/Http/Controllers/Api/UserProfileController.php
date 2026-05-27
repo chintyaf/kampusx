@@ -42,9 +42,9 @@ class UserProfileController extends Controller
 
         // 4. Ambil Histori Event yang diikuti user
         // Kita cari dari tabel Orders dimana user_id = $id, lalu ambil relasi event-nya
-        // Pastikan hanya order yang sudah dibayar jika Anda menerapkan sistem pembayaran, 
-        // tapi untuk sementara kita ambil semua.
+        // Pastikan hanya order yang sudah dibayar (status = paid)
         $orders = Order::where('user_id', $id)
+            ->where('status', 'paid')
             ->with(['event' => function($query) {
                 // Ambil field penting saja agar efisien
                 $query->select('id', 'title', 'start_date', 'end_date', 'image_path', 'status');
@@ -68,6 +68,7 @@ class UserProfileController extends Controller
                 if ($eventEndDate->isPast()) {
                     $pastEvents[] = $event;
                 } else {
+                    $upcomingEvents[] = $event;
                 }
             }
         }

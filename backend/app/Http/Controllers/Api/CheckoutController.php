@@ -146,4 +146,34 @@ class CheckoutController extends Controller
             ], 500);
         }
     }
+
+    public function checkRegistration(Request $request, $eventId)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'registered' => false,
+                'status' => null
+            ]);
+        }
+
+        $order = Order::where('user_id', $user->id)
+            ->where('event_id', $eventId)
+            ->whereIn('status', ['paid', 'pending'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($order) {
+            return response()->json([
+                'registered' => true,
+                'status' => $order->status,
+                'order_id' => $order->order_id ?? $order->id,
+            ]);
+        }
+
+        return response()->json([
+            'registered' => false,
+            'status' => null
+        ]);
+    }
 }

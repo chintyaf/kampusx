@@ -181,7 +181,26 @@ const MemberDashboard = () => {
 		);
 	};
 
-	const activeTickets = tickets.filter((t) => t.status === 'active');
+	const activeTickets = tickets.filter((t) => {
+		const order = t.order_item?.order;
+		const event = order?.event;
+		if (!order || !event) return false;
+		if (order.status !== 'paid') return false;
+		if (!['active', 'checked_in', 'used'].includes(t.status)) return false;
+
+		const eventDate = event.end_date ? new Date(event.end_date) : (event.start_date ? new Date(event.start_date) : null);
+		if (!eventDate) return true;
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		return eventDate >= today;
+	});
+
+	const totalPaidTicketsCount = tickets.filter((t) => {
+		const order = t.order_item?.order;
+		if (!order) return false;
+		return order.status === 'paid';
+	}).length;
+
 	const eventTerbaru = [...allEvents].sort((a, b) => b.id - a.id).slice(0, 8);
 	const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 8);
 
@@ -229,7 +248,7 @@ const MemberDashboard = () => {
 				<QuickStatsSection
 					activeTicketsCount={activeTickets.length}
 					points={user?.points ?? 0}
-					totalTicketsCount={tickets.length}
+					totalTicketsCount={totalPaidTicketsCount}
 				/>
 
 				<ActiveTicketsSection activeTickets={activeTickets} />
