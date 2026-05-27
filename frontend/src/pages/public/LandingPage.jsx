@@ -85,7 +85,7 @@ const LandingPage = () => {
               date:       ev.start_date
                 ? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
                 : "Tanggal Belum Ditentukan",
-              price:      "Cek Detail",
+              price:      ev.price,
               location:   display,
               isOnline:   ["online","hybrid"].includes(eventType),
               isInPerson: ["offline","hybrid"].includes(eventType),

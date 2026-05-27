@@ -39,6 +39,10 @@ class Event extends Model
         'is_featured' => 'boolean',
     ];
 
+    protected $appends = [
+        'price'
+    ];
+
     // Penyelenggara individu (User)
     public function organizer(): BelongsTo
     {
@@ -181,6 +185,20 @@ class Event extends Model
     public function certificateTemplate(): HasOne
     {
         return $this->hasOne(CertificateTemplate::class);
+    }
+
+    public function eventTickets(): HasMany
+    {
+        return $this->hasMany(EventTicket::class);
+    }
+
+    public function getPriceAttribute(): int
+    {
+        $ticket = $this->eventTickets()->orderBy('price', 'asc')->first();
+        if (!$ticket) {
+            return 0;
+        }
+        return (int) $ticket->price;
     }
 }
 
