@@ -1,6 +1,7 @@
 // src/layouts/AuthLayout.jsx
 import React from "react";
 import { Outlet, Link } from "react-router-dom";
+import LogoKampusX from "../assets/images/logo/Logo_KampusX.svg";
 
 const AuthLayout = () => {
     return (
@@ -8,7 +9,7 @@ const AuthLayout = () => {
             {/* Navbar Super Minimalis Khusus Auth */}
             <nav className="p-4 text-center text-md-start">
                 <Link to="/" className="text-decoration-none fw-bold fs-4" style={{ color: "var(--color-primary)" }}>
-                    KampusX
+                    <img src={LogoKampusX} alt="Logo KampusX" style={{ height: 40 }} />
                 </Link>
             </nav>
 
