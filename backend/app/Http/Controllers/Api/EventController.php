@@ -20,17 +20,8 @@ class EventController extends Controller
     {
         $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets']);
 
-        // Security check: Only show published events by default, or draft events if own organizer
-        $authUser = auth('sanctum')->user();
-        $query->where(function ($q) use ($authUser) {
-            $q->where('status', 'published');
-            if ($authUser) {
-                $q->orWhere(function ($sq) use ($authUser) {
-                    $sq->where('status', 'draft')
-                      ->where('organizer_id', $authUser->id);
-                });
-            }
-        });
+        // Security check: Only show published events in the public explore catalog
+        $query->where('status', 'published');
 
         // 1. Pencarian berdasarkan judul atau nama creator (organizer)
         if ($request->filled('search')) {
@@ -241,6 +232,7 @@ class EventController extends Controller
         $event = Event::with(['organizer', 'locationDetail'])
             ->join('event_locations', 'events.id', '=', 'event_locations.event_id')
             ->select('events.*')
+            ->where('events.status', 'published') // HANYA EVENT YANG SUDAH PUBLISHED
             ->whereNotNull('event_locations.latitude')
             ->whereNotNull('event_locations.longitude')
             ->selectRaw(
