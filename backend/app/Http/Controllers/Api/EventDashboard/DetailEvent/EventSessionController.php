@@ -15,6 +15,7 @@ class EventSessionController extends Controller
     public function getSession(int $eventId)
     {
         try {
+            $event = Event::findOrFail($eventId);
             // Tambahkan with('speakers') di sini untuk Eager Loading
             $sessions = EventSession::query()
                 ->with('speakers')
@@ -36,7 +37,8 @@ class EventSessionController extends Controller
             return response()->json([
                 'status' => 'success',
                 'data' => $grouped,
-                'session' => $sessions
+                'session' => $sessions,
+                'timezone' => $event->timezone
             ]);
 
         } catch (\Exception $e) {

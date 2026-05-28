@@ -2,15 +2,15 @@ import { useMemo } from 'react';
 import { Calendar, LayoutGrid, Users, Clock } from 'lucide-react';
 import { calculateTotalDuration, formatDate } from '@/utils/dateUtils';
 
-const SessionSummary = ({ summary, days, timezone = 'WIB' }) => {
+const SessionSummary = ({ summary, days, allSpeakers = [], timezone = 'WIB' }) => {
 	// Data dummy default agar tampilannya langsung sama persis seperti di gambar.
 	// Nanti kamu bisa mengganti ini dengan data asli dari props API kamu.
 
 	const defaultSummary = {
-		totalHari: 3,
-		totalSesi: 3,
-		pembicara: 5,
-		totalDurasi: '4j 30m',
+		totalHari: '-',
+		totalSesi: '-',
+		pembicara: '-',
+		totalDurasi: '-',
 	};
 
 	const summaryData = useMemo(() => {
@@ -20,22 +20,35 @@ const SessionSummary = ({ summary, days, timezone = 'WIB' }) => {
 
 		const totalDurasi = calculateTotalDuration(allSessions);
 
+		let pembicaraCount = 0;
+		if (allSpeakers && allSpeakers.length > 0) {
+			pembicaraCount = allSpeakers.length;
+		} else {
+			const uniqueSpeakers = new Set();
+			allSessions.forEach((session) => {
+				if (session.speakers) {
+					session.speakers.forEach((speaker) => {
+						if (speaker && speaker.id) {
+							uniqueSpeakers.add(speaker.id);
+						}
+					});
+				}
+			});
+			pembicaraCount = uniqueSpeakers.size;
+		}
+
 		return {
 			totalHari,
 			totalSesi,
-			pembicara: 5,
+			pembicara: pembicaraCount,
 			totalDurasi,
 		};
-	}, [days]);
+	}, [days, allSpeakers]);
 
 	const sessions = days.sessions || [];
-	// console.log('test', days, sessions);
 
-	const defaultDays = days || [
-		{ id: 1, title: 'Hari 1', date: 'Sel, 18 Agu 2026', sessions: 3, duration: '4j 30m' },
-		{ id: 2, title: 'Hari 2', date: 'Kam, 20 Agu 2026', sessions: 0, duration: null },
-		{ id: 3, title: 'Hari 3', date: 'Sab, 5 Sep 2026', sessions: 0, duration: null },
-	];
+	const defaultDays = days || [];
+	const defaultSessions = sessions || [];
 
 	const summaryItems = [
 		{ icon: Calendar, label: 'Total Hari', value: summaryData.totalHari },
@@ -60,7 +73,7 @@ const SessionSummary = ({ summary, days, timezone = 'WIB' }) => {
 						Zona waktu:
 					</span>
 					<span className="fw-semibold text-dark" style={{ fontSize: '0.85rem' }}>
-						{timezone}
+						{timezone || '-'}
 					</span>
 				</div>
 

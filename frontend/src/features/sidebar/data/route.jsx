@@ -136,16 +136,20 @@ export const MENU_ITEMS = {
 			],
 		},
 		{
-			id: 'event-pos',
-			name: 'Pos Check-in', // Lebih spesifik sesuai fungsinya
-			icon: <MapPin size={16} className="me-2" />, // Pin map merepresentasikan titik/lokasi pos
-			path: '/organizer/:eventId/event-dashboard/event-pos',
-		},
-		{
-			id: 'daftar-peserta',
-			name: 'Daftar Peserta',
-			icon: <UsersRound size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
+			id: 'operasional-event',
+			name: 'Operasional',
+			icon: <Form size={16} className="me-2" />, // Icon formulir cocok untuk operasional yang biasanya melibatkan banyak form
+			path: '/organizer/:eventId/event-dashboard',
+			submenu: [
+				{
+					name: 'Check-in',
+					path: 'event-pos',
+				},
+				{
+					name: 'Daftar Peserta',
+					path: 'daftar-peserta',
+				},
+			],
 		},
 		// --- GRUP LEARNING & FEEDBACK ---
 		{

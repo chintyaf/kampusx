@@ -164,23 +164,31 @@ const EventGeneralInfo = () => {
 
 				if (result.status === 'success') {
 					const data = result.data;
+					const mapToStandardTimezone = (tz) => {
+						const mapping = {
+							WIB: 'Asia/Jakarta',
+							WITA: 'Asia/Makassar',
+							WIT: 'Asia/Jayapura',
+						};
+						return mapping[tz] || tz;
+					};
 					setFormData((prev) => ({
 						...prev,
 						title: data.title || '',
 						description: data.description || '',
 						banner: data.banner || null,
-						timezone: data.timezone || 'Asia/Jakarta',
+						timezone: mapToStandardTimezone(data.timezone || 'Asia/Jakarta'),
 						kategori: data.tags_kategori
 							? data.tags_kategori.map((cat) => ({
-								value: cat.id.toString(),
-								label: cat.name,
-							}))
+									value: cat.id.toString(),
+									label: cat.name,
+								}))
 							: [],
 						eventType: data.event_types
 							? data.event_types.map((type) => ({
-								value: type.id.toString(),
-								label: type.name,
-							}))
+									value: type.id.toString(),
+									label: type.name,
+								}))
 							: [],
 					}));
 				}
@@ -223,7 +231,11 @@ const EventGeneralInfo = () => {
 			);
 
 			if (response.data?.notified_participants || shouldNotify) {
-				notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
+				notify(
+					'success',
+					'Berhasil!',
+					'Perubahan informasi utama telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.',
+				);
 			} else {
 				notify('success', 'Berhasil!', 'Perubahan informasi utama telah disimpan.');
 			}
@@ -247,7 +259,7 @@ const EventGeneralInfo = () => {
 			onSave={handleUpdate}
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
-		// sidebar={<EventPreview />}
+			// sidebar={<EventPreview />}
 		>
 			<Form>
 				<Form.Group className="mb-4" controlId="formTitle">
@@ -263,7 +275,7 @@ const EventGeneralInfo = () => {
 				</Form.Group>
 
 				<Form.Group className="mb-4" controlId="formDescription">
-					<Form.Label>Deskripsi Lengkap</Form.Label>
+					<Form.Label className="required">Deskripsi Lengkap</Form.Label>
 					<Form.Control
 						as="textarea"
 						rows={5}
@@ -279,7 +291,7 @@ const EventGeneralInfo = () => {
 				</Form.Group>
 
 				<Form.Group className="mb-4">
-					<Form.Label className="form-label">Tipe Event</Form.Label>
+					<Form.Label className="form-label required">Tipe Event</Form.Label>
 					<Select
 						isMulti
 						value={formData.eventType}
@@ -294,7 +306,7 @@ const EventGeneralInfo = () => {
 				</Form.Group>
 
 				<Form.Group className="mb-4">
-					<Form.Label>Kategori Event</Form.Label>
+					<Form.Label className="required">Kategori Event</Form.Label>
 					<Select
 						isMulti
 						value={formData.kategori}
@@ -310,7 +322,7 @@ const EventGeneralInfo = () => {
 
 				{/* Zona Waktu (Timezone) */}
 				<Form.Group className="mb-4">
-					<Form.Label className="required">Zona Waktu (Timezone)</Form.Label>
+					<Form.Label className="required">Zona Waktu</Form.Label>
 					<Form.Select
 						name="timezone"
 						value={formData.timezone}
@@ -321,7 +333,7 @@ const EventGeneralInfo = () => {
 							borderRadius: '8px',
 							fontSize: '14px',
 							padding: '10px 12px',
-							backgroundColor: '#f8fafc'
+							backgroundColor: '#f8fafc',
 						}}
 					>
 						<option value="Asia/Jakarta">Asia/Jakarta (WIB - GMT+7)</option>
