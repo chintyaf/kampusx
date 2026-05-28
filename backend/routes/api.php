@@ -200,6 +200,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // 2. Dashboard Overview
             Route::get('/overview', [EventDashboardController::class, 'getOverview']);
+            Route::get('/revenue-analytics', [EventDashboardController::class, 'getRevenueAnalytics']);
 
             // 3. Participant / Ticket holders route
             Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
