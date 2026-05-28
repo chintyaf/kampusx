@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Spinner } from 'react-bootstrap';
-import { Globe, X, Archive, SquarePen } from 'lucide-react';
+import { Globe, X, Archive, SquarePen, XCircle, Play, FileText, CheckCircle } from 'lucide-react';
 import PublishForm from './PublishForm';
 import { useParams } from 'react-router-dom';
 
@@ -28,6 +28,42 @@ const SIMPLE_CONFIG = {
 		title: 'Arsipkan Event',
 		desc: 'Event akan disembunyikan dari publik dan dipindahkan ke arsip.',
 	},
+	cancelled: {
+		icon: XCircle,
+		iconColor: '#991b1b',
+		iconBg: '#fff1f2',
+		iconBorder: '#fca5a5',
+		btnVariant: 'danger',
+		title: 'Batalkan Event',
+		desc: 'Apakah Anda yakin ingin membatalkan event ini? Tindakan ini tidak dapat dikembalikan dan status akan berubah menjadi Cancelled.',
+	},
+	ongoing: {
+		icon: Play,
+		iconColor: '#0369a1',
+		iconBg: '#e0f2fe',
+		iconBorder: '#bae6fd',
+		btnVariant: 'info',
+		title: 'Ubah ke On Going',
+		desc: 'Status event akan diubah menjadi On Going (Sedang Berlangsung).',
+	},
+	post_event: {
+		icon: FileText,
+		iconColor: '#6d28d9',
+		iconBg: '#ede9fe',
+		iconBorder: '#ddd6fe',
+		btnVariant: 'primary',
+		title: 'Ubah ke Setelah Acara',
+		desc: 'Status event akan diubah menjadi Setelah Acara (Post-Event).',
+	},
+	completed: {
+		icon: CheckCircle,
+		iconColor: '#15803d',
+		iconBg: '#dcfce7',
+		iconBorder: '#bbf7d0',
+		btnVariant: 'success',
+		title: 'Selesaikan Event',
+		desc: 'Status event akan diubah menjadi Selesai (Completed).',
+	},
 };
 
 // ─── StatusConfirmationModal ───────────────────────────────────────────────────
@@ -39,7 +75,10 @@ const StatusConfirmationModal = ({ show, onHide, pendingStatus, onConfirm }) => 
 	const handleSubmit = async () => {
 		setLoading(true);
 		try {
-			const response = await api.post(`/events/${eventId}/${pendingStatus}`, {
+			// Jika status cancelled, endpointnya /cancel. Jika tidak, gunakan nama status
+			const endpointSuffix = pendingStatus === 'cancelled' ? 'cancel' : pendingStatus;
+
+			const response = await api.post(`/events/${eventId}/${endpointSuffix}`, {
 				status: pendingStatus,
 			});
 			const result = response.data;

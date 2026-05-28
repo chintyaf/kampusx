@@ -299,6 +299,36 @@ class EventDashboardController extends Controller
                 ]
             ];
         }
+        $calculatedStatus = $event->status;
+        $now = now();
+        
+        if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date);
+            $endDate = \Carbon\Carbon::parse($event->end_date);
+            
+            if ($now->gt($endDate)) {
+                $calculatedStatus = 'completed';
+            } elseif ($now->gte($startDate) && $now->lte($endDate)) {
+                $calculatedStatus = 'ongoing';
+            }
+        }
+
+        $cancelThresholdDays = 1;
+        $canCancel = false;
+        $cancelMessage = '';
+        
+        if (in_array($calculatedStatus, ['published', 'ongoing'])) {
+            if ($event->start_date) {
+                $thresholdDate = \Carbon\Carbon::parse($event->start_date)->subDays($cancelThresholdDays);
+                if ($now->lt($thresholdDate)) {
+                    $canCancel = true;
+                } else {
+                    $cancelMessage = 'Hanya dapat dibatalkan maksimal H-' . $cancelThresholdDays . ' sebelum acara dimulai.';
+                }
+            } else {
+                $canCancel = true; // if no start date, can cancel
+            }
+        }
 
         return response()->json([
             'status' => 'success',
@@ -310,7 +340,9 @@ class EventDashboardController extends Controller
                 'organizer' => $event->organizer->name ?? null,
                 'institution' => $event->institution->name ?? 'Independen / Umum',
                 'categories' => $event->categories->pluck('name'),
-                'status' => $event->status,
+                'status' => $calculatedStatus,
+                'canCancel' => $canCancel,
+                'cancelMessage' => $cancelMessage,
                 'timeline' => $timeline,
                 'stats' => $stats,
                 'sessions' => $sessionsData,

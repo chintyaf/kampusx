@@ -33,8 +33,24 @@ class EventReminderNotification extends Notification
         if ($this->type === 'M-15') $timeStr = '15 Menit lagi';
 
         if ($this->role === 'organizer') {
-            $msg = "Siap-siap! Acara '{$this->event->title}' yang Anda kelola akan berlangsung dalam $timeStr.";
+            if ($this->type === 'MISSING_INFO') {
+                $title = 'Pengingat: Lengkapi Info Acara';
+                $msg = "Acara '{$this->event->title}' tinggal 3 hari lagi tapi belum dipublikasikan! Segera lengkapi informasi yang kurang.";
+            } elseif ($this->type === 'ONGOING') {
+                $title = 'Acara Dimulai!';
+                $msg = "Acara '{$this->event->title}' sedang berlangsung saat ini. Selamat bertugas!";
+            } elseif ($this->type === 'FINISHED') {
+                $title = 'Acara Selesai';
+                $msg = "Acara '{$this->event->title}' telah selesai. Terima kasih atas kerja keras Anda!";
+            } elseif ($this->type === 'POST_EVENT') {
+                $title = 'Tugas Pasca-Acara';
+                $msg = "Acara '{$this->event->title}' sudah berakhir. Jangan lupa untuk mengunggah materi presentasi atau membagikan sertifikat kepada peserta jika ada.";
+            } else {
+                $title = $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Acara';
+                $msg = "Siap-siap! Acara '{$this->event->title}' yang Anda kelola akan berlangsung dalam $timeStr.";
+            }
         } else {
+            $title = $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Mendesak Acara';
             if ($this->type === 'H-24') {
                 $msg = "Pengingat H-1: Acara '{$this->event->title}' akan berlangsung besok. Silakan lakukan persiapan yang diperlukan!";
             } else {
@@ -49,7 +65,7 @@ class EventReminderNotification extends Notification
 
         return [
             'event_id' => $this->event->id,
-            'title' => $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Mendesak Acara',
+            'title' => $title,
             'message' => $msg,
             'type' => $this->type,
         ];

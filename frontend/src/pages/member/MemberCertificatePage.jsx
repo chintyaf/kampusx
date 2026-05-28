@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Spinner, Alert, Modal } from 'react-bootstrap';
 import { Award, QrCode, Calendar, ExternalLink, Building, Lock, Download, Sparkles, AlertCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -13,6 +13,23 @@ export default function MemberCertificatePage() {
     const [error, setError] = useState(null);
     const [showQrModal, setShowQrModal] = useState(false);
     const [selectedCert, setSelectedCert] = useState(null);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const previewContainerRef = useRef(null);
+    const [previewWidth, setPreviewWidth] = useState(720);
+
+    useEffect(() => {
+        if (!showPreviewModal || !previewContainerRef.current) return;
+
+        const observer = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                const width = entry.contentRect.width;
+                if (width > 0) setPreviewWidth(width);
+            }
+        });
+
+        observer.observe(previewContainerRef.current);
+        return () => observer.disconnect();
+    }, [showPreviewModal, selectedCert]);
 
     useEffect(() => {
         fetchCertificates();
@@ -36,122 +53,50 @@ export default function MemberCertificatePage() {
         }
     };
 
+    const handleShowPreview = (cert) => {
+        setSelectedCert(cert);
+        setShowPreviewModal(true);
+    };
+
     const handleShowQR = (cert) => {
         setSelectedCert(cert);
         setShowQrModal(true);
     };
 
     const handleDownloadPDF = (cert) => {
-        // Create a temporary hidden DOM container to render the PDF properly
-        const certContainer = document.createElement('div');
-        certContainer.style.position = 'fixed';
-        certContainer.style.left = '-9999px';
-        certContainer.style.top = '-9999px';
-        certContainer.style.width = '1120px';
-        certContainer.style.height = '792px';
-        certContainer.style.background = '#fff';
-        document.body.appendChild(certContainer);
-
-        const template = cert.certificate_template;
-        const certId = `CERT-${cert.event.id}-${cert.survey_response?.id || '00000'}`;
-        const attendeeName = cert.survey_response?.user?.name || cert.event.organizer_name || 'Peserta Kelas';
-
-        if (template) {
-            // Render beautiful coordinated certificate template
-            certContainer.innerHTML = `
-                <div id="certificate-print-render" style="position: relative; width: 1120px; height: 792px; background-image: url('${template.background_url}'); background-size: cover; background-position: center; overflow: hidden; background-color: #fff;">
-                </div>
-            `;
-            const innerDiv = certContainer.querySelector('#certificate-print-render');
-
-            template.elements.forEach((el) => {
-                const xPct = (el.position_x / template.canvas_width) * 100;
-                const yPct = (el.position_y / template.canvas_height) * 100;
-
-                if (el.element_type === 'qr_code') {
-                    const qrWrap = document.createElement('div');
-                    qrWrap.style.position = 'absolute';
-                    qrWrap.style.left = `${xPct}%`;
-                    qrWrap.style.top = `${yPct}%`;
-                    qrWrap.style.transform = 'translate(-50%, -50%)';
-                    qrWrap.style.background = 'white';
-                    qrWrap.style.padding = '4px';
-                    qrWrap.style.borderRadius = '4px';
-
-                    // Standard QR code placeholder (html2pdf captures standard img better or inline SVG)
-                    qrWrap.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=${window.location.origin}/certificate/verify/${certId}" style="width: 50px; height: 50px; display: block;" />`;
-                    innerDiv.appendChild(qrWrap);
-                } else {
-                    const content = el.element_type === 'nama_peserta'
-                        ? attendeeName
-                        : el.element_type === 'id_sertifikat'
-                            ? certId
-                            : el.custom_value || '';
-
-                    const textEl = document.createElement('div');
-                    textEl.style.position = 'absolute';
-                    textEl.style.left = `${xPct}%`;
-                    textEl.style.top = `${yPct}%`;
-                    textEl.style.transform = `translate(${el.text_align === 'center' ? '-50%' : el.text_align === 'right' ? '-100%' : '0%'}, -50%)`;
-                    textEl.style.textAlign = el.text_align || 'center';
-                    textEl.style.fontSize = `${el.font_size}px`;
-                    textEl.style.color = el.font_color || '#000';
-                    textEl.style.fontFamily = el.font_family || 'Georgia, serif';
-                    textEl.style.fontWeight = el.element_type === 'nama_peserta' ? 'bold' : 'normal';
-                    textEl.style.whiteSpace = 'nowrap';
-                    textEl.innerText = content;
-                    innerDiv.appendChild(textEl);
-                }
-            });
-        } else {
-            // Render beautiful premium fallback layout
-            certContainer.innerHTML = `
-                <div id="certificate-print-render" style="width: 1120px; height: 792px; border: 15px double #d4af37; padding: 60px 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffffff; position: relative; font-family: 'Georgia', serif; text-align: center; box-sizing: border-box; background-color: #fff;">
-                    <div style="position: absolute; border: 1px solid rgba(212,175,55,0.3); inset: 20px; pointer-events: none;"></div>
-                    <div style="font-size: 32px; font-weight: bold; color: #111; letter-spacing: 4px; margin-bottom: 5px;">SERTIFIKAT APRESIASI</div>
-                    <div style="font-size: 13px; color: #777; letter-spacing: 2px; margin-bottom: 40px; font-family: sans-serif;">NOMOR: ${certId}</div>
-                    <div style="font-size: 16px; color: #555; font-style: italic; margin-bottom: 12px;">Dengan bangga diberikan kepada:</div>
-                    <div style="font-size: 34px; font-weight: bold; text-decoration: underline; color: #1A365D; text-transform: uppercase; margin-bottom: 25px;">${attendeeName}</div>
-                    <div style="font-size: 15px; color: #444; max-width: 680px; line-height: 1.8; margin-bottom: 15px; font-family: sans-serif;">
-                        Atas keberhasilan menyelesaikan seluruh rangkaian pembelajaran dan evaluasi dengan predikat Kelulusan Resmi pada event bertajuk:
-                    </div>
-                    <div style="font-size: 22px; font-weight: bold; color: #111; margin-bottom: 50px;">"${cert.event.title}"</div>
-                    
-                    <table style="width: 100%; margin-top: auto; border: none; font-family: sans-serif;">
-                        <tr>
-                            <td style="text-align: left; width: 33%;">
-                                <div style="font-size: 12px; color: #888; margin-bottom: 4px;">Penyelenggara:</div>
-                                <div style="font-size: 14px; font-weight: bold; color: #222;">${cert.event.organizer_name}</div>
-                            </td>
-                            <td style="text-align: center; width: 34%;">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${window.location.origin}/certificate/verify/${certId}" style="width: 64px; height: 64px; border: 1px solid #eee; padding: 4px; background: white; margin: 0 auto; display: block;" />
-                            </td>
-                            <td style="text-align: right; width: 33%;">
-                                <div style="font-size: 12px; color: #888; margin-bottom: 4px;">Diterbitkan:</div>
-                                <div style="font-size: 14px; font-weight: bold; color: #222;">${new Date(cert.survey_response?.created_at || Date.now()).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
-                                <span style="color: #22c55e; font-size: 12px; font-weight: 600; display: inline-block; margin-top: 4px;">✓ VALID</span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            `;
+        const element = document.getElementById('member-certificate-preview-area');
+        if (!element) {
+            toast.error('Gagal mendeteksi area sertifikat.');
+            return;
         }
+
+        const width = element.offsetWidth;
+        const height = element.offsetHeight;
+
+        // Convert pixels to points (1 px = 0.75 pt)
+        const pdfWidth = Math.round(width * 0.75);
+        const pdfHeight = Math.round(height * 0.75) + 2; // Add 2pt safety buffer to prevent overflow second page breaks
 
         const opt = {
             margin: 0,
             filename: `Sertifikat_${cert.event.title.replace(/\s+/g, '_')}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'px', format: [1120, 792], orientation: 'landscape' }
+            html2canvas: { 
+                scale: 3, // 3x scale for ultra high resolution
+                useCORS: true, 
+                allowTaint: true,
+                logging: false 
+            },
+            jsPDF: { 
+                unit: 'pt', 
+                format: [pdfWidth, pdfHeight], 
+                orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait' 
+            },
+            pagebreak: { mode: 'avoid-all' }
         };
 
         toast.promise(
-            html2pdf().from(certContainer).set(opt).save().then(() => {
-                document.body.removeChild(certContainer);
-            }).catch((err) => {
-                document.body.removeChild(certContainer);
-                throw err;
-            }),
+            html2pdf().from(element).set(opt).save(),
             {
                 loading: 'Sedang memproses unduhan sertifikat...',
                 success: 'Sertifikat PDF berhasil diunduh!',
@@ -278,11 +223,11 @@ export default function MemberCertificatePage() {
                                                 {cert.is_unlocked ? (
                                                     <>
                                                         <Button
-                                                            variant="success"
-                                                            onClick={() => handleDownloadPDF(cert)}
+                                                            variant="primary"
+                                                            onClick={() => handleShowPreview(cert)}
                                                             className="flex-grow-1 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
                                                         >
-                                                            <Download size={16} /> Unduh PDF
+                                                            <Sparkles size={16} /> Preview & Unduh
                                                         </Button>
                                                         <Button
                                                             variant="outline-dark"
@@ -348,6 +293,210 @@ export default function MemberCertificatePage() {
                             </Button>
                         </>
                     )}
+                </Modal.Body>
+            </Modal>
+
+            {/* Live Certificate Preview Modal */}
+            <Modal show={showPreviewModal} onHide={() => setShowPreviewModal(false)} size="lg" centered>
+                <Modal.Header closeButton className="border-0 pb-0">
+                    <Modal.Title className="fw-bold">Preview E-Sertifikat</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="text-center py-4">
+                    {selectedCert && selectedCert.certificate_template ? (
+                        (() => {
+                            const template = selectedCert.certificate_template;
+                            const certId = `CERT-${selectedCert.event.id}-${selectedCert.survey_response?.id || '00000'}`;
+                            const attendeeName = selectedCert.attendee_name || selectedCert.survey_response?.user?.name || selectedCert.event.organizer_name || 'Peserta Kelas';
+                            
+                            return (
+                                <div className="d-flex flex-column align-items-center">
+                                    {/* Beautiful outer wrapper containing border, border radius, shadow, and margin */}
+                                    <div
+                                        className="bg-white overflow-hidden border rounded-4 shadow-sm w-100 mb-4"
+                                        style={{ maxWidth: '720px' }}
+                                    >
+                                        {/* Pure target container for PDF screenshot with ZERO margins, borders, paddings, or shadow */}
+                                        <div 
+                                            id="member-certificate-preview-area"
+                                            ref={previewContainerRef}
+                                            className="position-relative w-100 overflow-hidden" 
+                                            style={{ 
+                                                aspectRatio: `${template.canvas_width || 1920}/${template.canvas_height || 1080}`
+                                            }}
+                                        >
+                                            <img 
+                                                src={template.background_url} 
+                                                alt="Certificate Background" 
+                                                className="w-100 h-100"
+                                                crossOrigin="anonymous"
+                                                style={{ display: 'block', objectFit: 'cover' }}
+                                            />
+                                            
+                                            {/* Render Elements Dynamically inside the live preview */}
+                                            {template.elements.map((el) => {
+                                                const xPct = el.position_x;
+                                                const yPct = el.position_y;
+                                                
+                                                if (el.element_type === 'qr_code') {
+                                                    const qrSize = ((el.font_size || 80) / (template.canvas_width || 1920)) * previewWidth;
+                                                    const qrPadding = (4 / (template.canvas_width || 1920)) * previewWidth;
+                                                    
+                                                    return (
+                                                        <div 
+                                                            key={el.id}
+                                                            className="position-absolute bg-white"
+                                                            style={{
+                                                                left: `${xPct}%`,
+                                                                top: `${yPct}%`,
+                                                                transform: 'translate(-50%, -50%)',
+                                                                borderRadius: `${qrPadding}px`,
+                                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                                                width: `${qrSize}px`,
+                                                                height: `${qrSize}px`,
+                                                                padding: `${qrPadding}px`,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center'
+                                                            }}
+                                                        >
+                                                            <QRCode 
+                                                                value={`${window.location.origin}/certificate/verify/${certId}`}
+                                                                size={Math.max(16, Math.round(qrSize) - 8)}
+                                                                fgColor={el.font_color === '#ffffff' ? '#000000' : el.font_color}
+                                                                bgColor="#ffffff"
+                                                                style={{ height: '100%', width: '100%' }}
+                                                            />
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    const content = el.element_type === 'nama_peserta'
+                                                        ? attendeeName
+                                                        : el.element_type === 'id_sertifikat'
+                                                            ? certId
+                                                            : el.element_type === 'nama_event'
+                                                                ? selectedCert.event.title
+                                                                : el.element_type === 'tanggal'
+                                                                    ? selectedCert.event.date
+                                                                    : el.element_type === 'instansi'
+                                                                        ? selectedCert.event.organizer_name
+                                                                        : el.custom_value || '';
+                                                    
+                                                    const isBold = el.font_family?.includes('|bold') || el.element_type === 'nama_peserta';
+                                                    const fontFamily = el.font_family?.replace('|bold', '') || 'Georgia, serif';
+                                                    const scaledFontSize = (el.font_size / (template.canvas_width || 1920)) * previewWidth;
+                                                    
+                                                    return (
+                                                        <div 
+                                                            key={el.id}
+                                                            className="position-absolute text-nowrap lh-1 text-center"
+                                                            style={{
+                                                                left: `${xPct}%`,
+                                                                top: `${yPct}%`,
+                                                                transform: 'translate(-50%, -50%)',
+                                                                fontSize: `${scaledFontSize}px`,
+                                                                color: el.font_color || '#000',
+                                                                fontFamily: fontFamily,
+                                                                fontWeight: isBold ? 'bold' : 'normal',
+                                                            }}
+                                                        >
+                                                            {content}
+                                                        </div>
+                                                    );
+                                                }
+                                            })}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="d-flex gap-2 w-100 justify-content-center">
+                                        <Button
+                                            variant="success"
+                                            onClick={() => {
+                                                handleDownloadPDF(selectedCert);
+                                                setShowPreviewModal(false);
+                                            }}
+                                            className="rounded-pill py-2.5 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                        >
+                                            <Download size={18} /> Unduh PDF Resmi
+                                        </Button>
+                                        <Button
+                                            variant="outline-secondary"
+                                            onClick={() => setShowPreviewModal(false)}
+                                            className="rounded-pill px-4 fw-semibold"
+                                        >
+                                            Tutup
+                                        </Button>
+                                    </div>
+                                </div>
+                            );
+                        })()
+                    ) : selectedCert ? (
+                        /* Fallback Layout Preview if no template */
+                        <div className="d-flex flex-column align-items-center">
+                            {/* Outer wrapper to handle margin, border-radius, and shadow */}
+                            <div
+                                className="bg-white overflow-hidden border rounded-4 shadow-sm w-100 mb-4"
+                                style={{ maxWidth: '720px' }}
+                            >
+                                {/* Pure target container for PDF screenshot with ZERO margins, borders, paddings, or shadow */}
+                                <div 
+                                    id="member-certificate-preview-area"
+                                    className="position-relative w-100 p-5 text-center animate-fade-in" 
+                                    style={{ 
+                                        aspectRatio: '1120/792',
+                                        border: '15px double #d4af37',
+                                        fontFamily: 'Georgia, serif',
+                                        boxSizing: 'border-box',
+                                        backgroundColor: '#ffffff'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#111', letterSpacing: '2px', marginBottom: '5px' }}>SERTIFIKAT APRESIASI</div>
+                                    <div style={{ fontSize: '10px', color: '#777', letterSpacing: '1px', marginBottom: '25px' }}>NOMOR: CERT-{selectedCert.event.id}-00000</div>
+                                    <div style={{ fontSize: '12px', color: '#555', fontStyle: 'italic', marginBottom: '8px' }}>Dengan bangga diberikan kepada:</div>
+                                    <div style={{ fontSize: '26px', fontWeight: 'bold', textDecoration: 'underline', color: '#1A365D', textTransform: 'uppercase', marginBottom: '15px' }}>
+                                        {selectedCert.attendee_name || 'Peserta Kelas'}
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: '#444', lineHeight: '1.6', marginBottom: '10px' }}>
+                                        Atas keberhasilan menyelesaikan seluruh rangkaian pembelajaran dan evaluasi dengan predikat Kelulusan Resmi pada event bertajuk:
+                                    </div>
+                                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#111', marginBottom: '30px' }}>"{selectedCert.event.title}"</div>
+                                    
+                                    <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top" style={{ fontSize: '10px' }}>
+                                        <div className="text-start">
+                                            <div className="text-muted">Penyelenggara:</div>
+                                            <div className="fw-bold">{selectedCert.event.organizer_name}</div>
+                                        </div>
+                                        <div>
+                                            <QRCode value={`${window.location.origin}/certificate/verify/CERT-${selectedCert.event.id}-00000`} size={48} />
+                                        </div>
+                                        <div className="text-end">
+                                            <div className="text-muted">Diterbitkan:</div>
+                                            <div className="fw-bold">{selectedCert.event.date}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="d-flex gap-2 w-100 justify-content-center">
+                                <Button
+                                    variant="success"
+                                    onClick={() => {
+                                        handleDownloadPDF(selectedCert);
+                                        setShowPreviewModal(false);
+                                    }}
+                                    className="rounded-pill py-2.5 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                                >
+                                    <Download size={18} /> Unduh PDF Resmi
+                                </Button>
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => setShowPreviewModal(false)}
+                                    className="rounded-pill px-4 fw-semibold"
+                                >
+                                    Tutup
+                                </Button>
+                            </div>
+                        </div>
+                    ) : null}
                 </Modal.Body>
             </Modal>
         </div>

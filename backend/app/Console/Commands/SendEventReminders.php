@@ -56,6 +56,68 @@ class SendEventReminders extends Command
             $this->notifyEvent($event, 'M-15');
             $event->update(['is_m15_sent' => true]);
         }
+
+        // ==========================================
+        // TAMBAHAN: REMINDER ORGANIZER KHUSUS
+        // ==========================================
+
+        // 1. Missing Info (Draft, H-3 dari start_date)
+        $missingInfoEvents = Event::where('status', '!=', 'published')
+            ->where('is_missing_info_reminded', false)
+            ->whereNotNull('start_date')
+            ->where('start_date', '<=', $now->copy()->addDays(3))
+            ->where('start_date', '>', $now)
+            ->get();
+
+        foreach ($missingInfoEvents as $event) {
+            // Hanya kirim ke organizer
+            if ($event->organizer) {
+                $event->organizer->notify(new EventReminderNotification($event, 'MISSING_INFO', 'organizer'));
+            }
+            $event->update(['is_missing_info_reminded' => true]);
+        }
+
+        // 2. Acara Sedang Berjalan (Tepat saat start_date terlewati)
+        $ongoingEvents = Event::where('status', 'published')
+            ->where('is_ongoing_reminded', false)
+            ->whereNotNull('start_date')
+            ->where('start_date', '<=', $now)
+            ->get();
+
+        foreach ($ongoingEvents as $event) {
+            if ($event->organizer) {
+                $event->organizer->notify(new EventReminderNotification($event, 'ONGOING', 'organizer'));
+            }
+            $event->update(['is_ongoing_reminded' => true]);
+        }
+
+        // 3. Acara Telah Selesai (Tepat saat end_date terlewati)
+        $finishedEvents = Event::whereIn('status', ['published', 'ongoing', 'completed'])
+            ->where('is_finished_reminded', false)
+            ->whereNotNull('end_date')
+            ->where('end_date', '<=', $now)
+            ->get();
+
+        foreach ($finishedEvents as $event) {
+            if ($event->organizer) {
+                $event->organizer->notify(new EventReminderNotification($event, 'FINISHED', 'organizer'));
+            }
+            $event->update(['is_finished_reminded' => true]);
+        }
+
+        // 4. Post-Event (Upload Materi & Sertifikat - H+1)
+        $postEvents = Event::whereIn('status', ['published', 'ongoing', 'completed'])
+            ->where('is_post_event_reminded', false)
+            ->whereNotNull('end_date')
+            ->where('end_date', '<=', $now->copy()->subHours(24))
+            ->get();
+
+        foreach ($postEvents as $event) {
+            if ($event->organizer) {
+                $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT', 'organizer'));
+            }
+            $event->update(['is_post_event_reminded' => true]);
+        }
         
         $this->info("Event reminders processed successfully.");
     }
