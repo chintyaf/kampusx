@@ -195,6 +195,12 @@ export const MENU_ITEMS = {
 			// 	{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
 			// ],
 		},
+		{
+			id: 'pengumuman-event',
+			name: 'Pengumuman',
+			icon: <Megaphone size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/pengumuman',
+		},
 		// --- GRUP MARKETING & REPORT ---
 		// {
 		// 	id: 'promosi-event',

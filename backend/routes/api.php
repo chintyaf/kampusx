@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\CheckEventOrganizer;
 
 // Api Controllers
+use App\Http\Controllers\Api\PointController;
+use App\Http\Controllers\Api\EventAnnouncementController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckoutController;
@@ -129,6 +131,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
     Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
+    Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'index']);
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
 
@@ -158,6 +161,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/events/{id}/materials', [EventMaterialController::class, 'organizerIndex'])->middleware(CheckEventOrganizer::class);
             Route::post('/events/{id}/materials', [EventMaterialController::class, 'store'])->middleware(CheckEventOrganizer::class);
             Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
+
+            // Event Announcements Management
+            Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'organizerIndex'])->middleware(CheckEventOrganizer::class);
+            Route::post('/events/{id}/announcements', [EventAnnouncementController::class, 'store'])->middleware(CheckEventOrganizer::class);
+            Route::delete('/events/{id}/announcements/{announcementId}', [EventAnnouncementController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
         });
 
         // Endpoint: Organizer Kelola Tim Institusinya (Manage Institution Member)

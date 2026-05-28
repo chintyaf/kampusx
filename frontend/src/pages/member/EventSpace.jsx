@@ -5,13 +5,15 @@ import {
     CheckCircle, FileText, Award, Lock, Sparkles, Star, Calendar, MapPin, 
     Clock, Megaphone, Bell, User, Users, Info, Wifi 
 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import LmsPlayer from '../../components/lms/LmsPlayer';
+import EventAnnouncementsTab from '../../components/event/EventAnnouncementsTab';
 import { STORAGE_URL } from '../../api/storage';
 
 const EventSpace = () => {
     const { id } = useParams(); // Mengambil ID event dari URL
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('overview');
     const [showTicketModal, setShowTicketModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -354,6 +356,12 @@ const EventSpace = () => {
                         <p className="text-muted small">Ruang diskusi untuk event ini akan segera dibuka oleh penyelenggara.</p>
                     </div>
                 );
+            case 'pengumuman':
+                return (
+                    <div className="fade-in">
+                        <EventAnnouncementsTab eventId={id} />
+                    </div>
+                );
             case 'sertifikat':
                 return (
                     <div className="fade-in text-center py-4">
@@ -416,11 +424,13 @@ const EventSpace = () => {
                 <Container className="py-3">
                     <div className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">
-                            <Link to="/my-tickets">
-                                <Button variant="light" className="rounded-circle p-2 d-flex border">
-                                    <ArrowLeft size={20} className="text-dark" />
-                                </Button>
-                            </Link>
+                            <Button 
+                                variant="light" 
+                                className="rounded-circle p-2 d-flex border"
+                                onClick={() => navigate(-1)}
+                            >
+                                <ArrowLeft size={20} className="text-dark" />
+                            </Button>
                             <div>
                                 <h5 className="fw-bold mb-0 text-truncate" style={{ maxWidth: '600px', color: 'var(--color-primary, #1A365D)' }}>
                                     {title}
@@ -467,6 +477,12 @@ const EventSpace = () => {
                                         onClick={() => setActiveTab('diskusi')}
                                     >
                                         <MessageCircle size={18} className="me-3" /> Forum Diskusi
+                                    </Nav.Link>
+                                    <Nav.Link 
+                                        className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'pengumuman' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
+                                        onClick={() => setActiveTab('pengumuman')}
+                                    >
+                                        <Megaphone size={18} className="me-3" /> Pengumuman Event
                                     </Nav.Link>
                                     
                                     <hr className="my-2.5 opacity-25" />

@@ -5,6 +5,7 @@ import EventOrganizerGuard from '@/components/guards/EventOrganizerGuard';
 import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
 import ScannerPage from '../pages/organizer/ScannerPage';
+import ManageAnnouncements from '../pages/organizer/ManageAnnouncements';
 
 // CREATE EVENT PAGES
 import CreateEvent from '../pages/event/creation/CreateEvent/index';
@@ -65,6 +66,7 @@ export const OrganizerRoutes = (
 			</Route>
 
 			<Route path="scanner" element={<ScannerPage />} />
+			<Route path="pengumuman" element={<ManageAnnouncements />} />
 			<Route path="upload-sertifikat" element={<EventPosPage />} />
 
 			<Route path="statistik" element={<EventStatistics />} />
