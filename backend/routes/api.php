@@ -66,6 +66,7 @@ Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengekseku
 // Certificate Public Verification & Rendering
 Route::get('/certificate/verify/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'verifyCertificate']);
 Route::get('/certificate/render/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'getCertificateRenderData']);
+Route::get('/certificate/background/{eventId}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'getBackgroundPublic']);
 
 Route::get('/test', function () {
     return response()->json('hallo', 200);
@@ -168,6 +169,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/events/{event}/publish', [EventStatusController::class, 'updatePublish'])->middleware(CheckEventOrganizer::class);
         Route::post('/events/{event}/draft', [EventStatusController::class, 'updateDraft'])->middleware(CheckEventOrganizer::class);
         Route::post('/events/{event}/artchived', [EventStatusController::class, 'updateArchive'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/cancel', [EventStatusController::class, 'updateCancel'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/ongoing', [EventStatusController::class, 'updateOngoing'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/post_event', [EventStatusController::class, 'updatePostEvent'])->middleware(CheckEventOrganizer::class);
+        Route::post('/events/{event}/completed', [EventStatusController::class, 'updateCompleted'])->middleware(CheckEventOrganizer::class);
 
 
             // Group: Event Dashboard
@@ -200,6 +205,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // 2. Dashboard Overview
             Route::get('/overview', [EventDashboardController::class, 'getOverview']);
+            Route::get('/revenue-analytics', [EventDashboardController::class, 'getRevenueAnalytics']);
 
             // 3. Participant / Ticket holders route
             Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);

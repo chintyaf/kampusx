@@ -1,14 +1,53 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Tabs, Tab, Modal } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Container, Card, Form, Button, Tabs, Tab, Modal } from 'react-bootstrap';
 import { Camera, Search, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import axios from 'axios';
+import { useParams } from 'react-router-dom';
+import api from '@/api/axios';
 
 const ScannerPage = () => {
+	const { eventId } = useParams();
+	const eventIdRef = useRef(eventId);
+
+	useEffect(() => {
+		eventIdRef.current = eventId;
+	}, [eventId]);
+
 	const [manualInput, setManualInput] = useState('');
 	const [showModal, setShowModal] = useState(false);
 	const [scannedData, setScannedData] = useState(null);
+
+	const handleScanSuccess = async (data, method = 'qr') => {
+		try {
+			let res;
+			if (method === 'qr') {
+				res = await api.post('/attendance/scan', {
+					qr_string: data,
+					event_id: eventIdRef.current,
+				});
+			} else {
+				// Manual menggunakan ticket_id
+				res = await api.post('/attendance/manual', {
+					ticket_id: parseInt(data),
+					event_id: eventIdRef.current,
+				});
+			}
+
+			if (res.data.success) {
+				const acquiredTicketId =
+					res.data.ticket_id || (method === 'qr' ? null : parseInt(data));
+				setScannedData({ data, method, ticket_id: acquiredTicketId });
+				toast.success(res.data.message || 'Validasi berhasil! Tiket orisinil.');
+				setShowModal(true); // Memanggil UI Engagement Checkpoint
+			}
+		} catch (error) {
+			toast.error(error.response?.data?.message || 'Tiket tidak valid atau sudah di-scan!', {
+				icon: <AlertCircle className="text-danger" />,
+				style: { borderRadius: '10px', background: '#333', color: '#fff' },
+			});
+		}
+	};
 
 	// Initial QR Scanner setup
 	useEffect(() => {
@@ -38,46 +77,13 @@ const ScannerPage = () => {
 		};
 	}, []);
 
-	const EVENT_ID = 1; // Dummy Event ID untuk testing Happy Path
-
-	const handleScanSuccess = async (data, method = 'qr') => {
-		try {
-			let res;
-			if (method === 'qr') {
-				res = await axios.post('/api/attendance/scan', {
-					qr_string: data,
-					event_id: EVENT_ID,
-				});
-			} else {
-				// Manual menggunakan ticket_id
-				res = await axios.post('/api/attendance/manual', {
-					ticket_id: parseInt(data),
-					event_id: EVENT_ID,
-				});
-			}
-
-			if (res.data.success) {
-				const acquiredTicketId =
-					res.data.ticket_id || (method === 'qr' ? null : parseInt(data));
-				setScannedData({ data, method, ticket_id: acquiredTicketId });
-				toast.success(res.data.message || 'Validasi berhasil! Tiket orisinil.');
-				setShowModal(true); // Memanggil UI Engagement Checkpoint
-			}
-		} catch (error) {
-			toast.error(error.response?.data?.message || 'Tiket tidak valid atau sudah di-scan!', {
-				icon: <AlertCircle className="text-danger" />,
-				style: { borderRadius: '10px', background: '#333', color: '#fff' },
-			});
-		}
-	};
-
 	const handleManualSubmit = async (e) => {
 		e.preventDefault();
 		if (!manualInput.trim()) return;
 
 		try {
 			// Hit backend search
-			const res = await axios.get(`/api/ticket/search?q=${manualInput}`);
+			const res = await api.get(`/ticket/search?q=${manualInput}`);
 			if (res.data.data && res.data.data.length > 0) {
 				const ticket = res.data.data[0]; // Auto pilih hasil pertama untuk demo
 				handleScanSuccess(ticket.id.toString(), 'manual');
@@ -97,9 +103,9 @@ const ScannerPage = () => {
 			// Di sistem nyata, backend `scanQr` dapat mereturn `ticket_id` agar frontend bisa meneruskan ke klaim poin.
 			const targetTicketId = scannedData?.ticket_id || 1;
 
-			const res = await axios.post('/api/engagement/claim', {
+			const res = await api.post('/engagement/claim', {
 				ticket_id: targetTicketId,
-				event_id: EVENT_ID,
+				event_id: eventIdRef.current,
 			});
 
 			toast.success(res.data.message || 'Poin Kehadiran berhasil diklaim!', {

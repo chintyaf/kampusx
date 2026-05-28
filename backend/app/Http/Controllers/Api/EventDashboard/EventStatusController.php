@@ -12,12 +12,25 @@ class EventStatusController extends Controller
 {
     public function index(Event $event)
     {
-        // Ambil daftar error dari model
+        $calculatedStatus = $event->status;
+        $now = now();
+        
+        if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date);
+            $endDate = \Carbon\Carbon::parse($event->end_date);
+            
+            if ($now->gt($endDate)) {
+                $calculatedStatus = 'completed';
+            } elseif ($now->gte($startDate) && $now->lte($endDate)) {
+                $calculatedStatus = 'ongoing';
+            }
+        }
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Event sudah lengkap dan siap dipublish!',
+            'message' => 'Status event berhasil diambil',
             'data' => [
-                'status' => $event->status,
+                'status' => $calculatedStatus,
             ]
         ], 200);
     }
@@ -152,4 +165,108 @@ class EventStatusController extends Controller
         ], 400);
     }
 
+    public function updateCancel(Request $request, Event $event)
+    {
+        $cancelThresholdDays = 1; // Variabel batas waktu (H-1)
+
+        if ($event->start_date) {
+            $thresholdDate = \Carbon\Carbon::parse($event->start_date)->subDays($cancelThresholdDays);
+            if (now()->gte($thresholdDate)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Event hanya dapat dibatalkan maksimal H-' . $cancelThresholdDays . ' sebelum acara dimulai.'
+                ], 400);
+            }
+        }
+
+        $event->update([
+            'status' => 'cancelled'
+        ]);
+
+        // Kirim notifikasi ke peserta
+        $this->notifyParticipantsEventCancelled($event);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Event berhasil dibatalkan dan notifikasi telah dikirim.'
+        ], 200);
+    }
+
+    public function updateOngoing(Request $request, Event $event)
+    {
+        $event->update([
+            'status' => 'ongoing'
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Status event berhasil diubah menjadi On Going!',
+        ], 200);
+    }
+
+    public function updatePostEvent(Request $request, Event $event)
+    {
+        $event->update([
+            'status' => 'post_event'
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Status event berhasil diubah menjadi Setelah Acara!',
+        ], 200);
+    }
+
+    public function updateCompleted(Request $request, Event $event)
+    {
+        $event->update([
+            'status' => 'completed'
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Status event berhasil diubah menjadi Selesai!',
+        ], 200);
+    }
+
+    /**
+     * Fungsi terpisah untuk mengirim notifikasi pembatalan ke peserta.
+     * Dibuat terpisah agar mudah ditambahkan logic lain (seperti blast email/WhatsApp).
+     */
+    private function notifyParticipantsEventCancelled(Event $event)
+    {
+        // 1. Ambil ID user yang sudah membeli tiket (peserta)
+        $userIds = \DB::table('users')
+            ->join('tickets', 'users.id', '=', 'tickets.participant_id')
+            ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.event_id', $event->id)
+            ->where('orders.status', 'paid')
+            ->pluck('users.id')
+            ->unique()
+            ->toArray();
+
+        if (empty($userIds)) {
+            return;
+        }
+
+        // 2. Ambil model User berdasarkan ID
+        $users = \App\Models\User::whereIn('id', $userIds)->get();
+
+        // 3. Konfigurasi pesan notifikasi
+        $title = "Acara Dibatalkan: {$event->title}";
+        $message = "Mohon maaf, acara {$event->title} yang Anda ikuti telah dibatalkan oleh pihak penyelenggara. Informasi lebih lanjut (termasuk refund jika ada) akan segera diinformasikan.";
+
+        // 4. Kirim notifikasi ke masing-masing peserta
+        foreach ($users as $user) {
+            $user->notify(new \App\Notifications\OperationalNotification(
+                $title,
+                $message,
+                'event_cancelled',
+                ['event_id' => $event->id]
+            ));
+
+            // TODO: Tambahkan kode pengiriman email di sini nantinya
+            // contoh: \Mail::to($user->email)->queue(new \App\Mail\EventCancelledMail($event, $user));
+        }
+    }
 }

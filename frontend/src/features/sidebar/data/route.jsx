@@ -149,6 +149,10 @@ export const MENU_ITEMS = {
 					name: 'Daftar Peserta',
 					path: 'daftar-peserta',
 				},
+				{
+					name: 'Scanner',
+					path: 'scanner',
+				},
 			],
 		},
 		// --- GRUP LEARNING & FEEDBACK ---
@@ -192,29 +196,29 @@ export const MENU_ITEMS = {
 			// ],
 		},
 		// --- GRUP MARKETING & REPORT ---
+		// {
+		// 	id: 'promosi-event',
+		// 	name: 'Promosi',
+		// 	icon: <Megaphone size={16} className="me-2" />, // Megaphone adalah standar industri untuk marketing/promosi
+		// 	path: '/organizer/:eventId/event-dashboard/promosi',
+		// },
+		// {
+		// 	id: 'statistik-event',
+		// 	name: 'Statistik',
+		// 	icon: <ChartColumn size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/statistik',
+		// },
+		// {
+		// 	id: 'wallet-split',
+		// 	name: 'Dompet & Bagi Hasil',
+		// 	icon: <Wallet size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/wallet-split',
+		// },
 		{
-			id: 'promosi-event',
-			name: 'Promosi',
-			icon: <Megaphone size={16} className="me-2" />, // Megaphone adalah standar industri untuk marketing/promosi
-			path: '/organizer/:eventId/event-dashboard/promosi',
-		},
-		{
-			id: 'statistik-event',
-			name: 'Statistik',
+			id: 'revenue-analytic',
+			name: 'Revenue/Analytic',
 			icon: <ChartColumn size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/statistik',
-		},
-		{
-			id: 'wallet-split',
-			name: 'Dompet & Bagi Hasil',
-			icon: <Wallet size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/wallet-split',
-		},
-		{
-			id: 'analytics',
-			name: 'Analisis & Laporan',
-			icon: <ChartColumn size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/analytics',
+			path: '/organizer/:eventId/event-dashboard/revenue-analytic',
 		},
 	],
 };

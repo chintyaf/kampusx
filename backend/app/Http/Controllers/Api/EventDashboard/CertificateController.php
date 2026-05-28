@@ -27,8 +27,8 @@ class CertificateController extends Controller
                 ->first();
 
             if ($template) {
-                // Sediakan URL penuh untuk background_path agar frontend mudah memuat gambar
-                $template->background_url = Storage::disk('public')->url($template->background_path);
+                // Sediakan URL penuh untuk background_path agar frontend mudah memuat gambar dengan CORS
+                $template->background_url = url("/api/certificate/background/{$eventId}");
             }
 
             return response()->json([
@@ -228,12 +228,36 @@ class CertificateController extends Controller
     public function verifyCertificate(string $ticketCode)
     {
         try {
-            $ticket = Ticket::with([
-                'orderItem.order.event.organizer',
-                'orderItem.order.event.institution'
-            ])
-            ->where('ticket_code', $ticketCode)
-            ->first();
+            $ticket = null;
+            if (strpos($ticketCode, 'CERT-') === 0) {
+                $parts = explode('-', $ticketCode);
+                if (count($parts) >= 3) {
+                    $eventId = $parts[1];
+                    $surveyResponseId = $parts[2];
+                    
+                    $surveyResponse = \App\Models\SurveyResponse::find($surveyResponseId);
+                    if ($surveyResponse && $surveyResponse->event_id == $eventId) {
+                        $ticket = Ticket::with([
+                            'orderItem.order.event.organizer',
+                            'orderItem.order.event.institution'
+                        ])
+                        ->where('participant_id', $surveyResponse->user_id)
+                        ->whereHas('orderItem.order', function($q) use ($eventId) {
+                            $q->where('event_id', $eventId);
+                        })
+                        ->first();
+                    }
+                }
+            }
+
+            if (!$ticket) {
+                $ticket = Ticket::with([
+                    'orderItem.order.event.organizer',
+                    'orderItem.order.event.institution'
+                ])
+                ->where('ticket_code', $ticketCode)
+                ->first();
+            }
 
             if (!$ticket) {
                 return response()->json([
@@ -260,7 +284,7 @@ class CertificateController extends Controller
                 'status' => 'success',
                 'message' => 'Sertifikat terverifikasi dengan sukses.',
                 'data' => [
-                    'certificate_number' => $ticket->ticket_code,
+                    'certificate_number' => $ticketCode,
                     'attendee_name' => $ticket->attendee_name,
                     'event_title' => $event->title,
                     'event_date' => $event->start_date ? $event->start_date->translatedFormat('d F Y') : null,
@@ -285,13 +309,38 @@ class CertificateController extends Controller
     public function getCertificateRenderData(string $ticketCode)
     {
         try {
-            $ticket = Ticket::with([
-                'orderItem.order.event.certificateTemplate.elements',
-                'orderItem.order.event.organizer',
-                'orderItem.order.event.institution'
-            ])
-            ->where('ticket_code', $ticketCode)
-            ->first();
+            $ticket = null;
+            if (strpos($ticketCode, 'CERT-') === 0) {
+                $parts = explode('-', $ticketCode);
+                if (count($parts) >= 3) {
+                    $eventId = $parts[1];
+                    $surveyResponseId = $parts[2];
+                    
+                    $surveyResponse = \App\Models\SurveyResponse::find($surveyResponseId);
+                    if ($surveyResponse && $surveyResponse->event_id == $eventId) {
+                        $ticket = Ticket::with([
+                            'orderItem.order.event.certificateTemplate.elements',
+                            'orderItem.order.event.organizer',
+                            'orderItem.order.event.institution'
+                        ])
+                        ->where('participant_id', $surveyResponse->user_id)
+                        ->whereHas('orderItem.order', function($q) use ($eventId) {
+                            $q->where('event_id', $eventId);
+                        })
+                        ->first();
+                    }
+                }
+            }
+
+            if (!$ticket) {
+                $ticket = Ticket::with([
+                    'orderItem.order.event.certificateTemplate.elements',
+                    'orderItem.order.event.organizer',
+                    'orderItem.order.event.institution'
+                ])
+                ->where('ticket_code', $ticketCode)
+                ->first();
+            }
 
             if (!$ticket) {
                 return response()->json([
@@ -320,16 +369,25 @@ class CertificateController extends Controller
             }
 
             $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
-            $template->background_url = Storage::disk('public')->url($template->background_path);
+            $template->background_url = url("/api/certificate/background/{$event->id}");
+
+            $surveyResponse = \App\Models\SurveyResponse::where('user_id', $ticket->participant_id)
+                ->where('event_id', $event->id)
+                ->first();
+
+            $ticketStatus = $ticket->status;
+            if ($surveyResponse) {
+                $ticketStatus = 'used'; // Force used status to unlock on frontend
+            }
 
             return response()->json([
                 'success' => true,
                 'status' => 'success',
                 'data' => [
                     'ticket' => [
-                        'ticket_code' => $ticket->ticket_code,
+                        'ticket_code' => $ticketCode,
                         'attendee_name' => $ticket->attendee_name,
-                        'status' => $ticket->status
+                        'status' => $ticketStatus
                     ],
                     'event' => [
                         'id' => $event->id,
@@ -347,6 +405,29 @@ class CertificateController extends Controller
                 'status' => 'error',
                 'message' => 'Gagal memuat data cetak sertifikat: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Mengambil file background gambar sertifikat secara aman melalui API Publik.
+     * Metode ini memanfaatkan middleware CORS Laravel sehingga dapat dimuat di canvas lintas-origin.
+     */
+    public function getBackgroundPublic(int $eventId)
+    {
+        try {
+            $template = CertificateTemplate::where('event_id', $eventId)->first();
+            if (!$template || !$template->background_path) {
+                return response()->json(['message' => 'Background not found'], 404);
+            }
+
+            $path = $template->background_path;
+            if (!Storage::disk('public')->exists($path)) {
+                return response()->json(['message' => 'File not found on storage'], 404);
+            }
+
+            return response()->file(Storage::disk('public')->path($path));
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 }

@@ -3,9 +3,7 @@ import { Row, Col } from 'react-bootstrap';
 import { Ticket, DollarSign, UserCheck, UserMinus } from 'lucide-react';
 
 /**
- * StatCards
- * Props:
- *   stats {Array<{label, value, sub, progress?, iconBg, iconColor, lucideIcon?, progressColor?}>}
+ * StatCards — improved stat card with trend indicator and bigger typography.
  */
 
 const defaultStats = [
@@ -45,57 +43,38 @@ const defaultStats = [
 	},
 ];
 
-function StatCard({
-	label,
-	value,
-	sub,
-	progress,
-	iconBg,
-	iconColor,
-	lucideIcon: Icon,
-	progressColor = 'var(--primary)',
-}) {
+function StatCard({ label, value, sub, progress, iconBg, iconColor, lucideIcon: Icon, progressColor = 'var(--primary)' }) {
 	return (
-		<div className="card h-100" style={{ padding: '16px 18px' }}>
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'flex-start',
-					marginBottom: 8,
-				}}
-			>
-				<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{label}</span>
-				<div
-					style={{
-						width: 34,
-						height: 34,
-						borderRadius: 8,
-						background: iconBg,
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						flexShrink: 0,
-					}}
-				>
+		<div
+			className="card h-100 custom-stat-card"
+			style={{ padding: '16px 18px', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+			onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.07)'; }}
+			onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+		>
+			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+				<span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{label}</span>
+				<div style={{
+					width: 36, height: 36, borderRadius: 10,
+					background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+				}}>
 					{Icon && <Icon size={18} color={iconColor} strokeWidth={1.8} />}
 				</div>
 			</div>
-			<div style={{ fontSize: 22, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
+
+			<div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 3, letterSpacing: '-0.5px' }}>
 				{value}
 			</div>
 			<div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{sub}</div>
+
 			{progress != null && (
-				<div style={{ background: '#e2e8f0', borderRadius: 99, height: 4, marginTop: 10 }}>
-					<div
-						style={{
-							width: `${progress}%`,
-							height: 4,
-							borderRadius: 99,
-							background: progressColor,
-							transition: 'width 0.6s ease',
-						}}
-					/>
+				<div style={{ marginTop: 12 }}>
+					<div style={{ background: '#e2e8f0', borderRadius: 99, height: 5 }}>
+						<div style={{
+							width: `${Math.min(progress, 100)}%`, height: 5,
+							borderRadius: 99, background: progressColor,
+							transition: 'width 0.7s ease',
+						}} />
+					</div>
 				</div>
 			)}
 		</div>

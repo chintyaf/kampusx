@@ -1,251 +1,139 @@
 import React, { useState, useEffect } from 'react';
-import { Dropdown } from 'react-bootstrap';
-import { SquarePen, Rocket, Archive, ChevronDown, Check } from 'lucide-react';
+import {
+	PenLine, Globe, Zap, CheckCircle2, XCircle,
+} from 'lucide-react';
 import StatusConfirmationModal from './StatusConfirmationModal';
-
 import api from '../../../api/axios';
-import { notify } from '../../../utils/notify';
 
-// ─── Config ────────────────────────────────────────────────────────────────────
+// ─── Status Config (read-only display) ─────────────────────────────────────────
 
 const STATUS_CONFIG = {
 	loading: {
-		icon: SquarePen,
-		label: 'Loading..',
-		desc: 'Belum dipublish',
-		color: '#64748b',
-		bg: '#f1f5f9',
-		border: '#cbd5e1',
-		dot: '#94a3b8',
+		label: 'Memuat...',
+		Icon: PenLine,
+		color: '#94a3b8', bg: '#f1f5f9', border: '#e2e8f0', dot: '#94a3b8',
 	},
 	draft: {
-		icon: SquarePen,
 		label: 'Draft',
-		desc: 'Belum dipublish',
-		color: '#64748b',
-		bg: '#f1f5f9',
-		border: '#cbd5e1',
-		dot: '#94a3b8',
+		Icon: PenLine,
+		color: '#64748b', bg: '#f1f5f9', border: '#cbd5e1', dot: '#94a3b8',
 	},
 	published: {
-		icon: Rocket,
 		label: 'Published',
-		desc: 'Terlihat oleh publik',
-		color: '#00699e',
-		bg: '#f0f9ff',
-		border: '#7bd6fe',
-		dot: '#0aabed',
+		Icon: Globe,
+		color: '#0369a1', bg: '#eff8ff', border: '#93c5fd', dot: '#3b82f6',
 	},
-	archived: {
-		icon: Archive,
-		label: 'Archived',
-		desc: 'Disembunyikan dari publik',
-		color: '#92400e',
-		bg: '#fffbeb',
-		border: '#fde68a',
-		dot: '#d97706',
+	ongoing: {
+		label: 'On Going',
+		Icon: Zap,
+		color: '#065f46', bg: '#ecfdf5', border: '#6ee7b7', dot: '#10b981',
+	},
+	completed: {
+		label: 'Finished',
+		Icon: CheckCircle2,
+		color: '#1e293b', bg: '#f8fafc', border: '#94a3b8', dot: '#475569',
+	},
+	cancelled: {
+		label: 'Cancelled',
+		Icon: XCircle,
+		color: '#991b1b', bg: '#fff1f2', border: '#fca5a5', dot: '#ef4444',
 	},
 };
 
-const ALL_STATUSES = ['draft', 'published', 'archived'];
-
-const DUMMY_VALIDATION_ERRORS = [
-	'Deskripsi event belum diisi',
-	'Tanggal & waktu event belum dipilih',
-	'Sesi Keynote Opening belum memiliki speaker',
-];
-
-// ─── Custom Toggle (Mencegah style bawaan tombol & panah default) ────────────
-const CustomToggle = React.forwardRef(({ children, onClick, style }, ref) => (
-	<div
-		ref={ref}
-		onClick={(e) => {
-			e.preventDefault();
-			onClick(e);
-		}}
-		className="d-inline-flex align-items-center gap-2 rounded-3 fw-semibold"
-		style={{
-			cursor: 'pointer',
-			userSelect: 'none',
-			padding: '7px 12px 7px 10px',
-			fontSize: 13,
-			border: '1.5px solid',
-			transition: 'all 0.15s ease',
-			...style,
-		}}
-	>
-		{children}
-	</div>
-));
-
-// ─── EventStatusDropdown ───────────────────────────────────────────────────────
+// ─── EventStatusBadge (replaces dropdown) ─────────────────────────────────────
 
 const EventStatusDropdown = ({ eventId, isInsideEvent }) => {
 	const [status, setStatus] = useState('loading');
-	const [showModal, setShowModal] = useState(false);
-	const [pendingStatus, setPending] = useState('');
-	const [isLoading, setIsLoading] = useState(true);
-
-	const current = STATUS_CONFIG[status];
+	const [showPublishModal, setShowPublishModal] = useState(false);
 
 	useEffect(() => {
-		const fetchStatus = async () => {
-			try {
-				const response = await api.get(`/events/${eventId}/status`);
-				const result = response.data;
-
-				if (result.status === 'success') {
-					setStatus(result.data.status);
-					setPending(result.data.status);
+		if (!eventId) return;
+		setStatus('loading');
+		api.get(`/events/${eventId}/status`)
+			.then(res => {
+				if (res.data?.status === 'success') {
+					setStatus(res.data.data.status);
 				}
-			} catch (error) {
-				console.error('Gagal mengambil status event:', error);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		if (eventId) {
-			setStatus('loading');
-			fetchStatus();
-		}
+			})
+			.catch(() => setStatus('draft'));
 	}, [eventId]);
 
-	const handleSelectStatus = (newStatus) => {
-		console.log(status, newStatus);
-		if (newStatus === status) return;
-		setPending(newStatus);
-		setShowModal(true);
-	};
+	if (!eventId || !isInsideEvent) return null;
 
-	const handleConfirm = async () => {
-		setStatus(pendingStatus);
-		setShowModal(false);
-	};
+	const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
+	const isDraft = status === 'draft';
+	const pulse = status === 'ongoing';
 
-	const handleClose = () => setShowModal(false);
-
-	if (!eventId) return null;
 	return (
 		<>
-			{/* ── Dropdown ──
-                Tambahkan drop="down" agar menu dipaksa selalu terbuka ke bawah,
-                menyelesaikan isu menu pop-up berada di atas.
-            */}
-			<Dropdown drop="down" align="end">
-				<Dropdown.Toggle
-					as={CustomToggle}
-					style={{
-						boxShadow: 'none',
-						backgroundColor: current.bg,
-						borderColor: current.border,
-						color: current.color,
-					}}
-				>
-					<span
-						className="rounded-circle flex-shrink-0"
-						style={{
-							width: 7,
-							height: 7,
-							backgroundColor: current.dot,
-							boxShadow: `0 0 0 2px rgba(255,255,255,0.9), 0 0 0 3.5px ${current.dot}`,
-						}}
-					/>
-					<current.icon size={13} strokeWidth={2.2} />
-					{current.label}
-					<ChevronDown size={13} className="opacity-50 ms-1" />
-				</Dropdown.Toggle>
+			<style>{`@keyframes sdPulse{0%,100%{transform:scale(1);opacity:.35}50%{transform:scale(1.9);opacity:0}}`}</style>
 
-				<Dropdown.Menu
-					className="p-0 border-0 mt-2"
-					style={{ borderRadius: 7, shadowColor: 'none' }}
-				>
-					<div
-						className="shadow-sm pop-down"
-						style={{
-							borderRadius: 7,
-							overflow: 'hidden',
-							border: '1.2px solid var(--border-md)',
-						}}
-					>
-						<div className="nav-dropdown ">
-							<div
-								className="px-3 py-2 text-uppercase fw-bold text-secondary border-bottom "
-								style={{
-									backgroundColor: 'var(--color-bg-2)',
-									// background: 'linear-gradient(135deg, var(--bahama-blue-50) 0%, var(--bahama-blue-100) 100%)',
-									fontSize: 10,
-									letterSpacing: '0.7px',
-								}}
-							>
-								Ubah Status
-							</div>
+			{/* Status badge — read-only pill */}
+			<div style={{
+				display: 'inline-flex', alignItems: 'center', gap: 8,
+				padding: '6px 13px 6px 9px',
+				borderRadius: 999,
+				border: `1.5px solid ${cfg.border}`,
+				background: cfg.bg,
+				userSelect: 'none',
+				cursor: 'default',
+			}}>
+				{/* dot */}
+				<span style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 10, height: 10 }}>
+					{pulse && (
+						<span style={{
+							position: 'absolute', inset: 0, borderRadius: '50%',
+							background: cfg.dot, opacity: 0.35,
+							animation: 'sdPulse 2s ease-in-out infinite',
+						}} />
+					)}
+					<span style={{
+						width: 8, height: 8, borderRadius: '50%',
+						background: cfg.dot, position: 'relative', zIndex: 1,
+					}} />
+				</span>
 
-							{ALL_STATUSES.map((s) => {
-								const cfg = STATUS_CONFIG[s];
-								const isActive = s === status;
+				<cfg.Icon size={13} color={cfg.color} strokeWidth={2.2} />
 
-								return (
-									<Dropdown.Item
-										key={s}
-										onClick={() => handleSelectStatus(s)}
-										className="d-flex align-items-center gap-2 px-3 py-2 border-bottom"
-										style={{
-											backgroundColor: isActive ? '#f0f9ff' : 'transparent',
-											transition: 'background 0.12s ease',
-										}}
-									>
-										<div
-											className="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
-											style={{
-												width: 32,
-												height: 32,
-												border: `1.5px solid ${cfg.border}`,
-												backgroundColor: cfg.bg,
-											}}
-										>
-											<cfg.icon size={15} color={cfg.color} strokeWidth={2} />
-										</div>
-										<div className="flex-grow-1 ms-1">
-											<div
-												className="fw-semibold text-dark"
-												style={{
-													fontSize: 13,
-													lineHeight: 1.2,
-												}}
-											>
-												{cfg.label}
-											</div>
-											<div
-												className="text-secondary mt-1"
-												style={{ fontSize: 11 }}
-											>
-												{cfg.desc}
-											</div>
-										</div>
-										{isActive && (
-											<Check
-												size={14}
-												color="#0089cb"
-												strokeWidth={2.5}
-												className="flex-shrink-0 ms-2"
-											/>
-										)}
-									</Dropdown.Item>
-								);
-							})}
-						</div>
-					</div>
-				</Dropdown.Menu>
-			</Dropdown>
+				<span style={{
+					fontSize: 12, fontWeight: 700, color: cfg.color, letterSpacing: '-0.2px',
+				}}>
+					{cfg.label}
+				</span>
 
-			{/* ── Modal ──────────────────────────────────────────────── */}
+				{/* Publish CTA — only in draft */}
+				{isDraft && (
+					<>
+						<div style={{ width: 1, height: 14, background: cfg.border, margin: '0 2px' }} />
+						<button
+							onClick={() => setShowPublishModal(true)}
+							style={{
+								display: 'inline-flex', alignItems: 'center', gap: 4,
+								fontSize: 11, fontWeight: 700,
+								color: 'white', background: 'var(--primary)',
+								border: 'none', borderRadius: 6,
+								padding: '3px 9px', cursor: 'pointer',
+								transition: 'all 0.15s',
+							}}
+							onMouseEnter={e => e.currentTarget.style.background = '#005580'}
+							onMouseLeave={e => e.currentTarget.style.background = 'var(--primary)'}
+						>
+							Publish →
+						</button>
+					</>
+				)}
+			</div>
+
+			{/* Publish Modal — reuses existing flow */}
 			<StatusConfirmationModal
 				eventId={eventId}
-				show={showModal}
-				onHide={handleClose}
-				pendingStatus={pendingStatus}
-				onConfirm={handleConfirm}
+				show={showPublishModal}
+				onHide={() => setShowPublishModal(false)}
+				pendingStatus="published"
+				onConfirm={() => {
+					setStatus('published');
+					setShowPublishModal(false);
+				}}
 			/>
 		</>
 	);
