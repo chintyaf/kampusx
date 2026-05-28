@@ -69,7 +69,7 @@ export const OrganizerRoutes = (
 
 			<Route path="statistik" element={<EventStatistics />} />
 			<Route path="wallet-split" element={<EventWalletSplitPage />} />
-			<Route path="analytics" element={<EventAnalyticsPage />} />
+			<Route path="revenue-analytic" element={<EventAnalyticsPage />} />
 			<Route path="promosi" element={<EventPromotion />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
 			<Route path="sertifikat" element={<EventCertificatePage />} />

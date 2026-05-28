@@ -46,6 +46,15 @@ class EventLocationController extends Controller
             'location_detail'     => 'nullable|string',
             'maps_url'            => 'nullable|url',
             'offline_instruction' => 'nullable|string',
+
+            // Field Koordinat & Hierarki Alamat Offline
+            'latitude'            => 'nullable|numeric',
+            'longitude'           => 'nullable|numeric',
+            'country'             => 'nullable|string',
+            'province'            => 'nullable|string',
+            'city'                => 'nullable|string',
+            'district'            => 'nullable|string',
+            'address_detail'      => 'nullable|string',
         ]);
 
         // 2. Handle Empty State berdasarkan Tipe Event
@@ -59,6 +68,13 @@ class EventLocationController extends Controller
             $validated['location_detail']     = null;
             $validated['maps_url']            = null;
             $validated['offline_instruction'] = null;
+            $validated['latitude']            = null;
+            $validated['longitude']           = null;
+            $validated['country']             = null;
+            $validated['province']            = null;
+            $validated['city']                = null;
+            $validated['district']            = null;
+            $validated['address_detail']      = null;
         }
 
         try {

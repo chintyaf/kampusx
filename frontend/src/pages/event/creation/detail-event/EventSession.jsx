@@ -46,17 +46,20 @@ const EventSession = () => {
 			try {
 				const [sessionRes, speakerRes] = await Promise.all([
 					api.get(`event-dashboard/${eventId}/info-utama/session`),
-					api.get(`event-dashboard/${eventId}/info-utama/speaker`).catch(err => {
-						console.error("Gagal mengambil data speaker:", err);
+					api.get(`event-dashboard/${eventId}/info-utama/speaker`).catch((err) => {
+						console.error('Gagal mengambil data speaker:', err);
 						return { data: { data: [] } };
-					})
+					}),
 				]);
 
 				const sessionResult = sessionRes.data;
 				const speakerResult = speakerRes.data;
 
 				let dbSpeakers = [];
-				if ((speakerResult.status === 'success' || speakerResult.success) && speakerResult.data) {
+				if (
+					(speakerResult.status === 'success' || speakerResult.success) &&
+					speakerResult.data
+				) {
 					dbSpeakers = speakerResult.data;
 				}
 
@@ -69,11 +72,22 @@ const EventSession = () => {
 						extractedSpeakersMap.set(spk.id, spk);
 					});
 
+					const mapToIndonesianTimezone = (tz) => {
+						const mapping = {
+							'Asia/Jakarta': 'WIB',
+							'Asia/Makassar': 'WITA',
+							'Asia/Jayapura': 'WIT',
+						};
+						return mapping[tz] || tz;
+					};
+					const dbTimezone = mapToIndonesianTimezone(sessionResult.timezone) || '-';
+
 					if (groupedDaysArray.length > 0) {
 						setFormData((prev) => ({
 							...prev,
 							startDate: groupedDaysArray[0].date,
 							endDate: groupedDaysArray[groupedDaysArray.length - 1].date,
+							timezone: dbTimezone,
 						}));
 
 						// Konversi property mapping dan ekstrak pembicara
@@ -96,6 +110,10 @@ const EventSession = () => {
 						setDays(formattedDays);
 						setActiveSessions(formattedDays[0].sessions || []);
 					} else {
+						setFormData((prev) => ({
+							...prev,
+							timezone: dbTimezone,
+						}));
 						setDays([]);
 						setActiveSessions([]);
 					}
@@ -141,9 +159,7 @@ const EventSession = () => {
 		const speakerFormData = new FormData();
 		allSpeakers.forEach((speaker, index) => {
 			const cleanId =
-				typeof speaker.id === 'string' && speaker.id.startsWith('spk-')
-					? ''
-					: speaker.id;
+				typeof speaker.id === 'string' && speaker.id.startsWith('spk-') ? '' : speaker.id;
 
 			speakerFormData.append(`speakers[${index}][id]`, cleanId || '');
 			speakerFormData.append(`speakers[${index}][name]`, speaker.name || '');
@@ -153,8 +169,14 @@ const EventSession = () => {
 			// Social links
 			const socialLinks = speaker.social_link || [];
 			socialLinks.forEach((link, linkIndex) => {
-				speakerFormData.append(`speakers[${index}][social_link][${linkIndex}][platform]`, link.platform || '');
-				speakerFormData.append(`speakers[${index}][social_link][${linkIndex}][url]`, link.url || '');
+				speakerFormData.append(
+					`speakers[${index}][social_link][${linkIndex}][platform]`,
+					link.platform || '',
+				);
+				speakerFormData.append(
+					`speakers[${index}][social_link][${linkIndex}][url]`,
+					link.url || '',
+				);
 			});
 
 			const assignedSessions = [];
@@ -182,14 +204,29 @@ const EventSession = () => {
 		});
 
 		try {
-			const res1 = await api.post(`event-dashboard/${eventId}/info-utama/session`, sessionPayload);
-			const res2 = await api.post(`event-dashboard/${eventId}/info-utama/speaker`, speakerFormData, {
-				headers: {
-					'Content-Type': 'multipart/form-data',
+			const res1 = await api.post(
+				`event-dashboard/${eventId}/info-utama/session`,
+				sessionPayload,
+			);
+			const res2 = await api.post(
+				`event-dashboard/${eventId}/info-utama/speaker`,
+				speakerFormData,
+				{
+					headers: {
+						'Content-Type': 'multipart/form-data',
+					},
 				},
-			});
-			if (res1.data?.notified_participants || res2.data?.notified_participants || shouldNotify) {
-				notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.');
+			);
+			if (
+				res1.data?.notified_participants ||
+				res2.data?.notified_participants ||
+				shouldNotify
+			) {
+				notify(
+					'success',
+					'Berhasil!',
+					'Sesi dan pembicara telah disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.',
+				);
 			} else {
 				notify('success', 'Berhasil!', 'Sesi dan pembicara telah disimpan.');
 			}
@@ -381,7 +418,7 @@ const EventSession = () => {
 	const renderSidebar = () => {
 		switch (sidebar) {
 			case 'summary':
-				return <SessionSummary days={days} />;
+				return <SessionSummary days={days} allSpeakers={allSpeakers} timezone={formData.timezone} />;
 			case 'session-form':
 				return (
 					<SessionForm
@@ -454,10 +491,10 @@ const EventSession = () => {
 					/>
 				))}
 
-				<Button className="btn btn-add gap-2 py-3 rounded-3 mt-4" onClick={handleAddDay}>
+				<button className="btn-add gap-2 py-3 rounded-3 mt-4" onClick={handleAddDay}>
 					<Plus size={18} />
 					Tambah Hari Baru
-				</Button>
+				</button>
 			</div>
 		</EventLayout>
 	);

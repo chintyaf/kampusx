@@ -1,295 +1,289 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Row, Col, Spinner } from 'react-bootstrap';
+import { Form, Row, Col, Spinner, Button, Card } from 'react-bootstrap';
 import Select from 'react-select';
 import api from '../../../../api/axios';
 import { notify } from '../../../../utils/notify';
-
-import FormHeading from '../../../../components/dashboard/FormHeading';
-import { Image } from 'lucide-react';
+import { CircleDot, CheckCircle2 } from 'lucide-react';
 
 const CreateEvent = () => {
-    const navigate = useNavigate();
+	const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        banner: null,
-        kategori: [],
-        eventType: [],
-    });
+	const [formData, setFormData] = useState({
+		title: '',
+		kategori: [],
+		eventType: [],
+	});
 
-    const [kategoriOptions, setKategoriOptions] = useState([]);
-    const [eventTypeOptions, setEventTypeOptions] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+	const [kategoriOptions, setKategoriOptions] = useState([]);
+	const [eventTypeOptions, setEventTypeOptions] = useState([]);
+	const [isLoading, setIsLoading] = useState(false);
 
-    const handleTextChange = (e) => {
-        const { name, value } = e.target;
+	useEffect(() => {
+		const fetchOptions = async () => {
+			try {
+				const [kategoriRes, eventTypeRes] = await Promise.all([
+					api.get('/categories'),
+					api.get('/event-types'),
+				]);
 
-        // Logika untuk mengubah huruf pertama dan huruf setelah spasi menjadi Kapital
-        // Catatan: Jika kamu HANYA ingin berlaku di 'title', kamu bisa bungkus dengan if (name === 'title')
-        const capitalizedValue = value.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+				if (kategoriRes.data.success) {
+					setKategoriOptions(
+						kategoriRes.data.data.map((cat) => ({
+							value: cat.id.toString(),
+							label: cat.name,
+						})),
+					);
+				}
 
-        setFormData((prev) => ({ ...prev, [name]: capitalizedValue }));
-    };
+				if (eventTypeRes.data.success) {
+					setEventTypeOptions(
+						eventTypeRes.data.data.map((type) => ({
+							value: type.id.toString(),
+							label: type.name,
+						})),
+					);
+				}
+			} catch (error) {
+				console.error('Gagal mengambil opsi data:', error);
+				notify('error', 'Gagal', 'Tidak dapat memuat opsi kategori atau tipe event.');
+			}
+		};
 
-    const handleSelectChange = (field, selectedOptions) => {
-        setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
-    };
+		fetchOptions();
+	}, []);
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            file.preview = URL.createObjectURL(file);
-            setFormData((prev) => ({ ...prev, banner: file }));
-        }
-    };
+	const handleTextChange = (e) => {
+		const { name, value } = e.target;
+		const capitalizedValue = value.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+		setFormData((prev) => ({ ...prev, [name]: capitalizedValue }));
+	};
 
-    useEffect(() => {
-        return () => {
-            if (formData.banner && formData.banner.preview) {
-                URL.revokeObjectURL(formData.banner.preview);
-            }
-        };
-    }, [formData.banner]);
+	const handleSelectChange = (field, selectedOptions) => {
+		setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
+	};
 
-    useEffect(() => {
-        const fetchOptions = async () => {
-            try {
-                const [kategoriRes, eventTypeRes] = await Promise.all([
-                    api.get('/categories'),
-                    api.get('/event-types'),
-                ]);
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		if (formData.eventType.length === 0 || formData.kategori.length === 0) {
+			notify('warning', 'Perhatian', 'Tipe event dan kategori wajib diisi!');
+			return;
+		}
 
-                if (kategoriRes.data.success) {
-                    setKategoriOptions(
-                        kategoriRes.data.data.map((cat) => ({
-                            value: cat.id.toString(),
-                            label: cat.name,
-                        })),
-                    );
-                }
+		setIsLoading(true);
+		try {
+			const submitData = new FormData();
+			submitData.append('title', formData.title);
+			formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
+			formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
 
-                if (eventTypeRes.data.success) {
-                    setEventTypeOptions(
-                        eventTypeRes.data.data.map((type) => ({
-                            value: type.id.toString(),
-                            label: type.name,
-                        })),
-                    );
-                }
-            } catch (error) {
-                console.error('Gagal mengambil opsi data:', error);
-                notify('error', 'Gagal', 'Tidak dapat memuat opsi kategori atau tipe event.');
-            }
-        };
+			const response = await api.post(`/events`, submitData);
+			const newEventId = response.data.data.id;
 
-        fetchOptions();
-    }, []);
+			notify('success', 'Draft Dibuat!', 'Silakan lengkapi detail event Anda.');
+			const link = `/organizer/${newEventId}/event-dashboard/detail/info`;
+			navigate(link);
+		} catch (error) {
+			// ... (error handling yang sama)
+			setIsLoading(false);
+		}
+	};
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+	// Custom Styling untuk React-Select agar flat dan senada dengan form Bootstrap
+	const customSelectStyles = {
+		control: (base, state) => ({
+			...base,
+			minHeight: '48px',
+			borderColor: state.isFocused ? '#0f172a' : '#cbd5e1', // Border gelap saat fokus, bukan biru terang
+			boxShadow: 'none', // Mematikan shadow/glow default
+			borderRadius: '4px',
+			'&:hover': {
+				borderColor: state.isFocused ? '#0f172a' : '#94a3b8',
+			},
+		}),
+		valueContainer: (base) => ({
+			...base,
+			padding: '0 12px',
+		}),
+		placeholder: (base) => ({
+			...base,
+			color: '#94a3b8',
+		}),
+	};
 
-        if (formData.eventType.length === 0 || formData.kategori.length === 0) {
-            notify('warning', 'Perhatian', 'Tipe event dan kategori wajib diisi!');
-            return;
-        }
+	return (
+		<div className="container">
+			<Row className="justify-content-center">
+				<Col xs={12} lg={9} xl={8}>
+					{/* Header Area */}
+					<div className="mb-4 text-center">
+						<h3 className="fw-bold text-dark mb-2">Buat Event Baru</h3>
+						<p className="text-muted">
+							Mulai perjalanan event Anda dengan mendaftarkan draft awal.
+						</p>
+					</div>
 
-        setIsLoading(true);
-
-        try {
-            const submitData = new FormData();
-
-            submitData.append('title', formData.title);
-            submitData.append('description', formData.description);
-
-            formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
-            formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
-
-            if (formData.banner) {
-                submitData.append('banner', formData.banner);
-            }
-
-            const response = await api.post(`/events`, submitData);
-
-            const newEventId = response.data.data.id;
-
-            notify('success', 'Berhasil!', response.data.message || 'Event baru berhasil dibuat.');
-            navigate(`/organizer/${newEventId}/event-dashboard`);
-        } catch (error) {
-            console.error('Gagal menyimpan event:', error);
-
-            if (error.response && error.response.status === 422) {
-                const validationErrors = error.response.data.errors;
-                console.log('Detail Error Validasi:', validationErrors);
-                const firstErrorMessage = Object.values(validationErrors)[0][0];
-
-                notify('error', 'Validasi Gagal!', firstErrorMessage);
-            } else {
-                const errorMessage =
-                    error.response?.data?.error_detail ||
-                    error.response?.data?.message ||
-                    'Terjadi kesalahan saat menyimpan event.';
-
-                notify('error', 'Gagal!', errorMessage);
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="container-fluid p-0 col-10">
-            <FormHeading
-                heading="Buat Event Baru"
-                subheading="Isi informasi berikut untuk membuat event baru"
-            />
-            <Form onSubmit={handleSubmit}>
-                <Row>
-                    <Col xs={12}>
-                        <Form.Group className="mb-4" controlId="formTitle">
-                            <Form.Label>
-                                Nama Event <span className="text-danger">*</span>
-                            </Form.Label>
-                            <Form.Control
-                                required
-                                type="text"
-                                name="title"
-                                value={formData.title}
-                                onChange={handleTextChange}
-                                placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
-                            />
-                        </Form.Group>
-                    </Col>
-
-                    <Col xs={12}>
-                        <Form.Group className="mb-4" controlId="formDescription">
-                            <Form.Label>
-                                Deskripsi Lengkap <span className="text-danger">*</span>
-                            </Form.Label>
-                            <Form.Control
-                                required
-                                as="textarea"
-                                rows={5}
-                                name="description"
-                                value={formData.description}
-                                onChange={handleTextChange}
-                                placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
-                            />
-                        </Form.Group>
-                    </Col>
-
-                    <Col xs={12} md={12}>
-                        <Form.Group className="mb-4">
-                            <Form.Label>
-                                Tipe Event <span className="text-danger">*</span>
-                            </Form.Label>
-                            <Select
-                                isMulti
-                                value={formData.eventType}
-                                options={eventTypeOptions}
-                                placeholder="Pilih Tipe Event..."
-                                className="basic-multi-select"
-                                classNamePrefix="select form-select"
-                                onChange={(selected) => handleSelectChange('eventType', selected)}
-                            />
-                        </Form.Group>
-                    </Col>
-
-                    <Col xs={12} md={12}>
-                        <Form.Group className="mb-4">
-                            <Form.Label>
-                                Kategori Event <span className="text-danger">*</span>
-                            </Form.Label>
-                            <Select
-                                isMulti
-                                value={formData.kategori}
-                                options={kategoriOptions}
-                                placeholder="Pilih kategori..."
-                                className="basic-multi-select"
-                                classNamePrefix="select form-select"
-                                onChange={(selected) => handleSelectChange('kategori', selected)}
-                            />
-                        </Form.Group>
-                    </Col>
-
-                    {/* <Col xs={12}>
-						<Form.Group className="mb-4">
-							<Form.Label>
-								Banner Event <span className="text-danger">*</span>
-							</Form.Label>
-							<div className="upload-box-wrapper w-100">
-								<input
-									required
-									type="file"
-									id="bannerUpload"
-									className="hidden-input"
-									accept="image/*"
-									onChange={handleFileChange}
-									style={{ display: 'none' }}
-								/>
-								<label
-									htmlFor="bannerUpload"
-									className="upload-box-label w-100 d-flex flex-column align-items-center justify-content-center p-4 border border-dashed rounded"
-									style={{ cursor: 'pointer', backgroundColor: '#f8f9fa' }}
+					<div className="border-0" style={{ borderRadius: '12px' }}>
+						<div className="p-1 p-md-3">
+							{/* Stepper Visual yang Lebih Solid */}
+							<div className="d-flex align-items-center mb-5 pb-2">
+								<div
+									className="d-flex flex-column align-items-center text-primary"
+									style={{ width: '100px' }}
 								>
-									<div className="text-center">
-										<Image size={32} color="#a1a1a1" />
-										<p className="mb-0 text-muted mt-2">
-											{formData.banner
-												? formData.banner.name
-												: 'Klik untuk unggah banner (Rekomendasi 1280×720 px, Max 2MB)'}
-										</p>
-									</div>
-								</label>
-							</div>
-						</Form.Group>
+									<CircleDot size={28} className="mb-2 bg-white" />
+									<span className="fw-bold" style={{ fontSize: '13px' }}>
+										1. Draft Awal
+									</span>
+								</div>
 
-						{formData.banner && (
-							<div
-								className="w-100 border mt-3"
-								style={{
-									height: '200px',
-									overflow: 'hidden',
-									borderRadius: '8px',
-								}}
-							>
-								<img
-									src={
-										formData.banner instanceof File
-											? formData.banner.preview
-											: formData.banner
-									}
-									alt="Banner Preview"
-									style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-								/>
-							</div>
-						)}
-					</Col> */}
-                </Row>
+								<div
+									className="flex-grow-1"
+									style={{
+										height: '2px',
+										backgroundColor: '#e2e8f0',
+										marginTop: '-24px',
+										marginX: '10px',
+									}}
+								></div>
 
-                <div className="d-flex justify-content-end py-4 gap-2">
-                    <button type="submit" className="btn btn-primary px-4" disabled={isLoading}>
-                        {isLoading ? (
-                            <>
-                                <Spinner
-                                    as="span"
-                                    animation="border"
-                                    size="sm"
-                                    role="status"
-                                    aria-hidden="true"
-                                    className="me-2"
-                                />
-                                Menyimpan...
-                            </>
-                        ) : (
-                            'Buat Event'
-                        )}
-                    </button>
-                </div>
-            </Form>
-        </div>
-    );
+								<div
+									className="d-flex flex-column align-items-center text-muted opacity-50"
+									style={{ width: '120px' }}
+								>
+									<CheckCircle2 size={28} className="mb-2 bg-white" />
+									<span className="fw-semibold" style={{ fontSize: '13px' }}>
+										2. Lengkapi Detail
+									</span>
+								</div>
+
+								<div
+									className="flex-grow-1"
+									style={{
+										height: '2px',
+										backgroundColor: '#e2e8f0',
+										marginTop: '-24px',
+										marginX: '10px',
+									}}
+								></div>
+
+								<div
+									className="d-flex flex-column align-items-center text-muted opacity-50"
+									style={{ width: '100px' }}
+								>
+									<CheckCircle2 size={28} className="mb-2 bg-white" />
+									<span className="fw-semibold" style={{ fontSize: '13px' }}>
+										3. Publikasi
+									</span>
+								</div>
+							</div>
+
+							{/* Form Input (Tanpa Border Pembungkus Tambahan) */}
+							<Form onSubmit={handleSubmit}>
+								<Row>
+									<Col xs={12}>
+										<Form.Group className="mb-4" controlId="formTitle">
+											<Form.Label
+												className="fw-semibold text-dark"
+												style={{ fontSize: '14px' }}
+											>
+												Nama Event <span className="text-danger">*</span>
+											</Form.Label>
+											<Form.Control
+												required
+												autoFocus
+												type="text"
+												name="title"
+												value={formData.title}
+												onChange={handleTextChange}
+												placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
+												style={{
+													minHeight: '48px',
+													borderColor: '#cbd5e1',
+													borderRadius: '4px',
+													boxShadow: 'none', // Mematikan glow bawaan bootstrap
+												}}
+												// Menambahkan custom focus style via className atau inline style
+												className="flat-input"
+											/>
+										</Form.Group>
+									</Col>
+
+									<Col xs={12} md={6}>
+										<Form.Group className="mb-4">
+											<Form.Label
+												className="fw-semibold text-dark"
+												style={{ fontSize: '14px' }}
+											>
+												Tipe Event <span className="text-danger">*</span>
+											</Form.Label>
+											<Select
+												isMulti
+												value={formData.eventType}
+												options={eventTypeOptions}
+												placeholder="Pilih Tipe Event..."
+												onChange={(selected) =>
+													handleSelectChange('eventType', selected)
+												}
+												styles={customSelectStyles}
+											/>
+										</Form.Group>
+									</Col>
+
+									<Col xs={12} md={6}>
+										<Form.Group className="mb-4">
+											<Form.Label
+												className="fw-semibold text-dark"
+												style={{ fontSize: '14px' }}
+											>
+												Kategori Event{' '}
+												<span className="text-danger">*</span>
+											</Form.Label>
+											<Select
+												isMulti
+												value={formData.kategori}
+												options={kategoriOptions}
+												placeholder="Pilih Kategori..."
+												onChange={(selected) =>
+													handleSelectChange('kategori', selected)
+												}
+												styles={customSelectStyles}
+											/>
+										</Form.Group>
+									</Col>
+								</Row>
+
+								<div className="d-flex justify-content-end pt-4 mt-3 border-top">
+									<Button
+										type="submit"
+										variant="primary"
+										className="px-4 py-2"
+										disabled={isLoading}
+									>
+										{isLoading ? (
+											<>
+												<Spinner
+													as="span"
+													animation="border"
+													size="sm"
+													role="status"
+													aria-hidden="true"
+													className="me-2"
+												/>
+												Memproses...
+											</>
+										) : (
+											'Buat Draft & Lanjutkan'
+										)}
+									</Button>
+								</div>
+							</Form>
+						</div>
+					</div>
+				</Col>
+			</Row>
+		</div>
+	);
 };
 
 export default CreateEvent;

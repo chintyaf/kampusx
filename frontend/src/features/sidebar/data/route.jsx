@@ -136,16 +136,24 @@ export const MENU_ITEMS = {
 			],
 		},
 		{
-			id: 'event-pos',
-			name: 'Pos Check-in', // Lebih spesifik sesuai fungsinya
-			icon: <MapPin size={16} className="me-2" />, // Pin map merepresentasikan titik/lokasi pos
-			path: '/organizer/:eventId/event-dashboard/event-pos',
-		},
-		{
-			id: 'daftar-peserta',
-			name: 'Daftar Peserta',
-			icon: <UsersRound size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
+			id: 'operasional-event',
+			name: 'Operasional',
+			icon: <Form size={16} className="me-2" />, // Icon formulir cocok untuk operasional yang biasanya melibatkan banyak form
+			path: '/organizer/:eventId/event-dashboard',
+			submenu: [
+				{
+					name: 'Check-in',
+					path: 'event-pos',
+				},
+				{
+					name: 'Daftar Peserta',
+					path: 'daftar-peserta',
+				},
+				{
+					name: 'Scanner',
+					path: 'scanner',
+				},
+			],
 		},
 		// --- GRUP LEARNING & FEEDBACK ---
 		{
@@ -188,29 +196,29 @@ export const MENU_ITEMS = {
 			// ],
 		},
 		// --- GRUP MARKETING & REPORT ---
+		// {
+		// 	id: 'promosi-event',
+		// 	name: 'Promosi',
+		// 	icon: <Megaphone size={16} className="me-2" />, // Megaphone adalah standar industri untuk marketing/promosi
+		// 	path: '/organizer/:eventId/event-dashboard/promosi',
+		// },
+		// {
+		// 	id: 'statistik-event',
+		// 	name: 'Statistik',
+		// 	icon: <ChartColumn size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/statistik',
+		// },
+		// {
+		// 	id: 'wallet-split',
+		// 	name: 'Dompet & Bagi Hasil',
+		// 	icon: <Wallet size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/wallet-split',
+		// },
 		{
-			id: 'promosi-event',
-			name: 'Promosi',
-			icon: <Megaphone size={16} className="me-2" />, // Megaphone adalah standar industri untuk marketing/promosi
-			path: '/organizer/:eventId/event-dashboard/promosi',
-		},
-		{
-			id: 'statistik-event',
-			name: 'Statistik',
+			id: 'revenue-analytic',
+			name: 'Revenue/Analytic',
 			icon: <ChartColumn size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/statistik',
-		},
-		{
-			id: 'wallet-split',
-			name: 'Dompet & Bagi Hasil',
-			icon: <Wallet size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/wallet-split',
-		},
-		{
-			id: 'analytics',
-			name: 'Analisis & Laporan',
-			icon: <ChartColumn size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/analytics',
+			path: '/organizer/:eventId/event-dashboard/revenue-analytic',
 		},
 	],
 };

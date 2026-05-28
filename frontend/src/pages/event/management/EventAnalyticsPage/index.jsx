@@ -48,15 +48,8 @@ import {
 } from 'lucide-react';
 import api from '@/api/axios';
 import toast from 'react-hot-toast';
+import '../../../../assets/css/dashboard.css';
 
-// Custom harmonious design styles
-const cardStyle = {
-	border: '1px solid var(--color-border)',
-	borderRadius: '12px',
-	boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)',
-	backgroundColor: '#fff',
-	overflow: 'hidden'
-};
 
 const formatRupiah = (number) => {
 	return new Intl.NumberFormat('id-ID', {
@@ -73,13 +66,17 @@ export default function EventAnalyticsPage() {
 	const [loading, setLoading] = useState(false);
 	const [timeRange, setTimeRange] = useState('30d');
 
-	// KPI Metrics state (highly interactive)
-	const [grossSales, setGrossSales] = useState(25500000);
-	const [netRevenue, setNetRevenue] = useState(24750000);
-	const [totalTickets, setTotalTickets] = useState(128);
-	const [conversionRate, setConversionRate] = useState(14.2);
-	const [refundCount, setRefundCount] = useState(3);
-	const [refundAmount, setRefundAmount] = useState(750000);
+	// KPI Metrics state
+	const [grossSales, setGrossSales] = useState(0);
+	const [netRevenue, setNetRevenue] = useState(0);
+	const [totalTickets, setTotalTickets] = useState(0);
+	const [refundCount, setRefundCount] = useState(0);
+	const [refundAmount, setRefundAmount] = useState(0);
+
+	const [conversionRate, setConversionRate] = useState(0);
+	const [refundRate, setRefundRate] = useState(0);
+	const [visitorCount, setVisitorCount] = useState(0);
+	const [isFreeEvent, setIsFreeEvent] = useState(false);
 
 	// Search & filters
 	const [searchQuery, setSearchQuery] = useState('');
@@ -91,54 +88,52 @@ export default function EventAnalyticsPage() {
 	const [refundReason, setRefundReason] = useState('');
 	const [refundPercent, setRefundPercent] = useState('100');
 
-	// Transactions mockup data
-	const [transactions, setTransactions] = useState([
-		{ code: 'TX-TCK-9901', name: 'Andi Wijaya', email: 'andi@gmail.com', tier: 'VIP Pass', qty: 1, total: 500000, status: 'Paid', date: '2026-05-23' },
-		{ code: 'TX-TCK-9902', name: 'Budi Santoso', email: 'budi.s@yahoo.com', tier: 'Regular', qty: 2, total: 300000, status: 'Paid', date: '2026-05-23' },
-		{ code: 'TX-TCK-9876', name: 'Chintya F', email: 'chintya@kampusx.id', tier: 'VIP Pass', qty: 1, total: 500000, status: 'Refunded', date: '2026-05-21' },
-		{ code: 'TX-TCK-9712', name: 'Dedi Kurniawan', email: 'dedi@live.com', tier: 'Regular', qty: 1, total: 150000, status: 'Paid', date: '2026-05-20' },
-		{ code: 'TX-TCK-9643', name: 'Elisa Putri', email: 'elisa.p@gmail.com', tier: 'VIP Pass', qty: 1, total: 500000, status: 'Paid', date: '2026-05-18' },
-		{ code: 'TX-TCK-9521', name: 'Fahri Ahmad', email: 'fahri.ah@unpad.ac.id', tier: 'VIP Pass', qty: 1, total: 500000, status: 'Refunded', date: '2026-05-15' },
-		{ code: 'TX-TCK-9432', name: 'Gita N', email: 'gita.n@outlook.com', tier: 'Regular', qty: 3, total: 450000, status: 'Paid', date: '2026-05-14' },
-	]);
+	// Charts and Table Data state
+	const [transactions, setTransactions] = useState([]);
+	const [salesTrend30d, setSalesTrend30d] = useState([]);
+	const [funnelData, setFunnelData] = useState([]);
+	const [tierData, setTierData] = useState([]);
 
-	// Charts Mock Data
-	const salesTrend30d = [
-		{ date: '01 Mei', sales: 450000, refunds: 0 },
-		{ date: '05 Mei', sales: 1200000, refunds: 0 },
-		{ date: '10 Mei', sales: 2500000, refunds: 0 },
-		{ date: '15 Mei', sales: 3800000, refunds: 500000 },
-		{ date: '20 Mei', sales: 4900000, refunds: 250000 },
-		{ date: '23 Mei', sales: 6150000, refunds: 0 },
-	];
-
-	const funnelData = [
-		{ name: 'Kunjungan Detail', value: 2450, percentage: 100, fill: 'var(--bahama-blue-800)' },
-		{ name: 'Tambah ke Cart', value: 890, percentage: 36.3, fill: 'var(--bahama-blue-600)' },
-		{ name: 'Mulai Pengisian', value: 412, percentage: 16.8, fill: 'var(--bahama-blue-400)' },
-		{ name: 'Konfirmasi Bayar', value: 128, percentage: 5.2, fill: '#10b981' },
-	];
-
-	const tierData = [
-		{ name: 'VIP Pass', value: 68, fill: '#0369a1' },
-		{ name: 'Regular Tier', value: 42, fill: '#0ea5e9' },
-		{ name: 'Early Bird', value: 18, fill: '#7dd3fc' },
-	];
-
-	// Load Event Data from overview if available
+	// Load Event Data
 	useEffect(() => {
 		const loadData = async () => {
+			setLoading(true);
 			try {
-				const res = await api.get(`/event-dashboard/${eventId}/overview`);
-				if (res.data && res.data.status === 'success') {
-					setEventName(res.data.data.title || 'Tech Summit 2026');
+				const [overviewRes, analyticsRes] = await Promise.all([
+					api.get(`/event-dashboard/${eventId}/overview`),
+					api.get(`/event-dashboard/${eventId}/revenue-analytics`)
+				]);
+
+				if (overviewRes.data && overviewRes.data.status === 'success') {
+					setEventName(overviewRes.data.data.name || overviewRes.data.data.title || 'Tech Summit 2026');
+				}
+
+				if (analyticsRes.data && analyticsRes.data.status === 'success') {
+					const data = analyticsRes.data.data;
+					setGrossSales(data.grossSales);
+					setNetRevenue(data.netRevenue);
+					setTotalTickets(data.totalTickets);
+					setRefundCount(data.refundCount);
+					setRefundAmount(data.refundAmount);
+					setConversionRate(data.conversionRate);
+					setRefundRate(data.refundRate);
+					setVisitorCount(data.visitorCount);
+					setIsFreeEvent(data.isFreeEvent);
+					setTransactions(data.transactions);
+					setSalesTrend30d(data.salesTrend30d);
+					setTierData(data.tierData);
+					setFunnelData(data.funnelData);
 				}
 			} catch (err) {
 				console.error("Gagal memuat detail event untuk Analytics page:", err);
+			} finally {
+				setLoading(false);
 			}
 		};
 		loadData();
 	}, [eventId]);
+
+
 
 	// Filter transactions list
 	const filteredTxs = transactions.filter(tx => {
@@ -202,7 +197,7 @@ export default function EventAnalyticsPage() {
 					</Link>
 					<span className="text-muted">/</span>
 					<span className="fw-medium" style={{ fontSize: '14px', color: '#111827' }}>
-						Analisis & Laporan
+						Revenue/Analytic
 					</span>
 				</div>
 				<span className="text-muted fs-5 fw-semibold px-2 py-1 rounded bg-light border">
@@ -214,60 +209,72 @@ export default function EventAnalyticsPage() {
 			<Row className="g-3 mb-4">
 				{/* Net profit */}
 				<Col xs={12} sm={6} lg={3}>
-					<Card style={cardStyle} className="p-3">
-						<div className="d-flex align-items-center justify-content-between mb-2">
-							<span className="text-muted fs-5 fw-medium">Pendapatan Bersih</span>
-							<div className="p-2 rounded bg-success bg-opacity-10 text-success">
-								<DollarSign size={16} />
+					<div className="card custom-stat-card h-100" style={{ padding: '16px 18px' }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Pendapatan Bersih</span>
+							<div style={{ width: 34, height: 34, borderRadius: 8, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+								<DollarSign size={18} color="#166534" strokeWidth={1.8} />
 							</div>
 						</div>
-						<h4 className="fw-bold mb-1 text-dark">{formatRupiah(netRevenue)}</h4>
-						<span className="text-muted fs-5">Kotor: {formatRupiah(grossSales)}</span>
-					</Card>
+						<div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 4, letterSpacing: '-0.5px' }}>
+							{isFreeEvent ? 'Event Gratis' : formatRupiah(netRevenue)}
+						</div>
+						<div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+							{isFreeEvent ? 'Tidak ada pendapatan' : `Kotor: ${formatRupiah(grossSales)}`}
+						</div>
+					</div>
 				</Col>
 
 				{/* Ticket Conversion */}
 				<Col xs={12} sm={6} lg={3}>
-					<Card style={cardStyle} className="p-3">
-						<div className="d-flex align-items-center justify-content-between mb-2">
-							<span className="text-muted fs-5 fw-medium">Rasio Konversi</span>
-							<div className="p-2 rounded bg-primary bg-opacity-10 text-primary">
-								<Percent size={16} />
+					<div className="card custom-stat-card h-100" style={{ padding: '16px 18px' }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Rasio Konversi</span>
+							<div style={{ width: 34, height: 34, borderRadius: 8, background: '#dff3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+								<Percent size={18} color="#00699e" strokeWidth={1.8} />
 							</div>
 						</div>
-						<h4 className="fw-bold mb-1 text-dark">{conversionRate}%</h4>
-						<span className="text-success fs-5 fw-medium">↑ +2.4% vs Rata-rata</span>
-					</Card>
+						<div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 4, letterSpacing: '-0.5px' }}>
+							{conversionRate}%
+						</div>
+						<div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Dari {visitorCount} pengunjung halaman</div>
+					</div>
 				</Col>
 
 				{/* Total Tickets */}
 				<Col xs={12} sm={6} lg={3}>
-					<Card style={cardStyle} className="p-3">
-						<div className="d-flex align-items-center justify-content-between mb-2">
-							<span className="text-muted fs-5 fw-medium">Tiket Terjual</span>
-							<div className="p-2 rounded bg-info bg-opacity-10 text-info">
-								<Users size={16} />
+					<div className="card custom-stat-card h-100" style={{ padding: '16px 18px' }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Tiket Terjual</span>
+							<div style={{ width: 34, height: 34, borderRadius: 8, background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+								<Users size={18} color="#7c3aed" strokeWidth={1.8} />
 							</div>
 						</div>
-						<h4 className="fw-bold mb-1 text-dark">{totalTickets} Tiket</h4>
-						<span className="text-muted fs-5">Dari kuota 200 kursi</span>
-					</Card>
+						<div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 4, letterSpacing: '-0.5px' }}>
+							{totalTickets} Tiket
+						</div>
+						<div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Total tiket sukses (Paid)</div>
+					</div>
 				</Col>
 
 				{/* Refund Rate */}
 				<Col xs={12} sm={6} lg={3}>
-					<Card style={cardStyle} className="p-3">
-						<div className="d-flex align-items-center justify-content-between mb-2">
-							<span className="text-muted fs-5 fw-medium">Tingkat Refund</span>
-							<div className="p-2 rounded bg-danger bg-opacity-10 text-danger">
-								<CornerUpLeft size={16} />
+					<div className="card custom-stat-card h-100" style={{ padding: '16px 18px' }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
+								{isFreeEvent ? 'Tingkat Batal' : 'Tingkat Refund'}
+							</span>
+							<div style={{ width: 34, height: 34, borderRadius: 8, background: '#fee2e2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+								<CornerUpLeft size={18} color="#991b1b" strokeWidth={1.8} />
 							</div>
 						</div>
-						<h4 className="fw-bold mb-1 text-dark">
-							{((refundAmount / grossSales) * 100).toFixed(1)}%
-						</h4>
-						<span className="text-muted fs-5">{refundCount} Tiket · {formatRupiah(refundAmount)}</span>
-					</Card>
+						<div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 4, letterSpacing: '-0.5px' }}>
+							{refundRate}%
+						</div>
+						<div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+							{refundCount} Tiket {isFreeEvent ? 'Batal' : `· ${formatRupiah(refundAmount)}`}
+						</div>
+					</div>
 				</Col>
 			</Row>
 
@@ -275,7 +282,7 @@ export default function EventAnalyticsPage() {
 			<Row className="g-4 mb-4">
 				{/* Conversion Funnel */}
 				<Col lg={4}>
-					<Card style={cardStyle} className="p-4 h-100">
+					<Card className="custom-stat-card p-4 h-100">
 						<div className="mb-4">
 							<h5 className="fw-bold mb-1" style={{ color: '#111827' }}>
 								<Activity size={18} className="text-primary me-1" /> Funnel Konversi Penjualan
@@ -319,13 +326,16 @@ export default function EventAnalyticsPage() {
 
 				{/* Sales Trend Chart */}
 				<Col lg={8}>
-					<Card style={cardStyle} className="p-4 h-100">
+					<Card className="custom-stat-card p-4 h-100">
 						<div className="d-flex justify-content-between align-items-start mb-4">
 							<div>
 								<h5 className="fw-bold mb-1" style={{ color: '#111827' }}>
-									<TrendingUp size={18} className="text-primary me-1" /> Tren Penjualan & Refund Harian
+									<TrendingUp size={18} className="text-primary me-1" /> 
+									{isFreeEvent ? 'Tren Pendaftaran Harian' : 'Tren Penjualan Harian'}
 								</h5>
-								<span className="text-muted fs-5">Akumulasi tren pendapatan event berbanding nominal refund.</span>
+								<span className="text-muted fs-5">
+									{isFreeEvent ? 'Akumulasi pendaftar baru per hari.' : 'Akumulasi tren pendapatan event harian.'}
+								</span>
 							</div>
 							<div className="d-flex gap-1 p-1 bg-light border rounded">
 								{['7d', '30d'].map(r => (
@@ -356,8 +366,16 @@ export default function EventAnalyticsPage() {
 									<YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
 									<Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px' }} />
 									<Legend wrapperStyle={{ fontSize: '12px' }} />
-									<Area type="monotone" name="Penjualan Bersih" dataKey="sales" stroke="var(--bahama-blue-600)" fillOpacity={1} fill="url(#salesGrad)" strokeWidth={2} />
-									<Bar type="monotone" name="Refund Dana" dataKey="refunds" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
+									<Area 
+										type="monotone" 
+										name={isFreeEvent ? 'Tiket Terdaftar' : 'Penjualan Bersih'} 
+										dataKey={isFreeEvent ? 'tickets' : 'sales'} 
+										stroke="var(--bahama-blue-600)" 
+										fillOpacity={1} 
+										fill="url(#salesGrad)" 
+										strokeWidth={2} 
+									/>
+									{!isFreeEvent && <Bar type="monotone" name="Refund Dana" dataKey="refunds" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />}
 								</AreaChart>
 							</ResponsiveContainer>
 						</div>
@@ -369,11 +387,11 @@ export default function EventAnalyticsPage() {
 			<Row className="g-4">
 				{/* Ticket Tiers Breakdown */}
 				<Col lg={4}>
-					<Card style={cardStyle} className="p-4">
+					<Card className="custom-stat-card p-4">
 						<h5 className="fw-bold mb-3" style={{ color: '#111827' }}>
 							Distribusi Kategori Tiket
 						</h5>
-						<div className="d-flex align-items-center justify-content-center" style={{ height: '180px' }}>
+						<div className="d-flex align-items-center justify-content-center" style={{ width: '100%', height: '180px' }}>
 							<ResponsiveContainer width="100%" height="100%">
 								<PieChart>
 									<Pie
@@ -409,7 +427,7 @@ export default function EventAnalyticsPage() {
 
 				{/* Transactions list */}
 				<Col lg={8}>
-					<Card style={cardStyle} className="p-4">
+					<Card className="custom-stat-card p-4">
 						<div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 							<div>
 								<h5 className="fw-bold mb-1" style={{ color: '#111827' }}>
@@ -449,7 +467,7 @@ export default function EventAnalyticsPage() {
 										<th>Peserta</th>
 										<th>Kategori</th>
 										<th>Tanggal</th>
-										<th className="text-end">Total</th>
+										<th className="text-end">{isFreeEvent ? 'Status' : 'Total'}</th>
 										<th className="text-center">Aksi</th>
 									</tr>
 								</thead>
@@ -467,20 +485,24 @@ export default function EventAnalyticsPage() {
 													<span className="text-muted fs-5">{tx.email}</span>
 												</td>
 												<td>{tx.tier} <Badge bg="light" className="text-muted fw-normal">x{tx.qty}</Badge></td>
-												<td>{tx.date}</td>
-												<td className="text-end fw-bold text-dark">{formatRupiah(tx.total)}</td>
+												<td><div>{tx.date}</div></td>
+												<td className="text-end fw-medium">
+													{isFreeEvent ? <span className="text-success">Gratis</span> : formatRupiah(tx.total)}
+												</td>
 												<td className="text-center">
 													{tx.status === 'Paid' ? (
 														<div className="d-flex align-items-center justify-content-center gap-2">
 															<Badge bg="" className="bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fs-6">Terbayar</Badge>
-															<Button 
-																variant="outline-danger" 
-																size="sm" 
-																className="py-1 px-2 fs-6"
-																onClick={() => openRefund(tx)}
-															>
-																Refund
-															</Button>
+															{!isFreeEvent && (
+																<Button 
+																	variant="outline-danger" 
+																	size="sm" 
+																	className="py-1 px-2 fs-6"
+																	onClick={() => openRefund(tx)}
+																>
+																	Refund
+																</Button>
+															)}
 														</div>
 													) : (
 														<Badge bg="" className="bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 fs-6">Refunded</Badge>

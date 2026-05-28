@@ -110,9 +110,14 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 			<div className="flex-grow-1 overflow-auto p-3">
 				{/* Foto Pembicara */}
 				<Form.Group className="mb-3">
-					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
-						Foto Pembicara
-					</Form.Label>
+					<div className="d-flex justify-content-between align-items-center mb-2">
+						<label className="form-label fw-semibold mb-0" style={{ fontSize: '13px', color: '#475569' }}>
+							Foto Pembicara
+						</label>
+						<span className="text-muted" style={{ fontSize: '13px' }}>
+							Opsional
+						</span>
+					</div>
 					<div className="d-flex align-items-center gap-3">
 						<div
 							onClick={() => fileInputRef.current?.click()}
@@ -212,13 +217,19 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 
 				{/* Bio Textarea */}
 				<Form.Group className="mb-3">
-					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
-						Bio Singkat
-					</Form.Label>
+					<div className="d-flex justify-content-between align-items-center mb-2">
+						<label className="form-label fw-semibold mb-0" style={{ fontSize: '13px', color: '#475569' }}>
+							Bio Singkat
+						</label>
+						<span className="text-muted" style={{ fontSize: '13px' }}>
+							Opsional
+						</span>
+					</div>
 					<Form.Control
 						as="textarea"
 						rows={4}
-						placeholder="Bio singkat pembicara (opsional)..."
+						maxLength={300}
+						placeholder="Bio singkat pembicara..."
 						name="bio"
 						value={formData.bio || ''}
 						onChange={handleChange}
@@ -232,6 +243,11 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 							resize: 'none'
 						}}
 					/>
+					<div className="d-flex justify-content-end mt-1">
+						<Form.Text className="text-muted small">
+							{formData.bio?.length || 0} / 300 karakter
+						</Form.Text>
+					</div>
 				</Form.Group>
 			</div>
 

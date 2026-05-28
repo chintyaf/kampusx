@@ -62,9 +62,8 @@ const formatDate = (dateString) => {
 const NavItem = ({ icon: Icon, label, active, onClick }) => (
 	<button
 		onClick={onClick}
-		className={`org-nav-item d-flex align-items-center gap-2 w-100 border-0 text-start py-2 px-3 fs-4 ${
-			active ? 'active' : ''
-		}`}
+		className={`org-nav-item d-flex align-items-center gap-2 w-100 border-0 text-start py-2 px-3 fs-4 ${active ? 'active' : ''
+			}`}
 	>
 		<Icon size={16} strokeWidth={1.75} />
 		{label}

@@ -87,7 +87,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 						))}
 					</ul>
 				</div>
-				<EventCard isCollapsed={isSidebarCollapsed} />
+				<EventCard isCollapsed={isSidebarCollapsed} eventId={currentEventId} />
 			</div>
 		</>
 	);

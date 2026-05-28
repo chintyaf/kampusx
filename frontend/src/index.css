@@ -280,8 +280,8 @@ BUTTON
 	padding: 7px;
 	background-color: transparent;
 
-	/* border: 1.5px dashed var(--neutral-border); */
-	/* border-radius: 7px; */
+	border: 1.5px dashed var(--neutral-border);
+	border-radius: 7px;
 
 	color: var(--text-muted);
 	font-size: var(--font-sm);

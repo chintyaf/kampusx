@@ -299,10 +299,18 @@ class SurveyController extends Controller
         try {
             $user = $request->user();
 
-            // 1. Get all tickets with status 'used' (meaning participant checked-in/attended)
-            $tickets = Ticket::with('orderItem.order.event.institution', 'orderItem.order.event.organizer')
+            // 1. Get all tickets for the user that are 'used', OR 'active' with event status in ongoing, post_event, completed (for development and easier claiming)
+            $tickets = Ticket::with('orderItem.order.event.institution', 'orderItem.order.event.organizer', 'orderItem.order.event.locationDetail')
                 ->where('participant_id', $user->id)
-                ->where('status', 'used')
+                ->where(function($query) {
+                    $query->where('status', 'used')
+                          ->orWhere(function($q) {
+                              $q->where('status', 'active')
+                                ->whereHas('orderItem.order.event', function($evQuery) {
+                                    $evQuery->whereIn('status', ['published', 'ongoing', 'post_event', 'completed']);
+                                });
+                          });
+                })
                 ->get();
 
             $certificates = [];
@@ -324,16 +332,28 @@ class SurveyController extends Controller
                     ->first();
 
                 if ($template && $template->background_path) {
-                    $template->background_url = Storage::disk('public')->url($template->background_path);
+                    $template->background_url = url("/api/certificate/background/{$event->id}");
                 }
+
+                $locationText = 'TBA';
+                if ($event->locationDetail) {
+                    if ($event->locationDetail->type === 'online') {
+                        $locationText = "Online (" . ($event->locationDetail->platform ?? 'Platform tidak diketahui') . ")";
+                    } else {
+                        $locationText = $event->locationDetail->location_name ?? 'Lokasi Offline';
+                    }
+                }
+
+                $eventDate = $event->start_date ? $event->start_date->translatedFormat('d M Y') : '';
 
                 $certificates[] = [
                     'ticket_code' => $ticket->ticket_code,
+                    'attendee_name' => $ticket->attendee_name,
                     'event' => [
                         'id' => $event->id,
                         'title' => $event->title,
-                        'date' => $event->date,
-                        'location' => $event->location,
+                        'date' => $eventDate,
+                        'location' => $locationText,
                         'organizer_name' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
                     ],
                     'is_unlocked' => $isUnlocked,

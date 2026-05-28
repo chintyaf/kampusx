@@ -141,7 +141,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 			</Form.Group>
 
 			<Form.Group className="mb-4">
-				<Form.Label className="fw-bold required">Deskripsi</Form.Label>
+				<Form.Label className="fw-bold">Deskripsi (Opstional)</Form.Label>
 				<InputGroup>
 					<Form.Control
 						as="textarea"
@@ -255,11 +255,8 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 				</Button>
 				<Button
 					type="submit"
-					variant="primary"
 					onClick={handleSubmit}
 					disabled={isSubmitting || !formData.namaPos.trim()} // Validasi jika nama kosong
-					className="d-flex align-items-center gap-2 px-4 fw-bold shadow-sm"
-					style={{ backgroundColor: '#000', border: 'none' }}
 				>
 					{isSubmitting ? (
 						<>

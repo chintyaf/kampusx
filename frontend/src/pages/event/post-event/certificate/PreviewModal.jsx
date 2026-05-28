@@ -4,15 +4,13 @@ import { Modal, Button } from 'react-bootstrap';
 import { toast } from 'react-hot-toast';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'react-qr-code';
+import { Award, QrCode as QrIcon, Download, Sparkles } from 'lucide-react';
 import { FIELDS } from './constants';
-
-// Konstanta dasar untuk ukuran desain sertifikat (mencegah magic numbers)
-const BASE_WIDTH = 1920;
 
 const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 	const { eventId } = useParams();
 	const previewContainerRef = useRef(null);
-	const [previewWidth, setPreviewWidth] = useState(900);
+	const [previewWidth, setPreviewWidth] = useState(720);
 
 	// ==========================================
 	// 1. OBSERVER: Menyesuaikan ukuran responsif
@@ -32,170 +30,178 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 	}, [show, templateFile]);
 
 	// ==========================================
-	// 2. HELPER: Menghitung skala elemen
-	// ==========================================
-	// Fungsi ini menggantikan rumus matematika berulang di inline styles
-	const scale = (value, defaultVal = 0) => {
-		return ((value || defaultVal) / BASE_WIDTH) * previewWidth;
-	};
-
-	// ==========================================
-	// 3. ACTION: Mengunduh PDF
+	// 2. ACTION: Mengunduh PDF
 	// ==========================================
 	const handleDownloadPDF = () => {
 		const element = document.getElementById('certificate-preview-area');
-		if (!element) return;
+		if (!element) {
+			toast.error('Gagal mendeteksi area sertifikat.');
+			return;
+		}
 
 		const width = element.offsetWidth;
 		const height = element.offsetHeight;
 
+		// Convert pixels to points (1 px = 0.75 pt)
 		const pdfWidth = Math.round(width * 0.75);
-		// Tambahan 2pt untuk mencegah overflow pembulatan yang bisa membuat halaman kosong ekstra
 		const pdfHeight = Math.round(height * 0.75) + 2;
 
 		const opt = {
 			margin: 0,
-			filename: `sertifikat_${eventId}.pdf`,
-			image: { type: 'jpeg', quality: 0.98 },
+			filename: `sertifikat_preview_${eventId || 'event'}.pdf`,
+			image: { type: 'jpeg', quality: 1.0 },
 			html2canvas: {
-				scale: 2,
+				scale: 3, // 3x scale for ultra high resolution
 				useCORS: true,
-				logging: false,
+				allowTaint: true,
+				logging: false
 			},
 			jsPDF: {
 				unit: 'pt',
 				format: [pdfWidth, pdfHeight],
-				orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
+				orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait'
 			},
-			pagebreak: { mode: 'avoid-all' },
+			pagebreak: { mode: 'avoid-all' }
 		};
 
-		toast.promise(html2pdf().set(opt).from(element).save(), {
-			loading: 'Menyiapkan berkas PDF...',
-			success: 'Sertifikat PDF berhasil diunduh!',
-			error: 'Gagal mengunduh berkas PDF.',
-		});
-	};
-
-	// ==========================================
-	// 4. RENDERER: Merender elemen spesifik
-	// ==========================================
-	const renderElement = (el) => {
-		const field = FIELDS.find((f) => f.id === el.fieldId);
-		const displayText = field?.example || el.label;
-		const isQRCode = el.fieldId === 'f3';
-
-		// Gaya dasar posisi container
-		const containerStyle = {
-			left: `${el.x}%`,
-			top: `${el.y}%`,
-			position: 'absolute',
-		};
-
-		// Render QR Code
-		if (isQRCode) {
-			const qrSize = scale(el.fontSize, 80);
-			const qrPadding = scale(4);
-
-			return (
-				<div key={el.id} className="cert-preview-element" style={containerStyle}>
-					<div
-						className="cert-preview-qr"
-						style={{
-							width: `${qrSize}px`,
-							height: `${qrSize}px`,
-							borderRadius: `${qrPadding}px`,
-							backgroundColor: '#ffffff',
-							padding: `${qrPadding}px`,
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-						}}
-					>
-						<QRCode
-							value={`${window.location.origin}/certificate/verify/PREVIEW-TICKET`}
-							size={Math.max(16, Math.round(qrSize) - 8)}
-							fgColor={el.color === '#ffffff' ? '#000000' : el.color}
-							bgColor="#ffffff"
-							style={{ height: '100%', width: '100%' }}
-						/>
-					</div>
-				</div>
-			);
-		}
-
-		// Render Teks Biasa
-		return (
-			<div key={el.id} className="cert-preview-element" style={containerStyle}>
-				<p
-					className="m-0 text-nowrap lh-1 text-center"
-					style={{
-						fontSize: `${scale(el.fontSize)}px`,
-						fontWeight: el.bold ? 700 : 400,
-						color: el.color,
-						fontFamily: el.fontFamily || 'Arial',
-					}}
-				>
-					{displayText}
-				</p>
-			</div>
+		toast.promise(
+			html2pdf().from(element).set(opt).save(),
+			{
+				loading: 'Sedang memproses unduhan sertifikat...',
+				success: 'Sertifikat PDF berhasil diunduh!',
+				error: 'Gagal mengunduh sertifikat.',
+			}
 		);
 	};
 
 	// ==========================================
-	// 5. KOMPONEN UTAMA (JSX Utama)
+	// 3. KOMPONEN UTAMA (JSX Utama)
 	// ==========================================
 	return (
-		<Modal show={show} onHide={onHide} size="xl" centered>
-			<Modal.Header closeButton className="bg-light border-bottom-0 py-3 px-4">
-				<label className="fw-bold text-dark d-flex align-items-center gap-2">
+		<Modal show={show} onHide={onHide} size="lg" centered>
+			<Modal.Header closeButton className="border-0 pb-0">
+				<Modal.Title className="fw-bold d-flex align-items-center gap-2">
+					<Award className="text-primary" size={24} />
 					Preview E-Sertifikat
-				</label>
+				</Modal.Title>
 			</Modal.Header>
 
-			<Modal.Body className="d-flex flex-column align-items-center justify-content-center bg-light bg-opacity-50 py-2 px-4 overflow-auto">
+			<Modal.Body className="text-center py-4">
 				{templateFile ? (
-					<div
-						className="bg-white overflow-hidden rounded-3 border cert-preview-wrapper"
-						style={{ maxWidth: '700px' }}
-					>
+					<div className="d-flex flex-column align-items-center">
+						{/* Beautiful outer wrapper containing border, border radius, shadow, and margin */}
 						<div
-							id="certificate-preview-area"
-							ref={previewContainerRef}
-							className="position-relative cert-preview-area"
+							className="bg-white overflow-hidden border rounded-4 shadow-sm w-100 mb-4"
+							style={{ maxWidth: '720px' }}
 						>
-							<img
-								src={templateFile}
-								alt="Sertifikat Preview"
-								className="cert-preview-bg"
-								style={{ width: '100%', height: 'auto', display: 'block' }}
-							/>
-							{/* Pemanggilan elemen jadi sangat bersih */}
-							{elements.map(renderElement)}
+							{/* Pure target container for PDF screenshot with ZERO margins, borders, paddings, or shadow */}
+							<div
+								id="certificate-preview-area"
+								ref={previewContainerRef}
+								className="position-relative w-100 overflow-hidden"
+								style={{
+									aspectRatio: '1920/1080'
+								}}
+							>
+								<img
+									src={templateFile}
+									alt="Certificate Background"
+									className="w-100 h-100"
+									crossOrigin={templateFile && templateFile.startsWith('blob:') ? undefined : 'anonymous'}
+									style={{ display: 'block', objectFit: 'cover' }}
+								/>
+
+								{/* Render Elements Dynamically inside the live preview */}
+								{elements.map((el) => {
+									const xPct = el.x;
+									const yPct = el.y;
+
+									if (el.fieldId === 'f3') {
+										const qrSize = (el.fontSize / 1920) * previewWidth;
+										const qrPadding = (4 / 1920) * previewWidth;
+
+										return (
+											<div
+												key={el.id}
+												className="position-absolute bg-white"
+												style={{
+													left: `${xPct}%`,
+													top: `${yPct}%`,
+													transform: 'translate(-50%, -50%)',
+													borderRadius: `${qrPadding}px`,
+													boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+													width: `${qrSize}px`,
+													height: `${qrSize}px`,
+													padding: `${qrPadding}px`,
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center'
+												}}
+											>
+												<QRCode
+													value={`${window.location.origin}/certificate/verify/PREVIEW-TICKET`}
+													size={Math.max(16, Math.round(qrSize) - 8)}
+													fgColor={el.color === '#ffffff' ? '#000000' : el.color}
+													bgColor="#ffffff"
+													style={{ height: '100%', width: '100%' }}
+												/>
+											</div>
+										);
+									} else {
+										const field = FIELDS.find((f) => f.id === el.fieldId);
+										const content = field?.example || el.label;
+										const scaledFontSize = (el.fontSize / 1920) * previewWidth;
+
+										return (
+											<div
+												key={el.id}
+												className="position-absolute text-nowrap lh-1 text-center"
+												style={{
+													left: `${xPct}%`,
+													top: `${yPct}%`,
+													transform: 'translate(-50%, -50%)',
+													fontSize: `${scaledFontSize}px`,
+													color: el.color || '#000',
+													fontFamily: el.fontFamily || 'Arial',
+													fontWeight: el.bold ? 'bold' : 'normal',
+												}}
+											>
+												{content}
+											</div>
+										);
+									}
+								})}
+							</div>
+						</div>
+
+						<div className="d-flex gap-2 w-100 justify-content-center">
+							<Button
+								variant="success"
+								onClick={handleDownloadPDF}
+								className="rounded-pill py-2.5 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+							>
+								<Download size={18} /> Unduh PDF Resmi
+							</Button>
+							<Button
+								variant="outline-secondary"
+								onClick={onHide}
+								className="rounded-pill px-4 fw-semibold"
+							>
+								Tutup
+							</Button>
 						</div>
 					</div>
 				) : (
 					<div className="text-center py-5 text-muted">
+						<div className="bg-light text-secondary rounded-circle p-4 d-inline-flex mb-4 border border-2 border-dashed">
+							<Award size={48} className="opacity-75" />
+						</div>
 						<p className="m-0 fw-medium">
 							Silakan unggah template terlebih dahulu untuk melihat preview.
 						</p>
 					</div>
 				)}
 			</Modal.Body>
-
-			<Modal.Footer className="bg-light border-top-0 py-3 px-4 d-flex justify-content-between">
-				<Button
-					variant="primary"
-					className="px-4 fw-semibold d-flex align-items-center gap-2"
-					onClick={handleDownloadPDF}
-				>
-					Download PDF
-				</Button>
-				<Button variant="secondary" className="px-4 fw-semibold" onClick={onHide}>
-					Tutup
-				</Button>
-			</Modal.Footer>
 		</Modal>
 	);
 };
