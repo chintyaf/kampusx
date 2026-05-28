@@ -47,33 +47,33 @@ import SurveyPage from '../pages/event/management/EventSurveyPage/SurveyPage';
 import { useAuth } from '../context/AuthContext';
 import MyTickets from '../pages/member/MyTickets';
 import PublicProfile from '../pages/public/PublicProfile/index.jsx';
-import MemberCertificatePage from '../pages/member/MemberCertificatePage';
+import MemberCertificatePage from '@/pages/member/MemberCertificatePage';
 // import PublicProfile from '../pages/public/PublicProfile';
 import Personalization from '../pages/auth/Personalization';
 import ProfileSettings from '../pages/member/ProfileSettings';
 import NotificationsPage from '../pages/member/NotificationsPage';
- 
+
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
 import BookmarkPage from '../pages/member/BookmarkPage';
 
- 
 import StaffLogin from '../pages/staff/StaffLogin';
 import SelectPost from '../pages/staff/SelectPost';
 import StaffDashboard from '../pages/staff/StaffDashboard';
- 
+import CommitteePage from '../pages/committee/CommitteePage';
+
 const AppRoutes = () => {
 	// const [isAuthenticated, setIsAuthenticated] = useState(true);
 	const { isAuthenticated, loading } = useAuth();
 	const location = useLocation();
- 
+
 	// FIX: Membersihkan orphaned Bootstrap modal backdrop saat pindah halaman
 	useEffect(() => {
 		document.body.classList.remove('modal-open');
 		const backdrops = document.querySelectorAll('.modal-backdrop');
 		backdrops.forEach((b) => b.remove());
 	}, [location.pathname]);
- 
+
 	if (loading) {
 		return <RouteProgressBar />; // Atau komponen loading indikator apa pun milikmu
 	}
@@ -103,13 +103,13 @@ const AppRoutes = () => {
 				<Route element={<MemberLayout />}>
 					<Route path="/test-location" />
 				</Route>
- 
+
 				{/* {!isAuthenticated && (
 					<Route element={<VisitorLayout />}>
 						<Route path="/" element={<LandingPage />} />
 					</Route>
 				)} */}
- 
+
 				{/* 2. Jika SUDAH login: Jadikan '/' sebagai Member Dashboard dengan DashboardLayout */}
 				{isAuthenticated && (
 					<Route element={<PublicLayout />}>
@@ -117,25 +117,25 @@ const AppRoutes = () => {
 						<Route path="/" element={<MemberDashboard />} />
 					</Route>
 				)}
- 
+
 				{/* ========================================== */}
- 
+
 				{/* Group Visitor (Explore, Detail Event, dsb) */}
 				<Route element={<VisitorLayout />}>
 					{visitorRoutes.map((route, index) => {
 						// Abaikan route "/" dari daftar PublicRoutes agar tidak bentrok (double) dengan pengecekan di atas
 						if (route.path === '/') return null;
- 
+
 						return <Route key={index} path={route.path} element={route.element} />;
 					})}
 					{/* // {visitorRoutes.map((route, index) => (
                     //     <Route key={index} path={route.path} element={route.element} />
                     // ))} */}
 				</Route>
- 
+
 				{/* Public Certificate Verification Portal */}
 				<Route path="/certificate/verify/:ticketCode" element={<CertificateVerificationPage />} />
- 
+
 				{/* TEST CHIN UI ROUTES (Tampilan Peserta - Tidak perlu login utuk testing) */}
 				<Route element={<VisitorLayout />}>
 					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
@@ -154,7 +154,7 @@ const AppRoutes = () => {
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 					</Route>
 				</Route>
- 
+
 				{/* AUTH */}
 				<Route element={<AuthLayout />}>
 					<Route path="/login" element={<LoginPage />} />
@@ -162,7 +162,7 @@ const AppRoutes = () => {
 					<Route path="/forgot-password" element={<ForgotPassword />} />
 					<Route path="/personalization" element={<Personalization />} />
 				</Route>
- 
+
 				{/* MEMBER */}
 				<Route element={<ProtectedRoute />}>
 					<Route path="/settings" element={<ProfileSettings />} />

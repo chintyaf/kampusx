@@ -1,7 +1,16 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Lock } from 'lucide-react';
+import { notify } from '@/utils/notify';
 
-const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
+const SidebarItem = ({ 
+	item, 
+	isOpen, 
+	toggle, 
+	isSidebarCollapsed,
+	isStep1Completed = true,
+	isStep2Completed = true,
+	isStep3Completed = true
+}) => {
 	const location = useLocation();
 	const hasSubmenu = !!item.submenu;
 
@@ -84,17 +93,56 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 				<div className={`submenu-collapse ${isOpen ? 'show' : ''}`}>
 					<div className="submenu-inner">
 						<ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small ps-1 ms-4 mt-1 border-start">
-							{item.submenu.map((sub, idx) => (
-								<li key={idx}>
-									<NavLink
-										to={`${item.path}/${sub.path}`}
-										className={navLinkClass}>
-										<span>{sub.name}</span>
-										{/* Cek status untuk sub-menu */}
-										{renderStatusDot(sub.isCompleted)}
-									</NavLink>
-								</li>
-							))}
+							{item.submenu.map((sub, idx) => {
+								const subFullPath = `${item.path}/${sub.path}`.replace(/\/+/g, '/');
+								const isSubActive = location.pathname.startsWith(subFullPath);
+
+								const isRestricted =
+									!isSubActive &&
+									item.id === 'detil-event' && (
+										(sub.path === 'tempat' && !isStep1Completed) ||
+										(sub.path === 'sesi' && (!isStep1Completed || !isStep2Completed)) ||
+										(sub.path === 'tiket' && (!isStep1Completed || !isStep2Completed || !isStep3Completed))
+									);
+
+								return (
+									<li key={idx}>
+										<NavLink
+											to={isRestricted ? '#' : `${item.path}/${sub.path}`}
+											onClick={(e) => {
+												if (isRestricted) {
+													e.preventDefault();
+													let missingStep = '';
+													if (sub.path === 'tempat') missingStep = 'Informasi Umum';
+													else if (sub.path === 'sesi') missingStep = 'Tempat Pelaksanaan';
+													else if (sub.path === 'tiket') missingStep = 'Jadwal';
+													
+													notify('warning', 'Akses Dibatasi', `Mohon lengkapi bagian '${missingStep}' terlebih dahulu.`);
+												}
+											}}
+											className={(navParams) => `${navLinkClass(isRestricted ? { isActive: false } : navParams)} ${isRestricted ? 'text-muted' : ''}`}
+											style={{
+												cursor: isRestricted ? 'not-allowed' : 'pointer',
+												color: isRestricted ? '#94a3b8' : undefined,
+												backgroundColor: isRestricted ? 'transparent' : undefined,
+												opacity: isRestricted ? 0.65 : 1
+											}}
+										>
+											<span className="d-flex align-items-center">
+												{sub.name}
+												{isRestricted && <Lock size={12} className="text-muted ms-1.5" />}
+											</span>
+											{/* Cek status untuk sub-menu secara dinamis */}
+											{!isRestricted && renderStatusDot(
+												sub.path === 'info' ? isStep1Completed :
+												sub.path === 'tempat' ? isStep2Completed :
+												sub.path === 'sesi' ? isStep3Completed :
+												sub.isCompleted
+											)}
+										</NavLink>
+									</li>
+								);
+							})}
 						</ul>
 					</div>
 				</div>

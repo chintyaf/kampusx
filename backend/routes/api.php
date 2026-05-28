@@ -66,9 +66,10 @@ Route::get('/events/explore', [EventController::class, 'explore']);
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 // Certificate Public Verification & Rendering
-Route::get('/certificate/verify/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'verifyCertificate']);
-Route::get('/certificate/render/{ticket_code}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'getCertificateRenderData']);
-Route::get('/certificate/background/{eventId}', [App\Http\Controllers\Api\EventDashboard\CertificateController::class, 'getBackgroundPublic']);
+// Route::get('/user/certificates/', [CertificateController::class, 'show']);
+Route::get('/certificate/verify/{ticket_code}', [CertificateController::class, 'verifyCertificate']);
+Route::get('/certificate/render/{ticket_code}', [CertificateController::class, 'getCertificateRenderData']);
+Route::get('/certificate/background/{eventId}', [CertificateController::class, 'getBackgroundPublic']);
 
 Route::get('/test', function () {
     return response()->json('hallo', 200);
@@ -104,7 +105,7 @@ Route::middleware('auth:sanctum')->group(function () {
         }
         return $user;
     });
-    
+
     // Pengaturan Akun Profil (Edit Profil)
     Route::get('/user/settings', [\App\Http\Controllers\Api\UserSettingsController::class, 'getProfile']);
     Route::post('/user/settings', [\App\Http\Controllers\Api\UserSettingsController::class, 'updateProfile']);

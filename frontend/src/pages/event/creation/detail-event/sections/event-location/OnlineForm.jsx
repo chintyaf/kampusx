@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 
-const OnlineForm = ({ data, onChange, errors }) => {
+const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {} }) => {
 	return (
 		<>
 			{/* Lokasi Umum / Platform */}
@@ -12,11 +12,12 @@ const OnlineForm = ({ data, onChange, errors }) => {
 					type="text"
 					value={data.platform}
 					onChange={onChange}
+					onBlur={() => handleBlur('platform')}
 					placeholder={'Contoh: Link Zoom, Google Meet, YouTube Live'}
-					isInvalid={!!errors.platform}
+					isInvalid={touched.platform && (!data.platform || data.platform.trim() === '')}
 				/>
 				<Form.Control.Feedback type="invalid">
-					{errors.platform ? errors.platform[0] : 'Platform wajib diisi.'}
+					Platform wajib diisi.
 				</Form.Control.Feedback>
 				<Form.Text className="text-muted d-block">
 					Nama lokasi ini akan muncul pada kartu event di halaman publik.
@@ -26,10 +27,7 @@ const OnlineForm = ({ data, onChange, errors }) => {
 			{/* Tautan Pertemuan */}
 			<Form.Group controlId="formMeetingLink" className="mb-4">
 				<div className="d-flex justify-content-between align-items-center mb-2">
-					<label className="form-label mb-0">Tautan Pertemuan (Link)</label>
-					<span className="text-muted" style={{ fontSize: '13px' }}>
-						Opsional
-					</span>
+					<label className="form-label mb-0 required">Tautan Pertemuan (Link)</label>
 				</div>
 				<Form.Control
 					name="meeting_link"
@@ -37,16 +35,14 @@ const OnlineForm = ({ data, onChange, errors }) => {
 					value={data.meeting_link || ''}
 					placeholder="https://zoom.us/j/..."
 					onChange={onChange}
-					isInvalid={!!errors.meeting_link}
+					onBlur={() => handleBlur('meeting_link')}
+					isInvalid={touched.meeting_link && (!data.meeting_link || data.meeting_link.trim() === '')}
 				/>
 				<Form.Control.Feedback type="invalid">
-					{errors.meeting_link
-						? errors.meeting_link[0]
-						: 'Format harus berupa URL yang valid (contoh: https://...)'}
+					Tautan pertemuan wajib dicantumkan.
 				</Form.Control.Feedback>
 				<Form.Text className="text-muted">
-					Kosongkan jika link belum tersedia. Anda dapat mengisinya nanti mendekati hari H
-					event.
+					Silakan cantumkan tautan pertemuan online untuk event ini.
 				</Form.Text>
 			</Form.Group>
 

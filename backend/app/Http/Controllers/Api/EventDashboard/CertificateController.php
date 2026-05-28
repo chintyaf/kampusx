@@ -14,13 +14,31 @@ use Illuminate\Support\Facades\Storage;
 class CertificateController extends Controller
 {
     /**
+     * Helper privat untuk mencari tiket berdasarkan ticket_code atau custom prefix CERT-.
+     * Mencegah duplikasi query antara fungsi verifikasi dan render data.
+     */
+    private function findTicketByCode(string $ticketCode, array $relations = [])
+    {
+        $realTicketCode = $ticketCode;
+
+        // Jika format menggunakan custom prefix CERT-[Ticket Code]
+        if (strpos($ticketCode, 'CERT-') === 0) {
+            $realTicketCode = substr($ticketCode, 5); // Potong string 'CERT-'
+        }
+
+        return Ticket::with($relations)
+            ->where('ticket_code', $realTicketCode)
+            ->first();
+    }
+
+    /**
      * Menampilkan template sertifikat beserta elemennya untuk suatu event.
      */
     public function show(int $eventId)
     {
         try {
             $event = Event::findOrFail($eventId);
-            
+
             // Ambil template dengan elemen-elemennya
             $template = CertificateTemplate::where('event_id', $eventId)
                 ->with('elements')
@@ -120,7 +138,6 @@ class CertificateController extends Controller
 
     /**
      * Endpoint terpisah untuk upload gambar background saja.
-     * Sangat berguna bagi frontend untuk memproses upload terlebih dahulu saat mendesain.
      */
     public function uploadBackground(Request $request, int $eventId)
     {
@@ -200,7 +217,6 @@ class CertificateController extends Controller
 
     /**
      * Mengambil file background gambar sertifikat secara aman melalui API.
-     * Metode ini memanfaatkan middleware CORS Laravel sehingga dapat dimuat di canvas lintas-origin.
      */
     public function getBackground(int $eventId)
     {
@@ -228,36 +244,11 @@ class CertificateController extends Controller
     public function verifyCertificate(string $ticketCode)
     {
         try {
-            $ticket = null;
-            if (strpos($ticketCode, 'CERT-') === 0) {
-                $parts = explode('-', $ticketCode);
-                if (count($parts) >= 3) {
-                    $eventId = $parts[1];
-                    $surveyResponseId = $parts[2];
-                    
-                    $surveyResponse = \App\Models\SurveyResponse::find($surveyResponseId);
-                    if ($surveyResponse && $surveyResponse->event_id == $eventId) {
-                        $ticket = Ticket::with([
-                            'orderItem.order.event.organizer',
-                            'orderItem.order.event.institution'
-                        ])
-                        ->where('participant_id', $surveyResponse->user_id)
-                        ->whereHas('orderItem.order', function($q) use ($eventId) {
-                            $q->where('event_id', $eventId);
-                        })
-                        ->first();
-                    }
-                }
-            }
-
-            if (!$ticket) {
-                $ticket = Ticket::with([
-                    'orderItem.order.event.organizer',
-                    'orderItem.order.event.institution'
-                ])
-                ->where('ticket_code', $ticketCode)
-                ->first();
-            }
+            // Memanfaatkan helper findTicketByCode untuk mengambil data tiket
+            $ticket = $this->findTicketByCode($ticketCode, [
+                'orderItem.order.event.organizer',
+                'orderItem.order.event.institution'
+            ]);
 
             if (!$ticket) {
                 return response()->json([
@@ -276,7 +267,6 @@ class CertificateController extends Controller
                 ], 404);
             }
 
-            // Tentukan nama institusi penyelenggara atau nama organizer
             $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
 
             return response()->json([
@@ -302,45 +292,20 @@ class CertificateController extends Controller
         }
     }
 
-    /**
+/**
      * Mengambil data lengkap template sertifikat beserta informasi peserta
      * untuk dirender di sisi client.
+     * * PERBAIKAN: Ditambahkan parameter string $ticketCode agar tidak undefined variable.
      */
     public function getCertificateRenderData(string $ticketCode)
     {
         try {
-            $ticket = null;
-            if (strpos($ticketCode, 'CERT-') === 0) {
-                $parts = explode('-', $ticketCode);
-                if (count($parts) >= 3) {
-                    $eventId = $parts[1];
-                    $surveyResponseId = $parts[2];
-                    
-                    $surveyResponse = \App\Models\SurveyResponse::find($surveyResponseId);
-                    if ($surveyResponse && $surveyResponse->event_id == $eventId) {
-                        $ticket = Ticket::with([
-                            'orderItem.order.event.certificateTemplate.elements',
-                            'orderItem.order.event.organizer',
-                            'orderItem.order.event.institution'
-                        ])
-                        ->where('participant_id', $surveyResponse->user_id)
-                        ->whereHas('orderItem.order', function($q) use ($eventId) {
-                            $q->where('event_id', $eventId);
-                        })
-                        ->first();
-                    }
-                }
-            }
-
-            if (!$ticket) {
-                $ticket = Ticket::with([
-                    'orderItem.order.event.certificateTemplate.elements',
-                    'orderItem.order.event.organizer',
-                    'orderItem.order.event.institution'
-                ])
-                ->where('ticket_code', $ticketCode)
-                ->first();
-            }
+            // Memanfaatkan helper findTicketByCode untuk mengambil data tiket beserta template element
+            $ticket = $this->findTicketByCode($ticketCode, [
+                'orderItem.order.event.certificateTemplate.elements',
+                'orderItem.order.event.organizer',
+                'orderItem.order.event.institution'
+            ]);
 
             if (!$ticket) {
                 return response()->json([
@@ -380,12 +345,45 @@ class CertificateController extends Controller
                 $ticketStatus = 'used'; // Force used status to unlock on frontend
             }
 
+            // Map data element dari snake_case (DB) ke camelCase (Format Admin/Frontend)
+            $formattedElements = $template->elements->map(function ($element) use ($ticketCode) {
+                $fieldId = 'f_custom';
+                $labelPlaceholder = $element->custom_value ?? '{ Teks }';
+
+                // f.. dilihat dari certificate constant di frontend, jadi disesuaikan dengan element_type yang ada di database
+                if ($element->element_type === 'nama_peserta') {
+                    $fieldId = 'f1';
+                    $labelPlaceholder = '{ Nama Peserta }';
+                } elseif ($element->element_type === 'id_sertifikat') {
+                    $fieldId = 'f2';
+                    $labelPlaceholder = '{ ID Sertifikat }';
+                } elseif ($element->element_type === 'qr_code') {
+                    $fieldId = 'f3';
+                    $frontendUrl = env('FRONTEND_URL');
+                    $labelPlaceholder = "{$frontendUrl}/certificate/verify/{$ticketCode}";
+                }
+
+                return [
+                    'id'          => "db-" . $element->id,
+                    'fieldId'     => $fieldId,
+                    'label'       => $labelPlaceholder,
+                    'x'           => (float) $element->position_x,
+                    'y'           => (float) $element->position_y,
+                    'fontSize'    => (int) $element->font_size,
+                    'color'       => $element->font_color ?? '#000000',
+                    'fontFamily'  => $element->font_family ?? 'Arial',
+                    'textAlign'   => $element->text_align ?? 'center',
+                    'bold'        => $element->element_type === 'nama_peserta',
+                    'elementType' => $element->element_type
+                ];
+            });
+
             return response()->json([
                 'success' => true,
                 'status' => 'success',
                 'data' => [
                     'ticket' => [
-                        'ticket_code' => $ticketCode,
+                        'ticket_code' => $ticket->ticket_code, // Lebih aman mengambil dari properti objek tiket aslinya
                         'attendee_name' => $ticket->attendee_name,
                         'status' => $ticketStatus
                     ],
@@ -395,7 +393,15 @@ class CertificateController extends Controller
                         'start_date' => $event->start_date ? $event->start_date->translatedFormat('d F Y') : null,
                         'organizer_name' => $organizerName
                     ],
-                    'template' => $template
+                    'template' => [
+                        'id' => $template->id,
+                        'event_id' => $template->event_id,
+                        'background_path' => $template->background_path,
+                        'background_url' => $template->background_url,
+                        'canvas_width' => $template->canvas_width,
+                        'canvas_height' => $template->canvas_height,
+                        'elements' => $formattedElements
+                    ]
                 ]
             ], 200);
 
@@ -407,10 +413,8 @@ class CertificateController extends Controller
             ], 500);
         }
     }
-
     /**
      * Mengambil file background gambar sertifikat secara aman melalui API Publik.
-     * Metode ini memanfaatkan middleware CORS Laravel sehingga dapat dimuat di canvas lintas-origin.
      */
     public function getBackgroundPublic(int $eventId)
     {

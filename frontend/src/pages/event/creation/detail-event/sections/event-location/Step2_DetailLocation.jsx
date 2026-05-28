@@ -5,7 +5,7 @@ import OfflineForm from "./OfflineForm";
 import HybridForm from "./HybridForm";
 import { useState } from "react";
 
-const Step2_DetailLocation = ({ selectedType, formData, onChange, errors }) => {
+const Step2_DetailLocation = ({ selectedType, formData, onChange, errors, touched, handleBlur }) => {
     return (
         <Form className="fade-in-down" key={selectedType}>
             {/* Header Bagian */}
@@ -31,6 +31,8 @@ const Step2_DetailLocation = ({ selectedType, formData, onChange, errors }) => {
                     data={formData}
                     onChange={onChange}
                     errors={errors}
+                    touched={touched}
+                    handleBlur={handleBlur}
                 />
             )}
             {selectedType === "offline" && (
@@ -38,6 +40,8 @@ const Step2_DetailLocation = ({ selectedType, formData, onChange, errors }) => {
                     data={formData}
                     onChange={onChange}
                     errors={errors}
+                    touched={touched}
+                    handleBlur={handleBlur}
                 />
             )}
             {selectedType === "hybrid" && (
@@ -45,6 +49,8 @@ const Step2_DetailLocation = ({ selectedType, formData, onChange, errors }) => {
                     data={formData}
                     onChange={onChange}
                     errors={errors}
+                    touched={touched}
+                    handleBlur={handleBlur}
                 />
             )}
 

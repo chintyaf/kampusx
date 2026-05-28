@@ -21,6 +21,7 @@ const EventLayout = ({
 	// Props untuk fitur notifikasi peserta
 	eventStatus = 'draft',
 	hasParticipants = false,
+	isCurrentStepCompleted = false,
 }) => {
 	const navigate = useNavigate();
 	const [isSaving, setIsSaving] = useState(false);
@@ -39,6 +40,10 @@ const EventLayout = ({
 
 		try {
 			if (onSave) await onSave(shouldNotify);
+			
+			// Dispatch custom event to notify Sidebar/other components to refetch status
+			window.dispatchEvent(new Event('event-status-updated'));
+
 			if (action === 'continue' && nextPath) {
 				navigate(`../${nextPath}`);
 			}
@@ -286,13 +291,19 @@ const EventLayout = ({
 						)}
 
 						{nextPath ? (
-							<Button
-								variant="primary"
-								onClick={handleSaveAndContinue}
-								disabled={isSaving}
-							>
-								{isSaving ? 'Saving...' : 'Selanjutnya'}
-							</Button>
+							isCurrentStepCompleted ? (
+								<Button
+									variant="primary"
+									onClick={handleSaveAndContinue}
+									disabled={isSaving}
+								>
+									{isSaving ? 'Saving...' : 'Simpan & Lanjutkan'}
+								</Button>
+							) : (
+								<Button variant="primary" onClick={handleSave} disabled={isSaving}>
+									{isSaving ? 'Saving...' : 'Simpan'}
+								</Button>
+							)
 						) : (
 							<Button variant="primary" onClick={handleSave} disabled={isSaving}>
 								{isSaving ? 'Saving...' : 'Simpan'}

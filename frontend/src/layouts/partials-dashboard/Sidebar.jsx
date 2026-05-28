@@ -4,10 +4,12 @@ import { Star } from 'lucide-react';
 
 import { SidebarItem, EventCard } from '@/features/sidebar';
 import { MENU_ITEMS } from '@/features/sidebar/data/route';
+import api from '@/api/axios';
 
 const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 	// State menampung array berisi ID menu yang sedang terbuka
 	const [openMenus, setOpenMenus] = useState([]);
+	const [missingData, setMissingData] = useState([]);
 	const location = useLocation();
 
 	// Mendapatkan eventId dari URL
@@ -16,6 +18,33 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 
 	const baseMenu = MENU_ITEMS[type] || [];
 
+	// Fetch event publish status/errors
+	useEffect(() => {
+		if (!currentEventId) return;
+
+		const fetchEventStatus = async () => {
+			try {
+				const response = await api.get(`/events/${currentEventId}/check-status`);
+				if (response.data?.success || response.data?.status === 'success') {
+					setMissingData(response.data.data.missing_data || []);
+				}
+			} catch (err) {
+				console.error('Gagal memuat status kelayakan event:', err);
+			}
+		};
+
+		fetchEventStatus();
+
+		const handleRefetch = () => {
+			fetchEventStatus();
+		};
+
+		window.addEventListener('event-status-updated', handleRefetch);
+		return () => {
+			window.removeEventListener('event-status-updated', handleRefetch);
+		};
+	}, [currentEventId, location.pathname]); // Re-fetch on currentEventId change and page navigation!
+
 	// Menggunakan useMemo agar referensi currentMenu tidak berubah setiap kali render
 	const currentMenu = useMemo(() => {
 		return baseMenu.map((item) => ({
@@ -23,6 +52,31 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 			path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
 		}));
 	}, [baseMenu, currentEventId]);
+
+	// Calculate completion states (we default to true if missingData is not loaded yet to prevent flash locking)
+	const isStep1Completed = useMemo(() => {
+		if (!missingData || missingData.length === 0) return true;
+		const step1Keywords = ['judul', 'deskripsi', 'poster', 'zona waktu', 'kategori', 'tipe event'];
+		return !missingData.some(err => 
+			step1Keywords.some(kw => err.toLowerCase().includes(kw))
+		);
+	}, [missingData]);
+
+	const isStep2Completed = useMemo(() => {
+		if (!missingData || missingData.length === 0) return true;
+		const step2Keywords = ['lokasi', 'platform', 'meeting', 'kuota', 'tempat/gedung', 'provinsi', 'alamat lengkap', 'google maps', 'titik koordinat'];
+		return !missingData.some(err => 
+			step2Keywords.some(kw => err.toLowerCase().includes(kw))
+		);
+	}, [missingData]);
+
+	const isStep3Completed = useMemo(() => {
+		if (!missingData || missingData.length === 0) return true;
+		const step3Keywords = ['tanggal mulai', 'jadwal atau sesi', 'waktu pelaksanaan', 'pembicara'];
+		return !missingData.some(err => 
+			step3Keywords.some(kw => err.toLowerCase().includes(kw))
+		);
+	}, [missingData]);
 
 	const handleToggle = (id) => {
 		if (isSidebarCollapsed) {
@@ -82,6 +136,9 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 									isOpen={openMenus.includes(item.id)}
 									toggle={handleToggle}
 									isSidebarCollapsed={isSidebarCollapsed}
+									isStep1Completed={isStep1Completed}
+									isStep2Completed={isStep2Completed}
+									isStep3Completed={isStep3Completed}
 								/>
 							</li>
 						))}

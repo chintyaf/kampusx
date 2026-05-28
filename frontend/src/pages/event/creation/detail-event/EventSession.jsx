@@ -150,8 +150,19 @@ const EventSession = () => {
 			}
 		});
 
+		// Automatically calculate startDate and endDate based on sorted list of valid day dates
+		const validDates = days
+			.map((d) => d.date)
+			.filter((d) => d && d.trim() !== '')
+			.sort();
+
+		const calculatedStartDate = validDates[0] || '';
+		const calculatedEndDate = validDates[validDates.length - 1] || calculatedStartDate;
+
 		const sessionPayload = {
 			...formData,
+			startDate: calculatedStartDate,
+			endDate: calculatedEndDate,
 			sessions: flatSessions,
 		};
 
@@ -418,7 +429,13 @@ const EventSession = () => {
 	const renderSidebar = () => {
 		switch (sidebar) {
 			case 'summary':
-				return <SessionSummary days={days} allSpeakers={allSpeakers} timezone={formData.timezone} />;
+				return (
+					<SessionSummary
+						days={days}
+						allSpeakers={allSpeakers}
+						timezone={formData.timezone}
+					/>
+				);
 			case 'session-form':
 				return (
 					<SessionForm
@@ -462,6 +479,65 @@ const EventSession = () => {
 		}
 	};
 
+	const isCurrentStepCompleted =
+		days.length > 0 &&
+		days.every(
+			(day) =>
+				day.date &&
+				day.date.trim() !== '' &&
+				day.sessions &&
+				day.sessions.length > 0 &&
+				day.sessions.every(
+					(s) =>
+						s.title?.trim() !== '' &&
+						(s.startTime || s.start_time) &&
+						(s.endTime || s.end_time) &&
+						((s.speakers && s.speakers.length > 0) || s.no_speaker),
+				),
+		);
+
+	const getStep3ValidationErrors = () => {
+		const errorsList = [];
+		if (days.length === 0) {
+			errorsList.push('Silakan tambahkan minimal satu hari pelaksanaan.');
+			return errorsList;
+		}
+
+		days.forEach((day, dIdx) => {
+			const dayLabel = `Hari ke-${dIdx + 1}${day.date ? ` (${day.date})` : ''}`;
+
+			if (!day.date || day.date.trim() === '') {
+				errorsList.push(`Tanggal pelaksanaan untuk ${dayLabel} belum ditentukan.`);
+			}
+
+			if (!day.sessions || day.sessions.length === 0) {
+				errorsList.push(`${dayLabel} belum memiliki sesi acara.`);
+			} else {
+				day.sessions.forEach((s, sIdx) => {
+					const sessionLabel = `Sesi ke-${sIdx + 1}${s.title ? ` "${s.title}"` : ''} di ${dayLabel}`;
+
+					if (!s.title || s.title.trim() === '') {
+						errorsList.push(`Nama/judul untuk ${sessionLabel} wajib diisi.`);
+					}
+					if (!s.startTime && !s.start_time) {
+						errorsList.push(`Waktu mulai untuk ${sessionLabel} belum ditentukan.`);
+					}
+					if (!s.endTime && !s.end_time) {
+						errorsList.push(`Waktu selesai untuk ${sessionLabel} belum ditentukan.`);
+					}
+					const hasSpeakers = s.speakers && s.speakers.length > 0;
+					if (!hasSpeakers && !s.no_speaker) {
+						errorsList.push(
+							`${sessionLabel} belum memiliki pembicara (atau centang opsi Tanpa Pembicara jika sesi ini tidak membutuhkannya).`,
+						);
+					}
+				});
+			}
+		});
+
+		return errorsList;
+	};
+
 	// -- RENDER --
 	return (
 		<EventLayout
@@ -473,6 +549,7 @@ const EventSession = () => {
 			sidebar={renderSidebar()}
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
+			isCurrentStepCompleted={isCurrentStepCompleted}
 		>
 			<Outlet context={{ sidebar, setSidebar, setSelectedRow }} />
 
@@ -495,6 +572,42 @@ const EventSession = () => {
 					<Plus size={18} />
 					Tambah Hari Baru
 				</button>
+
+				{!isCurrentStepCompleted && (
+					<div
+						style={{
+							padding: '16px 20px',
+							background: '#fff5f5',
+							border: '1.5px solid #feb2b2',
+							borderRadius: '12px',
+							marginTop: '24px',
+						}}
+					>
+						<h6
+							style={{
+								color: '#c53030',
+								fontWeight: '700',
+								marginBottom: '8px',
+								fontSize: '0.9rem',
+							}}
+						>
+							⚠️ Mohon lengkapi data sesi dan jadwal berikut:
+						</h6>
+						<ul
+							style={{
+								margin: 0,
+								paddingLeft: '20px',
+								color: '#9b2c2c',
+								fontSize: '0.85rem',
+								lineHeight: '1.6',
+							}}
+						>
+							{getStep3ValidationErrors().map((err, i) => (
+								<li key={i}>{err}</li>
+							))}
+						</ul>
+					</div>
+				)}
 			</div>
 		</EventLayout>
 	);

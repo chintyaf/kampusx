@@ -7,34 +7,33 @@ import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTea
 import ScannerPage from '../pages/organizer/ScannerPage';
 import ManageAnnouncements from '../pages/organizer/ManageAnnouncements';
 
+
 // CREATE EVENT PAGES
-import CreateEvent from '../pages/event/creation/CreateEvent/index';
-import EventGeneralInfo from '../pages/event/creation/detail-event/EventGeneralInfo';
-import EventScheduleLocation from '../pages/event/creation/detail-event/EventLocation';
-import EventSession from '../pages/event/creation/detail-event/EventSession';
-import EventTicket from '../pages/event/creation/detail-event/EventTicket';
-import EventMaterial from '../pages/event/management/EventMaterialPage/index';
-import EventPostMaterial from '../pages/event/post-event/EventPostMaterialPage/index';
-import EventQuiz from '../pages/event/management/EventQuizPage/index';
-import EventLocationTest from '../pages/event/creation/EventLocationTest/index';
+import CreateEvent from '@/pages/event/creation/CreateEvent/index';
+import EventGeneralInfo from '@/pages/event/creation/detail-event/EventGeneralInfo';
+import EventScheduleLocation from '@/pages/event/creation/detail-event/EventLocation';
+import EventSession from '@/pages/event/creation/detail-event/EventSession';
+import EventTicket from '@/pages/event/creation/detail-event/EventTicket';
+import EventMaterial from '@/pages/event/management/EventMaterialPage/index';
+import EventPostMaterial from '@/pages/event/post-event/EventPostMaterialPage/index';
+import EventQuiz from '@/pages/event/management/EventQuizPage/index';
+import EventLocationTest from '@/pages/event/creation/EventLocationTest/index';
 
-import EventDashboardPage from '../pages/event/management/EventDashboardPage';
-import EventPreviewPage from '../pages/event/management/EventDashboardPage/EventPreviewPage';
-import EventPosPage from '../pages/event/management/EventPosPage/index';
-import EventParticipantList from '../pages/event/management/EventParticipantListPage/index';
-import EventMaterialDistributionPage from '../pages/event/management/EventMaterialDistributionPage/index';
-import OrganizerMaterialsManagePage from '../pages/event/management/OrganizerMaterialsManagePage/index';
-import EventStatistics from '../pages/event/management/EventStatisticsPage/index';
-import EventPromotion from '../pages/event/management/EventPromotionPage/index';
-import EventSurveyPage from '../pages/event/management/EventSurveyPage/index';
+import EventDashboardPage from '@/pages/event/management/EventDashboardPage';
+import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventPreviewPage';
+import EventPosPage from '@/pages/event/management/EventPosPage/index';
+import EventParticipantList from '@/pages/event/management/EventParticipantListPage/index';
+import EventMaterialDistributionPage from '@/pages/event/management/EventMaterialDistributionPage/index';
+import OrganizerMaterialsManagePage from '@/pages/event/management/OrganizerMaterialsManagePage/index';
+import EventStatistics from '@/pages/event/management/EventStatisticsPage/index';
+import EventPromotion from '@/pages/event/management/EventPromotionPage/index';
+import EventSurveyPage from '@/pages/event/management/EventSurveyPage/index';
 
-import CertificateListPage from '../pages/event/post-event/certificate/CertificateListPage';
-import CreateCertificatePage from '../pages/event/post-event/certificate/CreateCertificatePage';
-import PostEventContentUploadPage from '../pages/event/post-event/PostEventContentUploadPage/index';
+import PostEventContentUploadPage from '@/pages/event/post-event/PostEventContentUploadPage/index';
 // import { Certificate } from 'node:crypto';
-import EventCertificatePage from '../pages/event/post-event/certificate/EventCertificatePage.jsx';
-import EventWalletSplitPage from '../pages/event/management/EventWalletSplitPage/index';
-import EventAnalyticsPage from '../pages/event/management/EventAnalyticsPage/index';
+import EventCertificatePage from '@/pages/event/post-event/certificate/EventCertificatePage.jsx';
+import EventWalletSplitPage from '@/pages/event/management/EventWalletSplitPage/index';
+import EventAnalyticsPage from '@/pages/event/management/EventAnalyticsPage/index';
 
 export const OrganizerRoutes = (
 	<Route path="organizer">

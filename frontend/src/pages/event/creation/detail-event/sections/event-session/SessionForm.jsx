@@ -49,6 +49,11 @@ const SessionForm = ({
 	const [selectedSpeakerToEdit, setSelectedSpeakerToEdit] = useState(null);
 	const [activeType, setActiveType] = useState('Keynote');
 	const sessionTypes = ['Keynote', 'Panel', 'Workshop', 'Sesi', 'Break'];
+	const [touched, setTouched] = useState({});
+
+	const handleBlur = (field) => {
+		setTouched((prev) => ({ ...prev, [field]: true }));
+	};
 
 	// Ubah ukuran modal berdasarkan view aktif
 	useEffect(() => {
@@ -91,6 +96,24 @@ const SessionForm = ({
 	};
 
 	const handleSubmit = () => {
+		setTouched({
+			title: true,
+			startTime: true,
+			endTime: true,
+			speakers: true,
+		});
+
+		const hasSpeakers = sessionData.speakers && sessionData.speakers.length > 0;
+		if (
+			sessionData.title.trim() === '' || 
+			!sessionData.startTime || 
+			!sessionData.endTime ||
+			(!hasSpeakers && !sessionData.no_speaker)
+		) {
+			notify('error', 'Gagal', 'Mohon lengkapi seluruh kolom wajib yang ditandai.');
+			return;
+		}
+
 		// Gabungkan data lama (id dll) dengan editan baru
 		const updatedSession = { ...data, ...sessionData };
 		if (onSaveSession) onSaveSession(updatedSession);
@@ -250,9 +273,14 @@ const SessionForm = ({
 								name="title"
 								value={sessionData.title}
 								onChange={handleChange}
+								onBlur={() => handleBlur('title')}
 								className="form-control shadow-none"
 								style={flatInputStyle}
+								isInvalid={touched.title && (!sessionData.title || sessionData.title.trim() === '')}
 							/>
+							<Form.Control.Feedback type="invalid">
+								Judul sesi wajib diisi.
+							</Form.Control.Feedback>
 						</Form.Group>
 
 						{/* Deskripsi */}
@@ -315,8 +343,10 @@ const SessionForm = ({
 										name="startTime"
 										value={sessionData.startTime}
 										onChange={handleChange}
+										onBlur={() => handleBlur('startTime')}
 										className="form-control shadow-none text-center px-1"
 										style={flatInputStyle}
+										isInvalid={touched.startTime && !sessionData.startTime}
 									/>
 									<span className="text-muted">-</span>
 									<Form.Control
@@ -324,10 +354,15 @@ const SessionForm = ({
 										name="endTime"
 										value={sessionData.endTime}
 										onChange={handleChange}
+										onBlur={() => handleBlur('endTime')}
 										className="form-control shadow-none text-center px-1"
 										style={flatInputStyle}
+										isInvalid={touched.endTime && !sessionData.endTime}
 									/>
 								</div>
+								{((touched.startTime && !sessionData.startTime) || (touched.endTime && !sessionData.endTime)) && (
+									<div className="text-danger small mt-1">Waktu mulai dan selesai wajib ditentukan.</div>
+								)}
 							</Col>
 						</Row>
 
@@ -411,10 +446,14 @@ const SessionForm = ({
 										no_speaker: val,
 										speakers: val ? [] : prev.speakers,
 									}));
+									setTouched((prev) => ({ ...prev, speakers: true }));
 								}}
 								className="mb-3"
 								style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}
 							/>
+							{!sessionData.no_speaker && touched.speakers && (!sessionData.speakers || sessionData.speakers.length === 0) && (
+								<div className="text-danger small mt-1 mb-3">Mohon tambahkan minimal satu pembicara atau centang opsi "Sesi ini tidak memerlukan pembicara".</div>
+							)}
 
 							{sessionData.no_speaker && (
 								<div

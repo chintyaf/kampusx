@@ -27,6 +27,17 @@ const EventGeneralInfo = () => {
 		eventType: [],
 		timezone: 'Asia/Jakarta',
 	});
+	const [touched, setTouched] = useState({});
+
+	const handleBlur = (field) => {
+		setTouched((prev) => ({ ...prev, [field]: true }));
+	};
+
+	useEffect(() => {
+		if (formData.banner) {
+			setTouched((prev) => ({ ...prev, banner: true }));
+		}
+	}, [formData.banner]);
 
 	// ==========================================
 	// STATE UNTUK CROP GAMBAR
@@ -208,6 +219,15 @@ const EventGeneralInfo = () => {
 	// SUBMIT DATA
 	// ==========================================
 	const handleUpdate = async (shouldNotify = false) => {
+		setTouched({
+			title: true,
+			description: true,
+			kategori: true,
+			eventType: true,
+			timezone: true,
+			banner: true,
+		});
+
 		const submitData = new FormData();
 
 		submitData.append('title', formData.title);
@@ -251,14 +271,24 @@ const EventGeneralInfo = () => {
 		}
 	};
 
+	const isCurrentStepCompleted = 
+		formData.title?.trim() !== '' &&
+		formData.description?.trim().length >= 50 &&
+		formData.banner !== null &&
+		formData.banner !== '' &&
+		formData.kategori?.length > 0 &&
+		formData.eventType?.length > 0 &&
+		formData.timezone?.trim() !== '';
+
 	return (
 		<EventLayout
-			title="Informasi Utama"
+			title="Informasi Umum"
 			description="Lengkapi detail dasar event untuk mempermudah calon peserta menemukan event-mu."
 			nextPath="tempat"
 			onSave={handleUpdate}
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
+			isCurrentStepCompleted={isCurrentStepCompleted}
 			// sidebar={<EventPreview />}
 		>
 			<Form>
@@ -270,8 +300,13 @@ const EventGeneralInfo = () => {
 						name="title"
 						value={formData.title}
 						onChange={handleTextChange}
+						onBlur={() => handleBlur('title')}
 						placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
+						isInvalid={touched.title && formData.title?.trim() === ''}
 					/>
+					<Form.Control.Feedback type="invalid">
+						Nama event wajib diisi.
+					</Form.Control.Feedback>
 				</Form.Group>
 
 				<Form.Group className="mb-4" controlId="formDescription">
@@ -282,12 +317,25 @@ const EventGeneralInfo = () => {
 						name="description"
 						value={formData.description}
 						onChange={handleTextChange}
+						onBlur={() => handleBlur('description')}
 						placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
+						isInvalid={touched.description && (formData.description?.trim() === '' || formData.description?.trim().length < 50)}
 					/>
-					<Form.Text className={'text-muted small d-block mt-1 text-end'}>
-						{formData.description?.length || 0} / 500 karakter
-						{(formData.description?.length || 0) < 50 && ' (Minimal 50 karakter)'}
-					</Form.Text>
+					<div className="d-flex justify-content-between align-items-start mt-1">
+						<div>
+							{touched.description && (
+								formData.description?.trim() === '' ? (
+									<div className="text-danger small">Deskripsi event wajib diisi.</div>
+								) : (formData.description?.trim().length || 0) < 50 ? (
+									<div className="text-danger small">Deskripsi minimal 50 karakter (saat ini {formData.description?.trim().length || 0} karakter).</div>
+								) : null
+							)}
+						</div>
+						<Form.Text className={'text-muted small text-end'}>
+							{formData.description?.length || 0} / 500 karakter
+							{(formData.description?.length || 0) < 50 && ' (Minimal 50 karakter)'}
+						</Form.Text>
+					</div>
 				</Form.Group>
 
 				<Form.Group className="mb-4">
@@ -301,8 +349,24 @@ const EventGeneralInfo = () => {
 						placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
 						className="react-select-container"
 						classNamePrefix="react-select"
-						onChange={(selected) => handleSelectChange('eventType', selected)}
+						onChange={(selected) => {
+							handleSelectChange('eventType', selected);
+							handleBlur('eventType');
+						}}
+						onBlur={() => handleBlur('eventType')}
+						styles={{
+							control: (baseStyles) => ({
+								...baseStyles,
+								borderColor: touched.eventType && formData.eventType?.length === 0 ? '#dc3545' : baseStyles.borderColor,
+								'&:hover': {
+									borderColor: touched.eventType && formData.eventType?.length === 0 ? '#dc3545' : baseStyles.borderColor,
+								}
+							}),
+						}}
 					/>
+					{touched.eventType && formData.eventType?.length === 0 && (
+						<div className="text-danger small mt-1">Pilih minimal satu tipe event.</div>
+					)}
 				</Form.Group>
 
 				<Form.Group className="mb-4">
@@ -316,8 +380,24 @@ const EventGeneralInfo = () => {
 						placeholder="Pilih kategori (Bisa lebih dari satu)..."
 						className="react-select-container"
 						classNamePrefix="react-select"
-						onChange={(selected) => handleSelectChange('kategori', selected)}
+						onChange={(selected) => {
+							handleSelectChange('kategori', selected);
+							handleBlur('kategori');
+						}}
+						onBlur={() => handleBlur('kategori')}
+						styles={{
+							control: (baseStyles) => ({
+								...baseStyles,
+								borderColor: touched.kategori && formData.kategori?.length === 0 ? '#dc3545' : baseStyles.borderColor,
+								'&:hover': {
+									borderColor: touched.kategori && formData.kategori?.length === 0 ? '#dc3545' : baseStyles.borderColor,
+								}
+							}),
+						}}
 					/>
+					{touched.kategori && formData.kategori?.length === 0 && (
+						<div className="text-danger small mt-1">Pilih minimal satu kategori event.</div>
+					)}
 				</Form.Group>
 
 				{/* Zona Waktu (Timezone) */}
@@ -327,9 +407,11 @@ const EventGeneralInfo = () => {
 						name="timezone"
 						value={formData.timezone}
 						onChange={handleTextChange}
+						onBlur={() => handleBlur('timezone')}
 						className="form-select shadow-none"
+						isInvalid={touched.timezone && formData.timezone?.trim() === ''}
 						style={{
-							border: '1.5px solid #cbd5e1',
+							border: touched.timezone && formData.timezone?.trim() === '' ? '1.5px solid #dc3545' : '1.5px solid #cbd5e1',
 							borderRadius: '8px',
 							fontSize: '14px',
 							padding: '10px 12px',
@@ -341,9 +423,15 @@ const EventGeneralInfo = () => {
 						<option value="Asia/Jayapura">Asia/Jayapura (WIT - GMT+9)</option>
 						<option value="UTC">UTC (GMT+0)</option>
 					</Form.Select>
+					<Form.Control.Feedback type="invalid">
+						Zona waktu wajib diisi.
+					</Form.Control.Feedback>
 				</Form.Group>
 
 				<UploadImage formData={formData} setFormData={setFormData} />
+				{touched.banner && !formData.banner && (
+					<div className="text-danger small mt-2 text-center">Poster/gambar cover event wajib diunggah.</div>
+				)}
 			</Form>
 
 			{/* ========================================== */}

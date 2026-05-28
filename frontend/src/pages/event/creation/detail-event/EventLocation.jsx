@@ -14,6 +14,11 @@ const EventLocation = () => {
     const [errors, setErrors] = useState({});
     const [selectedType, setSelectedType] = useState(null);
     const { eventStatus, hasParticipants } = useEventMeta(eventId);
+    const [touched, setTouched] = useState({});
+
+    const handleBlur = (field) => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+    };
 
     const [formData, setFormData] = useState({
         type: "", // 'online', 'offline', atau 'hybrid'
@@ -118,6 +123,16 @@ const EventLocation = () => {
     };
 
     const handleSave = async (shouldNotify = false) => {
+        setTouched({
+            platform: true,
+            meeting_link: true,
+            location_name: true,
+            province: true,
+            city: true,
+            address_detail: true,
+            maps_url: true,
+        });
+
         setErrors({});
 
         // FIX: Cleaner payload mapping based on selectedType
@@ -193,6 +208,66 @@ const EventLocation = () => {
         }
     };
 
+    const checkStep2Completed = () => {
+        if (!selectedType) return false;
+        
+        if (selectedType === 'online') {
+            return formData.platform?.trim() !== '' && formData.meeting_link?.trim() !== '';
+        }
+        
+        if (selectedType === 'offline') {
+            const hasCoords = formData.latitude !== "" && formData.longitude !== "" && formData.latitude !== null && formData.longitude !== null;
+            const hasMaps = formData.maps_url?.trim() !== "" || hasCoords;
+            
+            return formData.location_name?.trim() !== '' &&
+                   formData.province?.trim() !== '' &&
+                   formData.city?.trim() !== '' &&
+                   formData.address_detail?.trim() !== '' &&
+                   hasMaps;
+        }
+        
+        if (selectedType === 'hybrid') {
+            const hasCoords = formData.latitude !== "" && formData.longitude !== "" && formData.latitude !== null && formData.longitude !== null;
+            const hasMaps = formData.maps_url?.trim() !== "" || hasCoords;
+            
+            return formData.platform?.trim() !== '' &&
+                   formData.meeting_link?.trim() !== '' &&
+                   formData.location_name?.trim() !== '' &&
+                   formData.province?.trim() !== '' &&
+                   formData.city?.trim() !== '' &&
+                   formData.address_detail?.trim() !== '' &&
+                   hasMaps;
+        }
+        
+        return false;
+    };
+
+    const getStep2ValidationErrors = () => {
+        const errorsList = [];
+        if (!selectedType) {
+            errorsList.push("Pilih tipe kehadiran terlebih dahulu.");
+            return errorsList;
+        }
+        if (selectedType === 'online' || selectedType === 'hybrid') {
+            if (!formData.platform?.trim()) errorsList.push("Platform wajib diisi.");
+            if (!formData.meeting_link?.trim()) errorsList.push("Tautan pertemuan (Link) wajib diisi.");
+        }
+        if (selectedType === 'offline' || selectedType === 'hybrid') {
+            if (!formData.location_name?.trim()) errorsList.push("Ringkasan Lokasi (Gedung/Tempat) wajib diisi.");
+            if (!formData.province?.trim() || !formData.city?.trim()) errorsList.push("Provinsi dan Kota wajib ditentukan.");
+            if (!formData.address_detail?.trim()) errorsList.push("Alamat lengkap wajib diisi.");
+            
+            const hasCoords = formData.latitude !== "" && formData.longitude !== "" && formData.latitude !== null && formData.longitude !== null;
+            const hasMaps = formData.maps_url?.trim() !== "" || hasCoords;
+            if (!hasMaps) {
+                errorsList.push("Lokasi offline harus menyertakan Link Google Maps atau Titik Koordinat Peta.");
+            }
+        }
+        return errorsList;
+    };
+
+    const isCurrentStepCompleted = checkStep2Completed();
+
     return (
         <EventLayout
             title="Konfigurasi Teknis & Jadwal Event"
@@ -202,6 +277,7 @@ const EventLocation = () => {
             onSave={handleSave}
             eventStatus={eventStatus}
             hasParticipants={hasParticipants}
+            isCurrentStepCompleted={isCurrentStepCompleted}
         >
             <Step1_TypeSelection
                 selectedType={selectedType}
@@ -209,12 +285,37 @@ const EventLocation = () => {
             />
 
             {selectedType ? (
-                <Step2_DetailLocation
-                    selectedType={selectedType}
-                    formData={formData}
-                    onChange={handleChange}
-                    errors={errors}
-                />
+                <>
+                    <Step2_DetailLocation
+                        selectedType={selectedType}
+                        formData={formData}
+                        onChange={handleChange}
+                        errors={errors}
+                        touched={touched}
+                        handleBlur={handleBlur}
+                    />
+
+                    {!isCurrentStepCompleted && (
+                        <div 
+                            style={{
+                                padding: '16px 20px',
+                                background: '#fff5f5',
+                                border: '1.5px solid #feb2b2',
+                                borderRadius: '12px',
+                                marginTop: '24px',
+                            }}
+                        >
+                            <h6 style={{ color: '#c53030', fontWeight: '700', marginBottom: '8px', fontSize: '0.9rem' }}>
+                                ⚠️ Mohon lengkapi data tempat pelaksanaan berikut:
+                            </h6>
+                            <ul style={{ margin: 0, paddingLeft: '20px', color: '#9b2c2c', fontSize: '0.85rem', lineHeight: '1.6' }}>
+                                {getStep2ValidationErrors().map((err, i) => (
+                                    <li key={i}>{err}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </>
             ) : (
                 <div className="flex items-center justify-center min-h-[300px] w-full p-6">
                     <div
