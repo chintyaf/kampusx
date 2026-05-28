@@ -200,6 +200,7 @@ const Checkout = () => {
 			const { is_paid, payment_url, redirect_url } = res.data;
 
 			if (is_paid) {
+				// console.log("INI RAW JSON DARI LARAVEL:", res.data);
 				// Event Berbayar: arahkan ke simulator sandbox
 				window.location.href = payment_url;
 			} else if (redirect_url) {

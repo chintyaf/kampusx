@@ -20,6 +20,7 @@ const EventDetail = () => {
     const [error, setError] = useState(null);
     const [selectedTicket, setSelectedTicket] = useState('day1');
     const [isBookmarked, setIsBookmarked] = useState(false);
+    const [registration, setRegistration] = useState({ registered: false, status: null, order_id: null });
 
     const [showToast, setShowToast] = useState(false);
     const [toastMsg, setToastMsg] = useState('');
@@ -46,6 +47,20 @@ const EventDetail = () => {
         }
     }, [id]);
 
+    useEffect(() => {
+        const checkUserRegistration = async () => {
+            if (user && id) {
+                try {
+                    const res = await api.get(`/checkout/check/${id}`);
+                    setRegistration(res.data);
+                } catch (err) {
+                    console.error("Gagal mengecek registrasi user:", err);
+                }
+            }
+        };
+        checkUserRegistration();
+    }, [id, user]);
+
     const handleLanjutPembayaran = (e) => {
         e.preventDefault();
         console.log("Tombol diklik! ID event:", id);
@@ -54,6 +69,17 @@ const EventDetail = () => {
             console.log("User belum login, redirect ke Sign In");
             alert("Silakan Sign In terlebih dahulu untuk melanjutkan pembayaran.");
             navigate('/login', { state: { from: location.pathname } }); 
+            return;
+        }
+
+        if (registration.registered) {
+            if (registration.status === 'paid') {
+                navigate('/my-tickets');
+            } else if (registration.status === 'pending') {
+                const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+                const sandboxUrl = apiBase.replace('/api/v1', '').replace('/api', '') + "/payment-sandbox/" + registration.order_id;
+                window.location.href = sandboxUrl;
+            }
             return;
         }
 
@@ -334,11 +360,21 @@ const EventDetail = () => {
                                         <Button 
                                             type="submit" 
                                             className="w-100 py-3 fw-bold rounded-3 border-0 mb-3" 
-                                            style={{ backgroundColor: 'var(--color-primary)' }}
-                                            disabled={eventDetails.quota <= 0} // Disable jika kuota habis
+                                            style={
+                                                registration.registered
+                                                    ? registration.status === 'paid'
+                                                        ? { backgroundColor: '#6c757d', color: '#fff' }
+                                                        : { backgroundColor: '#ffc107', color: '#000' }
+                                                    : { backgroundColor: 'var(--color-primary)' }
+                                            }
+                                            disabled={!registration.registered && eventDetails.quota <= 0} // Disable jika kuota habis dan belum register
                                         >
-                                            {eventDetails.quota <= 0 ? 'Kuota Habis' : (
-                                                Number(eventDetails.price) === 0 ? 'Klaim Tiket Gratis' : 'Lanjutkan ke Pembayaran'
+                                            {registration.registered ? (
+                                                registration.status === 'paid' ? 'Sudah Terdaftar (Lihat Tiket)' : 'Menunggu Pembayaran'
+                                            ) : (
+                                                eventDetails.quota <= 0 ? 'Kuota Habis' : (
+                                                    Number(eventDetails.price) === 0 ? 'Klaim Tiket Gratis' : 'Lanjutkan ke Pembayaran'
+                                                )
                                             )}
                                         </Button>
                                     </Form>

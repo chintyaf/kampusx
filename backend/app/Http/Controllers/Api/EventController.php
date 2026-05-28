@@ -20,6 +20,18 @@ class EventController extends Controller
     {
         $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets']);
 
+        // Security check: Only show published events by default, or draft events if own organizer
+        $authUser = auth('sanctum')->user();
+        $query->where(function ($q) use ($authUser) {
+            $q->where('status', 'published');
+            if ($authUser) {
+                $q->orWhere(function ($sq) use ($authUser) {
+                    $sq->where('status', 'draft')
+                      ->where('organizer_id', $authUser->id);
+                });
+            }
+        });
+
         // 1. Pencarian berdasarkan judul atau nama creator (organizer)
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -183,10 +195,21 @@ class EventController extends Controller
 
     public function show(Request $request, $id)
     {
-        // Memuat detail event beserta organizer, lokasi, kategori, tiket, dan agenda rundown (sessions.speakers)
-        // $event = Event::with(['organizer', 'locationDetail', 'sessions.speakers', 'categories', 'eventTickets'])->findOrFail($id);
+        $event = Event::findOrFail($id);
+
+        // Security check: only allow draft view if user is the creator
+        if ($event->status === 'draft') {
+            $authUser = auth('sanctum')->user();
+            if (!$authUser || $event->organizer_id !== $authUser->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak. Event ini masih berupa draft.'
+                ], 403);
+            }
+        }
+
         // Eager load all necessary relations for rich detail and preview modes
-        $event = Event::with([
+        $event->load([
             'organizer',
             'locationDetail',
             'categories',
@@ -197,7 +220,7 @@ class EventController extends Controller
                   ->orderBy('start_time', 'asc')
                   ->with('speakers');
             }
-        ])->findOrFail($id);
+        ]);
 
         return response()->json([
             'success' => true,

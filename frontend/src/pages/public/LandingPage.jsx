@@ -191,7 +191,7 @@ const LandingPage = () => {
                       <meta.Icon size={28} color={meta.color} />
                     </div>
                     <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>{cat.name}</span>
-                    <span style={{ fontSize: "var(--font-xs)", color: "var(--color-secondary)", marginTop: 2 }}>Explore</span>
+                    
                   </div>
                 </Col>
               );
