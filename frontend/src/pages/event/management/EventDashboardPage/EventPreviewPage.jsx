@@ -63,6 +63,19 @@ export default function EventPreviewPage() {
 		if (!dateStr) return '-';
 		try {
 			const d = new Date(dateStr);
+			const formatTimezone = (tz) => {
+				if (!tz) return '';
+				const mapping = {
+					'Asia/Jakarta': 'WIB',
+					'Asia/Makassar': 'WITA',
+					'Asia/Jayapura': 'WIT',
+					'WIB': 'WIB',
+					'WITA': 'WITA',
+					'WIT': 'WIT',
+				};
+				return mapping[tz] || tz;
+			};
+			const tzDisplay = formatTimezone(eventDetails?.timezone);
 			return (
 				d.toLocaleDateString('id-ID', {
 					weekday: 'long',
@@ -71,7 +84,7 @@ export default function EventPreviewPage() {
 					day: 'numeric',
 					hour: '2-digit',
 					minute: '2-digit',
-				}) + ` (${eventDetails?.timezone || ''})`
+				}) + (tzDisplay ? ` (${tzDisplay})` : '')
 			);
 		} catch (e) {
 			return dateStr;

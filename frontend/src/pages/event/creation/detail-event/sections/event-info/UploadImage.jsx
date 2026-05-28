@@ -78,7 +78,7 @@ const UploadImage = ({ formData, setFormData }) => {
 
 			<Form.Group className="mb-3">
 				<div className="d-flex justify-content-between align-items-center mb-1">
-					<Form.Label className="mb-2">Banner Event</Form.Label>
+					<Form.Label className="mb-2 required">Banner Event</Form.Label>
 					<span className="text-muted text-sm" style={{ fontSize: '12px' }}>
 						1280x720px · Maks. 2MB
 					</span>

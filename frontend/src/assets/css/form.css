@@ -35,7 +35,8 @@ form {
 	font-weight: 600;
 	font-size: 14px;
 	color: var(--color-text-label);
-	
+	margin-bottom: 8px;
+
 }
 
 /* Tanda bintang untuk field wajib isi */

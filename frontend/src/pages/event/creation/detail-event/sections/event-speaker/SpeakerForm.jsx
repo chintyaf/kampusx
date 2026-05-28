@@ -329,9 +329,14 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 					</Form.Group>
 
 					<Form.Group className="mb-3">
-						<Form.Label className="small fw-bold d-flex justify-content-between align-items-center">
-							Tautan Media Sosial
-						</Form.Label>
+						<div className="d-flex justify-content-between align-items-center mb-2">
+							<label className="form-label fw-semibold mb-0" style={{ fontSize: '13px', color: '#475569' }}>
+								Tautan Media Sosial
+							</label>
+							<span className="text-muted" style={{ fontSize: '13px' }}>
+								Opsional
+							</span>
+						</div>
 						{formData.social_links.map((link, index) => (
 							<InputGroup className="mb-2" key={index}>
 								<Form.Select

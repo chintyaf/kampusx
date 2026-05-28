@@ -1,13 +1,12 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
-import OptionalBadge from '../../../../../../components/form/OptionalBadge';
 
 const OnlineForm = ({ data, onChange, errors }) => {
 	return (
 		<>
 			{/* Lokasi Umum / Platform */}
 			<Form.Group controlId="formGridLocation" className="mb-4">
-				<Form.Label className="fw-bold">Platform *</Form.Label>
+				<Form.Label className="form-label required">Platform</Form.Label>
 				<Form.Control
 					name="platform"
 					type="text"
@@ -26,14 +25,16 @@ const OnlineForm = ({ data, onChange, errors }) => {
 
 			{/* Tautan Pertemuan */}
 			<Form.Group controlId="formMeetingLink" className="mb-4">
-				<Form.Label className="d-flex align-items-center fw-bold">
-					Tautan Pertemuan (Link) <OptionalBadge />
-				</Form.Label>
+				<div className="d-flex justify-content-between align-items-center mb-2">
+					<label className="form-label mb-0">Tautan Pertemuan (Link)</label>
+					<span className="text-muted" style={{ fontSize: '13px' }}>
+						Opsional
+					</span>
+				</div>
 				<Form.Control
-					as="textarea"
-					rows={2}
-					value={data.meeting_link}
 					name="meeting_link"
+					type="text"
+					value={data.meeting_link || ''}
 					placeholder="https://zoom.us/j/..."
 					onChange={onChange}
 					isInvalid={!!errors.meeting_link}
@@ -51,25 +52,34 @@ const OnlineForm = ({ data, onChange, errors }) => {
 
 			{/* Instruksi Online */}
 			<Form.Group className="mb-4" controlId="formInstructions">
-				<Form.Label className="d-flex align-items-center fw-bold">
-					Instruksi & Detail Akses <OptionalBadge />
-				</Form.Label>
+				<div className="d-flex justify-content-between align-items-center mb-2">
+					<label className="form-label mb-0">Instruksi & Detail Akses</label>
+					<span className="text-muted" style={{ fontSize: '13px' }}>
+						Opsional
+					</span>
+				</div>
 				<Form.Control
 					name="online_instruction"
-					value={data.online_instruction}
+					value={data.online_instruction || ''}
 					as="textarea"
 					onChange={onChange}
 					rows={5}
+					maxLength={500}
 					placeholder={`Contoh:\n• Passcode Zoom: 123456\n• Mohon hadir 15 menit sebelum mulai.`}
 					isInvalid={!!errors.online_instruction}
 				/>
 				<Form.Control.Feedback type="invalid">
 					{errors.online_instruction ? errors.online_instruction[0] : ''}
 				</Form.Control.Feedback>
-				<Form.Text className="text-muted">
-					Informasi rahasia aman di sini. Bisa diisi menyusul dan hanya tampil di
-					email/dashboard peserta setelah mendaftar.
-				</Form.Text>
+				<div className="d-flex justify-content-between align-items-start mt-1">
+					<Form.Text className="text-muted mb-0" style={{ maxWidth: '80%' }}>
+						Informasi rahasia aman di sini. Bisa diisi menyusul dan hanya tampil di
+						email/dashboard peserta setelah mendaftar.
+					</Form.Text>
+					<Form.Text className="text-muted small text-nowrap">
+						{data.online_instruction?.length || 0} / 500 karakter
+					</Form.Text>
+				</div>
 			</Form.Group>
 		</>
 	);
