@@ -13,7 +13,7 @@ import SidebarList from './SidebarList';
 import SidebarEdit from './SidebarEdit';
 import { FIELDS } from './constants';
 import EventLayout from '@/layouts/EventLayout';
-import PreviewModal from './PreviewModal';
+import PreviewModal from '@/components/event/certificate/PreviewModal';
 
 const EventCertificatePage = () => {
 	const { eventId } = useParams();

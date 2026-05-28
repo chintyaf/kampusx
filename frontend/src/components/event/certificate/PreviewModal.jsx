@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'react-qr-code';
 import { Award, QrCode as QrIcon, Download, Sparkles } from 'lucide-react';
-import { FIELDS } from './constants';
+import { FIELDS } from '@/pages/event/post-event/certificate/constants';
 
 const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 	const { eventId } = useParams();
@@ -54,24 +54,21 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 				scale: 3, // 3x scale for ultra high resolution
 				useCORS: true,
 				allowTaint: true,
-				logging: false
+				logging: false,
 			},
 			jsPDF: {
 				unit: 'pt',
 				format: [pdfWidth, pdfHeight],
-				orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait'
+				orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
 			},
-			pagebreak: { mode: 'avoid-all' }
+			pagebreak: { mode: 'avoid-all' },
 		};
 
-		toast.promise(
-			html2pdf().from(element).set(opt).save(),
-			{
-				loading: 'Sedang memproses unduhan sertifikat...',
-				success: 'Sertifikat PDF berhasil diunduh!',
-				error: 'Gagal mengunduh sertifikat.',
-			}
-		);
+		toast.promise(html2pdf().from(element).set(opt).save(), {
+			loading: 'Sedang memproses unduhan sertifikat...',
+			success: 'Sertifikat PDF berhasil diunduh!',
+			error: 'Gagal mengunduh sertifikat.',
+		});
 	};
 
 	// ==========================================
@@ -79,9 +76,9 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 	// ==========================================
 	return (
 		<Modal show={show} onHide={onHide} size="lg" centered>
-			<Modal.Header closeButton className="border-0 pb-0">
-				<Modal.Title className="fw-bold d-flex align-items-center gap-2">
-					<Award className="text-primary" size={24} />
+			<Modal.Header closeButton className="border-0 pb-3">
+				<Modal.Title className="fw-bold d-flex align-items-center gap-2 mb-0 fs-3 text-dark">
+					<Award className="text-primary" size={24} strokeWidth={2.5} />
 					Preview E-Sertifikat
 				</Modal.Title>
 			</Modal.Header>
@@ -99,15 +96,16 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 								id="certificate-preview-area"
 								ref={previewContainerRef}
 								className="position-relative w-100 overflow-hidden"
-								style={{
-									aspectRatio: '1920/1080'
-								}}
 							>
 								<img
 									src={templateFile}
 									alt="Certificate Background"
 									className="w-100 h-100"
-									crossOrigin={templateFile && templateFile.startsWith('blob:') ? undefined : 'anonymous'}
+									crossOrigin={
+										templateFile && templateFile.startsWith('blob:')
+											? undefined
+											: 'anonymous'
+									}
 									style={{ display: 'block', objectFit: 'cover' }}
 								/>
 
@@ -119,7 +117,7 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 									if (el.fieldId === 'f3') {
 										const qrSize = (el.fontSize / 1920) * previewWidth;
 										const qrPadding = (4 / 1920) * previewWidth;
-
+										console.log('Rendering QR Code :', el.label);
 										return (
 											<div
 												key={el.id}
@@ -135,13 +133,17 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 													padding: `${qrPadding}px`,
 													display: 'flex',
 													alignItems: 'center',
-													justifyContent: 'center'
+													justifyContent: 'center',
 												}}
 											>
 												<QRCode
-													value={`${window.location.origin}/certificate/verify/PREVIEW-TICKET`}
+													value={el.label || '-'}
 													size={Math.max(16, Math.round(qrSize) - 8)}
-													fgColor={el.color === '#ffffff' ? '#000000' : el.color}
+													fgColor={
+														el.color === '#ffffff'
+															? '#000000'
+															: el.color
+													}
 													bgColor="#ffffff"
 													style={{ height: '100%', width: '100%' }}
 												/>
@@ -176,18 +178,11 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 
 						<div className="d-flex gap-2 w-100 justify-content-center">
 							<Button
-								variant="success"
+								variant="primary"
 								onClick={handleDownloadPDF}
 								className="rounded-pill py-2.5 px-4 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
 							>
 								<Download size={18} /> Unduh PDF Resmi
-							</Button>
-							<Button
-								variant="outline-secondary"
-								onClick={onHide}
-								className="rounded-pill px-4 fw-semibold"
-							>
-								Tutup
 							</Button>
 						</div>
 					</div>

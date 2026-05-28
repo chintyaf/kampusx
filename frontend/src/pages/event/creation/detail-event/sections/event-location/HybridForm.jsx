@@ -5,7 +5,7 @@ import OnlineForm from './OnlineForm';
 import OfflineForm from './OfflineForm';
 import QuotaCard from './QuotaCard';
 
-const HybridForm = ({ data, onChange, errors }) => {
+const HybridForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {} }) => {
 	// Tab internal untuk memilih mana yang mau diedit (Online/Offline)
 	const [currentType, setCurrentType] = useState('online');
 
@@ -61,9 +61,9 @@ const HybridForm = ({ data, onChange, errors }) => {
 			{/* Form Konten Berdasarkan Tab yang Dipilih */}
 			<div className="">
 				{currentType === 'online' ? (
-					<OnlineForm data={data} onChange={onChange} errors={errors} isHybrid />
+					<OnlineForm data={data} onChange={onChange} errors={errors} touched={touched} handleBlur={handleBlur} isHybrid />
 				) : (
-					<OfflineForm data={data} onChange={onChange} errors={errors} isHybrid />
+					<OfflineForm data={data} onChange={onChange} errors={errors} touched={touched} handleBlur={handleBlur} isHybrid />
 				)}
 			</div>
 

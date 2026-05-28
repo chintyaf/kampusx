@@ -3,7 +3,7 @@ import { Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import OfflineLocationInput from '../../../../../../components/event/OfflineLocationInput';
 import { HelpCircle } from 'lucide-react';
 
-const OfflineForm = ({ data, onChange, errors }) => {
+const OfflineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {} }) => {
 	// Fungsi ini menangkap data dari Google Maps/Peta
 	const handleMapLocationChange = (mapDataObj) => {
 		Object.keys(mapDataObj).forEach((key) => {
@@ -26,8 +26,13 @@ const OfflineForm = ({ data, onChange, errors }) => {
 					name="location_name"
 					value={data?.location_name || ''} // Tambahkan || "" untuk mencegah error uncontrolled input
 					onChange={onChange}
+					onBlur={() => handleBlur('location_name')}
 					placeholder="Contoh: Gedung Rektorat..."
+					isInvalid={touched.location_name && (!data?.location_name || data.location_name.trim() === '')}
 				/>
+				<Form.Control.Feedback type="invalid">
+					Ringkasan lokasi wajib diisi.
+				</Form.Control.Feedback>
 				<Form.Text className="text-muted">
 					Nama lokasi singkat yang muncul di kartu event halaman publik.
 				</Form.Text>

@@ -1,19 +1,19 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 
-import Dashboard from '../pages/dashboard/Dashboard';
-import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
-import CreateEvent from '../pages/event/creation/CreateEvent/index';
-import ManageUserPage from '../pages/admin/ManageUserPage';
+import Dashboard from '@/pages/dashboard/Dashboard';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import CreateEvent from '@/pages/event/creation/CreateEvent/index';
+import ManageUserPage from '@/pages/admin/ManageUserPage';
 
 // Import komponen baru yang ditambahkan
-import OrganizerVerificationPage from '../pages/admin/OrganizerVerificationPage';
-import EventMonitoringPage from '../pages/admin/EventMonitoringPage';
-import PromotionControlPage from '../pages/admin/PromotionControlPage';
+import OrganizerVerificationPage from '@/pages/admin/OrganizerVerificationPage';
+import EventMonitoringPage from '@/pages/admin/EventMonitoringPage';
+import PromotionControlPage from '@/pages/admin/PromotionControlPage';
 
-import Kategori from '../pages/admin/master-data/Kategori';
-import TipeEvent from '../pages/admin/master-data/TipeEvent';
-import Institusi from '../pages/admin/master-data/Institusi';
+import Kategori from '@/pages/admin/master-data/Kategori';
+import TipeEvent from '@/pages/admin/master-data/TipeEvent';
+import Institusi from '@/pages/admin/master-data/Institusi';
 
 export const AdminRoutes = [
 	// ADMIN ROUTES
