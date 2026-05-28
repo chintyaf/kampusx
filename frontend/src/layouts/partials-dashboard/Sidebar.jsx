@@ -43,7 +43,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 		return () => {
 			window.removeEventListener('event-status-updated', handleRefetch);
 		};
-	}, [currentEventId, location.pathname]); // Re-fetch on currentEventId change and page navigation!
+	}, [currentEventId]); // Only re-fetch when event changes or explicitly triggered via event-status-updated
 
 	// Menggunakan useMemo agar referensi currentMenu tidak berubah setiap kali render
 	const currentMenu = useMemo(() => {
@@ -75,6 +75,14 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 		const step3Keywords = ['tanggal mulai', 'jadwal atau sesi', 'waktu pelaksanaan', 'pembicara'];
 		return !missingData.some(err => 
 			step3Keywords.some(kw => err.toLowerCase().includes(kw))
+		);
+	}, [missingData]);
+
+	const isStep4Completed = useMemo(() => {
+		if (!missingData || missingData.length === 0) return true;
+		const step4Keywords = ['tiket', 'kategori tiket', 'harga tiket', 'kapasitas tiket'];
+		return !missingData.some(err => 
+			step4Keywords.some(kw => err.toLowerCase().includes(kw))
 		);
 	}, [missingData]);
 
@@ -139,6 +147,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 									isStep1Completed={isStep1Completed}
 									isStep2Completed={isStep2Completed}
 									isStep3Completed={isStep3Completed}
+									isStep4Completed={isStep4Completed}
 								/>
 							</li>
 						))}

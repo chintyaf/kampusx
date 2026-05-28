@@ -9,7 +9,8 @@ const SidebarItem = ({
 	isSidebarCollapsed,
 	isStep1Completed = true,
 	isStep2Completed = true,
-	isStep3Completed = true
+	isStep3Completed = true,
+	isStep4Completed = true
 }) => {
 	const location = useLocation();
 	const hasSubmenu = !!item.submenu;
@@ -137,6 +138,7 @@ const SidebarItem = ({
 												sub.path === 'info' ? isStep1Completed :
 												sub.path === 'tempat' ? isStep2Completed :
 												sub.path === 'sesi' ? isStep3Completed :
+												sub.path === 'tiket' ? isStep4Completed :
 												sub.isCompleted
 											)}
 										</NavLink>
