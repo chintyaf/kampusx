@@ -27,6 +27,9 @@ class Event extends Model
         'start_date',
         'end_date',
         'timezone',
+        'attendance_open_at',
+        'attendance_close_at',
+        'self_checkin_token',
 
         'status',
 

@@ -245,10 +245,17 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::put('/{surveyId}/questions', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'syncQuestions']);
                 Route::delete('/{surveyId}', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'destroy']);
             });
+
+            // 9. Self Check-in Token
+            Route::get('/self-checkin-token', [EventDashboardController::class, 'getSelfCheckinToken']);
+            Route::post('/generate-checkin-token', [EventDashboardController::class, 'generateSelfCheckinToken']);
         });
     });
 
-    // [Route EventStatusController telah dipindahkan ke dalam group role:organizer,admin agar aman dari akses partisipan]
+    // ==========================================
+    // --- ROLE: PARTICIPANT / SELF CHECK-IN ---
+    // ==========================================
+    Route::post('/attendance/self-checkin', [AttendanceController::class, 'selfCheckin']);
 });
 
 // ==========================================

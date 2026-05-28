@@ -608,7 +608,7 @@ const EventSession = () => {
 						</ul>
 					</div>
 				)}
-			</div>
+				0			</div>
 		</EventLayout>
 	);
 };

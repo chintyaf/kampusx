@@ -26,6 +26,8 @@ const EventGeneralInfo = () => {
 		kategori: [],
 		eventType: [],
 		timezone: 'Asia/Jakarta',
+		attendance_open_at: '',
+		attendance_close_at: '',
 	});
 	const [touched, setTouched] = useState({});
 
@@ -189,6 +191,8 @@ const EventGeneralInfo = () => {
 						description: data.description || '',
 						banner: data.banner || null,
 						timezone: mapToStandardTimezone(data.timezone || 'Asia/Jakarta'),
+						attendance_open_at: data.attendance_open_at ? data.attendance_open_at.slice(0, 16) : '',
+						attendance_close_at: data.attendance_close_at ? data.attendance_close_at.slice(0, 16) : '',
 						kategori: data.tags_kategori
 							? data.tags_kategori.map((cat) => ({
 									value: cat.id.toString(),
@@ -226,6 +230,8 @@ const EventGeneralInfo = () => {
 			eventType: true,
 			timezone: true,
 			banner: true,
+			attendance_open_at: true,
+			attendance_close_at: true,
 		});
 
 		const submitData = new FormData();
@@ -233,6 +239,12 @@ const EventGeneralInfo = () => {
 		submitData.append('title', formData.title);
 		submitData.append('description', formData.description);
 		submitData.append('timezone', formData.timezone);
+		if (formData.attendance_open_at) {
+			submitData.append('attendance_open_at', formData.attendance_open_at);
+		}
+		if (formData.attendance_close_at) {
+			submitData.append('attendance_close_at', formData.attendance_close_at);
+		}
 
 		formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
 		formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
@@ -427,6 +439,41 @@ const EventGeneralInfo = () => {
 						Zona waktu wajib diisi.
 					</Form.Control.Feedback>
 				</Form.Group>
+
+				{/* Waktu Presensi */}
+				<div className="row mb-4">
+					<div className="col-md-6">
+						<Form.Group controlId="formAttendanceOpen">
+							<Form.Label>Waktu Buka Presensi (Opsional)</Form.Label>
+							<Form.Control
+								type="datetime-local"
+								name="attendance_open_at"
+								value={formData.attendance_open_at}
+								onChange={handleTextChange}
+								className="shadow-none"
+							/>
+							<Form.Text className="text-muted small">
+								Batas awal peserta bisa melakukan presensi.
+							</Form.Text>
+						</Form.Group>
+					</div>
+					<div className="col-md-6">
+						<Form.Group controlId="formAttendanceClose">
+							<Form.Label>Waktu Tutup Presensi (Opsional)</Form.Label>
+							<Form.Control
+								type="datetime-local"
+								name="attendance_close_at"
+								value={formData.attendance_close_at}
+								onChange={handleTextChange}
+								className="shadow-none"
+								min={formData.attendance_open_at}
+							/>
+							<Form.Text className="text-muted small">
+								Batas akhir peserta bisa melakukan presensi.
+							</Form.Text>
+						</Form.Group>
+					</div>
+				</div>
 
 				<UploadImage formData={formData} setFormData={setFormData} />
 				{touched.banner && !formData.banner && (

@@ -7,20 +7,20 @@ import {
     Crosshair,
     MonitorPlay,
     Clock,
-	Home,
-	Compass,
-	Heart,
-	Ticket,
-	Info,
-	LogIn,
-	UserPlus,
-	Menu,
-	User,
-	Settings,
-	LayoutDashboard,
-	Award,
-	ShieldCheck,
-	LogOut,
+    Home,
+    Compass,
+    Heart,
+    Ticket,
+    Info,
+    LogIn,
+    UserPlus,
+    Menu,
+    User,
+    Settings,
+    LayoutDashboard,
+    Award,
+    ShieldCheck,
+    LogOut,
 
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -36,12 +36,12 @@ const NavbarPublic = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
-	// === MOBILE MENU STATE ===
+    // === MOBILE MENU STATE ===
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const handleClose = () => setShowMobileMenu(false);
     const handleShow = () => setShowMobileMenu(true);
 
-	const handleLogout = async () => {
+    const handleLogout = async () => {
         handleClose();
         await logout();
         navigate('/');
@@ -83,7 +83,7 @@ const NavbarPublic = () => {
         }
     };
 
-	// === STYLING ===
+    // === STYLING ===
     const linkStyle = ({ isActive }) => ({
         fontSize: '14px',
         fontWeight: isActive ? 700 : 500,
@@ -108,7 +108,7 @@ const NavbarPublic = () => {
         textDecoration: 'none'
     });
 
-	return (
+    return (
         <Navbar expand="lg" className="bg-white border-bottom shadow-sm sticky-top py-2">
             <Container className="px-4 d-flex align-items-center justify-content-between">
                 {/* Brand Logo */}
@@ -116,68 +116,68 @@ const NavbarPublic = () => {
                     <img src={LogoKampusX} alt="KampusX" style={{ width: '130px' }} />
                 </Navbar.Brand>
 
-				{/* Desktop Navigation Links */}
-				<Nav className="d-none d-lg-flex mx-auto gap-4 align-items-center">
-					<NavLink to="/" style={linkStyle} end>
-						Home
-					</NavLink>
-					<NavLink to="/explore-events" style={linkStyle}>
-						Eksplor Event
-					</NavLink>
-					{user && (
-						<>
-							<NavLink to="/bookmarks" style={linkStyle}>
-								Bookmark
-							</NavLink>
-							<NavLink to="/my-tickets" style={linkStyle}>
-								Tiket Saya
-							</NavLink>
-						</>
-					)}
-					<NavLink to="/about" style={linkStyle}>
-						Tentang Kami
-					</NavLink>
-				</Nav>
+                {/* Desktop Navigation Links */}
+                <Nav className="d-none d-lg-flex mx-auto gap-4 align-items-center">
+                    <NavLink to="/" style={linkStyle} end>
+                        Home
+                    </NavLink>
+                    <NavLink to="/explore-events" style={linkStyle}>
+                        Eksplor Event
+                    </NavLink>
+                    {user && (
+                        <>
+                            <NavLink to="/bookmarks" style={linkStyle}>
+                                Bookmark
+                            </NavLink>
+                            <NavLink to="/my-tickets" style={linkStyle}>
+                                Tiket Saya
+                            </NavLink>
+                        </>
+                    )}
+                    <NavLink to="/about" style={linkStyle}>
+                        Tentang Kami
+                    </NavLink>
+                </Nav>
 
-				{/* Desktop Actions */}
-				<div className="d-none d-lg-flex align-items-center gap-3">
-					{!user ? (
-						<>
-							<Button as={Link} to="/login" variant="light" style={{
-								fontSize: '13px', fontWeight: 600, background: '#fff', color: 'var(--color-text)',
-								border: '1px solid var(--color-border)', borderRadius: 8, padding: '8px 20px'
-							}}>
-								Masuk
-							</Button>
-							<Button as={Link} to="/register" variant="dark" style={{
-								fontSize: '13px', fontWeight: 600, backgroundColor: 'var(--color-text)',
-								border: 'none', borderRadius: 8, padding: '8px 20px'
-							}}>
-								Daftar
-							</Button>
-						</>
-					) : (
-						<>
-							<NotificationDropdown />
-							<ProfileDropdown />
-						</>
-					)}
-				</div>
+                {/* Desktop Actions */}
+                <div className="d-none d-lg-flex align-items-center gap-3">
+                    {!user ? (
+                        <>
+                            <Button as={Link} to="/login" variant="light" style={{
+                                fontSize: '13px', fontWeight: 600, background: '#fff', color: 'var(--color-text)',
+                                border: '1px solid var(--color-border)', borderRadius: 8, padding: '8px 20px'
+                            }}>
+                                Masuk
+                            </Button>
+                            <Button as={Link} to="/register" variant="dark" style={{
+                                fontSize: '13px', fontWeight: 600, backgroundColor: 'var(--color-text)',
+                                border: 'none', borderRadius: 8, padding: '8px 20px'
+                            }}>
+                                Daftar
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <NotificationDropdown />
+                            <ProfileDropdown />
+                        </>
+                    )}
+                </div>
 
-				{/* Mobile Controls (Only Bell Lonceng and Hamburger Menu) */}
-				<div className="d-flex d-lg-none align-items-center gap-2">
-					{user && <NotificationDropdown />}
-					<Button 
-						variant="light" 
-						onClick={handleShow} 
-						className="border-0 p-1" 
-						style={{ background: 'transparent' }}
-					>
-						<Menu size={24} className="text-dark" />
-					</Button>
-				</div>
+                {/* Mobile Controls (Only Bell Lonceng and Hamburger Menu) */}
+                <div className="d-flex d-lg-none align-items-center gap-2">
+                    {user && <NotificationDropdown />}
+                    <Button
+                        variant="light"
+                        onClick={handleShow}
+                        className="border-0 p-1"
+                        style={{ background: 'transparent' }}
+                    >
+                        <Menu size={24} className="text-dark" />
+                    </Button>
+                </div>
 
-				{/* === CONDITIONAL RENDERING AUTH (Desktop) ===
+                {/* === CONDITIONAL RENDERING AUTH (Desktop) ===
 				<div className="d-none d-lg-block">
 					{user ? (
 						<ProfileDropdown />
@@ -287,7 +287,7 @@ const NavbarPublic = () => {
 
                                     <hr className="my-2 opacity-10" />
 
-                                    <Button 
+                                    <Button
                                         variant="link"
                                         onClick={handleLogout}
                                         className="d-flex align-items-center gap-3 px-3 py-2 text-danger text-decoration-none border-0 w-100 text-start bg-transparent"
@@ -304,10 +304,10 @@ const NavbarPublic = () => {
                     {/* Guest Mobile Buttons at Bottom */}
                     {!user && (
                         <div className="d-flex flex-column gap-2 mt-4 w-100">
-                            <Button 
-                                as={Link} 
-                                to="/login" 
-                                variant="light" 
+                            <Button
+                                as={Link}
+                                to="/login"
+                                variant="light"
                                 onClick={handleClose}
                                 style={{
                                     fontSize: '14px', fontWeight: 600, background: '#fff', color: 'var(--color-text)',
@@ -318,10 +318,10 @@ const NavbarPublic = () => {
                                 <LogIn size={16} />
                                 <span>Masuk</span>
                             </Button>
-                            <Button 
-                                as={Link} 
-                                to="/register" 
-                                variant="dark" 
+                            <Button
+                                as={Link}
+                                to="/register"
+                                variant="dark"
                                 onClick={handleClose}
                                 style={{
                                     fontSize: '14px', fontWeight: 600, backgroundColor: 'var(--color-text)',

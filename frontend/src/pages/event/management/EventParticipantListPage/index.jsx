@@ -29,6 +29,8 @@ import {
     XCircle,
     ChevronLeft,
     ChevronRight,
+    Download,
+    UserMinus
 } from "lucide-react";
 import FormHeading from "@/components/dashboard/FormHeading";
 import "../../../../assets/css/participant-list.css";
@@ -145,6 +147,54 @@ const EventParticipantListPage = () => {
         }));
     };
 
+    const handleManualOverride = async (ticketId, type) => {
+        try {
+            const res = await api.post('/attendance/manual', {
+                ticket_id: ticketId,
+                event_id: eventId,
+                type: type // 'check-in' or 'check-out'
+            });
+            if (res.data.success) {
+                toast.success(res.data.message);
+                fetchParticipants(pageInfo.current_page); // refresh list
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Gagal mengubah status kehadiran manual');
+        }
+    };
+
+    const handleExportCSV = () => {
+        if (!participants || participants.length === 0) {
+            toast.error("Tidak ada data untuk diekspor");
+            return;
+        }
+
+        const headers = ["ID Tiket", "Nama Peserta", "Email", "Telepon", "Institusi", "Status"];
+        const rows = participants.map(t => [
+            t.id,
+            t.attendee_name || t.participant?.name || "Tidak diketahui",
+            t.attendee_email || t.participant?.email || "-",
+            t.participant?.phone || "-",
+            t.participant?.university?.name || "Umum",
+            t.status
+        ]);
+
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(row => row.map(v => `"${v}"`).join(","))
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Data_Peserta_Event_${eventId}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("Berhasil mengekspor data!");
+    };
+
     const handlePageChange = (page) => {
         if (page < 1 || page > pageInfo.last_page) return;
         fetchParticipants(page);
@@ -155,6 +205,7 @@ const EventParticipantListPage = () => {
     const checkedIn = participants.filter((t) => t.status === "checked_in").length;
     const active = participants.filter((t) => t.status === "active").length;
     const cancelled = participants.filter((t) => t.status === "cancelled").length;
+    const attendancePercentage = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
 
     // ── Pagination ────────────────────────────────────────────────────────────
     const renderPagination = () => {
@@ -263,6 +314,15 @@ const EventParticipantListPage = () => {
                     </div>
                 </div>
                 <div className="stat-card">
+                    <div className="stat-card__icon stat-card__icon--purple" style={{ background: '#f3e8ff', color: '#7e22ce' }}>
+                        <School size={16} />
+                    </div>
+                    <div>
+                        <p className="stat-card__label">Tingkat Kehadiran</p>
+                        <p className="stat-card__value">{attendancePercentage}%</p>
+                    </div>
+                </div>
+                <div className="stat-card">
                     <div className="stat-card__icon stat-card__icon--red">
                         <XCircle size={16} />
                     </div>
@@ -289,6 +349,9 @@ const EventParticipantListPage = () => {
                         </div>
                         <Button variant="outline-secondary" size="sm" className="d-flex align-items-center gap-2">
                             <Filter size={15} /> Filter
+                        </Button>
+                        <Button variant="outline-success" size="sm" className="d-flex align-items-center gap-2" onClick={handleExportCSV}>
+                            <Download size={15} /> Export CSV
                         </Button>
                     </div>
 
@@ -454,9 +517,19 @@ const EventParticipantListPage = () => {
                                                                 Hubungi via WhatsApp
                                                             </Dropdown.Item>
                                                         )}
-                                                        <Dropdown.Item className="d-flex align-items-center gap-2 fs-sm">
+                                                        <Dropdown.Item 
+                                                            className="d-flex align-items-center gap-2 fs-sm"
+                                                            onClick={() => handleManualOverride(ticket.id, 'check-in')}
+                                                        >
                                                             <UserCheck size={14} className="text-primary" />
                                                             Tandai Hadir Manual
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item 
+                                                            className="d-flex align-items-center gap-2 fs-sm"
+                                                            onClick={() => handleManualOverride(ticket.id, 'check-out')}
+                                                        >
+                                                            <UserMinus size={14} className="text-warning" />
+                                                            Tandai Check-out Manual
                                                         </Dropdown.Item>
                                                         <Dropdown.Divider />
                                                         <Dropdown.Item className="d-flex align-items-center gap-2 fs-sm text-muted">

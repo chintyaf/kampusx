@@ -16,7 +16,7 @@ class EventGeneralInfoController extends Controller
      */
     public function index($eventId)
     {
-        $event = Event::select('id', 'title', 'description', 'image_path', 'timezone') // Hapus slug jika tidak dipakai
+        $event = Event::select('id', 'title', 'description', 'image_path', 'timezone', 'attendance_open_at', 'attendance_close_at') // Hapus slug jika tidak dipakai
             ->with([
                 'categories' => function($query) {
                     $query->select('categories.id', 'categories.name');
@@ -36,6 +36,8 @@ class EventGeneralInfoController extends Controller
                 'description'   => $event->description,
                 'banner'        => $event->image_path ? url('storage/' . $event->image_path ) : null,
                 'timezone'      => $event->timezone,
+                'attendance_open_at' => $event->attendance_open_at,
+                'attendance_close_at' => $event->attendance_close_at,
 
                 // Menyesuaikan dengan response yang dibaca di useEffect React
                 'tags_kategori' => $event->categories->map(function($cat) {
@@ -75,6 +77,8 @@ class EventGeneralInfoController extends Controller
                             ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
                             : 'nullable',
             'timezone'           => 'required|string|max:50',
+            'attendance_open_at' => 'nullable|date',
+            'attendance_close_at'=> 'nullable|date|after_or_equal:attendance_open_at',
         ]);
 
         try {
@@ -82,9 +86,11 @@ class EventGeneralInfoController extends Controller
 
                 // 1. Update Tabel Utama (Events)
                 $updateData = [
-                    'title'       => $validated['title'],
-                    'description' => $validated['description'] ?? null,
-                    'timezone'    => $validated['timezone'],
+                    'title'               => $validated['title'],
+                    'description'         => $validated['description'] ?? null,
+                    'timezone'            => $validated['timezone'],
+                    'attendance_open_at'  => $validated['attendance_open_at'] ?? null,
+                    'attendance_close_at' => $validated['attendance_close_at'] ?? null,
                 ];
 
               // Di dalam method update(Request $request, $eventId)

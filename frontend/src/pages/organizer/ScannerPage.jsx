@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Card, Form, Button, Tabs, Tab, Modal } from 'react-bootstrap';
-import { Camera, Search, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { Container, Card, Form, Button, Tabs, Tab, Modal, ButtonGroup, ToggleButton, Spinner } from 'react-bootstrap';
+import { Camera, Search, UserCheck, AlertCircle, CheckCircle, QrCode, RefreshCw } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useParams } from 'react-router-dom';
@@ -17,6 +18,39 @@ const ScannerPage = () => {
 	const [manualInput, setManualInput] = useState('');
 	const [showModal, setShowModal] = useState(false);
 	const [scannedData, setScannedData] = useState(null);
+	const [scanType, setScanType] = useState('check-in');
+	const [selfCheckinToken, setSelfCheckinToken] = useState(null);
+	const [isGenerating, setIsGenerating] = useState(false);
+
+	const fetchSelfCheckinToken = async () => {
+		try {
+			const res = await api.get(`/event-dashboard/${eventIdRef.current}/self-checkin-token`);
+			if (res.data.status === 'success' && res.data.token) {
+				setSelfCheckinToken(res.data.token);
+			}
+		} catch (error) {
+			console.error("Gagal mengambil token presensi mandiri", error);
+		}
+	};
+
+	const generateSelfCheckinToken = async () => {
+		setIsGenerating(true);
+		try {
+			const res = await api.post(`/event-dashboard/${eventIdRef.current}/generate-checkin-token`);
+			if (res.data.status === 'success') {
+				setSelfCheckinToken(res.data.token);
+				toast.success("QR Code Presensi Mandiri berhasil diperbarui!");
+			}
+		} catch (error) {
+			toast.error("Gagal membuat token QR");
+		} finally {
+			setIsGenerating(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchSelfCheckinToken();
+	}, []);
 
 	const handleScanSuccess = async (data, method = 'qr') => {
 		try {
@@ -25,12 +59,14 @@ const ScannerPage = () => {
 				res = await api.post('/attendance/scan', {
 					qr_string: data,
 					event_id: eventIdRef.current,
+					type: scanType,
 				});
 			} else {
 				// Manual menggunakan ticket_id
 				res = await api.post('/attendance/manual', {
 					ticket_id: parseInt(data),
 					event_id: eventIdRef.current,
+					type: scanType,
 				});
 			}
 
@@ -129,6 +165,32 @@ const ScannerPage = () => {
 			<h3 className="mb-4 text-center fw-bold text-primary">Event Scanner Panel</h3>
 
 			<Card className="shadow-sm border-0 rounded-4 overflow-hidden">
+				<Card.Header className="bg-white border-0 pt-4 pb-0 text-center">
+					<ButtonGroup className="mb-3 w-100">
+						<ToggleButton
+							id="toggle-checkin"
+							type="radio"
+							variant={scanType === 'check-in' ? 'primary' : 'outline-primary'}
+							name="scanType"
+							value="check-in"
+							checked={scanType === 'check-in'}
+							onChange={(e) => setScanType(e.currentTarget.value)}
+						>
+							Check-in
+						</ToggleButton>
+						<ToggleButton
+							id="toggle-checkout"
+							type="radio"
+							variant={scanType === 'check-out' ? 'warning' : 'outline-warning'}
+							name="scanType"
+							value="check-out"
+							checked={scanType === 'check-out'}
+							onChange={(e) => setScanType(e.currentTarget.value)}
+						>
+							Check-out
+						</ToggleButton>
+					</ButtonGroup>
+				</Card.Header>
 				<Card.Body className="p-0">
 					<Tabs
 						defaultActiveKey="qr"
@@ -195,6 +257,59 @@ const ScannerPage = () => {
 								</Form>
 							</div>
 						</Tab>
+
+						{/* TAB: Self Check-in QR Layout */}
+						<Tab
+							eventKey="self-checkin"
+							title={
+								<span className="py-2 d-inline-block">
+									<QrCode size={18} className="me-2 mb-1" /> PRESENSI MANDIRI
+								</span>
+							}
+						>
+							<div className="text-center p-4 bg-light d-flex flex-column align-items-center">
+								{selfCheckinToken ? (
+									<>
+										<p className="text-muted small mb-3">
+											Tampilkan layar ini agar peserta bisa melakukan scan menggunakan kamera HP mereka sendiri.
+										</p>
+										<div className="bg-white p-4 rounded-4 shadow-sm mb-4 d-inline-block border">
+											<QRCodeSVG 
+												value={`${window.location.origin}/event/${eventIdRef.current}/self-checkin?token=${selfCheckinToken}&type=${scanType}`} 
+												size={250} 
+												level={"H"}
+												includeMargin={true}
+											/>
+										</div>
+										<Button 
+											variant="outline-secondary" 
+											onClick={generateSelfCheckinToken}
+											disabled={isGenerating}
+											className="d-flex align-items-center rounded-pill"
+										>
+											{isGenerating ? <Spinner size="sm" className="me-2"/> : <RefreshCw size={16} className="me-2" />}
+											Perbarui QR Code
+										</Button>
+									</>
+								) : (
+									<div className="bg-white p-5 rounded-4 shadow-sm mb-4 w-100">
+										<QrCode size={48} className="text-muted mb-3 opacity-50" />
+										<p className="text-muted mb-4">
+											Belum ada QR Code untuk presensi mandiri.
+										</p>
+										<Button 
+											variant="primary" 
+											onClick={generateSelfCheckinToken}
+											disabled={isGenerating}
+											className="rounded-pill px-4 shadow"
+										>
+											{isGenerating ? <Spinner size="sm" className="me-2"/> : null}
+											Generate QR Presensi
+										</Button>
+									</div>
+								)}
+							</div>
+						</Tab>
 					</Tabs>
 				</Card.Body>
 			</Card>
@@ -226,13 +341,13 @@ const ScannerPage = () => {
 					</div>
 
 					<Button
-						variant="success"
+						variant={scanType === 'check-in' ? 'success' : 'warning'}
 						size="lg"
 						className="w-100 rounded-pill fw-bold py-3 shadow"
 						onClick={handleClaimAttendance}
 					>
 						<CheckCircle size={20} className="me-2 mb-1" />
-						Klaim Kehadiran
+						Klaim {scanType === 'check-in' ? 'Check-in' : 'Check-out'}
 					</Button>
 				</Modal.Body>
 			</Modal>

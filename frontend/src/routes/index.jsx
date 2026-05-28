@@ -56,6 +56,7 @@ import NotificationsPage from '../pages/member/NotificationsPage';
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
 import BookmarkPage from '../pages/member/BookmarkPage';
+import SelfCheckinPage from '../pages/event/SelfCheckinPage';
 
 
 import CommitteePage from '../pages/committee/CommitteePage';
@@ -150,6 +151,7 @@ const AppRoutes = () => {
 						<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
 						<Route path="/event-space/:id" element={<EventSpace />} />
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
+						<Route path="/event/:slug/self-checkin" element={<SelfCheckinPage />} />
 					</Route>
 				</Route>
 

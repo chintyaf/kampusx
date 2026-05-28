@@ -537,4 +537,32 @@ class EventDashboardController extends Controller
             ]
         ]);
     }
+
+    public function getSelfCheckinToken($eventId)
+    {
+        $event = Event::findOrFail($eventId);
+        
+        return response()->json([
+            'status' => 'success',
+            'token' => $event->self_checkin_token
+        ]);
+    }
+
+    public function generateSelfCheckinToken($eventId)
+    {
+        $event = Event::findOrFail($eventId);
+        
+        // Generate a random token
+        $token = \Illuminate\Support\Str::random(32);
+        
+        $event->update([
+            'self_checkin_token' => $token
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Token presensi mandiri berhasil dibuat.',
+            'token' => $token
+        ]);
+    }
 }
