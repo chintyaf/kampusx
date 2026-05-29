@@ -44,6 +44,14 @@ const EventSession = () => {
 		getStep3ValidationErrors,
 	} = useEventSession(eventId);
 
+	const totalSessions = days.reduce((acc, d) => acc + (d.sessions?.length || 0), 0);
+	const hasAtLeastOneDay = days.length >= 1;
+	const hasAtLeastOneSession = totalSessions >= 1;
+	const allDaysHaveDateAndSession = days.every(
+		(day) => day.date && day.date.trim() !== '' && day.sessions && day.sessions.length >= 1
+	);
+	const isSaveDisabled = !hasAtLeastOneDay || !hasAtLeastOneSession || !allDaysHaveDateAndSession;
+
 	const handleCloseForm = () => {
 		setSidebar('summary');
 		setSelectedRow(null);
@@ -71,7 +79,7 @@ const EventSession = () => {
 						onDeleteSession={() => handleDeleteSession(selectedRow?.id, setSidebar)}
 						onToggleHideSession={() => handleToggleHideSession(selectedRow?.id)}
 						allSpeakers={allSpeakers}
-						onSaveSpeaker={(speakerData) => handleSaveSpeaker(speakerData, setSidebar)}
+						onSaveSpeaker={(speakerData) => handleSaveSpeaker(speakerData, null)}
 						onDeleteSpeaker={handleDeleteSpeaker}
 					/>
 				);
@@ -113,6 +121,7 @@ const EventSession = () => {
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
 			isCurrentStepCompleted={isCurrentStepCompleted}
+			isSaveDisabled={isSaveDisabled}
 		>
 			<Outlet context={{ sidebar, setSidebar, setSelectedRow }} />
 
@@ -144,41 +153,7 @@ const EventSession = () => {
 						Tambah Hari Baru
 					</button>
 
-					{!isCurrentStepCompleted && (
-						<div
-							style={{
-								padding: '16px 20px',
-								background: '#fff5f5',
-								border: '1.5px solid #feb2b2',
-								borderRadius: '12px',
-								marginTop: '24px',
-							}}
-						>
-							<h6
-								style={{
-									color: '#c53030',
-									fontWeight: '700',
-									marginBottom: '8px',
-									fontSize: '0.9rem',
-								}}
-							>
-								⚠️ Mohon lengkapi data sesi dan jadwal berikut:
-							</h6>
-							<ul
-								style={{
-									margin: 0,
-									paddingLeft: '20px',
-									color: '#9b2c2c',
-									fontSize: '0.85rem',
-									lineHeight: '1.6',
-								}}
-							>
-								{getStep3ValidationErrors().map((err, i) => (
-									<li key={i}>{err}</li>
-								))}
-							</ul>
-						</div>
-					)}
+	
 				</div>
 			)}
 		</EventLayout>

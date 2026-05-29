@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import SpeakerList, { getSpeakerAvatar } from './SpeakerList';
 import SpeakerForm from './SpeakerForm';
+import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
 const SessionForm = ({
 	data,
@@ -50,6 +51,7 @@ const SessionForm = ({
 	const [activeType, setActiveType] = useState('Keynote');
 	const sessionTypes = ['Keynote', 'Panel', 'Workshop', 'Sesi', 'Break'];
 	const [touched, setTouched] = useState({});
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
 	const handleBlur = (field) => {
 		setTouched((prev) => ({ ...prev, [field]: true }));
@@ -105,8 +107,8 @@ const SessionForm = ({
 
 		const hasSpeakers = sessionData.speakers && sessionData.speakers.length > 0;
 		if (
-			sessionData.title.trim() === '' || 
-			!sessionData.startTime || 
+			sessionData.title.trim() === '' ||
+			!sessionData.startTime ||
 			!sessionData.endTime ||
 			(!hasSpeakers && !sessionData.no_speaker)
 		) {
@@ -128,7 +130,7 @@ const SessionForm = ({
 			sessionData.endTime !== (data.endTime || '') ||
 			parseInt(sessionData.dayNumber) !== parseInt(data.dayNumber || 1) ||
 			JSON.stringify(sessionData.prerequisite_session_ids) !==
-				JSON.stringify(data.prerequisite_session_ids || []) ||
+			JSON.stringify(data.prerequisite_session_ids || []) ||
 			JSON.stringify(sessionData.speakers) !== JSON.stringify(data.speakers || []) ||
 			sessionData.no_speaker !== (data.no_speaker || false)
 		);
@@ -240,11 +242,7 @@ const SessionForm = ({
 								variant="light"
 								className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
 								style={{ backgroundColor: '#fee2e2', color: '#ef4444' }}
-								onClick={() => {
-									if (window.confirm('Yakin ingin menghapus sesi ini?')) {
-										if (onDeleteSession) onDeleteSession();
-									}
-								}}
+								onClick={() => setShowDeleteModal(true)}
 								title="Hapus Sesi"
 							>
 								<Trash2 size={18} />
@@ -609,28 +607,53 @@ const SessionForm = ({
 						setActiveView(prevView);
 					}}
 					initialData={selectedSpeakerToEdit}
-					onSave={(speakerData) => {
+					onSave={async (speakerData) => {
 						if (onSaveSpeaker) {
-							onSaveSpeaker(speakerData);
-						}
-						// Update locally as well if it's already added to this session
-						setSessionData((prev) => {
-							const exists = prev.speakers.some((s) => s.id === speakerData.id);
-							if (exists) {
-								return {
-									...prev,
-									speakers: prev.speakers.map((s) =>
-										s.id === speakerData.id ? speakerData : s,
-									),
-								};
+							const savedSpeaker = await onSaveSpeaker(speakerData);
+							if (savedSpeaker) {
+								// Update locally as well if it's already added to this session
+								// Or automatically add it if it's a newly created speaker!
+								setSessionData((prev) => {
+									const exists = prev.speakers.some((s) => s.id === savedSpeaker.id);
+									if (exists) {
+										return {
+											...prev,
+											speakers: prev.speakers.map((s) =>
+												s.id === savedSpeaker.id ? savedSpeaker : s,
+											),
+										};
+									} else {
+										return {
+											...prev,
+											speakers: [...prev.speakers, savedSpeaker],
+										};
+									}
+								});
 							}
-							return prev;
-						});
+						}
 						setActiveView(prevView);
 					}}
 					isModal={true}
 				/>
 			)}
+			{/* Modal Konfirmasi Hapus Sesi */}
+			<ConfirmationModal
+				show={showDeleteModal}
+				onHide={() => setShowDeleteModal(false)}
+				onConfirm={() => {
+					setShowDeleteModal(false);
+					if (onDeleteSession) onDeleteSession();
+				}}
+				config={{
+					title: 'Hapus Sesi',
+					desc: 'Apakah Anda yakin ingin menghapus sesi ini? Tindakan ini tidak dapat dibatalkan.',
+					icon: Trash2,
+					iconColor: '#ef4444',
+					iconBg: '#fee2e2',
+					iconBorder: '#fecaca',
+					btnVariant: 'danger',
+				}}
+			/>
 		</div>
 	);
 };

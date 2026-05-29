@@ -94,6 +94,52 @@ export default function EventTicket() {
 				notify('error', 'Gagal!', `Waktu Akhir Pendaftaran untuk "${ticketLabel}" wajib ditentukan.`);
 				return;
 			}
+
+			// Validasi Tanggal
+			const saleStartStr = t.sale_start || t.saleStart;
+			const saleEndStr = t.sale_end || t.saleEnd;
+			const now = new Date();
+			const tzoffset = now.getTimezoneOffset() * 60000;
+			const todayStr = new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
+			const maxStr = eventStartDate ? new Date(new Date(eventStartDate).getTime() - tzoffset).toISOString().slice(0, 16) : '';
+
+			if (saleStartStr) {
+				const sVal = saleStartStr.slice(0, 16);
+				if (sVal < todayStr) {
+					notify('error', 'Gagal!', `Mulai Pendaftaran untuk "${ticketLabel}" tidak bisa kurang dari hari ini.`);
+					return;
+				}
+				if (maxStr && sVal >= maxStr) {
+					notify('error', 'Gagal!', `Mulai Pendaftaran untuk "${ticketLabel}" tidak bisa melebihi atau sama dengan hari H acara.`);
+					return;
+				}
+				if (saleEndStr) {
+					const eVal = saleEndStr.slice(0, 16);
+					if (sVal >= eVal) {
+						notify('error', 'Gagal!', `Mulai Pendaftaran untuk "${ticketLabel}" tidak bisa melebihi atau sama dengan Akhir Pendaftaran.`);
+						return;
+					}
+				}
+			}
+
+			if (saleEndStr) {
+				const eVal = saleEndStr.slice(0, 16);
+				if (eVal < todayStr) {
+					notify('error', 'Gagal!', `Akhir Pendaftaran untuk "${ticketLabel}" tidak bisa kurang dari hari ini.`);
+					return;
+				}
+				if (maxStr && eVal > maxStr) {
+					notify('error', 'Gagal!', `Akhir Pendaftaran untuk "${ticketLabel}" tidak bisa melebihi hari H acara.`);
+					return;
+				}
+				if (saleStartStr) {
+					const sVal = saleStartStr.slice(0, 16);
+					if (eVal <= sVal) {
+						notify('error', 'Gagal!', `Akhir Pendaftaran untuk "${ticketLabel}" tidak bisa kurang dari atau sama dengan Mulai Pendaftaran.`);
+						return;
+					}
+				}
+			}
 		}
 
 		// 1. Format ulang data agar sesuai dengan validasi Laravel (snake_case)
@@ -140,7 +186,40 @@ export default function EventTicket() {
 		const hasCapacity = t.unlimited || (t.capacity && parseInt(t.capacity) > 0);
 		const hasSaleStart = t.sale_start || t.saleStart;
 		const hasSaleEnd = t.sale_end || t.saleEnd;
-		return hasName && hasPrice && hasCapacity && hasSaleStart && hasSaleEnd;
+		
+		if (!hasName || !hasPrice || !hasCapacity || !hasSaleStart || !hasSaleEnd) {
+			return false;
+		}
+
+		// Validasi Tanggal Tiket (Kurang dari hari ini, hari H, atau salah urutan)
+		const startVal = t.sale_start || t.saleStart;
+		const endVal = t.sale_end || t.saleEnd;
+		const now = new Date();
+		const tzoffset = now.getTimezoneOffset() * 60000;
+		const todayStr = new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
+		const maxStr = eventStartDate ? new Date(new Date(eventStartDate).getTime() - tzoffset).toISOString().slice(0, 16) : '';
+
+		if (startVal) {
+			const sVal = startVal.slice(0, 16);
+			if (sVal < todayStr) return false;
+			if (maxStr && sVal >= maxStr) return false;
+			if (endVal) {
+				const eVal = endVal.slice(0, 16);
+				if (sVal >= eVal) return false;
+			}
+		}
+
+		if (endVal) {
+			const eVal = endVal.slice(0, 16);
+			if (eVal < todayStr) return false;
+			if (maxStr && eVal > maxStr) return false;
+			if (startVal) {
+				const sVal = startVal.slice(0, 16);
+				if (eVal <= sVal) return false;
+			}
+		}
+
+		return true;
 	});
 
 	return (
@@ -153,6 +232,7 @@ export default function EventTicket() {
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
 			isCurrentStepCompleted={isCurrentStepCompleted}
+			isSaveDisabled={!isCurrentStepCompleted}
 		>
 			{/* Banner peringatan harga terkunci */}
 			{hasParticipants && (

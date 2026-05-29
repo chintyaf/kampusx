@@ -17,11 +17,8 @@ class EventSpeakerController extends Controller
     public function index($eventId)
     {
         try {
-            // Mengambil speaker yang terhubung dengan sesi pada event ini
-            $speakers = Speaker::whereHas('sessions', function ($query) use ($eventId) {
-                // Pastikan tabel event_sessions memiliki kolom 'event_id'
-                $query->where('event_id', $eventId);
-            })
+            // Mengambil semua speaker yang terdaftar di event ini berdasarkan event_id
+            $speakers = Speaker::where('event_id', $eventId)
             ->with('sessions') // Eager load relasi sessions agar data name dari session ikut terbawa
             ->orderBy('id', 'desc')
             ->get();
@@ -78,6 +75,7 @@ class EventSpeakerController extends Controller
         try {
             DB::beginTransaction();
 
+            $savedSpeakers = [];
             if ($request->has('speakers') && is_array($request->speakers)) {
                 foreach ($request->speakers as $index => $speakerData) {
 
@@ -118,7 +116,15 @@ class EventSpeakerController extends Controller
 
                     // Update data di pivot table 'event_session_speakers'
                     // Penggunaan array kosong [] memastikan relasi dihapus jika user menghapus centang semua sesi
-                    $speaker->sessions()->sync($speakerData['sessions'] ?? []);
+                    if (array_key_exists('sessions', $speakerData)) {
+                        $speaker->sessions()->sync($speakerData['sessions'] ?? []);
+                    }
+
+                    $speaker->load('sessions');
+                    $speaker->image_url = $speaker->image_path
+                        ? Storage::url($speaker->image_path)
+                        : null;
+                    $savedSpeakers[] = $speaker;
                 }
             }
 
@@ -132,6 +138,7 @@ class EventSpeakerController extends Controller
                 'status'  => 'success',
                 'message' => 'Data pembicara berhasil disimpan',
                 'notified_participants' => $notified,
+                'data'    => $savedSpeakers,
             ], 200);
 
         } catch (\Exception $e) {
@@ -140,6 +147,47 @@ class EventSpeakerController extends Controller
                 'success' => false,
                 'status'  => 'error',
                 'message' => 'Gagal menyimpan data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Menghapus pembicara berdasarkan ID
+     */
+    public function destroy($eventId, $speakerId)
+    {
+        try {
+            DB::beginTransaction();
+
+            $speaker = Speaker::where('id', $speakerId)
+                              ->where('event_id', $eventId)
+                              ->firstOrFail();
+
+            // Hapus gambar dari storage jika ada
+            if ($speaker->image_path && Storage::exists($speaker->image_path)) {
+                Storage::delete($speaker->image_path);
+            }
+
+            // Hapus relasi pivot di event_session_speakers
+            $speaker->sessions()->detach();
+
+            // Hapus speaker
+            $speaker->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'status'  => 'success',
+                'message' => 'Pembicara berhasil dihapus'
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'status'  => 'error',
+                'message' => 'Gagal menghapus pembicara: ' . $e->getMessage()
             ], 500);
         }
     }

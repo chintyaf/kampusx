@@ -22,6 +22,7 @@ const EventLayout = ({
 	eventStatus = 'draft',
 	hasParticipants = false,
 	isCurrentStepCompleted = false,
+	isSaveDisabled = false,
 }) => {
 	const navigate = useNavigate();
 	const [isSaving, setIsSaving] = useState(false);
@@ -295,17 +296,17 @@ const EventLayout = ({
 								<Button
 									variant="primary"
 									onClick={handleSaveAndContinue}
-									disabled={isSaving}
+									disabled={isSaving || isSaveDisabled}
 								>
 									{isSaving ? 'Saving...' : 'Simpan & Lanjutkan'}
 								</Button>
 							) : (
-								<Button variant="primary" onClick={handleSave} disabled={isSaving}>
+								<Button variant="primary" onClick={handleSave} disabled={isSaving || isSaveDisabled}>
 									{isSaving ? 'Saving...' : 'Simpan'}
 								</Button>
 							)
 						) : (
-							<Button variant="primary" onClick={handleSave} disabled={isSaving}>
+							<Button variant="primary" onClick={handleSave} disabled={isSaving || isSaveDisabled}>
 								{isSaving ? 'Saving...' : 'Simpan'}
 							</Button>
 						)}

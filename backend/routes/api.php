@@ -212,6 +212,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 // Speaker
                 Route::get('/speaker', [EventSpeakerController::class, 'index']);
                 Route::post('/speaker', [EventSpeakerController::class, 'update']);
+                Route::delete('/speaker/{speakerId}', [EventSpeakerController::class, 'destroy']);
 
                 // Tickets
                 Route::get('/tickets', [EventTicketController::class, 'index']);

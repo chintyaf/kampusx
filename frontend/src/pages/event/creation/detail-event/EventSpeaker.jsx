@@ -61,85 +61,46 @@ const EventSpeaker = () => {
         }
     };
 
-    const handleSaveSpeaker = (data) => {
-        if (data.id) {
-            // Update data lama
-            setSpeakers(
-                speakers.map((speaker) =>
-                    speaker.id === data.id ? { ...speaker, ...data } : speaker,
-                ),
-            );
-        } else {
-            // 2. Gunakan flag 'temp_' untuk menandai data baru yang belum masuk DB
-            const newSpeaker = { ...data, id: `temp_${Date.now()}` };
-            setSpeakers([newSpeaker, ...speakers]);
-        }
-
-        setEditingSpeakerId(null);
-        setShowAddForm(false);
-    };
-
-    const handleDeleteSpeaker = (idToDelete) => {
-        const confirmDelete = window.confirm(
-            "Apakah Anda yakin ingin menghapus speaker ini?",
-        );
-        if (confirmDelete) {
-            setSpeakers(
-                speakers.filter((speaker) => speaker.id !== idToDelete),
-            );
-            if (editingSpeakerId === idToDelete) setEditingSpeakerId(null);
-        }
-    };
-
-    const handleSave = async () => {
-        if (speakers.length === 0) {
-            notify("error", "Wajib Diisi!", "Sebuah event setidaknya harus memiliki 1 pembicara (Speaker). Silakan tambah pembicara terlebih dahulu.");
-            throw new Error("Speaker wajib diisi");
-        }
-
-        // Gunakan FormData agar bisa mengirim file gambar bersama data JSON
+    const handleSaveSpeaker = async (data) => {
         const formData = new FormData();
+        const cleanId =
+            typeof data.id === "string" && data.id.startsWith("temp_")
+                ? ""
+                : data.id;
 
-        speakers.forEach((speaker, index) => {
-            const cleanId =
-                typeof speaker.id === "string" && speaker.id.startsWith("temp_")
-                    ? ""
-                    : speaker.id;
+        formData.append("speakers[0][id]", cleanId || "");
+        formData.append("speakers[0][name]", data.name || "");
+        formData.append("speakers[0][role]", data.role || "");
+        formData.append("speakers[0][bio]", data.bio || "");
 
-            formData.append(`speakers[${index}][id]`, cleanId || "");
-            formData.append(`speakers[${index}][name]`, speaker.name || "");
-            formData.append(`speakers[${index}][role]`, speaker.role || "");
-            formData.append(`speakers[${index}][bio]`, speaker.bio || "");
-
-            // Social links (array of objects)
-            const socialLinks = speaker.social_link || [];
-            socialLinks.forEach((link, linkIndex) => {
-                formData.append(`speakers[${index}][social_link][${linkIndex}][platform]`, link.platform || "");
-                formData.append(`speakers[${index}][social_link][${linkIndex}][url]`, link.url || "");
-            });
-
-            // Expertise
-            const expertise = speaker.expertise || [];
-            expertise.forEach((tag, tagIndex) => {
-                formData.append(`speakers[${index}][expertise][${tagIndex}]`, typeof tag === 'string' ? tag : tag.label || tag.value || '');
-            });
-
-            // Sessions (array of IDs)
-            const sessions = speaker.sessions
-                ? speaker.sessions.map((s) => s.id || s.value || s)
-                : [];
-            sessions.forEach((sessionId, sessionIndex) => {
-                formData.append(`speakers[${index}][sessions][${sessionIndex}]`, sessionId);
-            });
-
-            // Append image file jika ada (dari SpeakerForm via _imageFile)
-            if (speaker._imageFile) {
-                formData.append(`speakers_image_${index}`, speaker._imageFile);
-            }
+        // Social links (array of objects)
+        const socialLinks = data.social_link || [];
+        socialLinks.forEach((link, linkIndex) => {
+            formData.append(`speakers[0][social_link][${linkIndex}][platform]`, link.platform || "");
+            formData.append(`speakers[0][social_link][${linkIndex}][url]`, link.url || "");
         });
 
+        // Expertise
+        const expertise = data.expertise || [];
+        expertise.forEach((tag, tagIndex) => {
+            formData.append(`speakers[0][expertise][${tagIndex}]`, typeof tag === 'string' ? tag : tag.label || tag.value || '');
+        });
+
+        // Sessions (array of IDs)
+        const sessions = data.sessions
+            ? data.sessions.map((s) => s.id || s.value || s)
+            : [];
+        sessions.forEach((sessionId, sessionIndex) => {
+            formData.append(`speakers[0][sessions][${sessionIndex}]`, sessionId);
+        });
+
+        // Append image file jika ada (dari SpeakerForm via _imageFile)
+        if (data._imageFile) {
+            formData.append("speakers_image_0", data._imageFile);
+        }
+
         try {
-            const response = await api.post(
+            await api.post(
                 `event-dashboard/${eventId}/info-utama/speaker`,
                 formData,
                 {
@@ -149,21 +110,15 @@ const EventSpeaker = () => {
                 },
             );
 
-            if (response.data?.notified_participants) {
-                notify(
-                    "success",
-                    "Berhasil!",
-                    "Data pembicara telah berhasil disimpan. Peserta terdaftar telah dikirimi notifikasi perubahan.",
-                );
-            } else {
-                notify(
-                    "success",
-                    "Berhasil!",
-                    "Data pembicara telah berhasil disimpan.",
-                );
-            }
+            notify(
+                "success",
+                "Berhasil!",
+                "Data pembicara berhasil disimpan.",
+            );
 
-            // 4. Panggil ulang fetch untuk mendapatkan ID asli & relasi nama sesi dari DB
+            setEditingSpeakerId(null);
+            setShowAddForm(false);
+            // Panggil ulang fetch untuk mendapatkan ID asli & relasi nama sesi dari DB
             fetchEventSpeakers();
         } catch (error) {
             const serverResponse = error.response?.data;
@@ -175,8 +130,43 @@ const EventSpeaker = () => {
             }
 
             notify("error", "Gagal!", errorMsg);
-            throw error;
         }
+    };
+
+    const handleDeleteSpeaker = async (idToDelete) => {
+        // Cek apakah pembicara baru (belum masuk DB)
+        if (typeof idToDelete === "string" && idToDelete.startsWith("temp_")) {
+            setSpeakers(speakers.filter((speaker) => speaker.id !== idToDelete));
+            if (editingSpeakerId === idToDelete) setEditingSpeakerId(null);
+            notify("success", "Berhasil", "Pembicara dihapus dari daftar.");
+            return;
+        }
+
+        const confirmDelete = window.confirm(
+            "Apakah Anda yakin ingin menghapus speaker ini?",
+        );
+        if (!confirmDelete) return;
+
+        try {
+            await api.delete(
+                `event-dashboard/${eventId}/info-utama/speaker/${idToDelete}`,
+            );
+
+            setSpeakers(speakers.filter((speaker) => speaker.id !== idToDelete));
+            if (editingSpeakerId === idToDelete) setEditingSpeakerId(null);
+            notify("success", "Berhasil!", "Pembicara berhasil dihapus dari database.");
+        } catch (error) {
+            console.error("Gagal menghapus pembicara:", error);
+            notify("error", "Gagal!", "Gagal menghapus pembicara dari database.");
+        }
+    };
+
+    const handleSave = async () => {
+        if (speakers.length === 0) {
+            notify("error", "Wajib Diisi!", "Sebuah event setidaknya harus memiliki 1 pembicara (Speaker). Silakan tambah pembicara terlebih dahulu.");
+            throw new Error("Speaker wajib diisi");
+        }
+        notify("success", "Berhasil!", "Konfigurasi pembicara telah selesai.");
     };
 
     return (
@@ -188,6 +178,7 @@ const EventSpeaker = () => {
             prevPath={"sesi"}
             isFormDirty={showAddForm || editingSpeakerId !== null}
             formDirtyMessage="Terdapat form speaker yang belum disimpan atau dibatalkan. Harap selesaikan terlebih dahulu."
+            isCurrentStepCompleted={speakers.length > 0}
         >
             <Form className="form">
                 {speakers.length > 0 ? (

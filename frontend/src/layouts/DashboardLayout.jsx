@@ -88,6 +88,9 @@ const DashboardLayout = () => {
 				>
 					<Toaster
 						position="top-right"
+						toastOptions={{
+							duration: 3000, // <--- Tambahkan ini (3000ms = 3 detik)
+						}}
 						containerStyle={{ top: 100, right: 40, zIndex: 99999 }}
 					/>
 

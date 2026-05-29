@@ -9,12 +9,20 @@ function formatRp(val) {
 	return n.toLocaleString('id-ID');
 }
 
-function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked = false, eventStartDate = '' }) {
+function TicketCard({
+	ticket,
+	index,
+	onChange,
+	onDelete,
+	canDelete,
+	priceLocked = false,
+	eventStartDate = '',
+}) {
 	const [open, setOpen] = useState(true);
 
 	const getLocalISOString = () => {
-		const tzoffset = (new Date()).getTimezoneOffset() * 60000;
-		return (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
+		const tzoffset = new Date().getTimezoneOffset() * 60000;
+		return new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
 	};
 
 	const formatToLocalDatetime = (dateStr) => {
@@ -22,18 +30,61 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 		const date = new Date(dateStr);
 		if (isNaN(date.getTime())) return '';
 		const tzoffset = date.getTimezoneOffset() * 60000;
-		return (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16);
+		return new Date(date.getTime() - tzoffset).toISOString().slice(0, 16);
 	};
 
 	const todayDateTime = getLocalISOString();
 	const maxDateTime = formatToLocalDatetime(eventStartDate);
 
-	// Helper format Rupiah (pastikan fungsi ini ada di scope komponen atau file Anda)
+	// Format readable datetime (e.g. 29 Mei 2026 19:25)
+	const formatReadableDatetime = (dateStr) => {
+		if (!dateStr) return '';
+		const date = new Date(dateStr);
+		if (isNaN(date.getTime())) return '';
+		return date.toLocaleString('id-ID', {
+			day: '2-digit',
+			month: 'long',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+			hour12: false
+		}).replace(/\./g, ':');
+	};
+
+	// Helper format Rupiah
 	const formatRp = (val) => {
 		if (!val) return '';
 		const n = parseInt(String(val).replace(/\D/g, ''), 10);
 		return isNaN(n) ? '' : n.toLocaleString('id-ID').replace(/,/g, '.');
 	};
+
+	// ==========================================
+	// LOGIKA VALIDASI PERINGATAN TANGGAL
+	// ==========================================
+	let startWarning = '';
+	if (ticket.sale_start) {
+		const sVal = ticket.sale_start.slice(0, 16);
+		if (sVal < todayDateTime) {
+			startWarning = 'tidak bisa';
+		} else if (maxDateTime && sVal >= maxDateTime) {
+			startWarning = 'tidak bisa';
+		} else if (ticket.sale_end && sVal >= ticket.sale_end.slice(0, 16)) {
+			startWarning = 'tidak bisa';
+		}
+	}
+
+	let endWarning = '';
+	if (ticket.sale_end) {
+		const eVal = ticket.sale_end.slice(0, 16);
+		if (eVal < todayDateTime) {
+			endWarning = 'tidak bisa';
+		} else if (maxDateTime && eVal > maxDateTime) {
+			endWarning = 'tidak bisa';
+		} else if (ticket.sale_start && eVal <= ticket.sale_start.slice(0, 16)) {
+			endWarning = 'tidak bisa';
+		}
+	}
+	// ==========================================
 
 	return (
 		<div className="custom-card shadow-sm">
@@ -56,19 +107,10 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 
 				<div className="d-flex align-items-center gap-3">
 					{/* {canDelete && (
-						<Button
-							variant="link"
-							className="p-0 text-muted d-flex align-items-center justify-content-center"
-							style={{ width: '28px', height: '28px' }}
-							onClick={(e) => {
-								e.stopPropagation();
-								onDelete();
-							}}
-							onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-							onMouseLeave={(e) => (e.currentTarget.style.color = '')}>
-							<Trash2 size={18} strokeWidth={1.5} />
-						</Button>
-					)} */}
+                        <Button ...>
+                            <Trash2 size={18} strokeWidth={1.5} />
+                        </Button>
+                    )} */}
 					{open ? (
 						<ChevronUp size={20} className="text-muted" strokeWidth={1.5} />
 					) : (
@@ -81,33 +123,29 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 			<Collapse in={open}>
 				<div>
 					<div className="p-4" style={{ paddingTop: '20px' }}>
-						{/* Row 1: Nama Tiket */}
-						{/* <Form.Group className="mb-4">
-							<label className='form-label required'>Nama Tiket</label>
-							<Form.Control
-								type="text"
-								className="custom-soft-input"
-								value={ticket.name}
-								onChange={(e) => onChange({ name: e.target.value })}
-								placeholder="Online"
-							/>
-						</Form.Group> */}
-
 						{/* Row 2: Harga + Kapasitas */}
 						<Row className="mb-4">
 							{/* Kolom Harga */}
 							<Col md={6} className="mb-3 mb-md-0">
 								<div className="d-flex justify-content-between align-items-center mb-2">
-									<label className="form-label required mb-0" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+									<label
+										className="form-label required mb-0"
+										style={{ display: 'flex', alignItems: 'center', gap: 5 }}
+									>
 										Harga (Rp)
 										{priceLocked && (
 											<span
 												title="Harga tidak dapat diubah karena sudah ada peserta terdaftar"
 												style={{
-													display: 'inline-flex', alignItems: 'center',
-													background: '#fef3c7', color: '#92400e',
-													borderRadius: 4, padding: '1px 6px',
-													fontSize: '0.73rem', fontWeight: 600, gap: 3,
+													display: 'inline-flex',
+													alignItems: 'center',
+													background: '#fef3c7',
+													color: '#92400e',
+													borderRadius: 4,
+													padding: '1px 6px',
+													fontSize: '0.73rem',
+													fontWeight: 600,
+													gap: 3,
 													cursor: 'help',
 												}}
 											>
@@ -124,12 +162,18 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 										checked={ticket.isFree}
 										onChange={(e) => onChange({ isFree: e.target.checked })}
 										disabled={priceLocked}
-										title={priceLocked ? 'Tidak dapat diubah karena sudah ada peserta terdaftar' : ''}
+										title={
+											priceLocked
+												? 'Tidak dapat diubah karena sudah ada peserta terdaftar'
+												: ''
+										}
 									/>
 								</div>
 								<div
 									className="custom-unified-wrapper"
-									style={priceLocked ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+									style={
+										priceLocked ? { opacity: 0.6, cursor: 'not-allowed' } : {}
+									}
 								>
 									<span className="custom-unified-prefix">Rp</span>
 									<input
@@ -143,8 +187,16 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 											onChange({ price: raw });
 										}}
 										placeholder={ticket.isFree ? '' : '75.000'}
-										title={priceLocked ? 'Harga tidak dapat diubah karena sudah ada peserta terdaftar' : ''}
-										style={priceLocked ? { cursor: 'not-allowed', background: '#f8fafc' } : {}}
+										title={
+											priceLocked
+												? 'Harga tidak dapat diubah karena sudah ada peserta terdaftar'
+												: ''
+										}
+										style={
+											priceLocked
+												? { cursor: 'not-allowed', background: '#f8fafc' }
+												: {}
+										}
 									/>
 								</div>
 							</Col>
@@ -180,15 +232,18 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 							</Col>
 						</Row>
 
-						{/* Row 3: Periode Pendaftaran */}
+
 						<Row className="mb-4">
 							<Col md={6} className="mb-3 mb-md-0">
 								<Form.Group>
-									<label className="form-label required">Mulai Pendaftaran</label>
+									<div className="d-flex justify-content-between align-items-center mb-2">
+										<label className="form-label required mb-0">Mulai Pendaftaran</label>
+									
+									</div>
 									<Form.Control
 										type="datetime-local"
 										name="sale_start"
-										className="custom-soft-input"
+										className={`custom-soft-input ${startWarning ? 'is-invalid' : ''}`}
 										value={
 											ticket.sale_start ? ticket.sale_start.slice(0, 16) : ''
 										}
@@ -198,21 +253,50 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 										style={{ color: ticket.sale_start ? '#1e293b' : '#94a3b8' }}
 										required
 									/>
+									{/* Tampilan Pesan Peringatan Tanggal Mulai */}
+									{startWarning && (
+										<div
+											className="text-danger mt-1"
+											style={{ fontSize: '0.85rem' }}
+										>
+											{startWarning}
+										</div>
+									)}
 								</Form.Group>
 							</Col>
 							<Col md={6}>
 								<Form.Group>
-									<label className="form-label required">Akhir Pendaftaran</label>
+									<div className="d-flex justify-content-between align-items-center mb-2">
+										<label className="form-label required mb-0">Akhir Pendaftaran</label>
+										{eventStartDate && (
+											<span className="text-muted small" style={{ fontSize: '11px', fontWeight: '500' }}>
+												Maks: {formatReadableDatetime(eventStartDate)}
+											</span>
+										)}
+									</div>
 									<Form.Control
 										type="datetime-local"
-										className="custom-soft-input"
+										className={`custom-soft-input ${endWarning ? 'is-invalid' : ''}`}
 										value={ticket.sale_end ? ticket.sale_end.slice(0, 16) : ''}
-										min={ticket.sale_start ? ticket.sale_start.slice(0, 16) : todayDateTime}
+										min={
+											ticket.sale_start
+												? ticket.sale_start.slice(0, 16)
+												: todayDateTime
+										}
 										max={maxDateTime || undefined}
 										onChange={(e) => onChange({ sale_end: e.target.value })}
 										style={{ color: ticket.sale_end ? '#1e293b' : '#94a3b8' }}
 										required
 									/>
+									{/* Tampilan Pesan Peringatan Tanggal Akhir */}
+									{endWarning && (
+										<div
+											className="text-danger mt-1"
+											style={{ fontSize: '0.85rem' }}
+										>
+											{endWarning}
+										</div>
+									)}
 								</Form.Group>
 							</Col>
 						</Row>

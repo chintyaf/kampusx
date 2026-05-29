@@ -313,6 +313,23 @@ BUTTON
 	font-size: 20px;
 }
 
+
+/* Styling custom untuk tombol hapus agar lebih halus */
+.btn-delete-subtle {
+    transition: all 0.2s ease; /* Membuat transisi warna jadi halus */
+}
+
+/* Saat mouse mengarah ke tombol (Hover) */
+.btn-delete-subtle:hover {
+    background-color: var(--bs-danger-bg-subtle) !important; /* Merah muda tipis bawaan bootstrap */
+    border: none !important; /* Memastikan tidak ada border */
+}
+
+/* Saat hover, ubah warna ikon tong sampah jadi merah */
+.btn-delete-subtle:hover .text-secondary {
+    color: var(--bs-danger) !important; /* Warna merah tegas bawaan bootstrap */
+}
+
 .border-darker {
 	border: 1.5px solid !important;
 	border-color: #ced7e0 !important;

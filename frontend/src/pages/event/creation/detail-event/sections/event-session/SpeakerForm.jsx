@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { ArrowLeft, Upload, Check } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { getSpeakerAvatar } from './SpeakerList';
 
 const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) => {
 	const fileInputRef = useRef(null);
@@ -18,7 +19,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 	useEffect(() => {
 		if (initialData) {
 			setFormData(initialData);
-			setImagePreview(initialData.image_url || initialData.avatarUrl || '');
+			setImagePreview(getSpeakerAvatar(initialData));
 			setImageFile(null);
 		} else {
 			setFormData({ name: '', role: '', bio: '', avatarUrl: '' });
@@ -79,7 +80,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 			className="d-flex flex-column"
 			style={{
 				width: isModal ? '100%' : '400px',
-				height: isModal ? 'auto' : '100vh',
+				height: isModal ? 'auto' : '80vh',
 				backgroundColor: '#ffffff',
 				borderLeft: isModal ? 'none' : '1px solid #e2e8f0',
 				fontFamily: 'Inter, system-ui, sans-serif',
@@ -275,7 +276,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 						flex: 2,
 						fontSize: '14px',
 						borderRadius: '8px',
-						backgroundColor: formData.name ? '#00699e' : '#cbd5e1',
+						backgroundColor: (formData.name && formData.role) ? '#00699e' : '#cbd5e1',
 						border: 'none',
 						display: 'flex',
 						alignItems: 'center',
@@ -283,7 +284,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 						gap: '6px',
 					}}
 					onClick={handleSubmit}
-					disabled={!formData.name}
+					disabled={!formData.name || !formData.role}
 				>
 					<Check size={16} /> Simpan Pembicara
 				</Button>
