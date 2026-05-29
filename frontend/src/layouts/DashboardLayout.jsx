@@ -77,17 +77,19 @@ const DashboardLayout = () => {
 				{/* GLOBAL LOADING BAR HAS BEEN MOVED TO LoadingContext */}
 
 				<main
+					className="p-3 p-md-4 p-xl-5" // <-- Padding dinamis: HP (16px), Tablet (24px), Desktop (48px)
 					style={{
-						padding: '40px 50px',
 						// backgroundColor: 'white',
 						flex: 1,
 						overflowY: 'auto',
 						position: 'relative',
 						minHeight: '0',
 					}}
-				// className='container'
 				>
-					<Toaster position="top-right" containerStyle={{ top: 100, right: 40, zIndex: 99999 }} />
+					<Toaster
+						position="top-right"
+						containerStyle={{ top: 100, right: 40, zIndex: 99999 }}
+					/>
 
 					{/* GLOBAL LOADING OVERLAY HAS BEEN MOVED TO LoadingContext */}
 

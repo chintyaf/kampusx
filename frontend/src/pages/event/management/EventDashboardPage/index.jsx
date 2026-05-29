@@ -13,6 +13,8 @@ import {
 	FileText,
 	Send,
 	CheckSquare,
+	Eye,
+	Clock,
 } from 'lucide-react';
 
 // API & CSS
@@ -21,7 +23,7 @@ import '../../../../assets/css/dashboard.css';
 
 // Components
 import PageHeader from './PageHeader';
-import StatCards from './StatCards';
+import StatCard from './StatCard';
 import EventInfoCard from './EventInfoCard';
 import EventTimeline from './EventTimeline';
 import MissingInformation from './MissingInformation';
@@ -442,7 +444,59 @@ export default function EventDashboardPage() {
 			/>
 
 			{/* Stat Cards */}
-			{currentConfig.showStats && <StatCards stats={statsData} />}
+			{currentConfig.showStats && (
+				<Row className="g-3 mb-4">
+					{/* Card 1: Tickets Sold */}
+					<Col xs={12} sm={6} lg={3}>
+						<StatCard
+							label="Tickets Sold"
+							value="450 / 500"
+							sub="90% kapasitas terisi"
+							progress={90}
+							iconBg="#dff3ff"
+							iconColor="#00699e"
+							lucideIcon={Ticket}
+							progressColor="var(--primary)"
+						/>
+					</Col>
+
+					{/* Card 2: Revenue */}
+					<Col xs={12} sm={6} lg={3}>
+						<StatCard
+							label="Revenue"
+							value="Rp 22,5jt"
+							sub="@ Rp 50.000 / tiket"
+							iconBg="#dcfce7"
+							iconColor="#166534"
+							lucideIcon={DollarSign}
+						/>
+					</Col>
+
+					{/* Card 3: Page Views / Conversion */}
+					<Col xs={12} sm={6} lg={3}>
+						<StatCard
+							label="Page Views"
+							value="1.240"
+							sub="36% conversion rate"
+							iconBg="#f3e8ff"
+							iconColor="#7c3aed"
+							lucideIcon={Eye}
+						/>
+					</Col>
+
+					{/* Card 4: Sisa Waktu Registrasi */}
+					<Col xs={12} sm={6} lg={3}>
+						<StatCard
+							label="Sisa Waktu Registrasi"
+							value="14 Hari"
+							sub="Ditutup 27 Jun 2026"
+							iconBg="#fef3c7"
+							iconColor="#92400e"
+							lucideIcon={Clock}
+						/>
+					</Col>
+				</Row>
+			)}
 
 			{/* Event Info (Hidden in Draft Phase) */}
 			{/* {!isDraft && (

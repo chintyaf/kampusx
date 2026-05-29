@@ -22,6 +22,7 @@ const DateHeaderForm = ({ date, onDelete, onEdit }) => {
 				<input
 					type="date"
 					value={date || ''}
+					min={new Date().toISOString().split('T')[0]}
 					onChange={(e) => onEdit(e.target.value)}
 					className="seamless-date-input fw-medium"
 				/>

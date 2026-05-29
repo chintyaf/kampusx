@@ -60,7 +60,7 @@ class EventPublishRequest extends FormRequest
 
             // -- Rules untuk Online / Hybrid
             'location.platform'           => ['required_if:location.type,online,hybrid', 'string', 'max:255'],
-            'location.meeting_link'       => ['required_if:location.type,online,hybrid', 'url'],
+            'location.meeting_link'       => ['nullable', 'url'],
             'location.online_instruction' => ['required_if:location.type,online,hybrid', 'string'],
             'location.online_quota'       => ['required_if:location.type,online,hybrid', 'integer', 'min:1'],
 
@@ -132,7 +132,7 @@ class EventPublishRequest extends FormRequest
             'location.required'                   => 'Informasi lokasi event belum lengkap.',
             'location.type.required'              => 'Tipe lokasi (Online, Offline, atau Hybrid) wajib dipilih.',
             'location.platform.required_if'       => 'Platform (misal: Zoom, GMeet) wajib diisi karena event ini memiliki sesi Online.',
-            'location.meeting_link.required_if'   => 'Link meeting belum ada. Ini wajib diisi untuk event Online/Hybrid.',
+            'location.meeting_link.url'           => 'Format tautan pertemuan (Link) tidak valid.',
             'location.location.required_if'       => 'Nama lokasi atau gedung wajib diisi karena event ini memiliki sesi Offline.',
             'location.maps_url.required_if'       => 'Link Google Maps masih kosong. Harap isi untuk memudahkan peserta.',
 

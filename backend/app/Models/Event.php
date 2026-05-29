@@ -123,9 +123,6 @@ class Event extends Model
                 if (empty($location->platform)) {
                     $errors[] = 'Platform (Zoom, GMeet, dll) wajib diisi untuk akses online.';
                 }
-                if (empty($location->meeting_link)) {
-                    $errors[] = 'Link meeting belum dicantumkan.';
-                }
                 // Gunakan null coalescing (??) untuk memastikan angka saat perbandingan
                 // Hanya validasi jika online_quota TIDAK null
                 if ($location?->online_quota !== null && $location->online_quota <= 0) {

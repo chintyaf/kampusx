@@ -16,38 +16,57 @@ class EventTicketController extends Controller
     public function index(int $eventId)
     {
         // 1. Ambil data event beserta relasi lokasinya
-        // Sesuaikan nama relasi 'location' dengan yang ada di model Event Anda
         $event = Event::with('locationDetail')->findOrFail($eventId);
+
+        // Ambil tipe lokasi (default ke offline jika null)
+        // Note: Saya sesuaikan pemanggilan relasinya ke 'locationDetail' sesuai dengan query 'with' di atas
+        $locationType = $event->locationDetail->type ?? 'offline';
+
+        // 3. Tentukan tipe tiket yang DIBUTUHKAN berdasarkan tipe lokasi event
+        $requiredTypes = [];
+        if ($locationType === 'online') {
+            $requiredTypes = ['online'];
+        } elseif ($locationType === 'offline') {
+            $requiredTypes = ['offline'];
+        } elseif ($locationType === 'hybrid') {
+            $requiredTypes = ['online', 'offline'];
+        }
+
+        // Hapus tiket yang tipenya tidak sesuai dengan tipe lokasi saat ini
+        EventTicket::where('event_id', $eventId)->whereNotIn('type', $requiredTypes)->delete();
 
         // 2. Ambil tiket yang sudah ada untuk event ini
         $tickets = EventTicket::where('event_id', $eventId)->get();
 
-        // 3. Jika tiket belum ada sama sekali, buatkan secara otomatis
-        if ($tickets->isEmpty()) {
-            // Ambil tipe lokasi (default ke offline jika null)
-            $locationType = $event->location->type ?? 'offline';
+        // 4. Ambil array tipe tiket yang SUDAH ADA di database
+        // Asumsi: Model EventTicket punya kolom 'type' untuk membedakan online/offline
+        $existingTypes = $tickets->pluck('type')->toArray();
 
+        // 5. Cari tipe tiket yang DIBUTUHKAN tapi BELUM ADA (Missing types)
+        $missingTypes = array_diff($requiredTypes, $existingTypes);
+
+        // Jika ada tipe tiket yang belum dibuat, maka insert
+        if (!empty($missingTypes)) {
             $ticketsToInsert = [];
 
-            // Siapkan data array untuk insert berdasarkan tipe lokasi
-            if ($locationType === 'online') {
-                $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Online Ticket', 'online');
-            } elseif ($locationType === 'offline') {
-                $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Offline Ticket', 'offline');
-            } elseif ($locationType === 'hybrid') {
-                $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Online Ticket', 'online');
-                $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Offline Ticket', 'offline');
+            foreach ($missingTypes as $type) {
+                if ($type === 'online') {
+                    $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Online Ticket', 'online');
+                } elseif ($type === 'offline') {
+                    $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Offline Ticket', 'offline');
+                }
             }
 
-            // Insert data ke database jika ada
+            // Insert data ke database
             if (!empty($ticketsToInsert)) {
                 EventTicket::insert($ticketsToInsert);
 
-                // Ambil ulang data tiket yang baru saja dibuat
+                // Ambil ulang data tiket yang baru saja ditambahkan agar up-to-date
                 $tickets = EventTicket::where('event_id', $eventId)->get();
             }
         }
 
+        // 6. Mapping data untuk response
         $data = $tickets->map(function ($ticket) {
             return [
                 'id' => $ticket->id,
@@ -58,13 +77,15 @@ class EventTicketController extends Controller
                 'sale_start' => $ticket->sale_start,
                 'sale_end' => $ticket->sale_end,
                 'description' => $ticket->description,
+                'type' => $ticket->type, // Opsional: bagus untuk dikembalikan ke frontend
             ];
         });
 
-        // 4. Return data (biasanya dalam bentuk JSON jika untuk React/API)
+        // 7. Return data JSON
         return response()->json([
             'status' => 'success',
-            'data' => $data
+            'data' => $data,
+            'event_start_date' => $event->start_date
         ]);
     }
 
@@ -80,10 +101,10 @@ class EventTicketController extends Controller
             'tickets.*.name'         => 'required|string|max:255',
             'tickets.*.type'         => 'required|string|max:255', // e.g., 'online', 'offline'
             'tickets.*.is_free'      => 'required|boolean',
-            'tickets.*.price'        => 'nullable|numeric|min:0',
+            'tickets.*.price'        => 'required_if:tickets.*.is_free,false|nullable|numeric|min:0',
             'tickets.*.capacity'     => 'nullable|integer|min:1', // Null berarti unlimited
-            'tickets.*.sale_start'   => 'nullable|date',
-            'tickets.*.sale_end'     => 'nullable|date|after_or_equal:tickets.*.sale_start',
+            'tickets.*.sale_start'   => 'required|date',
+            'tickets.*.sale_end'     => 'required|date|after_or_equal:tickets.*.sale_start',
             'tickets.*.description'  => 'nullable|string',
         ]);
 
@@ -122,14 +143,11 @@ class EventTicketController extends Controller
                 }
             }
 
-            // Opsional: Jika Anda perlu menghapus tiket yang tidak dikirim dari FE,
-            // Anda bisa menggunakan kode di bawah ini (Hapus komentar jika diperlukan):
-            /*
+            // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
             $ticketIdsFromRequest = collect($request->tickets)->pluck('id')->filter()->toArray();
             EventTicket::where('event_id', $eventId)
                        ->whereNotIn('id', $ticketIdsFromRequest)
                        ->delete();
-            */
 
             DB::commit();
 

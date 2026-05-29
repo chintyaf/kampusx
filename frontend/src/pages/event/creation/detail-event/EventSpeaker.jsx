@@ -189,7 +189,7 @@ const EventSpeaker = () => {
             isFormDirty={showAddForm || editingSpeakerId !== null}
             formDirtyMessage="Terdapat form speaker yang belum disimpan atau dibatalkan. Harap selesaikan terlebih dahulu."
         >
-            <Form>
+            <Form className="form">
                 {speakers.length > 0 ? (
                     speakers.map((speaker) => (
                         <div key={speaker.id}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Row, Col } from 'react-bootstrap';
-import { Ticket, DollarSign, UserCheck, UserMinus } from 'lucide-react';
+// Import Eye dan Clock sebagai pengganti UserCheck dan UserMinus
+import { Ticket, DollarSign, Eye, Clock } from 'lucide-react';
 
 /**
  * StatCards — improved stat card with trend indicator and bigger typography.
@@ -26,24 +27,24 @@ const defaultStats = [
 		lucideIcon: DollarSign,
 	},
 	{
-		label: 'Checked-In',
-		value: '0',
-		sub: 'Belum dimulai',
+		label: 'Page Views',
+		value: '1.240',
+		sub: '36% conversion rate', // Insight tambahan dari jumlah views vs tiket terjual
 		iconBg: '#f3e8ff',
 		iconColor: '#7c3aed',
-		lucideIcon: UserCheck,
+		lucideIcon: Eye,
 	},
 	{
-		label: 'Absent',
-		value: '0',
-		sub: '0% dari pendaftar',
+		label: 'Sisa Waktu Registrasi',
+		value: '14 Hari',
+		sub: 'Ditutup 27 Jun 2026', // Memberikan konteks deadline
 		iconBg: '#fef3c7',
 		iconColor: '#92400e',
-		lucideIcon: UserMinus,
+		lucideIcon: Clock,
 	},
 ];
 
-function StatCard({
+export default function StatCard({
 	label,
 	value,
 	sub,
@@ -125,17 +126,5 @@ function StatCard({
 				</div>
 			)}
 		</div>
-	);
-}
-
-export default function StatCards({ stats = defaultStats }) {
-	return (
-		<Row className="g-3 mb-4">
-			{stats.map((s, i) => (
-				<Col key={i} xs={12} sm={6} lg={3}>
-					<StatCard {...s} />
-				</Col>
-			))}
-		</Row>
 	);
 }

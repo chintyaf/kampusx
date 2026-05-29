@@ -58,7 +58,7 @@ class EventSpeakerController extends Controller
     {
         // Validasi struktur data
         $request->validate([
-            'speakers'                           => 'required|array',
+            'speakers'                           => 'nullable|array',
             'speakers.*.id'                      => 'nullable|exists:speakers,id',
             'speakers.*.name'                    => 'required|string|max:255',
             'speakers.*.role'                    => 'required|string|max:255', // Sesuaikan dengan React (Required)
@@ -78,46 +78,48 @@ class EventSpeakerController extends Controller
         try {
             DB::beginTransaction();
 
-            foreach ($request->speakers as $index => $speakerData) {
+            if ($request->has('speakers') && is_array($request->speakers)) {
+                foreach ($request->speakers as $index => $speakerData) {
 
-                // Siapkan data yang akan disimpan (Fallback array kosong untuk JSON)
-                $dataToSave = [
-                    'event_id'    => $eventId,
-                    'name'        => $speakerData['name'],
-                    'role'        => $speakerData['role'],
-                    'bio'         => $speakerData['bio'] ?? null,
-                    'social_link' => $speakerData['social_link'] ?? [],
-                    'expertise'   => $speakerData['expertise'] ?? [],
-                ];
+                    // Siapkan data yang akan disimpan (Fallback array kosong untuk JSON)
+                    $dataToSave = [
+                        'event_id'    => $eventId,
+                        'name'        => $speakerData['name'],
+                        'role'        => $speakerData['role'],
+                        'bio'         => $speakerData['bio'] ?? null,
+                        'social_link' => $speakerData['social_link'] ?? [],
+                        'expertise'   => $speakerData['expertise'] ?? [],
+                    ];
 
-                // Proses Simpan / Update yang lebih aman
-                if (!empty($speakerData['id'])) {
-                    // Update data yang sudah ada
-                    $speaker = Speaker::where('id', $speakerData['id'])
-                                      ->where('event_id', $eventId) // Keamanan tambahan
-                                      ->firstOrFail();
-                    $speaker->update($dataToSave);
-                } else {
-                    // Buat data baru
-                    $speaker = Speaker::create($dataToSave);
-                }
-
-                // Handle upload gambar speaker (file dikirim sebagai speakers_image_{index})
-                $imageKey = "speakers_image_{$index}";
-                if ($request->hasFile($imageKey)) {
-                    // Hapus gambar lama jika ada
-                    if ($speaker->image_path && Storage::exists($speaker->image_path)) {
-                        Storage::delete($speaker->image_path);
+                    // Proses Simpan / Update yang lebih aman
+                    if (!empty($speakerData['id'])) {
+                        // Update data yang sudah ada
+                        $speaker = Speaker::where('id', $speakerData['id'])
+                                          ->where('event_id', $eventId) // Keamanan tambahan
+                                          ->firstOrFail();
+                        $speaker->update($dataToSave);
+                    } else {
+                        // Buat data baru
+                        $speaker = Speaker::create($dataToSave);
                     }
 
-                    $file = $request->file($imageKey);
-                    $path = $file->store("speakers/{$eventId}", 'public');
-                    $speaker->update(['image_path' => $path]);
-                }
+                    // Handle upload gambar speaker (file dikirim sebagai speakers_image_{index})
+                    $imageKey = "speakers_image_{$index}";
+                    if ($request->hasFile($imageKey)) {
+                        // Hapus gambar lama jika ada
+                        if ($speaker->image_path && Storage::exists($speaker->image_path)) {
+                            Storage::delete($speaker->image_path);
+                        }
 
-                // Update data di pivot table 'event_session_speakers'
-                // Penggunaan array kosong [] memastikan relasi dihapus jika user menghapus centang semua sesi
-                $speaker->sessions()->sync($speakerData['sessions'] ?? []);
+                        $file = $request->file($imageKey);
+                        $path = $file->store("speakers/{$eventId}", 'public');
+                        $speaker->update(['image_path' => $path]);
+                    }
+
+                    // Update data di pivot table 'event_session_speakers'
+                    // Penggunaan array kosong [] memastikan relasi dihapus jika user menghapus centang semua sesi
+                    $speaker->sessions()->sync($speakerData['sessions'] ?? []);
+                }
             }
 
             DB::commit();

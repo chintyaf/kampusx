@@ -7,7 +7,7 @@ import { useState } from "react";
 
 const Step2_DetailLocation = ({ selectedType, formData, onChange, errors, touched, handleBlur }) => {
     return (
-        <Form className="fade-in-down" key={selectedType}>
+        <Form className="fade-in-down form" key={selectedType}>
             {/* Header Bagian */}
             <div className="mb-4 d-flex align-items-start">
                 <div>

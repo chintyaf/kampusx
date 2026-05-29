@@ -9,8 +9,24 @@ function formatRp(val) {
 	return n.toLocaleString('id-ID');
 }
 
-function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked = false }) {
+function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked = false, eventStartDate = '' }) {
 	const [open, setOpen] = useState(true);
+
+	const getLocalISOString = () => {
+		const tzoffset = (new Date()).getTimezoneOffset() * 60000;
+		return (new Date(Date.now() - tzoffset)).toISOString().slice(0, 16);
+	};
+
+	const formatToLocalDatetime = (dateStr) => {
+		if (!dateStr) return '';
+		const date = new Date(dateStr);
+		if (isNaN(date.getTime())) return '';
+		const tzoffset = date.getTimezoneOffset() * 60000;
+		return (new Date(date.getTime() - tzoffset)).toISOString().slice(0, 16);
+	};
+
+	const todayDateTime = getLocalISOString();
+	const maxDateTime = formatToLocalDatetime(eventStartDate);
 
 	// Helper format Rupiah (pastikan fungsi ini ada di scope komponen atau file Anda)
 	const formatRp = (val) => {
@@ -164,11 +180,11 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 							</Col>
 						</Row>
 
-						{/* Row 3: Periode Penjualan */}
+						{/* Row 3: Periode Pendaftaran */}
 						<Row className="mb-4">
 							<Col md={6} className="mb-3 mb-md-0">
 								<Form.Group>
-									<label className="form-label required">Mulai Penjualan</label>
+									<label className="form-label required">Mulai Pendaftaran</label>
 									<Form.Control
 										type="datetime-local"
 										name="sale_start"
@@ -176,6 +192,8 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 										value={
 											ticket.sale_start ? ticket.sale_start.slice(0, 16) : ''
 										}
+										min={todayDateTime}
+										max={maxDateTime || undefined}
 										onChange={(e) => onChange({ sale_start: e.target.value })}
 										style={{ color: ticket.sale_start ? '#1e293b' : '#94a3b8' }}
 										required
@@ -184,11 +202,13 @@ function TicketCard({ ticket, index, onChange, onDelete, canDelete, priceLocked 
 							</Col>
 							<Col md={6}>
 								<Form.Group>
-									<label className="form-label required">Akhir Penjualan</label>
+									<label className="form-label required">Akhir Pendaftaran</label>
 									<Form.Control
 										type="datetime-local"
 										className="custom-soft-input"
 										value={ticket.sale_end ? ticket.sale_end.slice(0, 16) : ''}
+										min={ticket.sale_start ? ticket.sale_start.slice(0, 16) : todayDateTime}
+										max={maxDateTime || undefined}
 										onChange={(e) => onChange({ sale_end: e.target.value })}
 										style={{ color: ticket.sale_end ? '#1e293b' : '#94a3b8' }}
 										required

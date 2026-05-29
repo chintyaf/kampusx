@@ -390,28 +390,31 @@ export const useEventSession = (eventId) => {
 		});
 	};
 
-	const isCurrentStepCompleted =
-		days.length > 0 &&
-		days.every(
-			(day) =>
-				day.date &&
-				day.date.trim() !== '' &&
-				day.sessions &&
-				day.sessions.length > 0 &&
+	const totalSessions = days.reduce((acc, d) => acc + (d.sessions?.length || 0), 0);
+	const allSessionsComplete = days.every(
+		(day) =>
+			day.date &&
+			day.date.trim() !== '' &&
+			(!day.sessions ||
 				day.sessions.every(
 					(s) =>
 						s.title?.trim() !== '' &&
 						(s.startTime || s.start_time) &&
 						(s.endTime || s.end_time) &&
 						((s.speakers && s.speakers.length > 0) || s.no_speaker),
-				),
-		);
+				)),
+	);
+	const isCurrentStepCompleted = totalSessions > 0 && allSessionsComplete;
 
 	const getStep3ValidationErrors = () => {
 		const errorsList = [];
 		if (days.length === 0) {
 			errorsList.push('Silakan tambahkan minimal satu hari pelaksanaan.');
 			return errorsList;
+		}
+
+		if (totalSessions === 0) {
+			errorsList.push('Silakan tambahkan minimal satu sesi acara dengan informasi yang lengkap.');
 		}
 
 		days.forEach((day, dIdx) => {
@@ -421,9 +424,7 @@ export const useEventSession = (eventId) => {
 				errorsList.push(`Tanggal pelaksanaan untuk ${dayLabel} belum ditentukan.`);
 			}
 
-			if (!day.sessions || day.sessions.length === 0) {
-				errorsList.push(`${dayLabel} belum memiliki sesi acara.`);
-			} else {
+			if (day.sessions) {
 				day.sessions.forEach((s, sIdx) => {
 					const sessionLabel = `Sesi ke-${sIdx + 1}${s.title ? ` "${s.title}"` : ''} di ${dayLabel}`;
 

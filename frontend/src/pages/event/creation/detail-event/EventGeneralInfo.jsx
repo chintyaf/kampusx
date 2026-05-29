@@ -271,7 +271,7 @@ const EventGeneralInfo = () => {
 		}
 	};
 
-	const isCurrentStepCompleted = 
+	const isCurrentStepCompleted =
 		formData.title?.trim() !== '' &&
 		formData.description?.trim().length >= 50 &&
 		formData.banner !== null &&
@@ -291,115 +291,150 @@ const EventGeneralInfo = () => {
 			isCurrentStepCompleted={isCurrentStepCompleted}
 			// sidebar={<EventPreview />}
 		>
-			<Form>
-				<Form.Group className="mb-4" controlId="formTitle">
-					<Form.Label className="required">Nama Event</Form.Label>
-					<Form.Control
-						required
-						type="text"
-						name="title"
-						value={formData.title}
-						onChange={handleTextChange}
-						onBlur={() => handleBlur('title')}
-						placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
-						isInvalid={touched.title && formData.title?.trim() === ''}
-					/>
-					<Form.Control.Feedback type="invalid">
-						Nama event wajib diisi.
-					</Form.Control.Feedback>
-				</Form.Group>
+			<Form className="form">
+				{/* ========================================== */}
+				{/* BAGIAN 1: INFORMASI UTAMA                  */}
+				{/* ========================================== */}
+				<div id="main-info" className="mb-5">
+					<Form.Group className="mb-4" controlId="formTitle">
+						<Form.Label className="required">Nama Event</Form.Label>
+						<Form.Control
+							required
+							type="text"
+							name="title"
+							value={formData.title}
+							onChange={handleTextChange}
+							onBlur={() => handleBlur('title')}
+							placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
+							isInvalid={touched.title && formData.title?.trim() === ''}
+						/>
+						<Form.Control.Feedback type="invalid">
+							Nama event wajib diisi.
+						</Form.Control.Feedback>
+					</Form.Group>
 
-				<Form.Group className="mb-4" controlId="formDescription">
-					<Form.Label className="required">Deskripsi Lengkap</Form.Label>
-					<Form.Control
-						as="textarea"
-						rows={5}
-						name="description"
-						value={formData.description}
-						onChange={handleTextChange}
-						onBlur={() => handleBlur('description')}
-						placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
-						isInvalid={touched.description && (formData.description?.trim() === '' || formData.description?.trim().length < 50)}
-					/>
-					<div className="d-flex justify-content-between align-items-start mt-1">
-						<div>
-							{touched.description && (
-								formData.description?.trim() === '' ? (
-									<div className="text-danger small">Deskripsi event wajib diisi.</div>
-								) : (formData.description?.trim().length || 0) < 50 ? (
-									<div className="text-danger small">Deskripsi minimal 50 karakter (saat ini {formData.description?.trim().length || 0} karakter).</div>
-								) : null
-							)}
+					<Form.Group className="mb-4" controlId="formDescription">
+						<Form.Label className="required">Deskripsi Lengkap</Form.Label>
+						<Form.Control
+							as="textarea"
+							rows={5}
+							name="description"
+							value={formData.description}
+							onChange={handleTextChange}
+							onBlur={() => handleBlur('description')}
+							placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
+							isInvalid={
+								touched.description &&
+								(formData.description?.trim() === '' ||
+									formData.description?.trim().length < 50)
+							}
+						/>
+						<div className="d-flex justify-content-between align-items-start mt-1">
+							<div>
+								{touched.description &&
+									(formData.description?.trim() === '' ? (
+										<div className="text-danger small">
+											Deskripsi event wajib diisi.
+										</div>
+									) : (formData.description?.trim().length || 0) < 50 ? (
+										<div className="text-danger small">
+											Deskripsi minimal 50 karakter (saat ini{' '}
+											{formData.description?.trim().length || 0} karakter).
+										</div>
+									) : null)}
+							</div>
+							<Form.Text className={'text-muted small text-end'}>
+								{formData.description?.length || 0} / 500 karakter
+								{(formData.description?.length || 0) < 50 &&
+									' (Minimal 50 karakter)'}
+							</Form.Text>
 						</div>
-						<Form.Text className={'text-muted small text-end'}>
-							{formData.description?.length || 0} / 500 karakter
-							{(formData.description?.length || 0) < 50 && ' (Minimal 50 karakter)'}
-						</Form.Text>
-					</div>
-				</Form.Group>
+					</Form.Group>
 
-				<Form.Group className="mb-4">
-					<Form.Label className="form-label required">Tipe Event</Form.Label>
-					<Select
-						isMulti
-						value={formData.eventType}
-						options={eventTypeOptions}
-						isLoading={isEventTypeLoading}
-						onMenuOpen={fetchEventTypes}
-						placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
-						className="react-select-container"
-						classNamePrefix="react-select"
-						onChange={(selected) => {
-							handleSelectChange('eventType', selected);
-							handleBlur('eventType');
-						}}
-						onBlur={() => handleBlur('eventType')}
-						styles={{
-							control: (baseStyles) => ({
-								...baseStyles,
-								borderColor: touched.eventType && formData.eventType?.length === 0 ? '#dc3545' : baseStyles.borderColor,
-								'&:hover': {
-									borderColor: touched.eventType && formData.eventType?.length === 0 ? '#dc3545' : baseStyles.borderColor,
-								}
-							}),
-						}}
-					/>
-					{touched.eventType && formData.eventType?.length === 0 && (
-						<div className="text-danger small mt-1">Pilih minimal satu tipe event.</div>
-					)}
-				</Form.Group>
+					<Form.Group className="mb-4">
+						<Form.Label className="form-label required">Tipe Event</Form.Label>
+						<Select
+							isMulti
+							value={formData.eventType}
+							options={eventTypeOptions}
+							isLoading={isEventTypeLoading}
+							onMenuOpen={fetchEventTypes}
+							placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
+							className="react-select-container"
+							classNamePrefix="react-select"
+							onChange={(selected) => {
+								handleSelectChange('eventType', selected);
+								handleBlur('eventType');
+							}}
+							onBlur={() => handleBlur('eventType')}
+							styles={{
+								control: (baseStyles) => ({
+									...baseStyles,
+									borderColor:
+										touched.eventType && formData.eventType?.length === 0
+											? '#dc3545'
+											: baseStyles.borderColor,
+									'&:hover': {
+										borderColor:
+											touched.eventType && formData.eventType?.length === 0
+												? '#dc3545'
+												: baseStyles.borderColor,
+									},
+								}),
+							}}
+						/>
+						{touched.eventType && formData.eventType?.length === 0 && (
+							<div className="text-danger small mt-1">
+								Pilih minimal satu tipe event.
+							</div>
+						)}
+					</Form.Group>
 
-				<Form.Group className="mb-4">
-					<Form.Label className="required">Kategori Event</Form.Label>
-					<Select
-						isMulti
-						value={formData.kategori}
-						options={kategoriOptions}
-						isLoading={isKategoriLoading}
-						onMenuOpen={fetchCategories}
-						placeholder="Pilih kategori (Bisa lebih dari satu)..."
-						className="react-select-container"
-						classNamePrefix="react-select"
-						onChange={(selected) => {
-							handleSelectChange('kategori', selected);
-							handleBlur('kategori');
-						}}
-						onBlur={() => handleBlur('kategori')}
-						styles={{
-							control: (baseStyles) => ({
-								...baseStyles,
-								borderColor: touched.kategori && formData.kategori?.length === 0 ? '#dc3545' : baseStyles.borderColor,
-								'&:hover': {
-									borderColor: touched.kategori && formData.kategori?.length === 0 ? '#dc3545' : baseStyles.borderColor,
-								}
-							}),
-						}}
-					/>
-					{touched.kategori && formData.kategori?.length === 0 && (
-						<div className="text-danger small mt-1">Pilih minimal satu kategori event.</div>
-					)}
-				</Form.Group>
+					<Form.Group className="mb-4">
+						<Form.Label className="required">Kategori Event</Form.Label>
+						<Select
+							isMulti
+							value={formData.kategori}
+							options={kategoriOptions}
+							isLoading={isKategoriLoading}
+							onMenuOpen={fetchCategories}
+							placeholder="Pilih kategori (Bisa lebih dari satu)..."
+							className="react-select-container"
+							classNamePrefix="react-select"
+							onChange={(selected) => {
+								handleSelectChange('kategori', selected);
+								handleBlur('kategori');
+							}}
+							onBlur={() => handleBlur('kategori')}
+							styles={{
+								control: (baseStyles) => ({
+									...baseStyles,
+									borderColor:
+										touched.kategori && formData.kategori?.length === 0
+											? '#dc3545'
+											: baseStyles.borderColor,
+									'&:hover': {
+										borderColor:
+											touched.kategori && formData.kategori?.length === 0
+												? '#dc3545'
+												: baseStyles.borderColor,
+									},
+								}),
+							}}
+						/>
+						{touched.kategori && formData.kategori?.length === 0 && (
+							<div className="text-danger small mt-1">
+								Pilih minimal satu kategori event.
+							</div>
+						)}
+					</Form.Group>
+				</div>
+			</Form>
 
+			<Form className="form" id="additional-info">
+				{/* ========================================== */}
+				{/* BAGIAN 2: TAMBAHAN (ID: additional)        */}
+				{/* ========================================== */}
 				{/* Zona Waktu (Timezone) */}
 				<Form.Group className="mb-4">
 					<Form.Label className="required">Zona Waktu</Form.Label>
@@ -411,7 +446,10 @@ const EventGeneralInfo = () => {
 						className="form-select shadow-none"
 						isInvalid={touched.timezone && formData.timezone?.trim() === ''}
 						style={{
-							border: touched.timezone && formData.timezone?.trim() === '' ? '1.5px solid #dc3545' : '1.5px solid #cbd5e1',
+							border:
+								touched.timezone && formData.timezone?.trim() === ''
+									? '1.5px solid #dc3545'
+									: '1.5px solid #cbd5e1',
 							borderRadius: '8px',
 							fontSize: '14px',
 							padding: '10px 12px',
@@ -429,8 +467,11 @@ const EventGeneralInfo = () => {
 				</Form.Group>
 
 				<UploadImage formData={formData} setFormData={setFormData} />
+
 				{touched.banner && !formData.banner && (
-					<div className="text-danger small mt-2 text-center">Poster/gambar cover event wajib diunggah.</div>
+					<div className="text-danger small mt-2 text-center">
+						Poster/gambar cover event wajib diunggah.
+					</div>
 				)}
 			</Form>
 

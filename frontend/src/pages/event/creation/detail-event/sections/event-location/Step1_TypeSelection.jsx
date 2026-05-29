@@ -121,7 +121,7 @@ const Step1_TypeSelection = ({ onSelectType, selectedType }) => {
 	}, [selectedType]);
 
 	return (
-		<Form>
+		<Form className="form">
 			{/* Header Bagian */}
 			<div className="mb-4 d-flex align-items-start">
 				<div className="d-flex flex-column">

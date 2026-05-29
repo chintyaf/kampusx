@@ -192,8 +192,15 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 		e.preventDefault();
 
 		// 1. VALIDASI MANUAL: Pastikan name dan role tidak kosong
-		if (!formData.name.trim() || !formData.role.trim() || formData.bio.trim().length < 50 || formData.sessions.length === 0) {
-			alert('Mohon lengkapi semua field yang diwajibkan (*), termasuk Biografi (min. 50 karakter) dan Sesi.');
+		if (
+			!formData.name.trim() ||
+			!formData.role.trim() ||
+			formData.bio.trim().length < 50 ||
+			formData.sessions.length === 0
+		) {
+			alert(
+				'Mohon lengkapi semua field yang diwajibkan (*), termasuk Biografi (min. 50 karakter) dan Sesi.',
+			);
 			return; // Hentikan eksekusi jika data wajib kosong
 		}
 
@@ -219,9 +226,9 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 	};
 
 	// Mengecek apakah form sudah valid untuk membuka kunci tombol submit
-	const isFormValid = 
-		formData.name.trim() !== '' && 
-		formData.role.trim() !== '' && 
+	const isFormValid =
+		formData.name.trim() !== '' &&
+		formData.role.trim() !== '' &&
 		(formData.bio?.trim().length || 0) >= 50 &&
 		formData.sessions.length > 0;
 
@@ -246,8 +253,13 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 						) : (
 							<div
 								className="bg-light d-flex align-items-center justify-content-center rounded-circle border"
-								style={{ width: '90px', height: '90px' }}>
-								<User size={40} strokeWidth={1.5} className="text-secondary opacity-50" />
+								style={{ width: '90px', height: '90px' }}
+							>
+								<User
+									size={40}
+									strokeWidth={1.5}
+									className="text-secondary opacity-50"
+								/>
 							</div>
 						)}
 						{/* Camera overlay */}
@@ -330,7 +342,10 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 
 					<Form.Group className="mb-3">
 						<div className="d-flex justify-content-between align-items-center mb-2">
-							<label className="form-label fw-semibold mb-0" style={{ fontSize: '13px', color: '#475569' }}>
+							<label
+								className="form-label fw-semibold mb-0"
+								style={{ fontSize: '13px', color: '#475569' }}
+							>
 								Tautan Media Sosial
 							</label>
 							<span className="text-muted" style={{ fontSize: '13px' }}>
@@ -344,7 +359,8 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 									value={link.platform}
 									onChange={(e) =>
 										handleSocialLinkChange(index, 'platform', e.target.value)
-									}>
+									}
+								>
 									{platformOptions.map((opt) => (
 										<option key={opt} value={opt}>
 											{opt}
@@ -362,7 +378,8 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 								{formData.social_links.length > 1 && (
 									<Button
 										variant="outline-danger"
-										onClick={() => removeSocialLink(index)}>
+										onClick={() => removeSocialLink(index)}
+									>
 										<Trash2 size={16} />
 									</Button>
 								)}
@@ -371,7 +388,8 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 						<Button
 							variant="primary"
 							className="align-self-end p-0 text-decoration-none small mt-1 d-flex align-items-center gap-1 px-3 py-2 "
-							onClick={addSocialLink}>
+							onClick={addSocialLink}
+						>
 							<Plus size={16} /> Tambah Link
 						</Button>
 					</Form.Group>
@@ -427,7 +445,8 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 					variant="primary"
 					type="submit"
 					className="px-4"
-					disabled={isLoadingSessions || !isFormValid}>
+					disabled={isLoadingSessions || !isFormValid}
+				>
 					{isEdit ? 'Simpan Perubahan' : 'Simpan Speaker'}
 				</Button>
 			</div>

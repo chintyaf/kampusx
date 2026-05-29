@@ -11,8 +11,14 @@ const CreateEvent = () => {
 
 	const [formData, setFormData] = useState({
 		title: '',
+		description: '', // Tambahan state deskripsi
 		kategori: [],
 		eventType: [],
+	});
+
+	// State untuk mendeteksi apakah input deskripsi sudah pernah diklik/dilewati (untuk validasi error)
+	const [touched, setTouched] = useState({
+		description: false,
 	});
 
 	const [kategoriOptions, setKategoriOptions] = useState([]);
@@ -55,18 +61,33 @@ const CreateEvent = () => {
 
 	const handleTextChange = (e) => {
 		const { name, value } = e.target;
-		const capitalizedValue = value.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
-		setFormData((prev) => ({ ...prev, [name]: capitalizedValue }));
+		// Hanya kapitalisasi untuk title, deskripsi dibiarkan normal
+		const finalValue =
+			name === 'title' ? value.replace(/(^\w|\s\w)/g, (m) => m.toUpperCase()) : value;
+
+		setFormData((prev) => ({ ...prev, [name]: finalValue }));
 	};
 
 	const handleSelectChange = (field, selectedOptions) => {
 		setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
 	};
 
+	const handleBlur = (field) => {
+		setTouched((prev) => ({ ...prev, [field]: true }));
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		// Validasi Manual
 		if (formData.eventType.length === 0 || formData.kategori.length === 0) {
 			notify('warning', 'Perhatian', 'Tipe event dan kategori wajib diisi!');
+			return;
+		}
+
+		if (formData.description.trim().length < 50) {
+			notify('warning', 'Perhatian', 'Deskripsi event minimal 50 karakter!');
+			setTouched((prev) => ({ ...prev, description: true }));
 			return;
 		}
 
@@ -74,6 +95,7 @@ const CreateEvent = () => {
 		try {
 			const submitData = new FormData();
 			submitData.append('title', formData.title);
+			submitData.append('description', formData.description); // Append deskripsi
 			formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
 			formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
 
@@ -81,21 +103,21 @@ const CreateEvent = () => {
 			const newEventId = response.data.data.id;
 
 			notify('success', 'Draft Dibuat!', 'Silakan lengkapi detail event Anda.');
-			const link = `/organizer/${newEventId}/event-dashboard/detail/info`;
+			const link = `/organizer/${newEventId}/event-dashboard/detail/info#additional-info`;
 			navigate(link);
 		} catch (error) {
-			// ... (error handling yang sama)
+			console.error('Error submitting event:', error);
+			notify('error', 'Gagal', 'Terjadi kesalahan saat menyimpan draft event.');
 			setIsLoading(false);
 		}
 	};
 
-	// Custom Styling untuk React-Select agar flat dan senada dengan form Bootstrap
 	const customSelectStyles = {
 		control: (base, state) => ({
 			...base,
 			minHeight: '48px',
-			borderColor: state.isFocused ? '#0f172a' : '#cbd5e1', // Border gelap saat fokus, bukan biru terang
-			boxShadow: 'none', // Mematikan shadow/glow default
+			borderColor: state.isFocused ? '#0f172a' : '#cbd5e1',
+			boxShadow: 'none',
 			borderRadius: '4px',
 			'&:hover': {
 				borderColor: state.isFocused ? '#0f172a' : '#94a3b8',
@@ -115,7 +137,6 @@ const CreateEvent = () => {
 		<div className="container">
 			<Row className="justify-content-center">
 				<Col xs={12} lg={9} xl={8}>
-					{/* Header Area */}
 					<div className="mb-4 text-center">
 						<h3 className="fw-bold text-dark mb-2">Buat Event Baru</h3>
 						<p className="text-muted">
@@ -125,7 +146,7 @@ const CreateEvent = () => {
 
 					<div className="border-0" style={{ borderRadius: '12px' }}>
 						<div className="p-1 p-md-3">
-							{/* Stepper Visual yang Lebih Solid */}
+							{/* Stepper Visual */}
 							<div className="d-flex align-items-center mb-5 pb-2">
 								<div
 									className="d-flex flex-column align-items-center text-primary"
@@ -143,7 +164,8 @@ const CreateEvent = () => {
 										height: '2px',
 										backgroundColor: '#e2e8f0',
 										marginTop: '-24px',
-										marginX: '10px',
+										marginLeft: '10px',
+										marginRight: '10px',
 									}}
 								></div>
 
@@ -163,7 +185,8 @@ const CreateEvent = () => {
 										height: '2px',
 										backgroundColor: '#e2e8f0',
 										marginTop: '-24px',
-										marginX: '10px',
+										marginLeft: '10px',
+										marginRight: '10px',
 									}}
 								></div>
 
@@ -178,16 +201,13 @@ const CreateEvent = () => {
 								</div>
 							</div>
 
-							{/* Form Input (Tanpa Border Pembungkus Tambahan) */}
-							<Form onSubmit={handleSubmit}>
+							{/* Form Input */}
+							<Form onSubmit={handleSubmit} className="form">
 								<Row>
 									<Col xs={12}>
 										<Form.Group className="mb-4" controlId="formTitle">
-											<Form.Label
-												className="fw-semibold text-dark"
-												style={{ fontSize: '14px' }}
-											>
-												Nama Event <span className="text-danger">*</span>
+											<Form.Label className="form-label required">
+												Nama Event
 											</Form.Label>
 											<Form.Control
 												required
@@ -201,21 +221,67 @@ const CreateEvent = () => {
 													minHeight: '48px',
 													borderColor: '#cbd5e1',
 													borderRadius: '4px',
-													boxShadow: 'none', // Mematikan glow bawaan bootstrap
+													boxShadow: 'none',
 												}}
-												// Menambahkan custom focus style via className atau inline style
 												className="flat-input"
 											/>
 										</Form.Group>
 									</Col>
 
+									<Col xs={12}>
+										<Form.Group className="mb-4" controlId="formDescription">
+											<Form.Label className="form-label required">
+												Deskripsi Lengkap{' '}
+											</Form.Label>
+											<Form.Control
+												as="textarea"
+												rows={5}
+												name="description"
+												value={formData.description}
+												onChange={handleTextChange}
+												onBlur={() => handleBlur('description')}
+												placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
+												isInvalid={
+													touched.description &&
+													(formData.description.trim() === '' ||
+														formData.description.trim().length < 50)
+												}
+												style={{
+													borderColor: '#cbd5e1',
+													borderRadius: '4px',
+													boxShadow: 'none',
+												}}
+											/>
+											<div className="d-flex justify-content-between align-items-start mt-1">
+												<div>
+													{touched.description &&
+														(formData.description.trim() === '' ? (
+															<div className="text-danger small">
+																Deskripsi event wajib diisi.
+															</div>
+														) : formData.description.trim().length <
+														  50 ? (
+															<div className="text-danger small">
+																Deskripsi minimal 50 karakter (saat
+																ini{' '}
+																{formData.description.trim().length}{' '}
+																karakter).
+															</div>
+														) : null)}
+												</div>
+												<Form.Text className="text-muted small text-end">
+													{formData.description.length} / 500 karakter
+													{formData.description.length < 50 &&
+														' (Minimal 50 karakter)'}
+												</Form.Text>
+											</div>
+										</Form.Group>
+									</Col>
+
 									<Col xs={12} md={6}>
 										<Form.Group className="mb-4">
-											<Form.Label
-												className="fw-semibold text-dark"
-												style={{ fontSize: '14px' }}
-											>
-												Tipe Event <span className="text-danger">*</span>
+											<Form.Label className="form-label required">
+												Tipe Event
 											</Form.Label>
 											<Select
 												isMulti
@@ -232,12 +298,8 @@ const CreateEvent = () => {
 
 									<Col xs={12} md={6}>
 										<Form.Group className="mb-4">
-											<Form.Label
-												className="fw-semibold text-dark"
-												style={{ fontSize: '14px' }}
-											>
-												Kategori Event{' '}
-												<span className="text-danger">*</span>
+											<Form.Label className="form-label required">
+												Kategori Event
 											</Form.Label>
 											<Select
 												isMulti

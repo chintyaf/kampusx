@@ -35,6 +35,7 @@ function parsePriceNum(val) {
 
 export default function EventTicket() {
 	const [tickets, setTickets] = useState([]);
+	const [eventStartDate, setEventStartDate] = useState('');
 	const [saved, setSaved] = useState(true);
 	const { eventId } = useParams();
 	const { eventStatus, hasParticipants, participantCount } = useEventMeta(eventId);
@@ -51,6 +52,7 @@ export default function EventTicket() {
 				const response = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
 				const result = response.data;
 				setTickets(result.data || []);
+				setEventStartDate(result.event_start_date || '');
 				// console.log(result.data);
 			} catch (err) {
 				console.error('Error saving tickets:', err);
@@ -63,6 +65,37 @@ export default function EventTicket() {
 	}, [tickets, eventId]);
 
 	const handleUpdate = async (shouldNotify = false) => {
+		// Validasi kelengkapan data di frontend
+		for (let i = 0; i < tickets.length; i++) {
+			const t = tickets[i];
+			const ticketLabel = t.name || `Tiket ke-${i + 1}`;
+
+			if (!t.name || t.name.trim() === '') {
+				notify('error', 'Gagal!', 'Nama tiket wajib diisi.');
+				return;
+			}
+
+			if (!t.isFree && (!t.price || parsePriceNum(t.price) <= 0)) {
+				notify('error', 'Gagal!', `Harga untuk "${ticketLabel}" harus lebih dari 0 atau centang opsi Gratis.`);
+				return;
+			}
+
+			if (!t.unlimited && (!t.capacity || parseInt(t.capacity) <= 0)) {
+				notify('error', 'Gagal!', `Kapasitas untuk "${ticketLabel}" harus lebih dari 0 atau centang opsi Tak terbatas.`);
+				return;
+			}
+
+			if (!t.sale_start && !t.saleStart) {
+				notify('error', 'Gagal!', `Waktu Mulai Pendaftaran untuk "${ticketLabel}" wajib ditentukan.`);
+				return;
+			}
+
+			if (!t.sale_end && !t.saleEnd) {
+				notify('error', 'Gagal!', `Waktu Akhir Pendaftaran untuk "${ticketLabel}" wajib ditentukan.`);
+				return;
+			}
+		}
+
 		// 1. Format ulang data agar sesuai dengan validasi Laravel (snake_case)
 		const formattedTickets = tickets.map((t) => ({
 			id: t.id,
@@ -101,6 +134,15 @@ export default function EventTicket() {
 		}
 	};
 
+	const isCurrentStepCompleted = tickets.length > 0 && tickets.every(t => {
+		const hasName = t.name && t.name.trim() !== '';
+		const hasPrice = t.isFree || (t.price && parsePriceNum(t.price) > 0);
+		const hasCapacity = t.unlimited || (t.capacity && parseInt(t.capacity) > 0);
+		const hasSaleStart = t.sale_start || t.saleStart;
+		const hasSaleEnd = t.sale_end || t.saleEnd;
+		return hasName && hasPrice && hasCapacity && hasSaleStart && hasSaleEnd;
+	});
+
 	return (
 		<EventLayout
 			title="Harga & Tipe Tiket"
@@ -110,6 +152,7 @@ export default function EventTicket() {
 			prevPath="sesi"
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
+			isCurrentStepCompleted={isCurrentStepCompleted}
 		>
 			{/* Banner peringatan harga terkunci */}
 			{hasParticipants && (
@@ -149,6 +192,7 @@ export default function EventTicket() {
 							onDelete={() => remove(t.id)}
 							canDelete={tickets.length > 1}
 							priceLocked={hasParticipants}
+							eventStartDate={eventStartDate}
 						/>
 					))}
 			</div>

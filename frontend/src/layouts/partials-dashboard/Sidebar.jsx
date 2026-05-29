@@ -53,8 +53,6 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 		}));
 	}, [baseMenu, currentEventId]);
 
-
-
 	const handleToggle = (id) => {
 		if (isSidebarCollapsed) {
 			// Lebarkan sidebar dan pastikan menu ini masuk ke daftar terbuka
@@ -102,7 +100,8 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 					overflowY: 'auto',
 					overflowX: 'hidden',
 					overflowAnchor: 'none', // Tambahkan baris ini
-				}}>
+				}}
+			>
 				{/* List  */}
 				<div>
 					<ul className="list-unstyled ps-0 mx-2 mt-2">
@@ -118,7 +117,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 						))}
 					</ul>
 				</div>
-				<EventCard isCollapsed={isSidebarCollapsed} eventId={currentEventId} />
+				{/* <EventCard isCollapsed={isSidebarCollapsed} eventId={currentEventId} /> */}
 			</div>
 		</>
 	);

@@ -1,33 +1,102 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Form } from 'react-bootstrap';
 
 const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {} }) => {
+	const predefinedList = ['Zoom', 'Google Meet', 'YouTube Live', 'Microsoft Teams', 'Webex', 'Instagram Live', 'TikTok Live'];
+	
+	const [isOther, setIsOther] = useState(false);
+	const initializedRef = useRef(false);
+
+	useEffect(() => {
+		if (data.platform && !initializedRef.current) {
+			if (!predefinedList.includes(data.platform)) {
+				setIsOther(true);
+			}
+			initializedRef.current = true;
+		}
+	}, [data.platform]);
+
+	const handleSelectChange = (e) => {
+		const val = e.target.value;
+		if (val === 'Lainnya') {
+			setIsOther(true);
+			onChange({
+				target: {
+					name: 'platform',
+					value: ''
+				}
+			});
+		} else {
+			setIsOther(false);
+			onChange({
+				target: {
+					name: 'platform',
+					value: val
+				}
+			});
+		}
+	};
+
+	let selectValue = '';
+	if (isOther) {
+		selectValue = 'Lainnya';
+	} else if (data.platform && predefinedList.includes(data.platform)) {
+		selectValue = data.platform;
+	}
+
 	return (
 		<>
 			{/* Lokasi Umum / Platform */}
 			<Form.Group controlId="formGridLocation" className="mb-4">
 				<Form.Label className="form-label required">Platform</Form.Label>
-				<Form.Control
-					name="platform"
-					type="text"
-					value={data.platform}
-					onChange={onChange}
+				<Form.Select
+					value={selectValue}
+					onChange={handleSelectChange}
 					onBlur={() => handleBlur('platform')}
-					placeholder={'Contoh: Link Zoom, Google Meet, YouTube Live'}
 					isInvalid={touched.platform && (!data.platform || data.platform.trim() === '')}
-				/>
+					className="mb-3"
+				>
+					<option value="" disabled hidden>-- Pilih Platform --</option>
+					<option value="Zoom">Zoom</option>
+					<option value="Google Meet">Google Meet</option>
+					<option value="YouTube Live">YouTube Live</option>
+					<option value="Microsoft Teams">Microsoft Teams</option>
+					<option value="Webex">Webex</option>
+					<option value="Instagram Live">Instagram Live</option>
+					<option value="TikTok Live">TikTok Live</option>
+					<option value="Lainnya">Lainnya (Platform Lain)</option>
+				</Form.Select>
+
+				{isOther && (
+					<div className="fade-in-down">
+						<Form.Label className="form-label required small text-muted">Nama Platform Kustom</Form.Label>
+						<Form.Control
+							name="platform"
+							type="text"
+							value={data.platform || ''}
+							onChange={onChange}
+							onBlur={() => handleBlur('platform')}
+							placeholder={'Masukkan nama platform lainnya, cth: Discord, Web'}
+							isInvalid={touched.platform && (!data.platform || data.platform.trim() === '')}
+						/>
+					</div>
+				)}
+
 				<Form.Control.Feedback type="invalid">
-					Platform wajib diisi.
+					Platform wajib dipilih atau diisi.
 				</Form.Control.Feedback>
-				<Form.Text className="text-muted d-block">
-					Nama lokasi ini akan muncul pada kartu event di halaman publik.
+				<Form.Text className="text-muted d-block mt-1">
+					Nama platform ini akan muncul pada kartu event di halaman publik.
 				</Form.Text>
 			</Form.Group>
 
 			{/* Tautan Pertemuan */}
 			<Form.Group controlId="formMeetingLink" className="mb-4">
 				<div className="d-flex justify-content-between align-items-center mb-2">
-					<label className="form-label mb-0 required">Tautan Pertemuan (Link)</label>
+					<label className="form-label mb-0">Tautan Pertemuan (Link)</label>
+					<span className="text-muted" style={{ fontSize: '13px' }}>
+						Opsional
+					</span>
 				</div>
 				<Form.Control
 					name="meeting_link"
@@ -36,10 +105,10 @@ const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {
 					placeholder="https://zoom.us/j/..."
 					onChange={onChange}
 					onBlur={() => handleBlur('meeting_link')}
-					isInvalid={touched.meeting_link && (!data.meeting_link || data.meeting_link.trim() === '')}
+					isInvalid={!!errors.meeting_link}
 				/>
 				<Form.Control.Feedback type="invalid">
-					Tautan pertemuan wajib dicantumkan.
+					{errors.meeting_link ? errors.meeting_link[0] : ''}
 				</Form.Control.Feedback>
 				<Form.Text className="text-muted">
 					Silakan cantumkan tautan pertemuan online untuk event ini.
