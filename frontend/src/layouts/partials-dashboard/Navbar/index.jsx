@@ -72,7 +72,7 @@ const Navbar = ({ eventId, toggleSidebar, showToggleBtn }) => {
 
 				<div className="d-flex align-items-center gap-3">
 					<NotificationDropdown />
-					<EventStatusDropdown eventId={eventId} isInsideEvent={isInsideEvent} />
+					{/* <EventStatusDropdown eventId={eventId} isInsideEvent={isInsideEvent} /> */}
 
 					{isOrganizer && !isInsideEvent && (
 						<NavLink to="/organizer/buat-acara" className="text-decoration-none">

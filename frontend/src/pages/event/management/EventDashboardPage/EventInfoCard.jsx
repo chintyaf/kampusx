@@ -36,6 +36,7 @@ export default function EventInfoCard({
 	onFormulir,
 	onExport,
 	onTiket,
+	isExportDisabled = false,
 }) {
 	return (
 		<div className="card mb-4" style={{ padding: 0, overflow: 'hidden' }}>
@@ -112,8 +113,15 @@ export default function EventInfoCard({
 				</button>
 				<button
 					className="btn btn-outline"
-					style={{ fontSize: 12, padding: '7px 14px', borderRadius: 8 }}
-					onClick={onExport}
+					style={{
+						fontSize: 12, padding: '7px 14px', borderRadius: 8,
+						opacity: isExportDisabled ? 0.55 : 1,
+						cursor: isExportDisabled ? 'not-allowed' : 'pointer',
+						borderColor: isExportDisabled ? '#cbd5e1' : undefined,
+						color: isExportDisabled ? '#94a3b8' : undefined,
+					}}
+					disabled={isExportDisabled}
+					onClick={isExportDisabled ? undefined : onExport}
 				>
 					<Upload size={13} />
 					Export Peserta

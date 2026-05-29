@@ -1,145 +1,243 @@
-import React from 'react';
-import { Row, Col } from 'react-bootstrap';
+import React, { useState, useRef, useEffect } from 'react';
+import './EventDashboardPage.css';
 import {
-	PenLine,
-	Globe,
-	Zap,
-	CheckCircle2,
-	XCircle,
-	ExternalLink,
+	Lock,
+	Monitor,
+	Share2,
+	MoreVertical,
+	Pencil,
+	Ticket,
+	ScanLine,
+	FileText,
+	Upload,
+	MapPin,
+	Calendar,
+	Tag,
 } from 'lucide-react';
+import { formatEventDate, formatDateRange, checkIfDatePassed } from '@/utils/dateUtils';
 
-const STATUS_CONFIG = {
+const STATUS_BADGES = {
 	draft: {
 		label: 'Draft',
-		desc: 'Belum dipublikasikan',
-		Icon: PenLine,
-		color: '#64748b',
-		bg: '#f1f5f9',
-		border: '#cbd5e1',
-		dotColor: '#94a3b8',
-		pulse: false,
+		badgeClass: 'status-badge draft',
 	},
 	published: {
 		label: 'Published',
-		desc: 'Pendaftaran terbuka',
-		Icon: Globe,
-		color: '#0369a1',
-		bg: '#eff8ff',
-		border: '#93c5fd',
-		dotColor: '#3b82f6',
-		pulse: false,
+		badgeClass: 'status-badge published',
 	},
 	ongoing: {
 		label: 'On Going',
-		desc: 'Sedang berlangsung',
-		Icon: Zap,
-		color: '#065f46',
-		bg: '#ecfdf5',
-		border: '#6ee7b7',
-		dotColor: '#10b981',
-		pulse: true,
+		badgeClass: 'status-badge ongoing',
+	},
+	post_event: {
+		label: 'Post Event',
+		badgeClass: 'status-badge completed',
 	},
 	completed: {
-		label: 'Finished',
-		desc: 'Acara selesai',
-		Icon: CheckCircle2,
-		color: '#1e293b',
-		bg: '#f8fafc',
-		border: '#94a3b8',
-		dotColor: '#475569',
-		pulse: false,
+		label: 'Completed',
+		badgeClass: 'status-badge completed',
 	},
 	cancelled: {
 		label: 'Cancelled',
-		desc: 'Dibatalkan',
-		Icon: XCircle,
-		color: '#991b1b',
-		bg: '#fff1f2',
-		border: '#fca5a5',
-		dotColor: '#ef4444',
-		pulse: false,
+		badgeClass: 'status-badge cancelled',
 	},
 };
 
-function StatusPill({ status }) {
-	const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.draft;
-	const { label, desc, Icon, color, bg, border, dotColor, pulse } = cfg;
-
-	return (
-		<div style={{
-			display: 'inline-flex', alignItems: 'center', gap: 8,
-			padding: '5px 13px 5px 8px', borderRadius: 999,
-			border: `1.5px solid ${border}`, background: bg,
-		}}>
-			<span style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 10, height: 10 }}>
-				{pulse && (
-					<span style={{
-						position: 'absolute', inset: 0, borderRadius: '50%',
-						backgroundColor: dotColor, opacity: 0.4,
-						animation: 'phPulse 2s ease-in-out infinite',
-					}} />
-				)}
-				<span style={{
-					width: 8, height: 8, borderRadius: '50%',
-					backgroundColor: dotColor, flexShrink: 0, position: 'relative', zIndex: 1,
-				}} />
-			</span>
-			<Icon size={13} color={color} strokeWidth={2.2} style={{ flexShrink: 0 }} />
-			<span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-				<span style={{ fontSize: 12, fontWeight: 700, color, letterSpacing: '-0.2px' }}>{label}</span>
-				<span style={{ fontSize: 10, color, opacity: 0.65, fontWeight: 500 }}>{desc}</span>
-			</span>
-		</div>
-	);
-}
-
 export default function PageHeader({
 	title = 'Event Dashboard',
-	subtitle = 'Pusat kendali untuk monitoring dan manajemen event',
 	status,
-	eventSlug,
+	startDate,
+	endDate,
+	location,
+	categories = [],
+	isPublishDisabled = false,
 	onPreview,
+	onPublish,
+	onShare,
+	onEdit,
+	onKelolaTiket,
+	onScanner,
+	onFormulir,
 }) {
-	return (
-		<>
-			<style>{`@keyframes phPulse { 0%,100%{transform:scale(1);opacity:0.4} 50%{transform:scale(2.2);opacity:0} }`}</style>
+	const [showMoreMenu, setShowMoreMenu] = useState(false);
+	const menuRef = useRef(null);
 
-			<div style={{
-				display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-				flexWrap: 'wrap', gap: 12, marginBottom: 24,
-			}}>
-				{/* Left: Title + Status + Subtitle */}
-				<div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 5 }}>
-						<h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', margin: 0, letterSpacing: '-0.4px' }}>
-							{title}
-						</h1>
-						{status && <StatusPill status={status} />}
-					</div>
-					<p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>{subtitle}</p>
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		function handleClickOutside(event) {
+			if (menuRef.current && !menuRef.current.contains(event.target)) {
+				setShowMoreMenu(false);
+			}
+		}
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, []);
+
+	const isPassed = checkIfDatePassed(endDate);
+	const badgeConfig = STATUS_BADGES[status] || STATUS_BADGES.draft;
+	console.log('Event Status:', status, 'Badge Config:', badgeConfig);
+	const formattedDate = formatEventDate(startDate);
+	const formattedDateRange = formatDateRange(startDate, endDate);
+
+	const isDraft = status === 'draft';
+
+	return (
+		<div className="d-flex justify-content-between align-items-start flex-wrap gap-4 mb-4 pb-3">
+			{/* Left Column: Badges, Title, Visibility, Date */}
+			<div className="d-flex flex-column gap-1 flex-grow-1" style={{ minWidth: '280px' }}>
+				{/* Top Badges */}
+				<div className="d-flex align-items-center gap-2">
+					{status && <span className={badgeConfig.badgeClass}>{badgeConfig.label}</span>}
+					{isPassed && <span className="status-badge passed">Event passed</span>}
 				</div>
 
-				{/* Right: Preview button */}
+				{/* Title */}
+				<h1
+					className="fw-bold text-dark m-0 mt-2"
+					style={{ fontSize: '20px', letterSpacing: '-0.8px', lineHeight: '1.2' }}
+				>
+					{title}
+				</h1>
+
+				{/* Metadata Ringkas (Untuk Fase Draft) */}
+				<div
+					className="d-flex align-items-center flex-wrap gap-3 text-secondary mt-2 small"
+					style={{ fontSize: '13px', color: '#64748B' }}
+				>
+					{location && (
+						<span className="d-inline-flex align-items-center gap-2">
+							<MapPin size={13} className="text-secondary" />
+							{location}
+						</span>
+					)}
+					{location && formattedDateRange && (
+						<span className="text-muted opacity-50">|</span>
+					)}
+					{formattedDateRange && (
+						<span className="d-inline-flex align-items-center gap-2">
+							<Calendar size={13} className="text-secondary" />
+							{formattedDateRange}
+						</span>
+					)}
+					{formattedDateRange && categories && categories.length > 0 && (
+						<span className="text-muted opacity-50">|</span>
+					)}
+					{categories && categories.length > 0 && (
+						<span className="d-inline-flex align-items-center gap-2">
+							<Tag size={13} className="text-secondary" />
+							{categories.join(', ')}
+						</span>
+					)}
+				</div>
+
+
+			</div>
+
+			{/* Right Column: Actions (Preview, Publish, Share, More) */}
+			<div className="d-flex align-items-center gap-2 mt-3 mt-md-0 align-self-md-end mb-1">
+				{/* Preview Button */}
 				{onPreview && (
 					<button
 						onClick={onPreview}
-						style={{
-							display: 'inline-flex', alignItems: 'center', gap: 6,
-							fontSize: 12, fontWeight: 600, padding: '8px 16px',
-							border: '1.5px solid #cbd5e1', borderRadius: 8,
-							background: 'white', color: '#475569', cursor: 'pointer',
-							transition: 'all 0.15s',
-							flexShrink: 0,
-						}}
-						onMouseEnter={e => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
-						onMouseLeave={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = 'white'; }}
+						className="btn btn-minimal btn-minimal-outline d-inline-flex align-items-center gap-1.5 fw-semibold"
 					>
-						<ExternalLink size={13} />
-						Preview Event
+						<Monitor size={15} strokeWidth={2} />
+						Preview
 					</button>
 				)}
+
+				{/* Publish Button - Styled using standard Bootstrap 'btn-primary' */}
+				{isDraft && onPublish && (
+					<button
+						onClick={onPublish}
+						disabled={isPublishDisabled}
+						className="btn btn-minimal btn-minimal-primary d-inline-flex align-items-center px-4 fw-semibold shadow-sm"
+					>
+						Publish
+					</button>
+				)}
+
+				{/* Share Button */}
+				{onShare && (
+					<button
+						onClick={onShare}
+						className="btn btn-minimal btn-minimal-outline d-inline-flex align-items-center justify-content-center"
+						style={{ width: '38px', height: '38px' }}
+						title="Share Event"
+					>
+						<Share2 size={15} strokeWidth={2} />
+					</button>
+				)}
+
+				{/* More Options Button (Three Dots) with Dropdown */}
+				<div className="position-relative" ref={menuRef}>
+					<button
+						onClick={() => setShowMoreMenu(!showMoreMenu)}
+						className="btn btn-minimal btn-minimal-outline d-inline-flex align-items-center justify-content-center"
+						style={{ width: '38px', height: '38px' }}
+						title="More Options"
+					>
+						<MoreVertical size={15} strokeWidth={2} />
+					</button>
+
+					{/* Sleek Floating Dropdown Menu */}
+					{showMoreMenu && (
+						<div
+							className="position-absolute end-0 mt-2 bg-white border rounded-3 shadow p-1"
+							style={{
+								zIndex: 1000,
+								minWidth: '180px',
+								animation: 'fadeSlideIn 0.15s ease-out',
+							}}
+						>
+							<style>{`
+								@keyframes fadeSlideIn {
+									from { opacity: 0; transform: translateY(-5px); }
+									to { opacity: 1; transform: translateY(0); }
+								}
+							`}</style>
+							{onEdit && (
+								<button
+									onClick={() => {
+										onEdit();
+										setShowMoreMenu(false);
+									}}
+									className="dropdown-item d-flex align-items-center gap-2 rounded-2 py-2 px-3 text-secondary"
+								>
+									<Pencil size={14} strokeWidth={2} />
+									Edit Detail Event
+								</button>
+							)}
+							{onKelolaTiket && (
+								<button
+									onClick={() => {
+										onKelolaTiket();
+										setShowMoreMenu(false);
+									}}
+									className="dropdown-item d-flex align-items-center gap-2 rounded-2 py-2 px-3 text-secondary"
+								>
+									<Ticket size={14} strokeWidth={2} />
+									Kelola Tiket
+								</button>
+							)}
+							{onScanner && (
+								<button
+									onClick={() => {
+										onScanner();
+										setShowMoreMenu(false);
+									}}
+									className="dropdown-item d-flex align-items-center gap-2 rounded-2 py-2 px-3 text-secondary"
+								>
+									<ScanLine size={14} strokeWidth={2} />
+									Scanner Absensi
+								</button>
+							)}
+						</div>
+					)}
+				</div>
 			</div>
-		</>
+		</div>
 	);
 }

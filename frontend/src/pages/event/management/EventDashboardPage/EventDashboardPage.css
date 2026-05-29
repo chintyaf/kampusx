@@ -1,0 +1,141 @@
+/* Ultra-Minimalist CSS for Event Dashboard Page & Page Header */
+
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 10px;
+	border-radius: 6px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1;
+	text-transform: capitalize;
+}
+
+/* Draft Badge - Pale yellow background, warm gold/brown text */
+.status-badge.draft {
+	background-color: hsl(48, 96%, 89%);
+	border: 1px solid hsl(48, 50%, 50%);
+	color: #b7791f;
+}
+
+/* Published Badge */
+.status-badge.published {
+	background-color: hsl(204, 94%, 94%);
+	border: 1px solid hsl(204, 50%, 50%);
+	color: #0369a1;
+}
+
+/* On Going Badge - Green theme */
+.status-badge.ongoing {
+	background-color: #d1fae5;
+	border: 1px solid #6ee7b7;
+	color: #065f46;
+}
+
+/* Completed Badge - Gray theme */
+.status-badge.completed {
+	background-color: #f3f4f6;
+	border: 1px solid #d1d5db;
+	color: #1e293b;
+}
+
+/* Cancelled Badge - Red theme */
+.status-badge.cancelled {
+	background-color: #fee2e2;
+	border: 1px solid #fca5a5;
+	color: #991b1b;
+}
+
+/* Event Passed Badge - Pale gray background, dark gray text */
+.status-badge.passed {
+	background-color: #edf2f7;
+	border: 1px solid #cbd5e0;
+	color: #4a5568;
+}
+
+/* Visibility Badge (Private) - ultra minimal */
+.visibility-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 8px;
+	border-radius: 6px;
+	border: 1px solid #e2e8f0;
+	background-color: #ffffff;
+	color: #4a5568;
+	font-size: 12px;
+	font-weight: 500;
+	margin-top: 6px;
+	margin-bottom: 4px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
+}
+
+.visibility-badge svg {
+	color: #4a5568;
+}
+
+/* Date styling - ultra minimal and clean */
+.event-date-text {
+	font-size: 13px;
+	color: #718096;
+	font-weight: 400;
+	margin-top: 6px;
+}
+
+/* Custom premium buttons styling to override standard thick borders and rounded corners */
+.btn-minimal {
+	height: 38px;
+	border-radius: 10px !important;
+	font-size: 13px !important;
+	font-weight: 600 !important;
+	transition: all 0.15s ease-in-out !important;
+}
+
+.btn-minimal-outline {
+	border: 1px solid #e2e8f0 !important;
+	background-color: #ffffff !important;
+	color: #4a5568 !important;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+}
+
+.btn-minimal-outline:hover {
+	border-color: #cbd5e1 !important;
+	background-color: #f8fafc !important;
+	color: #1e293b !important;
+}
+
+/* Uses premium deep blue color matching KampusX brand */
+.btn-minimal-primary {
+	background-color: var(--color-primary) !important;
+	border: none !important;
+	color: #ffffff !important;
+	box-shadow: 0 1px 2px rgba(0, 105, 158, 0.15) !important;
+}
+
+.btn-minimal-primary:hover {
+	background-color: var(--bahama-blue-800) !important;
+}
+
+.btn-minimal:disabled,
+.btn-minimal-primary:disabled {
+	opacity: 0.65 !important;
+	background-color: #cbd5e1 !important;
+	color: #30405a !important;
+	border: none !important;
+	cursor: not-allowed !important;
+	box-shadow: none !important;
+	pointer-events: none !important;
+}
+
+/* Dropdown slide animation */
+@keyframes fadeSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-5px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

@@ -31,6 +31,7 @@ import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage';
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
 import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
 import CertificateVerificationPage from '../pages/certificate/CertificateVerificationPage';
+import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventPreviewPage';
 
 // Import Pages
 // import LandingPage from "../pages/public/LandingPage";
@@ -190,6 +191,11 @@ const AppRoutes = () => {
 					<Route element={<ProtectedRoute allowedRole={['admin']} />}>{AdminRoutes}</Route>
 					{/* Organizer / Admin */}
 					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>{OrganizerRoutes}</Route>
+				</Route>
+
+				{/* Standalone Event Preview (Outside Organizer Dashboard Layout) */}
+				<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
+					<Route path="/organizer/:eventId/event-dashboard/preview" element={<EventPreviewPage />} />
 				</Route>
 
 				<Route path="/staff/login" element={<StaffLogin />} />
