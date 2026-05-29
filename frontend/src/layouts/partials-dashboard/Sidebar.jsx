@@ -53,38 +53,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 		}));
 	}, [baseMenu, currentEventId]);
 
-	// Calculate completion states (we default to true if missingData is not loaded yet to prevent flash locking)
-	const isStep1Completed = useMemo(() => {
-		if (!missingData || missingData.length === 0) return true;
-		const step1Keywords = ['judul', 'deskripsi', 'poster', 'zona waktu', 'kategori', 'tipe event'];
-		return !missingData.some(err => 
-			step1Keywords.some(kw => err.toLowerCase().includes(kw))
-		);
-	}, [missingData]);
 
-	const isStep2Completed = useMemo(() => {
-		if (!missingData || missingData.length === 0) return true;
-		const step2Keywords = ['lokasi', 'platform', 'meeting', 'kuota', 'tempat/gedung', 'provinsi', 'alamat lengkap', 'google maps', 'titik koordinat'];
-		return !missingData.some(err => 
-			step2Keywords.some(kw => err.toLowerCase().includes(kw))
-		);
-	}, [missingData]);
-
-	const isStep3Completed = useMemo(() => {
-		if (!missingData || missingData.length === 0) return true;
-		const step3Keywords = ['tanggal mulai', 'jadwal atau sesi', 'waktu pelaksanaan', 'pembicara'];
-		return !missingData.some(err => 
-			step3Keywords.some(kw => err.toLowerCase().includes(kw))
-		);
-	}, [missingData]);
-
-	const isStep4Completed = useMemo(() => {
-		if (!missingData || missingData.length === 0) return true;
-		const step4Keywords = ['tiket', 'kategori tiket', 'harga tiket', 'kapasitas tiket'];
-		return !missingData.some(err => 
-			step4Keywords.some(kw => err.toLowerCase().includes(kw))
-		);
-	}, [missingData]);
 
 	const handleToggle = (id) => {
 		if (isSidebarCollapsed) {
@@ -144,10 +113,6 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 									isOpen={openMenus.includes(item.id)}
 									toggle={handleToggle}
 									isSidebarCollapsed={isSidebarCollapsed}
-									isStep1Completed={isStep1Completed}
-									isStep2Completed={isStep2Completed}
-									isStep3Completed={isStep3Completed}
-									isStep4Completed={isStep4Completed}
 								/>
 							</li>
 						))}

@@ -17,19 +17,19 @@ use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\EventMaterialController;
-use App\Http\Controllers\Api\OrganizerEventController;
+use App\Http\Controllers\Api\Organizer\OrganizerEventController;
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\AdminController;
-use App\Http\Controllers\Api\AdminInstitutionController;
-use App\Http\Controllers\Api\OrganizerRequestController;
-use App\Http\Controllers\Api\InstitutionMemberController;
-use App\Http\Controllers\Api\AdminUserController;
+use App\Http\Controllers\Api\Admin\AdminController;
+use App\Http\Controllers\Api\Admin\AdminInstitutionController;
+use App\Http\Controllers\Api\Organizer\OrganizerRequestController;
+use App\Http\Controllers\Api\Organizer\InstitutionMemberController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\NotificationController;
 
 // Event Dashboard Controllers
-use App\Http\Controllers\Api\EventDashboardController;
+use App\Http\Controllers\Api\EventDashboard\EventDashboardController;
 use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
 use App\Http\Controllers\Api\EventDashboard\EventStationController;
 use App\Http\Controllers\Api\EventDashboard\EventStatusController;
