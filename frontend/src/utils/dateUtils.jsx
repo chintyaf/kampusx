@@ -102,24 +102,50 @@ export const calculateTotalDuration = (sessions) => {
 };
 
 /**
- * Memformat tanggal event dengan format "Tue 10th Mar 2026, 3:00 pm WIT"
+ * Memformat tanggal event dengan format "Selasa, 10 Mar 2026, 15:00 WIT"
  * @param {string} dateStr - String tanggal dari API (contoh: "10 Mar 2026, 15:00")
  * @param {string} timezoneStr - Zona waktu, default: 'WIT'
- * @returns {string} - Tanggal terformat
+ * @returns {string} - Tanggal terformat dalam Bahasa Indonesia
  */
 export const formatEventDate = (dateStr, timezoneStr = 'WIT') => {
 	if (!dateStr) return '';
 	const regex = /^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4}),\s+(\d{1,2}):(\d{2})$/;
 	const match = dateStr.match(regex);
-	
+
 	let dateObj;
 	if (match) {
 		const [_, day, monthStr, year, hour, minute] = match;
 		const months = {
-			jan: 0, feb: 1, mar: 2, apr: 3, mei: 4, jun: 5, jul: 6, ags: 7, agu: 7, sep: 8, okt: 9, nov: 10, des: 11,
-			january: 0, february: 1, march: 2, april: 3, may: 4, june: 5, july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+			jan: 0,
+			feb: 1,
+			mar: 2,
+			apr: 3,
+			mei: 4,
+			jun: 5,
+			jul: 6,
+			ags: 7,
+			agu: 7,
+			sep: 8,
+			okt: 9,
+			nov: 10,
+			des: 11,
+			january: 0,
+			february: 1,
+			march: 2,
+			april: 3,
+			may: 4,
+			june: 5,
+			july: 6,
+			august: 7,
+			september: 8,
+			october: 9,
+			november: 10,
+			december: 11,
 		};
-		const month = months[monthStr.toLowerCase()] !== undefined ? months[monthStr.toLowerCase()] : new Date(monthStr + " 1, 2000").getMonth();
+		const month =
+			months[monthStr.toLowerCase()] !== undefined
+				? months[monthStr.toLowerCase()]
+				: new Date(monthStr + ' 1, 2000').getMonth();
 		dateObj = new Date(parseInt(year), month, parseInt(day), parseInt(hour), parseInt(minute));
 	} else {
 		dateObj = new Date(dateStr);
@@ -129,26 +155,33 @@ export const formatEventDate = (dateStr, timezoneStr = 'WIT') => {
 		return dateStr;
 	}
 
-	const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-	const monthsList = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-	
+	// Array nama hari dan bulan dalam Bahasa Indonesia
+	const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+	const monthsList = [
+		'Januari',
+		'Februari',
+		'Maret',
+		'April',
+		'Mei',
+		'Juni',
+		'Juli',
+		'Agustus',
+		'September',
+		'Oktober',
+		'November',
+		'Desember',
+	];
+
 	const dayName = days[dateObj.getDay()];
 	const dayNum = dateObj.getDate();
 	const monthName = monthsList[dateObj.getMonth()];
 	const yearNum = dateObj.getFullYear();
-	
-	let hours = dateObj.getHours();
+
+	// Format waktu 24 jam (pad dengan '0' jika angkanya di bawah 10)
+	const hours = String(dateObj.getHours()).padStart(2, '0');
 	const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-	const ampm = hours >= 12 ? 'pm' : 'am';
-	hours = hours % 12;
-	hours = hours ? hours : 12;
-	
-	let suffix = 'th';
-	if (dayNum === 1 || dayNum === 21 || dayNum === 31) suffix = 'st';
-	else if (dayNum === 2 || dayNum === 22) suffix = 'nd';
-	else if (dayNum === 3 || dayNum === 23) suffix = 'rd';
-	
-	return `${dayName} ${dayNum}${suffix} ${monthName} ${yearNum}, ${hours}:${minutes} ${ampm} ${timezoneStr}`;
+
+	return `${dayName}, ${dayNum} ${monthName} ${yearNum}, ${hours}:${minutes} ${timezoneStr}`;
 };
 
 /**
@@ -160,15 +193,15 @@ export const formatEventDate = (dateStr, timezoneStr = 'WIT') => {
 export const formatDateRange = (startStr, endStr) => {
 	if (!startStr) return endStr || '';
 	if (!endStr) return startStr;
-	
+
 	const regex = /^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/;
 	const startMatch = startStr.match(regex);
 	const endMatch = endStr.match(regex);
-	
+
 	if (startMatch && endMatch) {
 		const [_, sDay, sMonth, sYear] = startMatch;
 		const [__, eDay, eMonth, eYear] = endMatch;
-		
+
 		if (sYear === eYear) {
 			if (sMonth === eMonth) {
 				if (sDay === eDay) {
@@ -180,7 +213,7 @@ export const formatDateRange = (startStr, endStr) => {
 		}
 		return `${sDay} ${sMonth} ${sYear} - ${eDay} ${eMonth} ${eYear}`;
 	}
-	
+
 	return `${startStr} - ${endStr}`;
 };
 
@@ -197,10 +230,36 @@ export const checkIfDatePassed = (dateStr) => {
 	if (match) {
 		const [_, day, monthStr, year, hour, minute] = match;
 		const months = {
-			jan: 0, feb: 1, mar: 2, apr: 3, mei: 4, jun: 5, jul: 6, ags: 7, agu: 7, sep: 8, okt: 9, nov: 10, des: 11,
-			january: 0, february: 1, march: 2, april: 3, may: 4, june: 5, july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+			jan: 0,
+			feb: 1,
+			mar: 2,
+			apr: 3,
+			mei: 4,
+			jun: 5,
+			jul: 6,
+			ags: 7,
+			agu: 7,
+			sep: 8,
+			okt: 9,
+			nov: 10,
+			des: 11,
+			january: 0,
+			february: 1,
+			march: 2,
+			april: 3,
+			may: 4,
+			june: 5,
+			july: 6,
+			august: 7,
+			september: 8,
+			october: 9,
+			november: 10,
+			december: 11,
 		};
-		const month = months[monthStr.toLowerCase()] !== undefined ? months[monthStr.toLowerCase()] : new Date(monthStr + " 1, 2000").getMonth();
+		const month =
+			months[monthStr.toLowerCase()] !== undefined
+				? months[monthStr.toLowerCase()]
+				: new Date(monthStr + ' 1, 2000').getMonth();
 		dateObj = new Date(parseInt(year), month, parseInt(day), parseInt(hour), parseInt(minute));
 	} else {
 		dateObj = new Date(dateStr);
@@ -208,4 +267,3 @@ export const checkIfDatePassed = (dateStr) => {
 	if (isNaN(dateObj.getTime())) return false;
 	return new Date() > dateObj;
 };
-

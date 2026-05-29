@@ -42,14 +42,16 @@ const EventCard = ({ ev = {}, onClick }) => {
 	};
 
 	// Resolve Event fields with robust snake_case / camelCase fallbacks
+	const eventLocation = ev.location_detail || ev.locationDetail;
+
 	const isOnline =
 		ev.isOnline ||
 		ev.is_online ||
-		['online', 'hybrid'].includes(ev.location_type || '');
+		['online', 'hybrid'].includes(eventLocation?.type || ev.location_type || '');
 	const isInPerson =
 		ev.isInPerson ||
 		ev.is_in_person ||
-		['offline', 'hybrid'].includes(ev.location_type || '');
+		['offline', 'hybrid'].includes(eventLocation?.type || ev.location_type || '');
 	const isFeatured = ev.isFeatured || ev.is_featured;
 
 	const image = ev.image || (ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id || 1}.jpg`);
@@ -58,7 +60,13 @@ const EventCard = ({ ev = {}, onClick }) => {
 	const price = formatPrice(ev.price);
 	const location =
 		ev.location ||
-		(ev.location_type === 'online' ? 'Online' : ev.venue || 'Offline Venue');
+		(eventLocation
+			? eventLocation.type === 'online'
+				? `Online (${eventLocation.platform || 'Platform'})`
+				: eventLocation.location_name || eventLocation.city || 'Offline Venue'
+			: ev.location_type === 'online'
+				? 'Online'
+				: ev.venue || 'Offline Venue');
 	const org =
 		ev.org ||
 		ev.organizer?.name ||

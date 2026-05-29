@@ -44,12 +44,13 @@ const MemberDashboard = () => {
 				const data = res.data?.data ?? res.data;
 				setAllEvents(
 					data.map((ev) => {
-								const loc       = ev.location || {};
+								const loc       = ev.location_detail || ev.locationDetail || {};
 								const eventType = loc.type || ev.location_type || "offline";
 								const display   = eventType === "online"
 								  ? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
-								  : (loc.location || "Offline Venue");
+								  : (loc.location_name || loc.city || "Offline Venue");
 								return {
+								  ...ev,
 								  id:         ev.id,
 								  slug:       ev.slug,
 								  title:      ev.title,
