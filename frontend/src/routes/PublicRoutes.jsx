@@ -24,7 +24,7 @@ const mainRoutes = [
 		element: <ExploreEvents />,
 	},
 	{
-		path: '/event/:id',
+		path: '/event/:slug',
 		element: <EventDetail />,
 	},
 	// <Route path="/events" element={<ExploreEvents />} /

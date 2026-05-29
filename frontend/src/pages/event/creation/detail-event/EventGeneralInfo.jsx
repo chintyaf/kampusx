@@ -191,15 +191,15 @@ const EventGeneralInfo = () => {
 						timezone: mapToStandardTimezone(data.timezone || 'Asia/Jakarta'),
 						kategori: data.tags_kategori
 							? data.tags_kategori.map((cat) => ({
-									value: cat.id.toString(),
-									label: cat.name,
-								}))
+								value: cat.id.toString(),
+								label: cat.name,
+							}))
 							: [],
 						eventType: data.event_types
 							? data.event_types.map((type) => ({
-									value: type.id.toString(),
-									label: type.name,
-								}))
+								value: type.id.toString(),
+								label: type.name,
+							}))
 							: [],
 					}));
 				}
@@ -289,7 +289,7 @@ const EventGeneralInfo = () => {
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
 			isCurrentStepCompleted={isCurrentStepCompleted}
-			// sidebar={<EventPreview />}
+		// sidebar={<EventPreview />}
 		>
 			<Form className="form">
 				{/* ========================================== */}

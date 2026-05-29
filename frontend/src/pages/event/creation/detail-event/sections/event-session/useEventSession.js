@@ -410,7 +410,7 @@ export const useEventSession = (eventId) => {
 		// Membersihkan ID sementara (jika pembicara baru dibuat di frontend belum masuk DB)
 		const cleanId =
 			typeof speakerData.id === 'string' &&
-			(speakerData.id.startsWith('spk-') || speakerData.id.startsWith('temp_'))
+				(speakerData.id.startsWith('spk-') || speakerData.id.startsWith('temp_'))
 				? ''
 				: speakerData.id;
 

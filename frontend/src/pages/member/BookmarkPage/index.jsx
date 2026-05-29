@@ -165,7 +165,7 @@ const BookmarkPage = () => {
 					<Row className="g-4">
 						{bookmarks.map((ev) => (
 							<Col xs={12} md={6} xl={4} key={ev.id}>
-								<EventCard ev={ev} onClick={() => navigate(`/event/${ev.id}`)} />
+								<EventCard ev={ev} onClick={() => navigate(`/event/${ev.slug || ev.id}`)} />
 							</Col>
 						))}
 					</Row>

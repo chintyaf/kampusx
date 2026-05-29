@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Nav, ProgressBar, Badge, Accordion, Modal, Spinner, Alert } from 'react-bootstrap';
-import { 
-    ArrowLeft, Layout, BookOpen, PlayCircle, MessageCircle, QrCode, Download, 
-    CheckCircle, FileText, Award, Lock, Sparkles, Star, Calendar, MapPin, 
-    Clock, Megaphone, Bell, User, Users, Info, Wifi 
+import {
+    ArrowLeft, Layout, BookOpen, PlayCircle, MessageCircle, QrCode, Download,
+    CheckCircle, FileText, Award, Lock, Sparkles, Star, Calendar, MapPin,
+    Clock, Megaphone, Bell, User, Users, Info, Wifi
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -25,25 +25,32 @@ const EventSpace = () => {
     const [ticketCode, setTicketCode] = useState('TKT-ACTIVE-001');
     const [participantName, setParticipantName] = useState('');
 
-    // Papan pengumuman dinamis dari penyelenggara
-    const announcements = [
-        {
-            id: 1,
-            title: "Akses Buku Saku, Infografis & Pembelajaran Micro-Learning Resmi Aktif!",
-            date: "Hari Ini · 08:30 WIB",
-            content: "Selamat datang di ruang belajar! Seluruh materi rekaman seminar, infografis PDF rangkuman pemateri, dan modul quiz assessment telah aktif secara online. Silakan klik tab 'Materi Pembelajaran' di menu navigasi kiri untuk memulai perjalanan micro-learning Anda.",
-            type: "info",
-            isPinned: true
-        },
-        {
-            id: 2,
-            title: "Pengisian Kuesioner Survei & Klaim E-Sertifikat Kelulusan",
-            date: "Kemarin · 15:45 WIB",
-            content: "Bagi para peserta yang ingin mengklaim E-Sertifikat Kelulusan resmi dengan verifikasi QR Code unik, kuesioner survei penilaian akan terbuka dan dapat diisi setelah Anda menyelesaikan seluruh progress belajar di progress tracker. Pastikan juga check-in Anda terverifikasi panitia.",
-            type: "warning",
-            isPinned: false
+    const [announcements, setAnnouncements] = useState([]);
+
+    const formatTimeAgo = (dateString) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60000);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffMins < 1) return 'Baru saja';
+            if (diffMins < 60) return `${diffMins} menit yang lalu`;
+            if (diffHours < 24) return `${diffHours} jam yang lalu`;
+            if (diffDays < 7) return `${diffDays} hari yang lalu`;
+
+            return date.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        } catch (e) {
+            return 'Baru saja';
         }
-    ];
+    };
 
     useEffect(() => {
         const fetchEventDetails = async () => {
@@ -54,7 +61,7 @@ const EventSpace = () => {
                 const resSurvey = await api.get(`/events/${id}/survey`);
                 // Fetch full details of the event including sessions, speakers, and image
                 const resDetail = await api.get(`/events/${id}`);
-                
+
                 if (resSurvey.data.success) {
                     const data = resSurvey.data.data;
                     const eventData = resDetail.data.data || resDetail.data;
@@ -66,6 +73,73 @@ const EventSpace = () => {
                     setAlreadySubmitted(data.already_submitted);
                     setTicketCode(data.ticket_code);
                     setParticipantName(data.participant_name);
+
+                    // Fetch official announcements
+                    let fetchedAnnouncements = [];
+                    try {
+                        const resAnn = await api.get(`/events/${id}/announcements`);
+                        if (resAnn.data?.success) {
+                            fetchedAnnouncements = resAnn.data.data || [];
+                        }
+                    } catch (err) {
+                        console.error("Gagal mengambil pengumuman:", err);
+                    }
+
+                    // Fetch notifications for the user
+                    let filteredNotifications = [];
+                    try {
+                        const resNotif = await api.get('/notifications');
+                        if (resNotif.data?.success) {
+                            const allNotifs = resNotif.data.data || [];
+                            filteredNotifications = allNotifs.filter(notif => {
+                                const notifData = typeof notif.data === 'string'
+                                    ? JSON.parse(notif.data)
+                                    : (notif.data || {});
+
+                                const notifEventId = notifData.event_id;
+                                const matchesEvent = String(notifEventId) === String(id);
+
+                                const relevantTypes = ['event_updated', 'H-24', 'H-1', 'M-15'];
+                                const matchesType = relevantTypes.includes(notifData.type);
+
+                                return matchesEvent && matchesType;
+                            });
+                        }
+                    } catch (err) {
+                        console.error("Gagal mengambil notifikasi:", err);
+                    }
+
+                    // Format and merge them
+                    const mappedAnnouncements = fetchedAnnouncements.map(ann => ({
+                        id: `ann-${ann.id}`,
+                        title: ann.title,
+                        content: ann.content,
+                        date: ann.created_at,
+                        type: 'announcement',
+                        isPinned: true
+                    }));
+
+                    const mappedNotifications = filteredNotifications.map(notif => {
+                        const notifData = typeof notif.data === 'string'
+                            ? JSON.parse(notif.data)
+                            : (notif.data || {});
+
+                        return {
+                            id: `notif-${notif.id}`,
+                            title: notifData.title || 'Update Acara',
+                            content: notifData.message,
+                            date: notif.created_at,
+                            type: notifData.type,
+                            isPinned: ['H-1', 'M-15'].includes(notifData.type)
+                        };
+                    });
+
+                    // Sort chronologically (latest first)
+                    const combined = [...mappedAnnouncements, ...mappedNotifications].sort((a, b) => {
+                        return new Date(b.date) - new Date(a.date);
+                    });
+
+                    setAnnouncements(combined);
                 }
             } catch (err) {
                 console.error("Gagal mengambil info event:", err);
@@ -102,12 +176,12 @@ const EventSpace = () => {
                     <div className="fade-in">
                         {/* 1. PHOTO BANNER EVENT */}
                         <div className="mb-4 overflow-hidden rounded-4 shadow-sm border position-relative" style={{ height: '320px' }}>
-                            <img 
-                                src={event?.image_path ? `${STORAGE_URL}/${event.image_path}` : `${STORAGE_URL}/event-banners/${event?.id}.jpg`} 
-                                alt={event?.title} 
+                            <img
+                                src={event?.image_path ? `${STORAGE_URL}/${event.image_path}` : `${STORAGE_URL}/event-banners/${event?.id}.jpg`}
+                                alt={event?.title}
                                 className="w-100 h-100 object-fit-cover"
                             />
-                            <div 
+                            <div
                                 style={{
                                     position: 'absolute',
                                     bottom: 0,
@@ -119,8 +193,8 @@ const EventSpace = () => {
                                 }}
                             >
                                 <div className="d-flex flex-wrap gap-2 mb-2">
-                                    {event?.is_in_person && <Badge bg="light" text="dark" className="border px-2.5 py-1.5 small"><Users size={12} className="me-1"/> Onsite</Badge>}
-                                    {event?.is_online && <Badge bg="primary" className="border border-primary px-2.5 py-1.5 small"><Wifi size={12} className="me-1"/> Online</Badge>}
+                                    {event?.is_in_person && <Badge bg="light" text="dark" className="border px-2.5 py-1.5 small"><Users size={12} className="me-1" /> Onsite</Badge>}
+                                    {event?.is_online && <Badge bg="primary" className="border border-primary px-2.5 py-1.5 small"><Wifi size={12} className="me-1" /> Online</Badge>}
                                     {event?.category && <Badge bg="secondary" className="px-2.5 py-1.5 small">{event.category}</Badge>}
                                 </div>
                                 <h3 className="fw-bold mb-1">{event?.title}</h3>
@@ -144,9 +218,9 @@ const EventSpace = () => {
                                         <p className="mb-0 text-muted small" style={{ fontSize: '12px' }}>Berikan penilaian/feedback kelas setelah menyelesaikan seluruh rangkaian materi untuk mengklaim sertifikat kelulusan.</p>
                                     </div>
                                 </div>
-                                <Button 
-                                    variant="warning" 
-                                    size="sm" 
+                                <Button
+                                    variant="warning"
+                                    size="sm"
                                     onClick={() => setActiveTab('sertifikat')}
                                     className="rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5"
                                     style={{ fontSize: '12px' }}
@@ -165,9 +239,9 @@ const EventSpace = () => {
                                         <p className="mb-0 text-muted small" style={{ fontSize: '12px' }}>Terima kasih atas partisipasi Anda. Berkas e-sertifikat PDF dengan kode QR verifikasi unik telah siap diunduh.</p>
                                     </div>
                                 </div>
-                                <Button 
-                                    variant="success" 
-                                    size="sm" 
+                                <Button
+                                    variant="success"
+                                    size="sm"
                                     onClick={() => setActiveTab('sertifikat')}
                                     className="rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5"
                                     style={{ fontSize: '12px' }}
@@ -191,24 +265,54 @@ const EventSpace = () => {
                                     </Card.Header>
                                     <Card.Body className="px-4 pb-4 pt-2">
                                         <div className="d-flex flex-column gap-3">
-                                            {announcements.map((ann) => (
-                                                <div 
-                                                    key={ann.id} 
-                                                    className="p-3.5 rounded-4 border bg-light position-relative"
-                                                    style={{ 
-                                                        borderLeft: ann.isPinned ? '4px solid #ef4444' : '4px solid #3b82f6'
-                                                    }}
-                                                >
-                                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                                        <span className="badge bg-white text-dark border px-2 py-1 rounded small fw-semibold" style={{ fontSize: '10px' }}>
-                                                            {ann.isPinned ? "📌 PINNED" : "📢 UPDATE"}
-                                                        </span>
-                                                        <span className="text-muted small" style={{ fontSize: '10px' }}>{ann.date}</span>
-                                                    </div>
-                                                    <h6 className="fw-bold mb-1 text-dark" style={{ fontSize: '13.5px' }}>{ann.title}</h6>
-                                                    <p className="text-muted mb-0 small" style={{ fontSize: '12px', lineHeight: '1.5' }}>{ann.content}</p>
+                                            {announcements.length === 0 ? (
+                                                <div className="text-center py-4 text-muted bg-light rounded-4 border border-dashed">
+                                                    <Megaphone size={30} className="opacity-25 mb-2 mx-auto text-secondary" />
+                                                    <h6 className="fw-bold text-dark mb-1" style={{ fontSize: '13px' }}>Belum Ada Pengumuman</h6>
+                                                    <p className="small mb-0" style={{ fontSize: '11px' }}>Penyelenggara belum menerbitkan pengumuman atau perubahan baru.</p>
                                                 </div>
-                                            ))}
+                                            ) : (
+                                                announcements.map((ann) => {
+                                                    const badgeConfig = {
+                                                        announcement: { label: "📌 PENGUMUMAN", color: "#3b82f6", bg: "rgba(59, 130, 246, 0.08)" },
+                                                        event_updated: { label: "🔄 UPDATE ACARA", color: "#06b6d4", bg: "rgba(6, 182, 212, 0.08)" },
+                                                        'H-24': { label: "📅 H-1 ACARA", color: "#eab308", bg: "rgba(234, 179, 8, 0.08)" },
+                                                        'H-1': { label: "⚠️ PENTING (1 JAM)", color: "#f97316", bg: "rgba(249, 115, 22, 0.08)" },
+                                                        'M-15': { label: "🚨 MENDESAK (15 MENIT)", color: "#ef4444", bg: "rgba(239, 68, 68, 0.08)" }
+                                                    };
+
+                                                    const config = badgeConfig[ann.type] || { label: "📢 UPDATE", color: "#6b7280", bg: "rgba(107, 114, 128, 0.08)" };
+
+                                                    return (
+                                                        <div
+                                                            key={ann.id}
+                                                            className="p-3.5 rounded-4 border position-relative transition-all hover-shadow"
+                                                            style={{
+                                                                borderLeft: `4px solid ${config.color}`,
+                                                                backgroundColor: config.bg,
+                                                                transition: 'all 0.2s ease-in-out'
+                                                            }}
+                                                        >
+                                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                                <span
+                                                                    className="badge border px-2 py-1 rounded small fw-bold"
+                                                                    style={{
+                                                                        fontSize: '10px',
+                                                                        borderColor: `${config.color}22`,
+                                                                        color: config.color,
+                                                                        backgroundColor: '#ffffff'
+                                                                    }}
+                                                                >
+                                                                    {config.label}
+                                                                </span>
+                                                                <span className="text-muted small" style={{ fontSize: '10px' }}>{formatTimeAgo(ann.date)}</span>
+                                                            </div>
+                                                            <h6 className="fw-bold mb-1 text-dark" style={{ fontSize: '13.5px' }}>{ann.title}</h6>
+                                                            <p className="text-muted mb-0 small" style={{ fontSize: '12px', lineHeight: '1.5' }}>{ann.content}</p>
+                                                        </div>
+                                                    );
+                                                })
+                                            )}
                                         </div>
                                     </Card.Body>
                                 </Card>
@@ -217,7 +321,7 @@ const EventSpace = () => {
                                 <Card className="border-0 shadow-sm rounded-4 mb-4">
                                     <Card.Body className="p-4">
                                         <h6 className="fw-extrabold text-dark mb-3">Tentang Event Ini</h6>
-                                        <div 
+                                        <div
                                             style={{ lineHeight: '1.8', color: 'var(--color-secondary)', fontSize: '13px' }}
                                             dangerouslySetInnerHTML={{ __html: event?.description || '<p>Deskripsi tidak tersedia.</p>' }}
                                         />
@@ -289,11 +393,11 @@ const EventSpace = () => {
                                 <Card className="border-0 shadow-sm rounded-4 text-center p-4 bg-white position-sticky" style={{ top: '100px', zIndex: 10 }}>
                                     <h6 className="fw-extrabold text-dark mb-3">E-Tiket Check-in Anda</h6>
                                     <div className="bg-light p-3.5 rounded-4 d-inline-block border border-dashed mb-3">
-                                        <img 
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${ticketCode}`} 
-                                            alt="QR Code Tiket" 
-                                            className="mix-blend-multiply" 
-                                            style={{ width: '130px', height: '130px' }} 
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${ticketCode}`}
+                                            alt="QR Code Tiket"
+                                            className="mix-blend-multiply"
+                                            style={{ width: '130px', height: '130px' }}
                                         />
                                     </div>
                                     <div className="fw-bold text-dark mb-1" style={{ fontSize: '16px' }}>{ticketCode}</div>
@@ -424,8 +528,8 @@ const EventSpace = () => {
                 <Container className="py-3">
                     <div className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">
-                            <Button 
-                                variant="light" 
+                            <Button
+                                variant="light"
                                 className="rounded-circle p-2 d-flex border"
                                 onClick={() => navigate(-1)}
                             >
@@ -440,8 +544,8 @@ const EventSpace = () => {
                         </div>
 
                         {/* TOMBOL CEPAT QR CODE DI HEADER */}
-                        <Button 
-                            variant="dark" 
+                        <Button
+                            variant="dark"
                             className="rounded-pill px-4 py-2 d-flex align-items-center shadow-sm fw-medium"
                             onClick={() => setShowTicketModal(true)}
                         >
@@ -460,35 +564,35 @@ const EventSpace = () => {
                         <Card className="border-0 shadow-sm rounded-4 position-sticky" style={{ top: '100px' }}>
                             <Card.Body className="p-3">
                                 <Nav className="flex-column gap-2 custom-pills">
-                                    <Nav.Link 
+                                    <Nav.Link
                                         className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'overview' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
                                         onClick={() => setActiveTab('overview')}
                                     >
                                         <Layout size={18} className="me-3" /> Overview
                                     </Nav.Link>
-                                    <Nav.Link 
+                                    <Nav.Link
                                         className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'materi' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
                                         onClick={() => setActiveTab('materi')}
                                     >
                                         <BookOpen size={18} className="me-3" /> Materi Pembelajaran
                                     </Nav.Link>
-                                    <Nav.Link 
+                                    <Nav.Link
                                         className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'diskusi' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
                                         onClick={() => setActiveTab('diskusi')}
                                     >
                                         <MessageCircle size={18} className="me-3" /> Forum Diskusi
                                     </Nav.Link>
-                                    <Nav.Link 
+                                    <Nav.Link
                                         className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'pengumuman' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
                                         onClick={() => setActiveTab('pengumuman')}
                                     >
                                         <Megaphone size={18} className="me-3" /> Pengumuman Event
                                     </Nav.Link>
-                                    
+
                                     <hr className="my-2.5 opacity-25" />
-                                    
+
                                     {/* MENU SERTIFIKAT & ULASAN DI SIDEBAR */}
-                                    <Nav.Link 
+                                    <Nav.Link
                                         className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'sertifikat' ? 'bg-success text-white shadow-sm' : 'text-success hover-bg-success-subtle'}`}
                                         onClick={() => setActiveTab('sertifikat')}
                                         style={{ transition: 'all 0.2s ease' }}

@@ -184,9 +184,11 @@ class EventController extends Controller
     }
 
 
-    public function show(Request $request, $id)
+    public function show(Request $request, $idOrSlug)
     {
-        $event = Event::findOrFail($id);
+        $event = Event::where('id', $idOrSlug)
+            ->orWhere('slug', $idOrSlug)
+            ->firstOrFail();
 
         // Security check: only allow draft view if user is the creator
         if ($event->status === 'draft') {

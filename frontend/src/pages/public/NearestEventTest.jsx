@@ -131,7 +131,7 @@ const NearestEventTest = () => {
 				) : (
 					events.map((ev) => (
 						<Col xs={12} md={6} xl={4} key={ev.id}>
-							<Link to={`/event/${ev.id}`} className="text-decoration-none text-dark">
+							<Link to={`/event/${ev.slug || ev.id}`} className="text-decoration-none text-dark">
 								<Card
 									className="p-2 h-100 shadow-sm border-0 hover-lift overflow-hidden"
 									style={{

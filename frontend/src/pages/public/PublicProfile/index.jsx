@@ -115,7 +115,7 @@ const UserProfile = () => {
 												</small>
 											</div>
 											<Link 
-												to={`/event/${event.id}`} 
+												to={`/event/${event.slug || event.id}`} 
 												className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center border"
 												style={{ width: '40px', height: '40px' }}
 											>

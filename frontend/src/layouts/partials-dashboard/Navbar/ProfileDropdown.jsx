@@ -175,7 +175,7 @@ const ProfileDropdown = () => {
 			{/* Panel Menu */}
 			<Dropdown.Menu
 				className="p-0 border-0 mt-2"
-				style={{ borderRadius: 7, shadowColor: 'none', backgroundColor: 'transparent' }}
+				style={{ borderRadius: 7, shadowColor: 'none', backgroundColor: 'transparent', zIndex: 5000 }}
 			>
 				<div
 					className={`shadow-sm pop-down ${isClosing ? 'pop-out' : 'pop-down'}`}

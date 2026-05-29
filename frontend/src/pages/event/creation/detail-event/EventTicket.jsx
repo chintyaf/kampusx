@@ -186,7 +186,7 @@ export default function EventTicket() {
 		const hasCapacity = t.unlimited || (t.capacity && parseInt(t.capacity) > 0);
 		const hasSaleStart = t.sale_start || t.saleStart;
 		const hasSaleEnd = t.sale_end || t.saleEnd;
-		
+
 		if (!hasName || !hasPrice || !hasCapacity || !hasSaleStart || !hasSaleEnd) {
 			return false;
 		}

@@ -41,7 +41,7 @@ const EventLayout = ({
 
 		try {
 			if (onSave) await onSave(shouldNotify);
-			
+
 			// Dispatch custom event to notify Sidebar/other components to refetch status
 			window.dispatchEvent(new Event('event-status-updated'));
 

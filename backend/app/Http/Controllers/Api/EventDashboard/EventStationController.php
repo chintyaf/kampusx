@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\EventStation;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Models\Event;
 
 class EventStationController extends Controller
 {
@@ -18,7 +19,18 @@ class EventStationController extends Controller
         $stations = EventStation::where('event_id', $eventId)->get(
             ['id', 'name', 'description', 'photo_path', 'is_active']
         );
+
+
         $event = \App\Models\Event::findOrFail($eventId);
+
+        if (!$event->pos_pin) {
+            // 2. Persiapkan array data utama (Gunakan nama $eventData)
+            $pin = strtoupper(\Illuminate\Support\Str::random(6));
+            while (Event::where('pos_pin', $pin)->exists()) {
+                $pin = strtoupper(\Illuminate\Support\Str::random(6));
+            }
+            $event->update(['pos_pin' => $pin]);
+        }
 
         return response()->json([
             'status' => 'success',

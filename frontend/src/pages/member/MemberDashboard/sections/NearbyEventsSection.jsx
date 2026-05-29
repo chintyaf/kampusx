@@ -153,7 +153,7 @@ const NearbyEventsSection = ({ locationStatus, nearbyEvents, requestLocation }) 
           {nearbyEvents.map((ev) => (
             <div
               key={ev.id}
-              onClick={() => navigate(`/event/${ev.id}`)}
+              onClick={() => navigate(`/event/${ev.slug || ev.id}`)}
               style={{
                 background: 'var(--color-white)',
                 borderRadius: 12,

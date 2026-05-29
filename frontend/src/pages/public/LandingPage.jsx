@@ -88,6 +88,7 @@ const LandingPage = () => {
               : (loc.location || "Offline Venue");
             return {
               id:         ev.id,
+              slug:       ev.slug,
               title:      ev.title,
               org:        ev.organizer?.name ?? "Unknown",
               image:      ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
@@ -236,7 +237,7 @@ const LandingPage = () => {
             <Row className="g-4">
               {eventTerpopuler.map((ev) => (
                 <Col xs={12} md={4} key={ev.id}>
-                  <EventCard ev={ev} onClick={() => navigate(`/event/${ev.id}`)} />
+                  <EventCard ev={ev} onClick={() => navigate(`/event/${ev.slug || ev.id}`)} />
                 </Col>
               ))}
             </Row>
@@ -264,7 +265,7 @@ const LandingPage = () => {
               ? <div style={{ textAlign: "center", padding: "40px 0", width: "100%" }}><Spinner animation="border" style={{ color: "var(--color-primary)" }} /></div>
               : eventTerbaru.map((ev) => (
                   <Col xs={12} md={4} key={ev.id}>
-                    <EventCard ev={ev} onClick={() => navigate(`/event/${ev.id}`)} />
+                    <EventCard ev={ev} onClick={() => navigate(`/event/${ev.slug || ev.id}`)} />
                   </Col>
                 ))
             }

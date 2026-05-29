@@ -31,7 +31,7 @@ import { STORAGE_URL } from '../../../../api/storage';
 import { Toast } from 'react-bootstrap';
 
 const EventDetail = () => {
-	const { id } = useParams();
+	const { slug } = useParams();
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { user } = useAuth();
@@ -54,8 +54,7 @@ const EventDetail = () => {
 		const fetchSingleEvent = async () => {
 			setIsLoading(true);
 			try {
-				// const response = await axios.get(`http://localhost:8000/api/events/${id}`);
-				const response = await api.get(`events/${id}`);
+				const response = await api.get(`events/${slug}`);
 				const data = response.data.data || response.data;
 				setEventDetails(data);
 				setIsBookmarked(data.is_bookmarked || false);
@@ -67,16 +66,16 @@ const EventDetail = () => {
 			}
 		};
 
-		if (id) {
+		if (slug) {
 			fetchSingleEvent();
 		}
-	}, [id]);
+	}, [slug]);
 
 	useEffect(() => {
 		const checkUserRegistration = async () => {
-			if (user && id) {
+			if (user && eventDetails?.id) {
 				try {
-					const res = await api.get(`/checkout/check/${id}`);
+					const res = await api.get(`/checkout/check/${eventDetails.id}`);
 					setRegistration(res.data);
 				} catch (err) {
 					console.error('Gagal mengecek registrasi user:', err);
@@ -84,11 +83,11 @@ const EventDetail = () => {
 			}
 		};
 		checkUserRegistration();
-	}, [id, user]);
+	}, [eventDetails?.id, user]);
 
 	const handleLanjutPembayaran = (e) => {
 		e.preventDefault();
-		console.log('Tombol diklik! ID event:', id);
+		console.log('Tombol diklik! ID event:', eventDetails?.id);
 
 		if (!user) {
 			console.log('User belum login, redirect ke Sign In');
@@ -111,8 +110,8 @@ const EventDetail = () => {
 			return;
 		}
 
-		navigate(`/checkout/${id}`);
-		console.log('Navigasi ke halaman checkout dengan ID event:', id);
+		navigate(`/checkout/${eventDetails?.id}`);
+		console.log('Navigasi ke halaman checkout dengan ID event:', eventDetails?.id);
 	};
 
 	const handleToggleBookmark = async () => {
@@ -123,7 +122,7 @@ const EventDetail = () => {
 		}
 
 		try {
-			const response = await api.post(`v1/events/${id}/bookmark`);
+			const response = await api.post(`v1/events/${eventDetails?.id}/bookmark`);
 			if (response.data.status === 'success') {
 				setIsBookmarked(response.data.is_bookmarked);
 			}

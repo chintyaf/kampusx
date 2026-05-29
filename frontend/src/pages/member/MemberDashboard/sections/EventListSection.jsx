@@ -17,7 +17,7 @@ const EventListSection = ({ title, events, seeAllUrl, style }) => {
           <div key={ev.id} style={{ width: '280px', flexShrink: 0 }}>
             <EventCard
               ev={ev}
-              onClick={() => navigate(`/event/${ev.id}`)}
+              onClick={() => navigate(`/event/${ev.slug || ev.id}`)}
             />
           </div>
         ))}

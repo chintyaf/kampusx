@@ -33,7 +33,7 @@ const NotificationDropdown = () => {
 
     useEffect(() => {
         fetchNotifications();
-        
+
         // Polling setiap 30 detik untuk real-time update
         const interval = setInterval(fetchNotifications, 30000);
         return () => clearInterval(interval);
@@ -42,9 +42,9 @@ const NotificationDropdown = () => {
     const markAsRead = async (id, eventId, type) => {
         try {
             await api.post(`notifications/${id}/read`);
-            
+
             // Perbarui state lokal
-            setNotifications(prev => 
+            setNotifications(prev =>
                 prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
@@ -70,7 +70,7 @@ const NotificationDropdown = () => {
     const markAllAsRead = async () => {
         try {
             await api.post("notifications/read-all");
-            setNotifications(prev => 
+            setNotifications(prev =>
                 prev.map(n => ({ ...n, read_at: new Date().toISOString() }))
             );
             setUnreadCount(0);
@@ -84,7 +84,7 @@ const NotificationDropdown = () => {
         const date = new Date(dateString);
         const now = new Date();
         const seconds = Math.floor((now - date) / 1000);
-        
+
         if (seconds < 60) return "Baru saja";
         const minutes = Math.floor(seconds / 60);
         if (minutes < 60) return `${minutes} menit yang lalu`;
@@ -177,6 +177,7 @@ const NotificationDropdown = () => {
                     width: "360px",
                     borderRadius: "10px",
                     overflow: "hidden",
+                    zIndex: 5000,
                 }}
             >
                 {/* Header */}
@@ -217,8 +218,8 @@ const NotificationDropdown = () => {
                                         key={notif.id}
                                         onClick={() => markAsRead(notif.id, data.event_id, data.type)}
                                         className="d-flex p-3 border-bottom text-wrap align-items-start notification-item"
-                                        style={{ 
-                                            whiteSpace: "normal", 
+                                        style={{
+                                            whiteSpace: "normal",
                                             cursor: "pointer",
                                             backgroundColor: isUnread ? "rgba(247, 250, 252, 1)" : "transparent",
                                             transition: "background-color 0.2s"
@@ -246,7 +247,7 @@ const NotificationDropdown = () => {
                                                     {data.title || "Pengingat Acara"}
                                                 </h6>
                                                 {isUnread && (
-                                                    <span 
+                                                    <span
                                                         className="bg-primary rounded-circle"
                                                         style={{ width: "8px", height: "8px", flexShrink: 0 }}
                                                     />
@@ -278,7 +279,7 @@ const NotificationDropdown = () => {
 
                 {/* Footer */}
                 <li>
-                    <div 
+                    <div
                         className="pt-2.5 pb-2.5 px-2 text-center border-top bg-light text-primary hover-bg-light"
                         style={{ cursor: "pointer", transition: 'background-color 0.2s' }}
                         onClick={() => {

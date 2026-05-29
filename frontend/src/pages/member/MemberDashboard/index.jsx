@@ -51,6 +51,7 @@ const MemberDashboard = () => {
 								  : (loc.location || "Offline Venue");
 								return {
 								  id:         ev.id,
+								  slug:       ev.slug,
 								  title:      ev.title,
 								  org:        ev.organizer?.name ?? "Unknown",
 								  image:      ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
