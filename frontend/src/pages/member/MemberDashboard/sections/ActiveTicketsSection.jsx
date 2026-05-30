@@ -48,7 +48,7 @@ const ActiveTicketsSection = ({ activeTickets }) => {
             return (
               <div
                 key={t.id}
-                onClick={() => navigate(`/event-space/${ev.id}`)}
+                onClick={() => navigate(`/event-space/${ev.slug || ev.id}`)}
                 style={{
                   flexShrink: 0,
                   width: 236,

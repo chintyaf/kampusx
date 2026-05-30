@@ -155,6 +155,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Group: Organizer Dashboard List
         Route::prefix('organizer')->group(function () {
             Route::get('/events-list', [OrganizerEventController::class, 'getOrgEvents']);
+            Route::get('/participants', [OrganizerEventController::class, 'getOrgParticipants']);
             // Untuk melihat detail spesifik milik organizer
             Route::get('/events/{id}', [OrganizerEventController::class, 'show']);
 

@@ -108,7 +108,7 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 							</>
 						) : (
 							<Link
-								to={`/event-space/${cert.event.id}/survey`}
+								to={`/event-space/${cert.event.slug || cert.event.id}/survey`}
 								className="w-100 text-decoration-none"
 							>
 								<Button

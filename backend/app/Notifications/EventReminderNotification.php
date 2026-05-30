@@ -50,16 +50,26 @@ class EventReminderNotification extends Notification
                 $msg = "Siap-siap! Acara '{$this->event->title}' yang Anda kelola akan berlangsung dalam $timeStr.";
             }
         } else {
-            $title = $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Mendesak Acara';
-            if ($this->type === 'H-24') {
-                $msg = "Pengingat H-1: Acara '{$this->event->title}' akan berlangsung besok. Silakan lakukan persiapan yang diperlukan!";
-            } else {
+            if ($this->type === 'ONGOING') {
+                $title = 'Acara Telah Dimulai!';
                 $location = $this->event->locationDetail;
                 $linkStr = '';
                 if ($location && $location->meeting_link && in_array($location->type, ['online', 'hybrid'])) {
-                    $linkStr = " melalui tautan: {$location->meeting_link}";
+                    $linkStr = " melalui tautan virtual: {$location->meeting_link}";
                 }
-                $msg = "Penting! Acara '{$this->event->title}' akan segera dimulai dalam $timeStr. Segera bersiap dan masuk ke virtual event{$linkStr}!";
+                $msg = "Kabar gembira! Acara '{$this->event->title}' telah resmi dimulai saat ini. Silakan masuk ke Event Space untuk mengakses sesi{$linkStr}!";
+            } else {
+                $title = $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Mendesak Acara';
+                if ($this->type === 'H-24') {
+                    $msg = "Pengingat H-1: Acara '{$this->event->title}' akan berlangsung besok. Silakan lakukan persiapan yang diperlukan!";
+                } else {
+                    $location = $this->event->locationDetail;
+                    $linkStr = '';
+                    if ($location && $location->meeting_link && in_array($location->type, ['online', 'hybrid'])) {
+                        $linkStr = " melalui tautan: {$location->meeting_link}";
+                    }
+                    $msg = "Penting! Acara '{$this->event->title}' akan segera dimulai dalam $timeStr. Segera bersiap dan masuk ke virtual event{$linkStr}!";
+                }
             }
         }
 

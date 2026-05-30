@@ -210,7 +210,7 @@ class Event extends Model
         $participantIds = \App\Models\Ticket::whereHas('orderItem.order', function ($q) {
             $q->where('event_id', $this->id);
         })
-        ->whereIn('status', ['active', 'checked_in'])
+        ->whereIn('status', ['active', 'used', 'checked_in'])
         ->pluck('participant_id')
         ->unique();
 

@@ -343,6 +343,7 @@ class EventDashboardController extends Controller
                 'status' => $calculatedStatus,
                 'canCancel' => $canCancel,
                 'cancelMessage' => $cancelMessage,
+                'pos_pin' => $event->pos_pin,
                 'timeline' => $timeline,
                 'stats' => $stats,
                 'sessions' => $sessionsData,

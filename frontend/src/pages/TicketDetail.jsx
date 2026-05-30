@@ -17,13 +17,25 @@ const TicketDetail = () => {
   const [ticket,    setTicket]    = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error,     setError]     = useState(null);
+  const [qrToken,   setQrToken]   = useState("");
 
   useEffect(() => {
     (async () => {
       try {
         const res    = await api.get(`tickets/${ticketCode}`);
         const result = res.data;
-        setTicket(result?.data ?? result);
+        const ticketData = result?.data ?? result;
+        setTicket(ticketData);
+
+        // Fetch secure signed QR token
+        try {
+          const qrRes = await api.get(`tickets/${ticketCode}/qr-string`);
+          if (qrRes.data?.qr_string) {
+            setQrToken(qrRes.data.qr_string);
+          }
+        } catch (qrErr) {
+          console.error("Gagal mengambil QR string yang ditandatangani:", qrErr);
+        }
       } catch (err) {
         setError(err.response?.data?.message ?? "Gagal memuat tiket.");
       } finally {
@@ -208,7 +220,7 @@ const TicketDetail = () => {
                   borderStyle: "dashed" 
                 }}>
                 <div style={{ background: "#fff", padding: 16, borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", marginBottom: 16 }}>
-                  <QRCode value={ticket.qr_token ?? ticket.ticket_code} size={140} />
+                  <QRCode value={qrToken || ticket.ticket_code} size={140} />
                 </div>
                 <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--color-secondary)", fontWeight: 600, lineHeight: 1.5 }}>
                   Tunjukkan QR Code ini kepada panitia saat check-in.
@@ -254,7 +266,7 @@ const TicketDetail = () => {
                 </Button>
               </Link>
               <Button
-                onClick={() => navigate(`/event-space/${event.id}`)}
+                onClick={() => navigate(`/event-space/${event.slug || event.id}`)}
                 className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
                 style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, fontWeight: 700, fontSize: "var(--font-sm)", padding: "10px 24px" }}
               >

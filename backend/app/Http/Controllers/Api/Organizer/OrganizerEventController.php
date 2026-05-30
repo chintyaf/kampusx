@@ -57,4 +57,37 @@ class OrganizerEventController extends Controller
         ]);
     }
 
+    public function getOrgParticipants(Request $request)
+    {
+        $limit = $request->query('limit', 15);
+        $search = $request->query('search', '');
+
+        // 1. Get the events for this user
+        $eventIds = Event::where('organizer_id', $request->user()->id)->pluck('id');
+
+        // 2. Fetch all tickets for these events
+        $query = Ticket::with(['participant.university', 'orderItem.order.event'])
+            ->whereHas('orderItem.order', function ($q) use ($eventIds) {
+                $q->whereIn('event_id', $eventIds);
+            })
+            ->whereIn('status', ['active', 'checked_in']);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('attendee_name', 'like', "%{$search}%")
+                  ->orWhere('attendee_email', 'like', "%{$search}%")
+                  ->orWhereHas('participant', function ($qp) use ($search) {
+                      $qp->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $tickets = $query->latest()->paginate($limit);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $tickets
+        ]);
+    }
 }

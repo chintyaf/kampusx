@@ -13,12 +13,12 @@ class EventParticipantController extends Controller
         $limit = $request->query('limit', 10);
         $fetchAll = $request->query('all', 'false') === 'true';
 
-        // Ambil tiket peserta yang sah (aktif atau sudah check-in) untuk Event yang ditentukan
+        // Ambil tiket peserta yang sah (aktif, used, atau sudah check-in) untuk Event yang ditentukan
         $query = Ticket::with(['participant.university', 'orderItem.order'])
             ->whereHas('orderItem.order', function ($q) use ($eventId) {
                 $q->where('event_id', $eventId);
             })
-            ->whereIn('status', ['active', 'checked_in'])
+            ->whereIn('status', ['active', 'used', 'checked_in'])
             ->latest();
 
         if ($fetchAll) {

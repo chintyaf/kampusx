@@ -22,7 +22,11 @@ class SurveyController extends Controller
     {
         try {
             $user = $request->user();
-            $event = Event::with('organizer', 'institution')->findOrFail($eventId);
+            $event = Event::with('organizer', 'institution')
+                ->where('id', $eventId)
+                ->orWhere('slug', $eventId)
+                ->firstOrFail();
+            $eventId = $event->id;
 
             // Check if user is the organizer of the event or an admin
             $isOrganizerOrAdmin = ($event->organizer_id === $user->id || $user->role === 'admin');
@@ -108,7 +112,10 @@ class SurveyController extends Controller
     public function submitSurvey(Request $request, $eventId)
     {
         $user = $request->user();
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
 
         // Penyelenggara/Admin tidak boleh submit survei
         if ($event->organizer_id === $user->id || $user->role === 'admin') {
@@ -233,7 +240,10 @@ class SurveyController extends Controller
     {
         try {
             $user = $request->user();
-            $event = Event::findOrFail($eventId);
+            $event = Event::where('id', $eventId)
+                ->orWhere('slug', $eventId)
+                ->firstOrFail();
+            $eventId = $event->id;
 
             // Only organizer or admin of this event can see results
             if ($event->organizer_id !== $user->id && $user->role !== 'admin') {
@@ -351,6 +361,7 @@ class SurveyController extends Controller
                     'attendee_name' => $ticket->attendee_name,
                     'event' => [
                         'id' => $event->id,
+                        'slug' => $event->slug,
                         'title' => $event->title,
                         'date' => $eventDate,
                         'location' => $locationText,

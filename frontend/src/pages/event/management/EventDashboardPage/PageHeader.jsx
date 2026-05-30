@@ -13,8 +13,10 @@ import {
 	MapPin,
 	Calendar,
 	Tag,
+	Copy,
 } from 'lucide-react';
 import { formatEventDate, formatDateRange, checkIfDatePassed } from '@/utils/dateUtils';
+import { notify } from '@/utils/notify';
 
 const STATUS_BADGES = {
 	draft: {
@@ -51,6 +53,7 @@ export default function PageHeader({
 	location,
 	categories = [],
 	isPublishDisabled = false,
+	posPin,
 	onPreview,
 	onPublish,
 	onShare,
@@ -75,6 +78,18 @@ export default function PageHeader({
 		};
 	}, []);
 
+	const handleCopyStaffLink = (e) => {
+		e.preventDefault();
+		const shareText = `Portal Login Staff: ${window.location.origin}/staff/login\nPIN Scanner Anda: ${posPin}`;
+		navigator.clipboard.writeText(shareText)
+			.then(() => {
+				notify('success', 'Berhasil Disalin', 'Tautan login staff dan PIN berhasil disalin ke clipboard!');
+			})
+			.catch(() => {
+				notify('error', 'Gagal', 'Gagal menyalin tautan staff.');
+			});
+	};
+
 	const isPassed = checkIfDatePassed(endDate);
 	const badgeConfig = STATUS_BADGES[status] || STATUS_BADGES.draft;
 	console.log('Event Status:', status, 'Badge Config:', badgeConfig);
@@ -91,6 +106,36 @@ export default function PageHeader({
 				<div className="d-flex align-items-center gap-2">
 					{status && <span className={badgeConfig.badgeClass}>{badgeConfig.label}</span>}
 					{isPassed && <span className="status-badge passed">Event passed</span>}
+					{(status === 'ongoing' || status === 'published') && posPin && (
+						<button 
+							onClick={handleCopyStaffLink}
+							className="status-badge d-inline-flex align-items-center gap-1 border-0 text-decoration-none" 
+							style={{ 
+								backgroundColor: '#e0f2fe', 
+								color: '#0369a1', 
+								border: '1px solid #bae6fd', 
+								fontWeight: '600', 
+								padding: '4px 8px', 
+								borderRadius: '6px', 
+								fontSize: '11px',
+								cursor: 'pointer',
+								transition: 'all 0.15s ease-in-out',
+							}}
+							onMouseOver={(e) => {
+								e.currentTarget.style.backgroundColor = '#bae6fd';
+								e.currentTarget.style.color = '#0284c7';
+							}}
+							onMouseOut={(e) => {
+								e.currentTarget.style.backgroundColor = '#e0f2fe';
+								e.currentTarget.style.color = '#0369a1';
+							}}
+							title="Klik untuk menyalin Link Login Staff & PIN"
+						>
+							<Lock size={12} className="me-1" />
+							PIN Scanner: {posPin}
+							<Copy size={11} className="ms-1" style={{ opacity: 0.8 }} />
+						</button>
+					)}
 				</div>
 
 				{/* Title */}

@@ -15,7 +15,10 @@ class EventMaterialController extends Controller
      */
     public function index($eventId, Request $request)
     {
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
         $user = $request->user();
 
         // 1. Cek apakah user punya tiket acara ini (akses dasar)
@@ -68,6 +71,10 @@ class EventMaterialController extends Controller
      */
     public function organizerIndex($eventId)
     {
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
         $materials = EventMaterial::where('event_id', $eventId)->get();
         return response()->json(['data' => $materials], 200);
     }
@@ -85,7 +92,10 @@ class EventMaterialController extends Controller
             'require_attendance' => 'boolean'
         ]);
 
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
 
         // Pastikan yg insert adalah owner-nya
         // (Bisa juga ditangani oleh middleware spesifik role+ownership)
@@ -111,6 +121,10 @@ class EventMaterialController extends Controller
      */
     public function destroy($eventId, $id)
     {
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
         $material = EventMaterial::where('event_id', $eventId)->findOrFail($id);
         $material->delete();
 

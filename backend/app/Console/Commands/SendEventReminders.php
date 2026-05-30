@@ -85,9 +85,36 @@ class SendEventReminders extends Command
             ->get();
 
         foreach ($ongoingEvents as $event) {
+            // Notify Organizer
             if ($event->organizer) {
                 $event->organizer->notify(new EventReminderNotification($event, 'ONGOING', 'organizer'));
             }
+
+            // Notify Participants
+            $participantIds = DB::table('tickets')
+                ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->where('orders.event_id', $event->id)
+                ->where('tickets.status', '!=', 'cancelled')
+                ->pluck('tickets.participant_id')
+                ->unique();
+            
+            if ($participantIds->isNotEmpty()) {
+                foreach (array_chunk($participantIds->toArray(), 100) as $chunk) {
+                    $users = User::whereIn('id', $chunk)->get();
+                    foreach ($users as $u) {
+                        $u->notify(new EventReminderNotification($event, 'ONGOING', 'participant'));
+                    }
+                }
+            }
+
+            // Auto-create Event Announcement in Event Space
+            \App\Models\EventAnnouncement::create([
+                'event_id' => $event->id,
+                'title' => 'Acara Telah Dimulai!',
+                'content' => "Kabar gembira! Acara '{$event->title}' telah resmi dimulai saat ini. Selamat datang dan silakan ikuti seluruh jalannya acara serta sesi yang tersedia di Event Space. Selamat belajar!",
+            ]);
+
             $event->update(['is_ongoing_reminded' => true]);
         }
 

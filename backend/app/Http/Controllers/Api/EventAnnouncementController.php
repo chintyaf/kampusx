@@ -20,7 +20,10 @@ class EventAnnouncementController extends Controller
      */
     public function index($eventId)
     {
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
         
         $announcements = EventAnnouncement::where('event_id', $eventId)
             ->orderBy('created_at', 'desc')
@@ -38,7 +41,10 @@ class EventAnnouncementController extends Controller
      */
     public function organizerIndex($eventId)
     {
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
         
         $announcements = EventAnnouncement::where('event_id', $eventId)
             ->orderBy('created_at', 'desc')
@@ -62,7 +68,10 @@ class EventAnnouncementController extends Controller
             'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf,webp|max:4096'
         ]);
 
-        $event = Event::findOrFail($eventId);
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
 
         return DB::transaction(function () use ($request, $event, $eventId) {
             $attachmentPath = null;
@@ -124,6 +133,10 @@ class EventAnnouncementController extends Controller
      */
     public function destroy($eventId, $id)
     {
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+        $eventId = $event->id;
         $announcement = EventAnnouncement::where('event_id', $eventId)->findOrFail($id);
 
         // Hapus berkas lampiran fisik jika ada

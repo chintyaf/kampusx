@@ -432,6 +432,7 @@ export default function EventDashboardPage() {
 				location={eventData.location}
 				categories={eventData.categories || []}
 				isPublishDisabled={isDraft && issues.length > 0}
+				posPin={eventData.pos_pin}
 				onPreview={() =>
 					window.open(`/organizer/${eventId}/event-dashboard/preview`, '_blank')
 				}

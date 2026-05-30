@@ -21,6 +21,9 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 	const [photo, setPhoto] = useState(null);
 	const [photoPreview, setPhotoPreview] = useState('');
 
+	// ── TAMBAHAN STATE: Untuk menampung pesan error file ──
+	const [fileError, setFileError] = useState('');
+
 	// Cek apakah form dalam mode Edit
 	const isEditMode = Boolean(posData);
 
@@ -32,9 +35,22 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 		}));
 	};
 
+	// ── PERUBAHAN: Set error ke dalam state lokal, bukan notify ──
 	const handleFileChange = (e) => {
 		const file = e.target.files[0];
 		if (file) {
+			const MAX_SIZE = 2 * 1024 * 1024; // 2MB dalam hitungan bytes
+
+			if (file.size > MAX_SIZE) {
+				setFileError('Ukuran file melebihi 2MB. Silakan pilih foto lain.');
+				setPhoto(null);
+				setPhotoPreview('');
+				e.target.value = ''; // Reset nama file di input
+				return;
+			}
+
+			// Jika lolos validasi, bersihkan error dan set file
+			setFileError('');
 			setPhoto(file);
 			setPhotoPreview(URL.createObjectURL(file));
 		}
@@ -43,6 +59,10 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 	// Handle saat form disubmit
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		// Tambahan proteksi jika user memaksa submit lewat enter saat ada error file
+		if (fileError) return;
+
 		setIsSubmitting(true);
 
 		try {
@@ -57,7 +77,6 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 
 			let response;
 			if (isEditMode) {
-				// Spoof method PUT agar Laravel bisa membaca request multipart/form-data
 				payload.append('_method', 'PUT');
 				response = await api.post(
 					`/event-dashboard/${eventId}/stations/${posData.id}`,
@@ -70,7 +89,6 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 				);
 				notify('success', 'Berhasil', 'Data pos berhasil diperbarui.');
 			} else {
-				// Mode Tambah: Gunakan POST
 				response = await api.post(`/event-dashboard/${eventId}/stations`, payload, {
 					headers: {
 						'Content-Type': 'multipart/form-data',
@@ -79,29 +97,35 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 				notify('success', 'Berhasil', 'Pos baru berhasil ditambahkan.');
 			}
 
-			if (onSave) onSave(formData); // Beritahu parent (EventPosPage) untuk refresh data
-			onHide(); // Tutup modal
+			if (onSave) onSave(formData);
+			onHide();
 		} catch (err) {
 			console.error('Error:', err);
-			notify('error', 'Gagal', 'Terjadi kesalahan saat menyimpan data pos.');
+			let errorMsg = 'Terjadi kesalahan saat menyimpan data pos.';
+			if (err.response?.data?.errors) {
+				errorMsg = Object.values(err.response.data.errors).flat().join(' ');
+			} else if (err.response?.data?.message) {
+				errorMsg = err.response.data.message;
+			}
+			notify('error', 'Gagal', errorMsg);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
 	useEffect(() => {
+		// Reset error setiap kali data pos berubah (buka/tutup modal)
+		setFileError('');
+
 		if (posData) {
-			// Mode Edit: Isi form dengan data yang diklik
 			setFormData({
 				namaPos: posData.name,
 				description: posData.description || '',
-				// Ubah string status "Aktif" / "Tidak Aktif" menjadi boolean untuk Switch
 				isActive: posData.status === 'Aktif',
 			});
 			setPhoto(null);
 			setPhotoPreview(posData.photo_url || '');
 		} else {
-			// Mode Tambah: Reset form
 			setFormData({
 				namaPos: '',
 				description: '',
@@ -141,7 +165,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 			</Form.Group>
 
 			<Form.Group className="mb-4">
-				<Form.Label className="fw-bold">Deskripsi (Opstional)</Form.Label>
+				<Form.Label className="fw-bold">Deskripsi (Opsional)</Form.Label>
 				<InputGroup>
 					<Form.Control
 						as="textarea"
@@ -149,7 +173,6 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 						name="description"
 						value={formData.description}
 						onChange={handleChange}
-						// placeholder="Contoh: Pintu Masuk Utama"
 						required
 						disabled={isSubmitting}
 					/>
@@ -185,6 +208,7 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 								onClick={() => {
 									setPhoto(null);
 									setPhotoPreview('');
+									setFileError(''); // Ikut bersihkan error jika foto dihapus
 								}}
 							>
 								✕
@@ -198,14 +222,21 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 							Belum ada foto
 						</div>
 					)}
-					<div className="w-100">
+					<div className="w-100 text-start">
+						{/* ── PERUBAHAN DI SINI: Ditambahkan properti isInvalid ── */}
 						<Form.Control
 							type="file"
 							accept="image/*"
 							onChange={handleFileChange}
 							disabled={isSubmitting}
+							isInvalid={!!fileError}
 							style={{ fontSize: '13px' }}
 						/>
+						{/* ── PERUBAHAN DI SINI: Menampilkan feedback error merah ── */}
+						<Form.Control.Feedback type="invalid" style={{ fontSize: '11px' }}>
+							{fileError}
+						</Form.Control.Feedback>
+
 						<small className="text-muted mt-1 d-block" style={{ fontSize: '11px' }}>
 							Rekomendasi rasio 1:1, tipe file JPG/PNG maks. 2MB.
 						</small>
@@ -253,10 +284,11 @@ const PosForm = ({ show, onHide, onSave, posData }) => {
 				>
 					Batal
 				</Button>
+				{/* Tombol akan otomatis mati (disabled) jika ada error file */}
 				<Button
 					type="submit"
 					onClick={handleSubmit}
-					disabled={isSubmitting || !formData.namaPos.trim()} // Validasi jika nama kosong
+					disabled={isSubmitting || !formData.namaPos.trim() || !!fileError}
 				>
 					{isSubmitting ? (
 						<>

@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, ArrowRight, LogOut } from 'lucide-react';
+import api from '../../api/axios';
+import { STORAGE_URL } from '@/api/storage';
 
 const SelectPost = () => {
     const [event, setEvent] = useState(null);
     const [stations, setStations] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         const storedPin = localStorage.getItem('staff_pin');
         const storedEvent = localStorage.getItem('staff_event');
-        const storedStations = localStorage.getItem('staff_stations');
 
-        if (!storedPin || !storedEvent || !storedStations) {
+        if (!storedPin || !storedEvent) {
             localStorage.clear();
             navigate('/staff/login');
             return;
@@ -22,12 +24,41 @@ const SelectPost = () => {
 
         try {
             setEvent(JSON.parse(storedEvent));
-            setStations(JSON.parse(storedStations));
         } catch (e) {
             console.error('Failed to parse staff localStorage data:', e);
-            localStorage.clear();
-            navigate('/staff/login');
         }
+
+        const fetchFreshStations = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const response = await api.post('/v1/staff/verify-pin', { pin: storedPin });
+                if (response.data.success) {
+                    const activeStations = response.data.stations || [];
+                    setStations(activeStations);
+                    localStorage.setItem('staff_stations', JSON.stringify(activeStations));
+                } else {
+                    setError(response.data.message || 'Gagal memuat POS.');
+                }
+            } catch (err) {
+                console.error('Failed to fetch fresh stations:', err);
+                setError('Gagal memperbarui daftar POS. Menampilkan data offline.');
+                
+                // Fallback to local storage
+                const storedStations = localStorage.getItem('staff_stations');
+                if (storedStations) {
+                    try {
+                        setStations(JSON.parse(storedStations));
+                    } catch (e) {
+                        console.error('Failed to parse fallback stations:', e);
+                    }
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchFreshStations();
     }, [navigate]);
 
     const handleSelectStation = (station) => {
@@ -64,7 +95,14 @@ const SelectPost = () => {
                     </Button>
                 </div>
 
-                {stations.length === 0 ? (
+                {error && <Alert variant="warning" className="rounded-3 mb-4 small py-2">{error}</Alert>}
+
+                {isLoading ? (
+                    <div className="text-center py-5">
+                        <Spinner animation="border" variant="primary" />
+                        <p className="text-muted mt-3 small">Memuat daftar POS aktif...</p>
+                    </div>
+                ) : stations.length === 0 ? (
                     <Alert variant="warning" className="rounded-3 shadow-sm py-4 text-center">
                         <MapPin size={32} className="text-warning mb-2" />
                         <h5>Tidak Ada POS Aktif</h5>
@@ -101,9 +139,19 @@ const SelectPost = () => {
                                                 color: '#0d9488',
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                justifyContent: 'center'
+                                                justifyContent: 'center',
+                                                overflow: 'hidden',
+                                                flexShrink: 0
                                             }}>
-                                                <MapPin size={24} />
+                                                {station.photo_path ? (
+                                                    <img 
+                                                        src={`${STORAGE_URL}/${station.photo_path}`} 
+                                                        alt={station.name} 
+                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    />
+                                                ) : (
+                                                    <MapPin size={24} />
+                                                )}
                                             </div>
                                             <div>
                                                 <h5 className="fw-bold mb-0 text-dark">{station.name}</h5>

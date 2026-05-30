@@ -49,7 +49,7 @@ const TicketCard = ({ ticket, isActive }) => {
                                     <QrCode size={20} />
                                 </Button>
                             </Link>
-                            <Link to={`/event-space/${event.id}`}>
+                            <Link to={`/event-space/${event.slug || event.id}`}>
                                 <Button variant="primary" className="rounded-pill px-4 py-2 fw-medium d-flex align-items-center" style={{ fontSize: "14px" }}>
                                     Masuk Dashboard Event <ArrowRight size={16} className="ms-2" />
                                 </Button>
