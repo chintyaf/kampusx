@@ -78,10 +78,12 @@ Route::get('/test', function () {
 Route::post('/v1/payment/callback', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'callback']);
 
 // --- STAFF QR SCANNER & CHECK-IN ---
-Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::class, 'verifyPin']);
-Route::post('/v1/staff/scan', [\App\Http\Controllers\Api\StaffController::class, 'scan']);
-Route::post('/v1/staff/manual-checkin', [\App\Http\Controllers\Api\StaffController::class, 'manualCheckin']);
-Route::get('/v1/staff/search-tickets', [\App\Http\Controllers\Api\StaffController::class, 'searchTickets']);
+Route::middleware('attendance.window')->group(function () {
+    Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::class, 'verifyPin']);
+    Route::post('/v1/staff/scan', [\App\Http\Controllers\Api\StaffController::class, 'scan']);
+    Route::post('/v1/staff/manual-checkin', [\App\Http\Controllers\Api\StaffController::class, 'manualCheckin']);
+    Route::get('/v1/staff/search-tickets', [\App\Http\Controllers\Api\StaffController::class, 'searchTickets']);
+});
 
 
 // ==========================================
@@ -135,6 +137,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'index']);
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
+
+    // Peserta scan QR venue
+    Route::middleware('attendance.window')->post('/attendance/venue-scan', [AttendanceController::class, 'venueScan']);
 
     // Mendaftar jadi Organizer
     Route::get('/organizer-requests/status', [OrganizerRequestController::class, 'checkStatus']);
@@ -223,6 +228,8 @@ Route::middleware('auth:sanctum')->group(function () {
             // 2. Dashboard Overview
             Route::get('/overview', [EventDashboardController::class, 'getOverview']);
             Route::get('/revenue-analytics', [EventDashboardController::class, 'getRevenueAnalytics']);
+            Route::get('/venue-qr', [EventDashboardController::class, 'getVenueQr']);
+            Route::get('/export-report', [EventDashboardController::class, 'exportReport']);
 
             // 3. Participant / Ticket holders route
             Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
@@ -280,10 +287,12 @@ Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function 
         ], 200);
     });
 
-    // 1. Validasi Scanner & 3. Manual Insert & 2. Search Manual
-    Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
-    Route::post('/attendance/manual', [AttendanceController::class, 'manualOverride']);
-    Route::get('/ticket/search', [AttendanceController::class, 'searchTicket']);
+    Route::middleware('attendance.window')->group(function () {
+        // 1. Validasi Scanner & 3. Manual Insert & 2. Search Manual
+        Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
+        Route::post('/attendance/manual', [AttendanceController::class, 'manualOverride']);
+        Route::get('/ticket/search', [AttendanceController::class, 'searchTicket']);
+    });
 });
 
 // ==========================================
@@ -348,9 +357,11 @@ Route::post('/engagement/claim', [EngagementController::class, 'claimPoints']);
 Route::get('/institutions', [InstitutionController::class, 'index']);
 
 // Committee
-Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
-Route::post('/committee/scan', [CommitteeController::class, 'scan']);
-Route::get('/committee/stats', [CommitteeController::class, 'stats']);
+Route::middleware('attendance.window')->group(function () {
+    Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
+    Route::post('/committee/scan', [CommitteeController::class, 'scan']);
+    Route::get('/committee/stats', [CommitteeController::class, 'stats']);
+});
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('event-types', [EventTypeController::class, 'index']);
 // Route::get('institutions', [InstitutionController::class, 'index']);

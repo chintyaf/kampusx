@@ -139,3 +139,46 @@
 		transform: translateY(0);
 	}
 }
+
+/* PUBLISH READY CARD */
+/* Styling khusus untuk card flat design */
+
+
+/* Tipografi Heading - Diubah ke warna teks paling gelap */
+.publish-ready-title {
+	color: var(--text); /* #0f172a - Memberikan kontras maksimal */
+	font-size: var(--font-md);
+	font-weight: 700;
+	margin-bottom: 0.35rem;
+	font-family: var(--font);
+}
+
+/* Tipografi Deskripsi - Diubah ke muted text yang lebih gelap */
+.publish-ready-desc {
+	color: var(--color-text-muted); /* #212529bf - Lebih mudah dibaca dari biru muda */
+	font-size: var(--font-sm);
+	margin-bottom: 0;
+	font-family: var(--font);
+	line-height: 1.6;
+}
+
+/* Styling Tombol Publish */
+.btn-publish-action {
+	background-color: var(--primary);
+	color: var(--color-white);
+	border: 1px solid var(--primary);
+	font-size: var(--font-sm);
+	font-weight: 600;
+	border-radius: var(--radius-sm);
+	padding: 0.6rem 1.5rem;
+	font-family: var(--font);
+	transition: all 0.2s ease-in-out;
+}
+
+.btn-publish-action:hover,
+.btn-publish-action:active {
+	background-color: var(--bahama-blue-800) !important;
+	border-color: var(--bahama-blue-800) !important;
+	color: var(--color-white) !important;
+	box-shadow: none !important;
+}

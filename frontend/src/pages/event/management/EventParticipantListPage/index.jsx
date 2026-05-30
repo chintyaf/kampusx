@@ -29,6 +29,7 @@ import {
     XCircle,
     ChevronLeft,
     ChevronRight,
+    Download,
 } from "lucide-react";
 import FormHeading from "@/components/dashboard/FormHeading";
 import "../../../../assets/css/participant-list.css";
@@ -104,7 +105,9 @@ const EventParticipantListPage = () => {
 
     const [participants, setParticipants] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isExporting, setIsExporting] = useState(false);
     const [showAll, setShowAll] = useState(false);
+    const [statusFilter, setStatusFilter] = useState(""); // "" = Semua, "checked_in" = Hadir, "active" = Belum Hadir
     // Per-row reveal state: { [ticketId]: { email: bool, phone: bool } }
     const [revealed, setRevealed] = useState({});
     const [pageInfo, setPageInfo] = useState({ current_page: 1, last_page: 1, total: 0 });
@@ -112,9 +115,11 @@ const EventParticipantListPage = () => {
     const fetchParticipants = async (page = 1) => {
         try {
             setLoading(true);
-            const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, {
-                params: { all: showAll, page },
-            });
+            const params = { all: showAll, page };
+            if (statusFilter) {
+                params.status = statusFilter;
+            }
+            const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, { params });
             const data = response.data.data;
             if (showAll) {
                 setParticipants(data);
@@ -136,7 +141,7 @@ const EventParticipantListPage = () => {
 
     useEffect(() => {
         if (eventId) fetchParticipants();
-    }, [eventId, showAll]);
+    }, [eventId, showAll, statusFilter]);
 
     const toggleReveal = (ticketId, field) => {
         setRevealed((prev) => ({
@@ -148,6 +153,26 @@ const EventParticipantListPage = () => {
     const handlePageChange = (page) => {
         if (page < 1 || page > pageInfo.last_page) return;
         fetchParticipants(page);
+    };
+
+    const handleExportCSV = async () => {
+        setIsExporting(true);
+        try {
+            const res = await api.get(`/event-dashboard/${eventId}/export-report`, { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `laporan_kehadiran_event_${eventId}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            toast.success('Laporan berhasil diunduh!');
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('Gagal mengunduh laporan');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     // ── Stats ─────────────────────────────────────────────────────────────────
@@ -218,10 +243,21 @@ const EventParticipantListPage = () => {
     return (
         <div className="participant-page">
             <Toaster position="top-right" />
-            <FormHeading
-                heading="Daftar Peserta Event"
-                subheading={`Total: ${total} tiket peserta sah`}
-            />
+            <div className="d-flex justify-content-between align-items-start">
+                <FormHeading
+                    heading="Daftar Peserta Event"
+                    subheading={`Total: ${total} tiket peserta sah`}
+                />
+                <Button 
+                    variant="outline-success" 
+                    onClick={handleExportCSV} 
+                    disabled={isExporting}
+                    className="d-flex align-items-center gap-2 fw-semibold rounded-pill px-4 shadow-sm"
+                >
+                    {isExporting ? <Spinner size="sm" /> : <Download size={18} />}
+                    Export Laporan
+                </Button>
+            </div>
 
             {/* ── Privacy notice banner ─────────────────────────────────── */}
             <div className="privacy-notice">
@@ -287,9 +323,17 @@ const EventParticipantListPage = () => {
                                 disabled
                             />
                         </div>
-                        <Button variant="outline-secondary" size="sm" className="d-flex align-items-center gap-2">
-                            <Filter size={15} /> Filter
-                        </Button>
+                        <Dropdown>
+                            <Dropdown.Toggle variant="outline-secondary" size="sm" className="d-flex align-items-center gap-2">
+                                <Filter size={15} /> 
+                                {statusFilter === "" ? "Semua Status" : (statusFilter === "checked_in" ? "Hadir" : "Belum Hadir")}
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="shadow-sm">
+                                <Dropdown.Item onClick={() => setStatusFilter("")}>Semua Status</Dropdown.Item>
+                                <Dropdown.Item onClick={() => setStatusFilter("checked_in")}>Hadir (Checked-in)</Dropdown.Item>
+                                <Dropdown.Item onClick={() => setStatusFilter("active")}>Belum Hadir</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
                     </div>
 
                     <div className="d-flex align-items-center gap-3">
@@ -427,10 +471,17 @@ const EventParticipantListPage = () => {
 
                                             {/* Status */}
                                             <td className="text-center">
-                                                <span className={status.className}>
-                                                    {status.icon}
-                                                    {status.label}
-                                                </span>
+                                                <div className="d-flex flex-column align-items-center gap-1">
+                                                    <span className={status.className}>
+                                                        {status.icon}
+                                                        {status.label}
+                                                    </span>
+                                                    {ticket.attendance_log?.scan_time && (
+                                                        <span className="text-muted" style={{ fontSize: '0.75rem' }}>
+                                                            {new Date(ticket.attendance_log.scan_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </td>
 
                                             {/* Actions */}

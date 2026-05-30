@@ -13,13 +13,25 @@ class EventParticipantController extends Controller
         $limit = $request->query('limit', 10);
         $fetchAll = $request->query('all', 'false') === 'true';
 
-        // Ambil tiket peserta yang sah (aktif, used, atau sudah check-in) untuk Event yang ditentukan
-        $query = Ticket::with(['participant.university', 'orderItem.order'])
+        $statusFilter = $request->query('status'); // e.g. 'checked_in', 'active', 'cancelled'
+
+        // Ambil tiket peserta yang sah (aktif, used) untuk Event yang ditentukan
+        $query = Ticket::with(['participant.university', 'orderItem.order', 'attendanceLog'])
             ->whereHas('orderItem.order', function ($q) use ($eventId) {
                 $q->where('event_id', $eventId);
-            })
-            ->whereIn('status', ['active', 'used', 'checked_in'])
-            ->latest();
+            });
+
+        if ($statusFilter) {
+            if ($statusFilter === 'checked_in') {
+                $query->where('status', 'used');
+            } else {
+                $query->where('status', $statusFilter);
+            }
+        } else {
+            $query->whereIn('status', ['active', 'used']);
+        }
+
+        $query->latest();
 
         if ($fetchAll) {
             return response()->json([

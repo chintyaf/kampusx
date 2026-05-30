@@ -39,6 +39,19 @@ export const DASHBOARD_CONFIG = {
             collapseStaticInfo: true, // Menyembunyikan info statis ke dalam accordion
         }
     },
+    paused: {
+        theme: 'indigo',
+        badgeText: 'Paused · Menunggu Hari Berikutnya',
+        headerBorder: 'border-indigo-500',
+        primaryCTA: { label: 'Lihat Daftar Peserta', action: 'peserta', icon: 'Users' },
+        secondaryCTA: null,
+        showStats: true,
+        uiFlags: {
+            showProgressBar: false,
+            alertMissingInfo: false,
+            collapseStaticInfo: true,
+        }
+    },
     completed: {
         theme: 'slate',
         badgeText: 'Completed · Acara Selesai',

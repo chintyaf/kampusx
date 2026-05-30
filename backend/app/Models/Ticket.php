@@ -24,6 +24,11 @@ class Ticket extends Model
         return $this->belongsTo(OrderItem::class);
     }
 
+    public function attendanceLog()
+    {
+        return $this->hasOne(AttendanceLog::class, 'ticket_id');
+    }
+
     // Tambahkan properti ini di bagian atas kelas model
     protected $appends = ['certificate_code'];
 

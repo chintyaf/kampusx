@@ -23,6 +23,7 @@ import '../../../../assets/css/dashboard.css';
 
 // Components
 import PageHeader from './PageHeader';
+import DevToolsBar from './DevToolsBar';
 import StatCard from './StatCard';
 import EventInfoCard from './EventInfoCard';
 import EventTimeline from './EventTimeline';
@@ -32,16 +33,21 @@ import SessionTable from './SessionTable';
 import DemographicsCard from './DemographicsCard';
 import TicketDistribution from './TicketDistribution';
 import DashboardSkeleton from './DashboardSkeleton';
+import PublishReadyCard from './PublishReadyCard';
 
 // Config
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
 import StatusConfirmationModal from '../../../../components/event/EventStatusDropdown/StatusConfirmationModal';
+import VenueQrModal from '../../../../components/event/VenueQrModal';
 
 const iconMap = {
 	'Tickets Sold': Ticket,
 	Revenue: DollarSign,
 	'Checked-In': UserCheck,
 	Absent: UserMinus,
+	'Page Views': Eye,
+	'Sisa Waktu Registrasi': Clock,
+	'Survey Responses': FileText,
 };
 
 // ==========================================
@@ -100,6 +106,7 @@ export default function EventDashboardPage() {
 	const [showOngoingModal, setShowOngoingModal] = useState(false);
 	const [showPostEventModal, setShowPostEventModal] = useState(false);
 	const [showCompletedModal, setShowCompletedModal] = useState(false);
+	const [showVenueQr, setShowVenueQr] = useState(false);
 
 	// Fetch Data
 	useEffect(() => {
@@ -239,21 +246,21 @@ export default function EventDashboardPage() {
 		draft:
 			issues.length > 0
 				? {
-						bg: 'linear-gradient(135deg, #fffbeb 0%, #fefce8 100%)',
-						border: '#fde68a',
-						icon: '📋',
-						title: `${issues.length} item perlu dilengkapi sebelum publish`,
-						desc: 'Selesaikan semua item penting di bawah agar peserta dapat mendaftar ke event Anda.',
-						showPublishBtn: false,
-					}
+					bg: 'linear-gradient(135deg, #fffbeb 0%, #fefce8 100%)',
+					border: '#fde68a',
+					icon: '📋',
+					title: `${issues.length} item perlu dilengkapi sebelum publish`,
+					desc: 'Selesaikan semua item penting di bawah agar peserta dapat mendaftar ke event Anda.',
+					showPublishBtn: false,
+				}
 				: {
-						bg: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
-						border: '#86efac',
-						icon: '✅',
-						title: 'Semua data sudah lengkap!',
-						desc: 'Event siap dipublikasikan. Klik tombol di samping untuk mulai menerima peserta.',
-						showPublishBtn: true,
-					},
+					bg: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+					border: '#86efac',
+					icon: '✅',
+					title: 'Semua data sudah lengkap!',
+					desc: 'Event siap dipublikasikan. Klik tombol di samping untuk mulai menerima peserta.',
+					showPublishBtn: true,
+				},
 		published: {
 			bg: 'linear-gradient(135deg, #eff8ff 0%, #dbeafe 100%)',
 			border: '#93c5fd',
@@ -268,6 +275,14 @@ export default function EventDashboardPage() {
 			icon: '⚡',
 			title: 'Event sedang berlangsung!',
 			desc: 'Gunakan scanner absensi untuk check-in peserta. Pantau data kehadiran secara real-time.',
+			showPublishBtn: false,
+		},
+		paused: {
+			bg: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)',
+			border: '#a5b4fc',
+			icon: '⏸️',
+			title: 'Sesi hari ini selesai (Paused)',
+			desc: 'Menunggu sesi di hari berikutnya. Anda dapat meninjau data kehadiran hari ini.',
 			showPublishBtn: false,
 		},
 		post_event: {
@@ -291,138 +306,20 @@ export default function EventDashboardPage() {
 	const banner = CONTEXT_BANNERS[eventStatus];
 
 	// ==========================================
-	// Action Bar
-	// ==========================================
-
-	const renderActionBar = () => {
-		const btnBase = {
-			display: 'inline-flex',
-			alignItems: 'center',
-			gap: 7,
-			fontSize: 13,
-			fontWeight: 600,
-			padding: '9px 18px',
-			borderRadius: 9,
-			cursor: 'pointer',
-			border: '1.5px solid',
-			transition: 'all 0.15s',
-			fontFamily: 'var(--font)',
-		};
-		const primaryBtn = {
-			...btnBase,
-			background: 'var(--primary)',
-			color: 'white',
-			borderColor: 'var(--primary)',
-		};
-		const outlineBtn = {
-			...btnBase,
-			background: 'white',
-			color: 'var(--primary)',
-			borderColor: 'var(--primary)',
-		};
-		const neutralBtn = {
-			...btnBase,
-			background: 'white',
-			color: '#475569',
-			borderColor: '#cbd5e1',
-		};
-
-		const devActionBar = (
-			<div
-				style={{
-					marginTop: 15,
-					padding: '10px 15px',
-					background: '#f8fafc',
-					border: '1px dashed #cbd5e1',
-					borderRadius: 8,
-					marginBottom: 20,
-				}}
-			>
-				<div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 8 }}>
-					DEV TOOLS: Ubah Status Event (Bypass)
-				</div>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-					<button
-						style={{ ...outlineBtn, padding: '6px 12px', fontSize: 12 }}
-						onClick={() => setShowDraftModal(true)}
-					>
-						Set Draft
-					</button>
-					<button
-						style={{
-							...outlineBtn,
-							padding: '6px 12px',
-							fontSize: 12,
-							color: '#0f766e',
-							borderColor: '#0f766e',
-						}}
-						onClick={() => setShowPublishModal(true)}
-					>
-						Set Publish
-					</button>
-					<button
-						style={{
-							...outlineBtn,
-							padding: '6px 12px',
-							fontSize: 12,
-							color: '#0284c7',
-							borderColor: '#0ea5e9',
-						}}
-						onClick={() => setShowOngoingModal(true)}
-					>
-						Set On Going
-					</button>
-					<button
-						style={{
-							...outlineBtn,
-							padding: '6px 12px',
-							fontSize: 12,
-							color: '#7c3aed',
-							borderColor: '#c4b5fd',
-						}}
-						onClick={() => setShowPostEventModal(true)}
-					>
-						Set Setelah Acara
-					</button>
-					<button
-						style={{
-							...outlineBtn,
-							padding: '6px 12px',
-							fontSize: 12,
-							color: '#16a34a',
-							borderColor: '#86efac',
-						}}
-						onClick={() => setShowCompletedModal(true)}
-					>
-						Set Selesai
-					</button>
-					<button
-						style={{
-							...outlineBtn,
-							padding: '6px 12px',
-							fontSize: 12,
-							color: '#dc2626',
-							borderColor: '#fca5a5',
-						}}
-						onClick={() => setShowCancelModal(true)}
-					>
-						Set Cancelled
-					</button>
-				</div>
-			</div>
-		);
-
-		return <>{devActionBar}</>;
-	};
-
-	// ==========================================
 	// Main Render
 	// ==========================================
 
 	return (
 		<div>
-			{/* Action Bar */}
-			{renderActionBar()}
+			{/* Action Bar (Dev Tools) */}
+			<DevToolsBar 
+				setShowDraftModal={setShowDraftModal}
+				setShowPublishModal={setShowPublishModal}
+				setShowOngoingModal={setShowOngoingModal}
+				setShowPostEventModal={setShowPostEventModal}
+				setShowCompletedModal={setShowCompletedModal}
+				setShowCancelModal={setShowCancelModal}
+			/>
 
 			<PageHeader
 				title={eventData.name || 'Event Dashboard'}
@@ -442,60 +339,29 @@ export default function EventDashboardPage() {
 				onKelolaTiket={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
 				onScanner={() => navigate(`/organizer/${eventId}/event-dashboard/scanner`)}
 				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
+				onShowVenueQr={['published', 'ongoing'].includes(eventStatus) ? () => setShowVenueQr(true) : null}
 			/>
 
 			{/* Stat Cards */}
 			{currentConfig.showStats && (
 				<Row className="g-3 mb-4">
-					{/* Card 1: Tickets Sold */}
-					<Col xs={12} sm={6} lg={3}>
-						<StatCard
-							label="Tickets Sold"
-							value="450 / 500"
-							sub="90% kapasitas terisi"
-							progress={90}
-							iconBg="#dff3ff"
-							iconColor="#00699e"
-							lucideIcon={Ticket}
-							progressColor="var(--primary)"
-						/>
-					</Col>
-
-					{/* Card 2: Revenue */}
-					<Col xs={12} sm={6} lg={3}>
-						<StatCard
-							label="Revenue"
-							value="Rp 22,5jt"
-							sub="@ Rp 50.000 / tiket"
-							iconBg="#dcfce7"
-							iconColor="#166534"
-							lucideIcon={DollarSign}
-						/>
-					</Col>
-
-					{/* Card 3: Page Views / Conversion */}
-					<Col xs={12} sm={6} lg={3}>
-						<StatCard
-							label="Page Views"
-							value="1.240"
-							sub="36% conversion rate"
-							iconBg="#f3e8ff"
-							iconColor="#7c3aed"
-							lucideIcon={Eye}
-						/>
-					</Col>
-
-					{/* Card 4: Sisa Waktu Registrasi */}
-					<Col xs={12} sm={6} lg={3}>
-						<StatCard
-							label="Sisa Waktu Registrasi"
-							value="14 Hari"
-							sub="Ditutup 27 Jun 2026"
-							iconBg="#fef3c7"
-							iconColor="#92400e"
-							lucideIcon={Clock}
-						/>
-					</Col>
+					{statsData.map((stat, idx) => {
+						const IconComponent = stat.lucideIcon || Ticket;
+						return (
+							<Col xs={12} sm={6} lg={statsData.length === 4 ? 3 : 4} key={idx}>
+								<StatCard
+									label={stat.label}
+									value={stat.value}
+									sub={stat.sub}
+									progress={stat.progress}
+									iconBg={stat.iconBg}
+									iconColor={stat.iconColor}
+									lucideIcon={IconComponent}
+									progressColor={stat.progressColor}
+								/>
+							</Col>
+						);
+					})}
 				</Row>
 			)}
 
@@ -516,14 +382,23 @@ export default function EventDashboardPage() {
 			)} */}
 
 			{/* Timeline (Hidden in Draft Phase) */}
-			{!isDraft && <EventTimeline steps={eventData.timeline || []} />}
+			{/* {!isDraft && <EventTimeline steps={eventData.timeline || []} />} */}
 
-			{/* Event Checklist Widget for Draft / Missing Info for non-Draft */}
-			{isDraft && (
-				<MissingInformation
-					issues={issues}
-					onFix={(issue) => handleIssueNavigation(issue, eventId, navigate)}
-					highlight={highlightIssues}
+			{/* Event Checklist Widget */}
+			{isDraft ? (
+				issues.length > 0 ? (
+					<MissingInformation
+						issues={issues}
+						onFix={(issue) => handleIssueNavigation(issue, eventId, navigate)}
+						highlight={highlightIssues}
+					/>
+				) : (
+					<PublishReadyCard />
+				)
+			) : (
+				<EventChecklist
+					checklist={eventData.preparation_checklist || []}
+					eventId={eventId}
 				/>
 			)}
 
@@ -626,6 +501,13 @@ export default function EventDashboardPage() {
 					setEventStatus('completed');
 					setShowCompletedModal(false);
 				}}
+			/>
+
+			<VenueQrModal
+				show={showVenueQr}
+				onHide={() => setShowVenueQr(false)}
+				eventId={eventId}
+				eventTitle={eventData?.name}
 			/>
 		</div>
 	);

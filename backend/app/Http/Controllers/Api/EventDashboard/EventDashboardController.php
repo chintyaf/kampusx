@@ -159,6 +159,14 @@ class EventDashboardController extends Controller
 
         $absent = max(0, $ticketsSold - $checkedIn);
 
+        $visitorCount = $event->views ?: 0;
+        $conversionRate = $visitorCount > 0 ? round(($ticketsSold / $visitorCount) * 100, 1) : 0;
+
+        $isFreeEvent = !\DB::table('event_tickets')
+            ->where('event_id', $eventId)
+            ->where('price', '>', 0)
+            ->exists();
+
         $stats = [
             [
                 'label' => 'Tickets Sold',
@@ -168,29 +176,137 @@ class EventDashboardController extends Controller
                 'iconBg' => '#dff3ff',
                 'iconColor' => '#00699e',
                 'progressColor' => 'var(--primary)',
-            ],
-            [
-                'label' => 'Revenue',
-                'value' => $revenueText,
-                'sub' => $ticketsSold > 0 ? "@ Rp " . number_format($revenue / $ticketsSold, 0, ',', '.') . " / tiket" : "Belum ada penjualan",
-                'iconBg' => '#dcfce7',
-                'iconColor' => '#166534',
-            ],
-            [
-                'label' => 'Checked-In',
-                'value' => (string)$checkedIn,
-                'sub' => $ticketsSold > 0 ? round(($checkedIn / $ticketsSold) * 100) . "% kehadiran" : "Belum dimulai",
-                'iconBg' => '#f3e8ff',
-                'iconColor' => '#7c3aed',
-            ],
-            [
-                'label' => 'Absent',
-                'value' => (string)$absent,
-                'sub' => $ticketsSold > 0 ? round(($absent / $ticketsSold) * 100) . "% dari pendaftar" : "0% dari pendaftar",
-                'iconBg' => '#fef3c7',
-                'iconColor' => '#92400e',
             ]
         ];
+
+        if (!$isFreeEvent) {
+            $stats[] = [
+                'label' => 'Revenue',
+                'value' => $revenueText,
+                'sub' => $ticketsSold > 0 ? "@ Rp " . number_format($revenue > 0 ? $revenue / $ticketsSold : 0, 0, ',', '.') . " / tiket" : "Belum ada penjualan",
+                'iconBg' => '#dcfce7',
+                'iconColor' => '#166534',
+            ];
+        }
+
+        // Determine event status logic for stats
+        $calculatedStatus = $event->status;
+        $now = now();
+        
+        $sessions = \App\Models\EventSession::with(['speakers', 'materials'])
+            ->where('event_id', $eventId)
+            ->orderBy('day_number', 'asc')
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date);
+            $endDate = \Carbon\Carbon::parse($event->end_date);
+            
+            if ($now->gt($endDate)) {
+                $calculatedStatus = 'completed';
+            } elseif ($now->gte($startDate) && $now->lte($endDate)) {
+                $calculatedStatus = 'ongoing';
+                
+                if ($sessions->isNotEmpty()) {
+                    $isAnySessionActive = false;
+                    $hasFutureSessions = false;
+                    
+                    foreach ($sessions as $session) {
+                        $sessionDate = $startDate->copy()->addDays($session->day_number - 1);
+                        
+                        $sessionStart = $sessionDate->copy();
+                        if ($session->start_time) {
+                            $timeParts = explode(':', $session->start_time);
+                            $sessionStart->setTime($timeParts[0], $timeParts[1]);
+                        } else {
+                            $sessionStart->setTime(0, 0);
+                        }
+
+                        $sessionEnd = $sessionDate->copy();
+                        if ($session->end_time) {
+                            $timeParts = explode(':', $session->end_time);
+                            $sessionEnd->setTime($timeParts[0], $timeParts[1]);
+                        } else {
+                            $sessionEnd->setTime(23, 59, 59);
+                        }
+
+                        if ($now->between($sessionStart, $sessionEnd)) {
+                            $isAnySessionActive = true;
+                        }
+                        
+                        if ($sessionStart->gt($now)) {
+                            $hasFutureSessions = true;
+                        }
+                    }
+
+                    if (!$isAnySessionActive) {
+                        if ($hasFutureSessions) {
+                            $calculatedStatus = 'paused';
+                        } else {
+                            $calculatedStatus = 'completed';
+                        }
+                    }
+                }
+            }
+        }
+
+        if (in_array($calculatedStatus, ['ongoing', 'paused', 'completed'])) {
+            $stats[] = [
+                'label' => 'Checked-In',
+                'value' => (string)$checkedIn,
+                'sub' => $ticketsSold > 0 ? round(($checkedIn / $ticketsSold) * 100) . "% kehadiran" : "Belum ada check-in",
+                'iconBg' => '#f3e8ff',
+                'iconColor' => '#7c3aed',
+            ];
+            
+            $stats[] = [
+                'label' => 'Absent',
+                'value' => (string)$absent,
+                'sub' => $ticketsSold > 0 ? round(($absent / $ticketsSold) * 100) . "% tidak hadir" : "0% tidak hadir",
+                'iconBg' => '#fee2e2',
+                'iconColor' => '#b91c1c',
+            ];
+            
+            if ($calculatedStatus === 'completed') {
+                $surveyCount = 0;
+                if (\Illuminate\Support\Facades\Schema::hasTable('survey_responses') && \Illuminate\Support\Facades\Schema::hasTable('surveys')) {
+                    $surveyCount = \DB::table('survey_responses')
+                        ->join('surveys', 'survey_responses.survey_id', '=', 'surveys.id')
+                        ->where('surveys.event_id', $eventId)
+                        ->count();
+                }
+                
+                $stats[] = [
+                    'label' => 'Survey Responses',
+                    'value' => (string)$surveyCount,
+                    'sub' => $checkedIn > 0 ? round(($surveyCount / $checkedIn) * 100) . "% dari peserta hadir" : "Belum ada survey",
+                    'iconBg' => '#ecfccb',
+                    'iconColor' => '#4d7c0f',
+                ];
+            }
+        } else {
+            $stats[] = [
+                'label' => 'Page Views',
+                'value' => number_format($visitorCount, 0, ',', '.'),
+                'sub' => $conversionRate . "% conversion rate",
+                'iconBg' => '#f3e8ff',
+                'iconColor' => '#7c3aed',
+            ];
+
+            // Add Sisa Waktu Registrasi for published/draft
+            $daysLeft = $event->end_date ? (int) ceil(now()->floatDiffInDays($event->end_date, false)) : 0;
+            $sisaValue = $daysLeft > 0 ? "{$daysLeft} Hari" : "Selesai";
+            $sisaSub = $event->end_date ? "Ditutup " . $event->end_date->format('d M Y') : "Belum diatur";
+
+            $stats[] = [
+                'label' => 'Sisa Waktu Registrasi',
+                'value' => $sisaValue,
+                'sub' => $sisaSub,
+                'iconBg' => '#fef3c7',
+                'iconColor' => '#92400e',
+            ];
+        }
 
         // 2. SESSIONS: Format dynamic list
         $sessions = \App\Models\EventSession::with(['speakers', 'materials'])
@@ -330,6 +446,52 @@ class EventDashboardController extends Controller
             }
         }
 
+        // 5. PART 2 PREPARATION CHECKLIST (Before D-Day)
+        $isOnlineOrHybrid = $event->locationDetail && in_array($event->locationDetail->type, ['online', 'hybrid']);
+        $hasMeetingLink = $event->locationDetail && !empty($event->locationDetail->meeting_link);
+        $hasSurvey = \DB::table('surveys')->where('event_id', $eventId)->exists();
+        $hasStations = \DB::table('event_stations')->where('event_id', $eventId)->exists();
+        $hasCertificate = \DB::table('certificate_templates')->where('event_id', $eventId)->exists();
+        $hasMaterial = \DB::table('event_materials')->where('event_id', $eventId)->exists();
+
+        $preparationChecklist = [
+            [
+                'id' => 'zoom',
+                'label' => 'Masukkan Link Zoom / Temu Online',
+                'completed' => $hasMeetingLink,
+                'required' => $isOnlineOrHybrid,
+                'link' => "/organizer/{$eventId}/event-dashboard/detail/tempat"
+            ],
+            [
+                'id' => 'survey',
+                'label' => 'Buat Kuesioner Survey Kepuasan Acara',
+                'completed' => $hasSurvey,
+                'required' => true,
+                'link' => "/organizer/{$eventId}/event-dashboard/survey-form"
+            ],
+            [
+                'id' => 'pos',
+                'label' => 'Atur Stasiun Scanner / Pos Check-in',
+                'completed' => $hasStations,
+                'required' => true,
+                'link' => "/organizer/{$eventId}/event-dashboard/event-pos"
+            ],
+            [
+                'id' => 'certificate',
+                'label' => 'Desain Template & Layout Sertifikat',
+                'completed' => $hasCertificate,
+                'required' => true,
+                'link' => "/organizer/{$eventId}/event-dashboard/sertifikat"
+            ],
+            [
+                'id' => 'material',
+                'label' => 'Upload Materi Acara (Opsional)',
+                'completed' => $hasMaterial,
+                'required' => true,
+                'link' => "/organizer/{$eventId}/event-dashboard/materi"
+            ]
+        ];
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -349,6 +511,7 @@ class EventDashboardController extends Controller
                 'sessions' => $sessionsData,
                 'demographics' => $demographics,
                 'tickets' => $ticketsData,
+                'preparation_checklist' => $preparationChecklist,
             ]
         ]);
     }
@@ -537,5 +700,105 @@ class EventDashboardController extends Controller
                 'funnelData' => $funnelData
             ]
         ]);
+    }
+
+    public function getVenueQr(Request $request, $eventId)
+    {
+        $event = Event::findOrFail($eventId);
+        
+        $type = $request->query('type', 'in'); // 'in' or 'out'
+        if (!in_array($type, ['in', 'out'])) {
+            $type = 'in';
+        }
+
+        $secretKey = config('app.key');
+        $stringToSign = "venue_{$type}_{$eventId}";
+        $signature = hash_hmac('sha256', $stringToSign, $secretKey);
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'event_id' => $eventId,
+                'type' => $type,
+                'signature' => $signature,
+                'qr_string' => "venue_{$type}_{$eventId}.{$signature}"
+            ]
+        ], 200);
+    }
+    public function exportReport($eventId)
+    {
+        $event = Event::findOrFail($eventId);
+
+        // Fetch dynamic survey questions if exist
+        $survey = \DB::table('surveys')->where('event_id', $eventId)->first();
+        $questions = [];
+        if ($survey) {
+            $questions = \DB::table('survey_questions')
+                ->where('survey_id', $survey->id)
+                ->orderBy('sort_order', 'asc')
+                ->get();
+        }
+
+        // Headers
+        $headers = [
+            'ID Tiket',
+            'Nama Peserta',
+            'Email',
+            'Institusi',
+            'Jenis Tiket',
+            'Waktu Check-in',
+            'Waktu Check-out',
+            'Metode Presensi',
+            'Rating Acara',
+            'Rating Pembicara',
+            'Rating Materi',
+            'Komentar Survey'
+        ];
+
+        // Add dynamic question labels to headers
+        foreach ($questions as $q) {
+            $headers[] = $q->label;
+        }
+
+        // Fetch Data
+        $tickets = \App\Models\Ticket::with([
+                'participant.university',
+                'orderItem.order'
+            ])
+            ->whereHas('orderItem.order', function($q) use ($eventId) {
+                $q->where('event_id', $eventId)->where('status', 'paid');
+            })
+            ->get();
+
+        // Fetch Attendance Logs grouped by ticket_id
+        $attendanceLogs = \DB::table('attendance_logs')
+            ->where('event_id', $eventId)
+            ->get()
+            ->keyBy('ticket_id');
+
+        // Fetch Survey Responses grouped by user_id
+        $surveyResponses = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('survey_responses')) {
+            $responses = \DB::table('survey_responses')
+                ->where('event_id', $eventId)
+                ->get();
+
+            $responseIds = $responses->pluck('id')->toArray();
+            
+            $answers = collect();
+            if (count($responseIds) > 0 && \Illuminate\Support\Facades\Schema::hasTable('survey_answers')) {
+                $answers = \DB::table('survey_answers')
+                    ->whereIn('response_id', $responseIds)
+                    ->get()
+                    ->groupBy('response_id');
+            }
+
+            foreach ($responses as $resp) {
+                $resp->answers = $answers->get($resp->id, collect())->keyBy('question_id');
+            }
+        }
+
+        $filename = "laporan_kehadiran_event_{$eventId}.xlsx";
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EventParticipantExport($tickets, $attendanceLogs, $surveyResponses, $questions, $headers), $filename);
     }
 }

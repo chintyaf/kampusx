@@ -7,9 +7,11 @@ import StatCard from '@/components/dashboard/StatCard';
 import PosTable from './PosTable';
 import PosForm from './PosForm';
 // Import Trash2 untuk icon modal, dan pastikan path ConfirmationModal sesuai dengan struktur folder Anda
-import { Users, CheckCircle2, Box, Ticket, Plus, MapPin, Trash2 } from 'lucide-react';
+import { Users, CheckCircle2, Box, Ticket, Plus, MapPin, Trash2, Link as LinkIcon, Copy, RefreshCw, Download } from 'lucide-react';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 import PosPinHeader from './PosPinHeader';
+import toast, { Toaster } from 'react-hot-toast';
+import { InputGroup, Form, Spinner, Card, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 /* ── Main ────────────────────────────────────────────────────── */
 const EventPosPage = () => {
 	const { eventId } = useParams();
@@ -17,11 +19,17 @@ const EventPosPage = () => {
 	const [showForm, setShowForm] = useState(false);
 	const [selectedPos, setSelectedPos] = useState(null);
 	const [posPin, setPosPin] = useState('-');
+	const [isExporting, setIsExporting] = useState(false);
 
 	// State untuk Modal Delete
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [posToDelete, setPosToDelete] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+
+	// State untuk Online Link
+	const [onlineLink, setOnlineLink] = useState('');
+	const [loadingLink, setLoadingLink] = useState(false);
+	const [linkType, setLinkType] = useState('in');
 
 	const fetchPosList = async () => {
 		try {
@@ -87,17 +95,126 @@ const EventPosPage = () => {
 		setShowForm(true);
 	};
 
+	const handleGenerateLink = async () => {
+		setLoadingLink(true);
+		try {
+			const res = await api.get(`/event-dashboard/${eventId}/venue-qr?type=${linkType}`);
+			if (res.data?.success) {
+				const { event_id, signature, type } = res.data.data;
+				const url = `${window.location.origin}/attend-venue?event_id=${event_id}&type=${type}&signature=${signature}`;
+				setOnlineLink(url);
+				toast.success('Magic link berhasil dibuat!');
+			}
+		} catch (error) {
+			toast.error('Gagal membuat magic link.');
+		} finally {
+			setLoadingLink(false);
+		}
+	};
+
+	const handleCopyLink = () => {
+		navigator.clipboard.writeText(onlineLink)
+			.then(() => toast.success('Link disalin ke clipboard!'))
+			.catch(() => toast.error('Gagal menyalin link.'));
+	};
+
+	const handleExportCSV = async () => {
+		setIsExporting(true);
+		try {
+			const res = await api.get(`/event-dashboard/${eventId}/export-report`, { responseType: 'blob' });
+			const url = window.URL.createObjectURL(new Blob([res.data]));
+			const link = document.createElement('a');
+			link.href = url;
+			link.setAttribute('download', `laporan_kehadiran_event_${eventId}.xlsx`);
+			document.body.appendChild(link);
+			link.click();
+			link.parentNode.removeChild(link);
+			toast.success('Laporan berhasil diunduh!');
+		} catch (error) {
+			console.error('Export error:', error);
+			toast.error('Gagal mengunduh laporan');
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
 	return (
 		<div className="d-flex flex-column gap-3">
+			<Toaster position="top-right" />
 			{/* ── Header & Action Button ── */}
 			<div className="d-flex justify-content-between align-items-start">
 				<FormHeading
 					heading="Manajemen Pos Scanner"
 					subheading="Kelola akses dan peran tim panitia Anda di sini."
 				/>
+				<Button 
+					variant="outline-success" 
+					onClick={handleExportCSV} 
+					disabled={isExporting}
+					className="d-flex align-items-center gap-2 fw-semibold rounded-pill px-4 shadow-sm"
+				>
+					{isExporting ? <Spinner size="sm" /> : <Download size={18} />}
+					Export Laporan
+				</Button>
 			</div>
 
 			<PosPinHeader pin={posPin} />
+
+			{/* ── Presensi Online Link ── */}
+			<Card className="border-0 shadow-sm rounded-4">
+				<Card.Body className="p-4 d-flex flex-column align-items-center justify-content-center text-center">
+					<h5 className="fw-bold mb-2">Presensi Online (Link Temporer)</h5>
+					<p className="text-muted mb-3 px-3" style={{ fontSize: '0.9rem' }}>
+						Buat "Magic Link" unik yang bisa dibagikan kepada peserta online.
+					</p>
+
+					<ToggleButtonGroup type="radio" name="posLinkType" value={linkType} onChange={(val) => { setLinkType(val); setOnlineLink(''); }} className="mb-3 shadow-sm">
+						<ToggleButton id="pos-tbg-btn-1" value="in" variant={linkType === 'in' ? 'primary' : 'outline-primary'} className="fw-semibold px-3" style={{ fontSize: '0.9rem' }}>
+							Check-in
+						</ToggleButton>
+						<ToggleButton id="pos-tbg-btn-2" value="out" variant={linkType === 'out' ? 'primary' : 'outline-primary'} className="fw-semibold px-3" style={{ fontSize: '0.9rem' }}>
+							Check-out
+						</ToggleButton>
+					</ToggleButtonGroup>
+					
+					{!onlineLink ? (
+						<Button 
+							variant="outline-primary" 
+							className="rounded-pill px-4 fw-semibold shadow-sm"
+							onClick={handleGenerateLink}
+							disabled={loadingLink}
+						>
+							{loadingLink ? (
+								<><Spinner size="sm" className="me-2" /> Memproses...</>
+							) : (
+								<><LinkIcon size={16} className="me-2" /> Generate Magic Link</>
+							)}
+						</Button>
+					) : (
+						<div className="w-100" style={{ maxWidth: '500px' }}>
+							<InputGroup className="mb-2 shadow-sm">
+								<Form.Control
+									value={onlineLink}
+									readOnly
+									style={{ backgroundColor: '#f8f9fa', cursor: 'text' }}
+								/>
+								<Button variant="primary" onClick={handleCopyLink} className="d-flex align-items-center">
+									<Copy size={16} className="me-1" /> Copy
+								</Button>
+							</InputGroup>
+							<Button 
+								variant="link" 
+								className="text-muted text-decoration-none p-0 mt-1 d-inline-flex align-items-center"
+								onClick={handleGenerateLink}
+								disabled={loadingLink}
+								style={{ fontSize: '0.85rem' }}
+							>
+								<RefreshCw size={12} className="me-1" /> Buat Ulang Link
+							</Button>
+						</div>
+					)}
+				</Card.Body>
+			</Card>
 
 			{/* ── Stat Cards ── */}
 			<Row className="g-3">

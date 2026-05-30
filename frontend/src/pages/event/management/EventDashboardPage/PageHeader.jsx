@@ -61,6 +61,7 @@ export default function PageHeader({
 	onKelolaTiket,
 	onScanner,
 	onFormulir,
+	onShowVenueQr,
 }) {
 	const [showMoreMenu, setShowMoreMenu] = useState(false);
 	const menuRef = useRef(null);
@@ -107,16 +108,16 @@ export default function PageHeader({
 					{status && <span className={badgeConfig.badgeClass}>{badgeConfig.label}</span>}
 					{isPassed && <span className="status-badge passed">Event passed</span>}
 					{(status === 'ongoing' || status === 'published') && posPin && (
-						<button 
+						<button
 							onClick={handleCopyStaffLink}
-							className="status-badge d-inline-flex align-items-center gap-1 border-0 text-decoration-none" 
-							style={{ 
-								backgroundColor: '#e0f2fe', 
-								color: '#0369a1', 
-								border: '1px solid #bae6fd', 
-								fontWeight: '600', 
-								padding: '4px 8px', 
-								borderRadius: '6px', 
+							className="status-badge d-inline-flex align-items-center gap-1 border-0 text-decoration-none"
+							style={{
+								backgroundColor: '#e0f2fe',
+								color: '#0369a1',
+								border: '1px solid #bae6fd',
+								fontWeight: '600',
+								padding: '4px 8px',
+								borderRadius: '6px',
 								fontSize: '11px',
 								cursor: 'pointer',
 								transition: 'all 0.15s ease-in-out',
@@ -190,6 +191,17 @@ export default function PageHeader({
 					>
 						<Monitor size={15} strokeWidth={2} />
 						Preview
+					</button>
+				)}
+
+				{/* QR Venue Button */}
+				{onShowVenueQr && (
+					<button
+						onClick={onShowVenueQr}
+						className="btn btn-minimal btn-minimal-outline d-inline-flex align-items-center gap-1.5 fw-semibold border-primary text-primary"
+					>
+						<ScanLine size={15} strokeWidth={2} />
+						QR Venue
 					</button>
 				)}
 

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Spinner } from 'react-bootstrap';
+import { Card, Button, Spinner, Row, Col } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import SurveyCard from './SurveyCard';
 import SurveyDetailPage from './SurveyDetailPage';
 import FormHeading from '@/components/dashboard/FormHeading';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
+import { Users, Star, Activity, FileText } from 'lucide-react';
+import '../../../../assets/css/participant-list.css'; // For stat-card styles
 
 // --- Komponen Halaman Utama (Index) ---
 const Index = () => {
@@ -18,6 +20,7 @@ const Index = () => {
 	const [surveys, setSurveys] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [rawSurvey, setRawSurvey] = useState(null);
+	const [surveyAnalytics, setSurveyAnalytics] = useState(null);
 
 	// Fungsi untuk mengambil data kuesioner dan analitik dari API
 	const fetchSurveyAndAnalytics = useCallback(async () => {
@@ -32,6 +35,7 @@ const Index = () => {
 				// 2. Fetch analitik jika kuesioner ditemukan
 				const analyticsRes = await api.get(`/event-dashboard/${eventId}/survey-analytics`);
 				const analytics = analyticsRes.data.data;
+				setSurveyAnalytics(analytics);
 
 				setSurveys([
 					{
@@ -96,6 +100,54 @@ const Index = () => {
 							</Button>
 						)}
 					</div>
+
+					{/* ── Stats row ─────────────────────────────────────────────── */}
+					{surveyAnalytics && surveys.length > 0 && (
+						<div className="participant-stats mb-4">
+							<div className="stat-card">
+								<div className="stat-card__icon stat-card__icon--blue">
+									<Users size={16} />
+								</div>
+								<div>
+									<p className="stat-card__label">Total Responden</p>
+									<p className="stat-card__value">{surveyAnalytics.total_responses ?? 0}</p>
+								</div>
+							</div>
+							<div className="stat-card">
+								<div className="stat-card__icon stat-card__icon--green">
+									<Star size={16} />
+								</div>
+								<div>
+									<p className="stat-card__label">Rata-rata Rating Acara</p>
+									<p className="stat-card__value">
+										{surveyAnalytics.avg_rating ? parseFloat(surveyAnalytics.avg_rating).toFixed(1) : '-'} / 5.0
+									</p>
+								</div>
+							</div>
+							<div className="stat-card">
+								<div className="stat-card__icon stat-card__icon--yellow">
+									<Activity size={16} />
+								</div>
+								<div>
+									<p className="stat-card__label">Rata-rata Rating Pembicara</p>
+									<p className="stat-card__value">
+										{surveyAnalytics.avg_speaker_rating ? parseFloat(surveyAnalytics.avg_speaker_rating).toFixed(1) : '-'} / 5.0
+									</p>
+								</div>
+							</div>
+							<div className="stat-card">
+								<div className="stat-card__icon stat-card__icon--red">
+									<FileText size={16} />
+								</div>
+								<div>
+									<p className="stat-card__label">Rata-rata Rating Materi</p>
+									<p className="stat-card__value">
+										{surveyAnalytics.avg_material_rating ? parseFloat(surveyAnalytics.avg_material_rating).toFixed(1) : '-'} / 5.0
+									</p>
+								</div>
+							</div>
+						</div>
+					)}
 
 					{/* Rendering Daftar SurveyCard */}
 					<div className="d-flex flex-column gap-1">

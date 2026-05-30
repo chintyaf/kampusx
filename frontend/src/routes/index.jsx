@@ -57,6 +57,7 @@ import NotificationsPage from '../pages/member/NotificationsPage';
 import NearestEventTest from '../pages/public/NearestEventTest';
 import ExploreEvents from '../pages/ExploreEvents';
 import BookmarkPage from '../pages/member/BookmarkPage';
+import AttendVenuePage from '../pages/public/AttendVenuePage';
 
 import StaffLogin from '../pages/staff/StaffLogin';
 import SelectPost from '../pages/staff/SelectPost';
@@ -142,6 +143,7 @@ const AppRoutes = () => {
 					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
 					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
 					<Route path="/profile/:id" element={<PublicProfile />} />
+					<Route path="/attend-venue" element={<AttendVenuePage />} />
 
 					{/* Protected Member Pages (Shares the same Layout/Navbar) */}
 					<Route element={<ProtectedRoute />}>

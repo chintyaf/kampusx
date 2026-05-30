@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Card, Form, Button, Tabs, Tab, Modal } from 'react-bootstrap';
-import { Camera, Search, UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { Container, Card, Form, Button, Tabs, Tab, Modal, InputGroup, Spinner, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
+import { Camera, Search, UserCheck, AlertCircle, CheckCircle, Link as LinkIcon, Copy, RefreshCw } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useParams } from 'react-router-dom';
@@ -17,6 +17,9 @@ const ScannerPage = () => {
 	const [manualInput, setManualInput] = useState('');
 	const [showModal, setShowModal] = useState(false);
 	const [scannedData, setScannedData] = useState(null);
+	const [onlineLink, setOnlineLink] = useState('');
+	const [loadingLink, setLoadingLink] = useState(false);
+	const [linkType, setLinkType] = useState('in');
 
 	const handleScanSuccess = async (data, method = 'qr') => {
 		try {
@@ -121,6 +124,29 @@ const ScannerPage = () => {
 		setScannedData(null);
 	};
 
+	const handleGenerateLink = async () => {
+		setLoadingLink(true);
+		try {
+			const res = await api.get(`/event-dashboard/${eventIdRef.current}/venue-qr?type=${linkType}`);
+			if (res.data?.success) {
+				const { event_id, signature, type } = res.data.data;
+				const url = `${window.location.origin}/attend-venue?event_id=${event_id}&type=${type}&signature=${signature}`;
+				setOnlineLink(url);
+				toast.success('Magic link berhasil dibuat!');
+			}
+		} catch (error) {
+			toast.error('Gagal membuat magic link.');
+		} finally {
+			setLoadingLink(false);
+		}
+	};
+
+	const handleCopyLink = () => {
+		navigator.clipboard.writeText(onlineLink)
+			.then(() => toast.success('Link disalin ke clipboard!'))
+			.catch(() => toast.error('Gagal menyalin link.'));
+	};
+
 	return (
 		<Container className="py-5" style={{ maxWidth: '600px' }}>
 			{/* UI Feedback System via react-hot-toast */}
@@ -193,6 +219,70 @@ const ScannerPage = () => {
 										Cek Validitas Tiket
 									</Button>
 								</Form>
+							</div>
+						</Tab>
+
+						{/* TAB: Online Magic Link Layout */}
+						<Tab
+							eventKey="online"
+							title={
+								<span className="py-2 d-inline-block">
+									<LinkIcon size={18} className="me-2 mb-1" /> LINK ONLINE
+								</span>
+							}
+						>
+							<div className="p-4 bg-light min-vh-50 d-flex flex-column align-items-center justify-content-center text-center">
+								<h5 className="fw-bold mb-3">Presensi Online (Link Temporer)</h5>
+								<p className="text-muted mb-4 px-3">
+									Buat "Magic Link" unik yang bisa dibagikan kepada peserta online (misal via Zoom Chat). 
+									Peserta hanya perlu mengklik link tersebut untuk mencatat kehadiran mereka.
+								</p>
+
+								<ToggleButtonGroup type="radio" name="linkType" value={linkType} onChange={(val) => { setLinkType(val); setOnlineLink(''); }} className="mb-4 shadow-sm">
+									<ToggleButton id="tbg-btn-1" value="in" variant={linkType === 'in' ? 'primary' : 'outline-primary'} className="fw-semibold px-4">
+										Check-in (Masuk)
+									</ToggleButton>
+									<ToggleButton id="tbg-btn-2" value="out" variant={linkType === 'out' ? 'primary' : 'outline-primary'} className="fw-semibold px-4">
+										Check-out (Keluar)
+									</ToggleButton>
+								</ToggleButtonGroup>
+								
+								{!onlineLink ? (
+									<Button 
+										variant="primary" 
+										size="lg" 
+										className="rounded-pill px-4 fw-semibold shadow-sm"
+										onClick={handleGenerateLink}
+										disabled={loadingLink}
+									>
+										{loadingLink ? (
+											<><Spinner size="sm" className="me-2" /> Memproses...</>
+										) : (
+											<><LinkIcon size={18} className="me-2" /> Generate Magic Link</>
+										)}
+									</Button>
+								) : (
+									<div className="w-100 px-md-4">
+										<InputGroup className="mb-3 shadow-sm">
+											<Form.Control
+												value={onlineLink}
+												readOnly
+												style={{ backgroundColor: '#fff', cursor: 'text' }}
+											/>
+											<Button variant="outline-primary" onClick={handleCopyLink}>
+												<Copy size={18} />
+											</Button>
+										</InputGroup>
+										<Button 
+											variant="light" 
+											className="mt-2"
+											onClick={handleGenerateLink}
+											disabled={loadingLink}
+										>
+											<RefreshCw size={14} className="me-1" /> Buat Ulang Link
+										</Button>
+									</div>
+								)}
 							</div>
 						</Tab>
 					</Tabs>

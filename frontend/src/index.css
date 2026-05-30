@@ -10,30 +10,71 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
 
 :root {
-	/* --- INDEX CSS (ORIGINAL) --- */
+	/* =========================================
+       TYPOGRAPHY
+       ========================================= */
 	--font: 'Plus Jakarta Sans', sans-serif;
 
-	/* FONT */
 	--font-xs: 12px; /* Caption / Label 5 */
 	--font-sm: 14px; /* Menu Sidebar teks 4 */
 	--font-md: 16px; /* Body teks 3 */
 	--font-lg: 20px; /* Heading Kecil 2*/
 	--font-xl: 24px; /* Heading Besar 1*/
 
+	/* =========================================
+       CORE & BASE COLORS
+       ========================================= */
 	--color-primary: #00699e;
 	--color-secondary: #64748b;
-	--color-bg-dark: #f4f5f7;
-	--color-bg: #f4f5f7;
-	--color-bg-light: hsl(220, 16%, 100%);
+	--color-white: #fff;
 	--color-text: #0f172a;
 	--color-text-muted: #212529bf;
 
+	--primary: #00699e;
+	--primary-mid: #3c84a8;
+	--primary-light: #dff3ff;
+	--primary-border: #b9e7fe;
+
+	--muted: #64748b;
+	--text: #0f172a;
+	--text-muted: #64748b;
+
+	/* =========================================
+       BACKGROUNDS & GENERAL BORDERS
+       ========================================= */
+	--color-bg-dark: #f4f5f7;
+	--color-bg: #f4f5f7;
+	--color-bg-light: hsl(220, 16%, 100%);
+	--color-bg-2: #f1f5f9;
+
+	--bg: #e4e7eb;
+	--card: #ffffff;
+
 	--color-border: #6680ac56;
 	--color-border-blue: #3a6ecf;
+	--border: #3762a72e;
+	--border-md: #3762a747;
 
-	--color-white: #fff;
+	/* =========================================
+       BORDER WIDTHS & RADIUS UTILITIES
+       ========================================= */
+	--border-w-xs: 1px;
+	--border-w-sm: 2px;
+	--border-w-md: 3px;
+	--border-w-lg: 4px;
+	--border-w-xl: 8px;
 
-	/* Bahama Blue Color Palette */
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius: 10px;
+	--radius-md: 8px;
+	--radius-lg: 16px;
+	--radius-xl: 24px;
+	--radius-full: 9999px; /* Untuk bentuk pil/lingkaran sempurna */
+
+	/* =========================================
+       BAHAMA BLUE PALETTE
+       ========================================= */
 	--bahama-blue-50: #f0f9ff; /* The very light background of the button */
 	--bahama-blue-100: #e0f2fe; /* Light hover state */
 	--bahama-blue-200: #bae6fd; /* Soft border/active state */
@@ -46,50 +87,54 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	--bahama-blue-900: #0c4a6e; /* Deepest contrast */
 	--bahama-blue-950: #082f49; /* Deep navy base */
 
-	--color-bg-2: #f1f5f9;
+	/* =========================================
+       SEMANTIC STATES (Colors grouped by meaning)
+       ========================================= */
 
+	/* --- SUCCESS --- */
+	--success-bg: #dcfce7;
+	--success-border-color: #6da380;
+	--success-text: #166534;
+
+	/* --- ERROR --- */
 	--error-bg: #fff5f5;
 	--error-border: #fecaca;
 	--error-heading: #b91c1c;
 	--error-text: #dc2626;
 	--error-text-bg: #ef44440f;
 
+	/* --- DANGER --- */
+	--danger-bg: #fee2e2;
+	--danger-border-color: #fecaca;
+	--danger-text: #991b1b;
+
+	/* --- WARNING --- */
 	--warning-bg: #fffbeb;
 	--warning-border: #d9c266;
 	--warning-heading: #92400e;
 	--warning-text: #a16207;
-
-	/* --- TAMBAHAN (PRIORITY EXTENSION) --- */
-	--primary: #00699e;
-	--primary-mid: #3c84a8;
-	--primary-light: #dff3ff;
-	--primary-border: #b9e7fe;
-	--muted: #64748b;
-	--bg: #e4e7eb;
-	--card: #ffffff;
-	--text: #0f172a;
-	--text-muted: #64748b;
-	--border: #3762a72e;
-	--border-md: #3762a747;
-	--radius: 10px;
-	--radius-sm: 6px;
-
-	/* Semantic */
-	--success-bg: #dcfce7;
-	--success-text: #166534;
+	/* Warning Overrides (dari priority extension) */
 	--warning-bg: #fef3c7; /* Overrides original warning-bg if used as --warning-bg */
 	--warning-text: #92400e; /* Overrides original warning-text if used as --warning-text */
-	--danger-bg: #fee2e2;
-	--danger-text: #991b1b;
+
+	/* --- INFO --- */
 	--info-bg: #dff3ff;
+	--info-border-color: #bae6fd;
 	--info-text: #00699e;
+
+	/* --- NEUTRAL --- */
 	--neutral-bg: #f1f5f9;
 	--neutral-border: #dae0eb;
 	--neutral-text: #64748b;
 
+	/* --- PURPLE --- */
 	--purple-bg: #ede9fe;
+	--purple-border-color: #ddd6fe;
 	--purple-text: #5b21b6;
+
+	/* --- PINK --- */
 	--pink-bg: #fce7f3;
+	--pink-border-color: #fbcfe8;
 	--pink-text: #9d174d;
 }
 
@@ -313,21 +358,20 @@ BUTTON
 	font-size: 20px;
 }
 
-
 /* Styling custom untuk tombol hapus agar lebih halus */
 .btn-delete-subtle {
-    transition: all 0.2s ease; /* Membuat transisi warna jadi halus */
+	transition: all 0.2s ease; /* Membuat transisi warna jadi halus */
 }
 
 /* Saat mouse mengarah ke tombol (Hover) */
 .btn-delete-subtle:hover {
-    background-color: var(--bs-danger-bg-subtle) !important; /* Merah muda tipis bawaan bootstrap */
-    border: none !important; /* Memastikan tidak ada border */
+	background-color: var(--bs-danger-bg-subtle) !important; /* Merah muda tipis bawaan bootstrap */
+	border: none !important; /* Memastikan tidak ada border */
 }
 
 /* Saat hover, ubah warna ikon tong sampah jadi merah */
 .btn-delete-subtle:hover .text-secondary {
-    color: var(--bs-danger) !important; /* Warna merah tegas bawaan bootstrap */
+	color: var(--bs-danger) !important; /* Warna merah tegas bawaan bootstrap */
 }
 
 .border-darker {
