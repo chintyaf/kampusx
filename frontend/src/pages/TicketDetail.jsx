@@ -207,19 +207,29 @@ const TicketDetail = () => {
                   borderColor: "var(--color-border)",
                   borderStyle: "dashed" 
                 }}>
-                <div style={{ background: "#fff", padding: 16, borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", marginBottom: 16 }}>
-                  <QRCode value={ticket.qr_token ?? ticket.ticket_code} size={140} />
-                </div>
-                <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--color-secondary)", fontWeight: 600, lineHeight: 1.5 }}>
-                  Tunjukkan QR Code ini kepada panitia saat check-in.
-                </p>
-                <p style={{ margin: 0, fontSize: 11, color: "var(--color-secondary)", fontFamily: "monospace" }}>
-                  {ticket.ticket_code}
-                </p>
+                {ticket.status === 'cancelled' ? (
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyItems: "center", padding: "16px 0" }}>
+                    <div style={{ fontSize: 48, marginBottom: 12 }}>🚫</div>
+                    <p style={{ margin: "0 0 4px", fontSize: 13, color: "#ef4444", fontWeight: 700 }}>TIKET TIDAK AKTIF</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "var(--color-secondary)" }}>Pembayaran dibatalkan atau kedaluwarsa.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ background: "#fff", padding: 16, borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", marginBottom: 16 }}>
+                      <QRCode value={ticket.qr_token ?? ticket.ticket_code} size={140} />
+                    </div>
+                    <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--color-secondary)", fontWeight: 600, lineHeight: 1.5 }}>
+                      Tunjukkan QR Code ini kepada panitia saat check-in.
+                    </p>
+                    <p style={{ margin: 0, fontSize: 11, color: "var(--color-secondary)", fontFamily: "monospace" }}>
+                      {ticket.ticket_code}
+                    </p>
+                  </>
+                )}
               </Col>
             </Row>
           </Card>
-
+ 
           {/* ── Actions ───────────────────────────────────────────────────── */}
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-4">
             
@@ -229,19 +239,20 @@ const TicketDetail = () => {
                 variant="outline-secondary"
                 onClick={handleShare}
                 className="flex-fill flex-md-grow-0"
-                style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)" }}
+                style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", justifySpace: "center", gap: 6, padding: "10px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)" }}
               >
                 <Share2 size={16} /> Bagikan
               </Button>
               <Button
                 variant="outline-secondary"
+                disabled={ticket.status === 'cancelled'}
                 className="flex-fill flex-md-grow-0"
-                style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)" }}
+                style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)", opacity: ticket.status === 'cancelled' ? 0.5 : 1, cursor: ticket.status === 'cancelled' ? 'not-allowed' : 'pointer' }}
               >
                 <Download size={16} /> Unduh PDF
               </Button>
             </div>
-
+ 
             {/* Primary Actions */}
             <div className="d-flex gap-2 w-100 w-md-auto">
               <Link to="/explore-events" className="flex-fill flex-md-grow-0">
@@ -253,13 +264,30 @@ const TicketDetail = () => {
                   Event Lain
                 </Button>
               </Link>
-              <Button
-                onClick={() => navigate(`/event-space/${event.id}`)}
-                className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
-                style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, fontWeight: 700, fontSize: "var(--font-sm)", padding: "10px 24px" }}
-              >
-                <MonitorPlay size={16} /> Masuk Event Space
-              </Button>
+              {ticket.status === 'cancelled' ? (
+                <Button
+                  onClick={() => navigate(`/event/${event.slug}`)}
+                  className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
+                  style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, fontWeight: 700, fontSize: "var(--font-sm)", padding: "10px 24px" }}
+                >
+                  Kembali ke Event
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => navigate(`/event-space/${event.id}`)}
+                  className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
+                  style={{ 
+                    background: "var(--color-primary)", 
+                    border: "none", 
+                    borderRadius: 8, 
+                    fontWeight: 700, 
+                    fontSize: "var(--font-sm)", 
+                    padding: "10px 24px"
+                  }}
+                >
+                  <MonitorPlay size={16} /> Masuk Event Space
+                </Button>
+              )}
             </div>
 
           </div>

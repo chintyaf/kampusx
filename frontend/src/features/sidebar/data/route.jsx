@@ -19,6 +19,7 @@ import {
 	CalendarDays,
 	Building2,
 	Wallet,
+	CreditCard,
 } from 'lucide-react';
 
 // ... (kode lainnya)
@@ -62,6 +63,12 @@ export const MENU_ITEMS = {
 			name: 'Kontrol Promosi',
 			icon: <Megaphone size={16} className="me-2" />,
 			path: 'admin/kontrol-promosi',
+		},
+		{
+			id: 'payment-simulator',
+			name: 'Payment Simulator',
+			icon: <CreditCard size={16} className="me-2" />,
+			path: 'admin/payment',
 		},
 
 		{
