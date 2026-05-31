@@ -301,6 +301,7 @@ Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function 
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // 0. Dashboard Overview
     Route::get('/admin/dashboard-overview', [AdminController::class, 'getDashboardOverview']);
+    Route::get('/admin/payment', [\App\Http\Controllers\PaymentController::class, 'apiDashboard']);
 
     // 1. Organizer Management
     Route::get('/admin/organizer-requests', [AdminController::class, 'getOrganizerRequests']);

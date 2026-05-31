@@ -5,6 +5,7 @@ import Dashboard from '@/pages/dashboard/Dashboard';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import CreateEvent from '@/pages/event/creation/CreateEvent/index';
 import ManageUserPage from '@/pages/admin/ManageUserPage';
+import AdminPaymentPage from '@/pages/admin/AdminPaymentPage';
 
 // Import komponen baru yang ditambahkan
 import OrganizerVerificationPage from '@/pages/admin/OrganizerVerificationPage';
@@ -22,6 +23,7 @@ export const AdminRoutes = [
 		<Route path="verifikasi-organizer" element={<OrganizerVerificationPage />} />
 		<Route path="kelola-pengguna" element={<ManageUserPage />} />
 		<Route path="pantau-acara" element={<EventMonitoringPage />} />
+		<Route path="payment" element={<AdminPaymentPage />} />
 
 		<Route path="kontrol-promosi" element={<PromotionControlPage />} />
 

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Ticket;
+use App\Models\PaymentTransaction;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
@@ -61,9 +62,29 @@ class PaymentSimulatorApiController extends Controller
                     'status'         => 'pending',
                 ]);
 
-                DB::commit();
+                $event = \App\Models\Event::find($request->event_id);
+                $token = 'TKN-' . strtoupper(Str::random(16));
+                $expiredAt = now()->addMinutes(15);
+                
+                // Build payment URL using environment or request host
+                $baseUrl = env('PAYMENT_BASE_URL', url('/'));
+                $baseUrl = rtrim($baseUrl, '/');
+                $paymentUrl = $baseUrl . '/payment/' . $token;
 
-                $paymentUrl = url("/payment-sandbox/" . $order->order_id);
+                PaymentTransaction::create([
+                    'token'          => $token,
+                    'order_id'       => $request->order_id,
+                    'amount'         => $amount,
+                    'customer_name'  => $request->name,
+                    'customer_email' => $request->email,
+                    'item_name'      => $event ? $event->title : 'Tiket Event',
+                    'status'         => 'pending',
+                    'callback_url'   => url('/api/v1/payment/callback'),
+                    'redirect_url'   => env('FRONTEND_URL', 'http://localhost:5173') . '/ticket/' . $ticket->ticket_code,
+                    'expired_at'     => $expiredAt,
+                ]);
+
+                DB::commit();
 
                 return response()->json([
                     'status'      => 'success',
@@ -130,19 +151,40 @@ class PaymentSimulatorApiController extends Controller
             'order_id' => 'required|string|exists:orders,order_id',
         ]);
 
+        $status = $request->input('status', 'success'); // Default to success for backward compatibility
+
         DB::beginTransaction();
         try {
             $order = Order::where('order_id', $request->order_id)->firstOrFail();
 
-            // Update order status
-            $order->update([
-                'status'  => 'paid',
-                'paid_at' => now(), // Legacy compatibility
-            ]);
+            if ($status === 'success') {
+                // Update order status
+                $order->update([
+                    'status'  => 'paid',
+                    'paid_at' => now(), // Legacy compatibility
+                ]);
 
-            // Activate associated tickets
-            foreach ($order->orderItems as $item) {
-                $item->tickets()->update(['status' => 'active']);
+                // Activate associated tickets
+                foreach ($order->orderItems as $item) {
+                    $item->tickets()->update(['status' => 'active']);
+                }
+
+                $message = 'Pembayaran lunas berhasil disimulasikan.';
+            } else {
+                $mappedStatus = ($status === 'expired') ? 'expired' : 'cancelled';
+
+                // Mark order as cancelled/expired
+                $order->update([
+                    'status'  => $mappedStatus,
+                    'paid_at' => null,
+                ]);
+
+                // Mark associated tickets as cancelled
+                foreach ($order->orderItems as $item) {
+                    $item->tickets()->update(['status' => 'cancelled']);
+                }
+
+                $message = 'Transaksi dibatalkan atau kedaluwarsa berhasil diproses.';
             }
 
             // Find ticket code for redirect helper
@@ -154,7 +196,7 @@ class PaymentSimulatorApiController extends Controller
 
             return response()->json([
                 'status'      => 'success',
-                'message'     => 'Pembayaran lunas berhasil disimulasikan.',
+                'message'     => $message,
                 'ticket_code' => $ticket ? $ticket->ticket_code : null,
             ]);
 
