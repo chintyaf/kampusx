@@ -89,7 +89,7 @@
 	cursor: pointer;
 	background-color: var(--color-white);
 	border-color: var(--color-border);
-	border-radius: 10px;
+	border-radius: 12px;
 	transition:
 		border-color 0.15s ease,
 		background-color 0.15s ease,
@@ -98,15 +98,14 @@
 
 .org-event-card:hover {
 	border-color: var(--bahama-blue-300) !important;
-	background-color: var(--color-bg) !important;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+	background-color: var(--color-white) !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
 }
 
-.org-event-thumbnail {
-	width: 56px;
-	height: 56px;
+.org-event-banner {
+	width: 22%;
+	aspect-ratio: 16 / 9;
 	background-color: var(--color-bg);
-	border-radius: 8px;
 	border-color: var(--color-border);
 }
 

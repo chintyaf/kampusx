@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Badge, Button, Collapse, Spinner } from 'react-bootstrap';
-import { ChevronDown, Trash2, CheckCircle, Users, BarChart2, ChevronUp } from 'lucide-react';
+import { Badge, Button, Collapse, Spinner } from 'react-bootstrap';
+import { ChevronDown, Trash2, CheckCircle, Users, BarChart2 } from 'lucide-react';
 import FilePreviewModal from './FilePreviewModal';
 import VideoPreviewModal from './VideoPreviewModal';
 import MaterialList from './MaterialList';
@@ -9,45 +9,55 @@ import api from '../../../../api/axios';
 import { useParams } from 'react-router-dom';
 import { notify } from '../../../../utils/notify';
 
-const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefresh, hasPreviousSession }) => {
+const SessionContentCard = ({
+	session,
+	sessionNumber,
+	onUpdate,
+	onDelete,
+	onRefresh,
+	hasPreviousSession,
+}) => {
 	const { eventId } = useParams();
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [previewMaterial, setPreviewMaterial] = useState(null);
 	const [showVideoPreview, setShowVideoPreview] = useState(false);
 
-	// State untuk simulasi loading UI
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveSuccess, setSaveSuccess] = useState(false);
 
 	const handleDeleteMaterial = async (materialId) => {
 		try {
 			setIsSaving(true);
-			const res = await api.delete(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials/${materialId}`);
+			const res = await api.delete(
+				`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials/${materialId}`,
+			);
 			if (res.data?.status === 'success') {
-				onRefresh();
+				onRefresh(true);
 				notify('success', 'Berhasil', 'Materi berhasil dihapus.');
 			}
 		} catch (error) {
-			console.error("Gagal menghapus materi:", error);
+			console.error('Gagal menghapus materi:', error);
 			notify('error', 'Gagal', error.response?.data?.message || 'Gagal menghapus materi.');
 		} finally {
 			setIsSaving(false);
 		}
 	};
 
-	// Fungsi utama penerima data dari AddMaterialForm
 	const handleAddMaterial = async ({ type, url, files }) => {
 		try {
 			setIsSaving(true);
 			if (type === 'url') {
 				if (!url) return;
-				const res = await api.post(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`, {
-					type: 'url',
-					url: url,
-					name: 'YouTube Replay'
-				});
+				const res = await api.post(
+					`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`,
+					{
+						type: 'url',
+						url: url,
+						name: 'YouTube Replay',
+					},
+				);
 				if (res.data?.status === 'success') {
-					onRefresh();
+					onRefresh(true);
 					notify('success', 'Berhasil', 'Tautan replay video disimpan.');
 				}
 			} else if (type === 'video_file' && files && files.length > 0) {
@@ -57,13 +67,15 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefr
 				formData.append('file', file);
 				formData.append('name', file.name);
 
-				const res = await api.post(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`, formData, {
-					headers: {
-						'Content-Type': 'multipart/form-data',
+				const res = await api.post(
+					`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`,
+					formData,
+					{
+						headers: { 'Content-Type': 'multipart/form-data' },
 					},
-				});
+				);
 				if (res.data?.status === 'success') {
-					onRefresh();
+					onRefresh(true);
 					notify('success', 'Berhasil', 'Video replay berhasil diunggah.');
 				}
 			} else if (type === 'document' && files && files.length > 0) {
@@ -74,30 +86,34 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefr
 					formData.append('file', file);
 					formData.append('name', file.name);
 
-					await api.post(`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`, formData, {
-						headers: {
-							'Content-Type': 'multipart/form-data',
+					await api.post(
+						`event-dashboard/${eventId}/post-event/sessions/${session.id}/materials`,
+						formData,
+						{
+							headers: { 'Content-Type': 'multipart/form-data' },
 						},
-					});
+					);
 				}
-				onRefresh();
+				onRefresh(true);
 				notify('success', 'Berhasil', 'Dokumen berhasil diunggah.');
 			}
 		} catch (error) {
-			console.error("Gagal mengunggah materi:", error);
+			console.error('Gagal mengunggah materi:', error);
 			notify('error', 'Gagal', error.response?.data?.message || 'Gagal menyimpan materi.');
 		} finally {
 			setIsSaving(false);
 		}
 	};
 
-	// Simpan Draft / Publikasikan
 	const handleSave = async (publishState) => {
 		setIsSaving(true);
 		try {
-			const response = await api.put(`event-dashboard/${eventId}/post-event/sessions/${session.id}/status`, {
-				published: publishState,
-			});
+			const response = await api.put(
+				`event-dashboard/${eventId}/post-event/sessions/${session.id}/status`,
+				{
+					published: publishState,
+				},
+			);
 			if (response.data?.status === 'success') {
 				onUpdate({ published: publishState });
 				setSaveSuccess(true);
@@ -105,7 +121,7 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefr
 				notify('success', 'Berhasil', response.data.message);
 			}
 		} catch (error) {
-			console.error("Gagal memperbarui status sesi:", error);
+			console.error('Gagal memperbarui status sesi:', error);
 			notify('error', 'Gagal', error.response?.data?.message || 'Gagal memperbarui status.');
 		} finally {
 			setIsSaving(false);
@@ -113,118 +129,108 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefr
 	};
 
 	const getCompletionStyle = (rate) => {
-		if (rate >= 70) {
-			return {
-				backgroundColor: '#dcfce7',
-				color: '#15803d',
-			};
-		}
-		if (rate >= 40) {
-			return {
-				backgroundColor: '#fef3c7',
-				color: '#b45309',
-			};
-		}
-		return {
-			backgroundColor: '#fee2e2',
-			color: '#b91c1c',
-		};
+		if (rate >= 70) return { backgroundColor: '#dcfce7', color: '#15803d' };
+		if (rate >= 40) return { backgroundColor: '#fef3c7', color: '#b45309' };
+		return { backgroundColor: '#fee2e2', color: '#b91c1c' };
 	};
 
 	const completionStyle = getCompletionStyle(session.stats?.completionRate || 0);
 
 	return (
-		<>
+		<div className="mb-4">
 			<div
-				className="custom-card border"
 				style={{
-					boxShadow: 'none',
-					border: isExpanded ? '1px solid #00699e' : '1px solid #e2e8f0',
-					borderRadius: '12px',
 					backgroundColor: '#ffffff',
-					transition: 'border-color 0.2s, background-color 0.2s',
+					border: '1px solid #e2e8f0' /* Border dibuat solid abu-abu konsisten */,
+					borderRadius: '12px',
+					transition: 'all 0.2s ease-in-out',
+					overflow: 'hidden',
 				}}
 			>
 				{/* Header Sesi */}
 				<div
-					className={`px-4 py-3 d-flex justify-content-between align-items-center ${isExpanded ? 'border-bottom' : ''}`}
+					className="p-4 d-flex justify-content-between align-items-center"
 					style={{
 						cursor: 'pointer',
-						transition: 'background-color 0.2s',
-						borderColor: '#e2e8f0',
+						backgroundColor: isExpanded ? '#f8fafc' : 'transparent',
+						transition: 'background-color 0.2s ease',
 					}}
 					onClick={() => setIsExpanded(!isExpanded)}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.backgroundColor = '#f8fafc';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.backgroundColor = '';
-					}}
 				>
 					<div className="d-flex align-items-center gap-3 flex-grow-1 text-truncate">
-						<div className="custom-badge-number flex-shrink-0">{sessionNumber}</div>
+						{/* Number Indicator */}
+						<div
+							className="d-flex align-items-center justify-content-center flex-shrink-0"
+							style={{
+								width: '38px',
+								height: '38px',
+								backgroundColor: isExpanded ? '#e0f2fe' : '#f1f5f9',
+								color: isExpanded ? '#00699e' : '#475569',
+								borderRadius: '10px',
+								fontWeight: '600',
+								fontSize: '15px',
+								transition: 'all 0.2s ease',
+							}}
+						>
+							{sessionNumber}
+						</div>
+
 						<div className="flex-grow-1 text-truncate">
-							<div className="d-flex align-items-center gap-2 flex-wrap">
+							<div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
 								<span
 									className="text-dark"
-									style={{ fontSize: '16px', fontWeight: 400 }}
+									style={{
+										fontSize: '16px',
+										fontWeight: 500,
+										letterSpacing: '-0.3px',
+									}}
 								>
-									{session.title || 'Sesi baru'}
+									{session.title || 'Sesi Baru'}
 								</span>
-								{session.published ? (
-									<Badge
-										bg="transparent"
-										className="d-flex align-items-center gap-1 rounded-pill fw-normal border-0"
-										style={{
-											backgroundColor: '#dcfce7',
-											color: '#15803d',
-											padding: '4px 10px',
-										}}
-									>
-										<CheckCircle size={12} style={{ color: '#15803d' }} /> Dipublikasikan
-									</Badge>
-								) : (
-									<Badge
-										bg="transparent"
-										className="rounded-pill fw-normal border-0"
-										style={{
-											backgroundColor: '#f1f5f9',
-											color: '#475569',
-											padding: '4px 10px',
-										}}
-									>
-										Draft
-									</Badge>
-								)}
 							</div>
-							<p className="text-muted small mb-0 text-truncate">
-								{session.date} {session.speaker && `• ${session.speaker}`}
+							<p
+								className="text-muted small mb-0 text-truncate"
+								style={{ fontSize: '13px' }}
+							>
+								{session.date} {session.speaker && <span className="mx-1">•</span>}{' '}
+								{session.speaker}
 							</p>
 						</div>
 					</div>
 
-					<div className="d-flex align-items-center gap-3">
+					{/* Stats & Actions */}
+					<div className="d-flex align-items-center gap-4">
 						{session.published && session.stats && (
-							<div className="d-none d-md-flex align-items-center gap-3">
-								<div className="d-flex align-items-center gap-1 small text-secondary">
-									<Users size={16} /> <span>{session.stats.totalAccess}</span>
+							<div
+								className="d-none d-md-flex align-items-center gap-3 border-end pe-4"
+								style={{ borderColor: '#e2e8f0' }}
+							>
+								<div className="d-flex align-items-center gap-1.5 small text-secondary">
+									<Users size={15} strokeWidth={2} />{' '}
+									<span className="fw-medium">{session.stats.totalAccess}</span>
 								</div>
 								<Badge
 									bg="transparent"
-									className="d-flex align-items-center gap-1 rounded-pill border-0"
+									className="d-flex align-items-center gap-1.5 rounded-pill border-0 fw-medium"
 									style={{
 										...completionStyle,
-										padding: '4px 10px',
+										padding: '5px 12px',
+										fontSize: '12px',
 									}}
 								>
-									<BarChart2 size={14} style={{ color: completionStyle.color }} /> {session.stats.completionRate}% selesai
+									<BarChart2
+										size={14}
+										strokeWidth={2.5}
+										style={{ color: completionStyle.color }}
+									/>
+									{session.stats.completionRate}% selesai
 								</Badge>
 							</div>
 						)}
 						<Button
 							variant="link"
-							className="p-0 text-muted d-flex align-items-center justify-content-center flex-shrink-0"
-							style={{ width: '28px', height: '28px' }}
+							className="p-0 text-secondary d-flex align-items-center justify-content-center"
+							style={{ width: '32px', height: '32px', transition: 'color 0.2s ease' }}
 							onClick={(e) => {
 								e.stopPropagation();
 								onDelete();
@@ -234,98 +240,51 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefr
 						>
 							<Trash2 size={18} strokeWidth={1.5} />
 						</Button>
-						{isExpanded ? (
-							<ChevronUp
-								size={20}
-								className="text-muted flex-shrink-0"
-								strokeWidth={1.5}
-							/>
-						) : (
-							<ChevronDown
-								size={20}
-								className="text-muted flex-shrink-0"
-								strokeWidth={1.5}
-							/>
-						)}
+						<div
+							className="text-secondary"
+							style={{
+								transition: 'transform 0.3s ease',
+								transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
+							}}
+						>
+							<ChevronDown size={20} strokeWidth={1.5} />
+						</div>
 					</div>
 				</div>
 
-				{/* Expanded Content */}
+				{/* Expanded Content Area */}
 				<Collapse in={isExpanded}>
 					<div>
-						<div className="border-top p-4 d-flex flex-column gap-4 bg-white">
-							{/* Komponen Daftar Materi */}
+						<div
+							className="border-top p-4 d-flex flex-column gap-4 bg-white"
+							style={{ borderColor: '#e2e8f0' }}
+						>
 							<MaterialList
 								session={session}
 								onClearVideoUrl={async () => {
-									if (session.videoMaterialId) {
+									if (session.videoMaterialId)
 										await handleDeleteMaterial(session.videoMaterialId);
-									}
 								}}
 								onClearVideoFile={async () => {
-									if (session.videoFileMaterialId) {
+									if (session.videoFileMaterialId)
 										await handleDeleteMaterial(session.videoFileMaterialId);
-									}
 								}}
 								onRemoveDocument={handleDeleteMaterial}
 								onPreviewMaterial={setPreviewMaterial}
 							/>
-
-							{/* Komponen Form Tambah Materi */}
-							<AddMaterialForm onSave={handleAddMaterial} />
+							<AddMaterialForm onSave={handleAddMaterial} isSaving={isSaving} />
 						</div>
 
-						{/* --- Footer Action Bar --- */}
-						<div 
-							className="p-3 border-top rounded-bottom d-flex align-items-center justify-content-between flex-wrap gap-3"
-							style={{ backgroundColor: '#f8fafc' }}
+						{/* Flat Footer Action Bar */}
+						<div
+							className="px-4 py-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-3"
+							style={{ backgroundColor: '#f8fafc', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', borderColor: '#e2e8f0' }}
 						>
-							<div className="text-muted small">
-								{saveSuccess ? (
-									<span className="text-success d-flex align-items-center gap-1">
-										<CheckCircle size={14} /> Tersimpan
-									</span>
-								) : isSaving ? (
-									<span className="d-flex align-items-center gap-1">
-										<Spinner animation="border" size="sm" style={{ width: '12px', height: '12px' }} /> Menyimpan...
-									</span>
-								) : (
-									<span>Status: <strong>{session.published ? 'Dipublikasikan' : 'Draft'}</strong></span>
-								)}
-							</div>
-							<div className="d-flex gap-2">
-								{session.published ? (
-									<Button
-										variant="outline-secondary"
-										size="sm"
-										className="small"
-										disabled={isSaving}
-										onClick={() => handleSave(false)}
-									>
-										Ubah ke Draft
-									</Button>
-								) : (
-									<>
-										<Button
-											variant="light"
-											size="sm"
-											className="border border-secondary-subtle small bg-white text-dark"
-											disabled={isSaving}
-											onClick={() => handleSave(false)}
-										>
-											Simpan sebagai Draft
-										</Button>
-										<Button
-											variant="primary"
-											size="sm"
-											className="small"
-											disabled={isSaving}
-											onClick={() => handleSave(true)}
-										>
-											Publikasikan Sesi
-										</Button>
-									</>
-								)}
+							<div className="d-flex align-items-center gap-2 text-secondary" style={{ fontSize: '13px' }}>
+								<CheckCircle size={16} className="text-success" />
+								<span>
+									Materi otomatis tersedia setelah acara selesai bagi peserta yang hadir dan telah mengisi survey.
+								</span>
 							</div>
 						</div>
 					</div>
@@ -345,7 +304,7 @@ const SessionContentCard = ({ session, sessionNumber, onUpdate, onDelete, onRefr
 					onClose={() => setShowVideoPreview(false)}
 				/>
 			)}
-		</>
+		</div>
 	);
 };
 

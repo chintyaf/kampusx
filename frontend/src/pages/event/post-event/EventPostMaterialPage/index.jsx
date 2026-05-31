@@ -14,9 +14,9 @@ const EventPostMaterialPage = () => {
 	const [sessions, setSessions] = useState([]);
 	const [loading, setLoading] = useState(true);
 
-	const fetchSessions = async () => {
+	const fetchSessions = async (hideLoading = false) => {
 		try {
-			setLoading(true);
+			if (!hideLoading) setLoading(true);
 			const response = await api.get(`event-dashboard/${eventId}/post-event/sessions`);
 			if (response.data?.status === 'success') {
 				setSessions(response.data.data);
@@ -24,7 +24,7 @@ const EventPostMaterialPage = () => {
 		} catch (error) {
 			console.error('Gagal mengambil data sesi:', error);
 		} finally {
-			setLoading(false);
+			if (!hideLoading) setLoading(false);
 		}
 	};
 
