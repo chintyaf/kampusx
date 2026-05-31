@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import { Calendar, MapPin, User, Users, Wifi, Ticket } from 'lucide-react';
-import { STORAGE_URL } from '../../../api/storage';
+import { STORAGE_URL } from '@/api/storage';
 
 const EventCard = ({ ev = {}, onClick }) => {
 	// Format Date helper
@@ -20,7 +20,7 @@ const EventCard = ({ ev = {}, onClick }) => {
 
 	// Format Price helper
 	const formatPrice = (price) => {
-		if (price === undefined || price === null || price === '') return 'Cek Detail';
+		if (price === undefined || price === null || price === '') return 'Memuat...';
 		if (price === 0 || price === '0') return 'Gratis';
 		if (typeof price === 'string') {
 			const lowerPrice = price.toLowerCase();
@@ -41,7 +41,7 @@ const EventCard = ({ ev = {}, onClick }) => {
 		}).format(num);
 	};
 
-	// Resolve Event fields with robust snake_case / camelCase fallbacks
+	// Resolve Event fields
 	const eventLocation = ev.location_detail || ev.locationDetail;
 
 	const isOnline =
@@ -54,7 +54,11 @@ const EventCard = ({ ev = {}, onClick }) => {
 		['offline', 'hybrid'].includes(eventLocation?.type || ev.location_type || '');
 	const isFeatured = ev.isFeatured || ev.is_featured;
 
-	const image = ev.image || (ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id || 1}.jpg`);
+	const image =
+		ev.image ||
+		(ev.image_path
+			? `${STORAGE_URL}/${ev.image_path}`
+			: `${STORAGE_URL}/event-banners/${ev.id || 1}.jpg`);
 	const title = ev.title || 'Untitled Event';
 	const date = ev.date || (ev.start_date ? formatDate(ev.start_date) : 'TBA');
 	const price = formatPrice(ev.price);
@@ -67,88 +71,96 @@ const EventCard = ({ ev = {}, onClick }) => {
 			: ev.location_type === 'online'
 				? 'Online'
 				: ev.venue || 'Offline Venue');
-	const org =
-		ev.org ||
-		ev.organizer?.name ||
-		ev.institution?.name ||
-		'KampusX';
+	const org = ev.org || ev.organizer?.name || ev.institution?.name || 'KampusX';
+
+	// Warna konsisten sesuai desain
+	const colorTheme = '#1E40AF'; // Biru gelap untuk teks & icon
+	const colorFeatured = '#3B82F6'; // Biru terang untuk badge Featured
 
 	return (
 		<Card
 			onClick={onClick}
-			className="h-100 shadow-sm"
+			className="h-100"
 			style={{
-				borderRadius: 12,
-				border: '1px solid var(--color-border)',
+				// PERBAIKAN: Sesuaikan minWidth dan maxWidth agar logis untuk mobile
+				width: '100%',
+				minWidth: '400px', // Cukup kecil agar aman di layar HP
+				// maxWidth: '350px', // Cukup besar agar tidak terlalu melar di layar PC
+				borderRadius: '16px',
+				border: '1px solid #E5E7EB',
 				cursor: 'pointer',
-				transition: 'transform .15s, box-shadow .15s',
+				transition: 'all 0.2s ease-in-out',
 				overflow: 'hidden',
-				background: 'var(--color-white)',
+				background: '#FFFFFF',
+				boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+				display: 'flex',
+				flexDirection: 'column',
 			}}
 			onMouseEnter={(e) => {
 				e.currentTarget.style.transform = 'translateY(-4px)';
-				e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,105,158,0.12)';
+				e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.08)';
 			}}
 			onMouseLeave={(e) => {
 				e.currentTarget.style.transform = 'translateY(0)';
-				e.currentTarget.style.boxShadow = '';
+				e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
 			}}
 		>
-			{/* Badges baris atas */}
+			{/* Bagian Badges */}
 			<div
 				style={{
-					padding: '12px 12px 0',
+					padding: '16px 16px 12px',
 					display: 'flex',
 					justifyContent: 'space-between',
 					alignItems: 'center',
-					minHeight: 36,
+					flexWrap: 'wrap', // PERBAIKAN: Agar badge tidak terpotong jika container sempit
+					gap: '8px',
 				}}
 			>
-				<div style={{ display: 'flex', gap: 6 }}>
+				<div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
 					{isInPerson && (
 						<span
 							style={{
-								fontSize: 11,
-								color: 'var(--color-primary)',
-								border: '1px solid var(--color-primary)',
-								borderRadius: 99,
-								padding: '2px 8px',
+								fontSize: '12px',
+								color: colorTheme,
+								border: `1px solid ${colorTheme}`,
+								borderRadius: '20px',
+								padding: '4px 12px',
 								fontWeight: 600,
 								display: 'flex',
 								alignItems: 'center',
-								gap: 4,
+								gap: '6px',
 							}}
 						>
-							<Users size={11} /> In-Person
+							<Users size={14} /> In-Person
 						</span>
 					)}
 					{isOnline && (
 						<span
 							style={{
-								fontSize: 11,
-								color: 'var(--color-primary)',
-								border: '1px solid var(--color-primary)',
-								borderRadius: 99,
-								padding: '2px 8px',
+								fontSize: '12px',
+								color: colorTheme,
+								border: `1px solid ${colorTheme}`,
+								borderRadius: '20px',
+								padding: '4px 12px',
 								fontWeight: 600,
 								display: 'flex',
 								alignItems: 'center',
-								gap: 4,
+								gap: '6px',
 							}}
 						>
-							<Wifi size={11} /> Online
+							<Wifi size={14} /> Online
 						</span>
 					)}
 				</div>
 				{isFeatured && (
 					<span
 						style={{
-							fontSize: 11,
-							background: 'var(--bahama-blue-500)',
-							color: '#fff',
-							borderRadius: 99,
-							padding: '2px 10px',
-							fontWeight: 700,
+							fontSize: '12px',
+							background: colorFeatured,
+							color: '#FFFFFF',
+							borderRadius: '20px',
+							padding: '4px 14px',
+							fontWeight: 600,
 						}}
 					>
 						Featured
@@ -156,99 +168,111 @@ const EventCard = ({ ev = {}, onClick }) => {
 				)}
 			</div>
 
-			{/* Gambar */}
-			<img
-				src={image}
-				alt={title}
-				style={{
-					width: '100%',
-					height: 170,
-					objectFit: 'cover',
-					marginTop: 10,
-				}}
-				onError={(e) => {
-					e.target.src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
-				}}
-			/>
+			{/* Gambar Inset */}
+			<div style={{ padding: '0 16px' }}>
+				<img
+					src={image}
+					alt={title}
+					style={{
+						width: '100%',
+						aspectRatio: '3 / 2',
+						height: '160px', // PERBAIKAN: Disesuaikan agar proporsional dengan lebar kartu
+						objectFit: 'cover',
+						borderRadius: '12px',
+						backgroundColor: '#F3F4F6',
+					}}
+					onError={(e) => {
+						e.target.src = 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
+					}}
+				/>
+			</div>
 
 			<Card.Body
 				style={{
-					padding: '12px 14px 14px',
+					padding: '16px',
 					display: 'flex',
 					flexDirection: 'column',
+					flexGrow: 1, // PERBAIKAN: Membantu mengisi ruang kosong jika tinggi card seragam
 				}}
 			>
-				{/* Tanggal & harga */}
+				{/* Tanggal & Harga */}
 				<div
 					style={{
 						display: 'flex',
 						justifyContent: 'space-between',
-						fontSize: 'var(--font-sm)',
-						color: 'var(--color-primary)',
+						fontSize: '14px', // Sedikit dikecilkan agar muat
+						color: colorTheme,
 						fontWeight: 600,
-						marginBottom: 8,
+						marginBottom: '12px',
+						gap: '8px',
 					}}
 				>
-					<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-						<Calendar size={14} />
+					<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+						<Calendar size={16} />
 						{date}
 					</span>
-					<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-						<Ticket size={14} />
-						{ev.price === undefined ? (
-							<span style={{ color: 'var(--color-secondary)', opacity: 0.6, fontStyle: 'italic' }}>Memuat...</span>
-						) : Number(ev.price) === 0 ? (
-							<span style={{ color: '#22c55e', fontWeight: 700 }}>Gratis</span>
+					<span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+						<Ticket size={16} />
+						{price === 'Gratis' ? (
+							<span style={{ color: '#059669' }}>Gratis</span>
+						) : price === 'Memuat...' ? (
+							<span style={{ opacity: 0.6, fontStyle: 'italic' }}>Memuat...</span>
 						) : (
-							<span>
-								{new Intl.NumberFormat('id-ID', {
-									style: 'currency',
-									currency: 'IDR',
-									maximumFractionDigits: 0,
-								}).format(ev.price)}
-							</span>
+							<span>{price}</span>
 						)}
 					</span>
 				</div>
 
-				{/* Judul */}
+				{/* Judul Event */}
 				<Card.Title
 					style={{
-						fontSize: 'var(--font-md)',
+						fontSize: '18px',
 						fontWeight: 700,
-						color: 'var(--color-text)',
+						color: '#111827',
 						lineHeight: 1.4,
-						marginBottom: 'auto',
+						marginBottom: '16px',
+						// PERBAIKAN: Membatasi judul maksimal 2 baris agar rapi
+						display: '-webkit-box',
+						WebkitLineClamp: 2,
+						WebkitBoxOrient: 'vertical',
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
 					}}
 				>
 					{title}
 				</Card.Title>
 
-				<hr
+				{/* Spacer agar posisi elemen bawah tetap di bawah */}
+				<div style={{ flexGrow: 1 }} />
+
+				{/* Divider Garis Tipis */}
+				<div
 					style={{
-						margin: '10px 0',
-						borderColor: 'var(--color-border)',
-						opacity: 1,
+						height: '1px',
+						backgroundColor: '#E5E7EB',
+						width: '100%',
+						margin: '0 0 16px 0',
 					}}
 				/>
 
-				{/* Lokasi & organizer */}
+				{/* Lokasi & Organizer */}
 				<div
 					style={{
 						display: 'flex',
 						justifyContent: 'space-between',
-						fontSize: 'var(--font-sm)',
-						color: 'var(--color-primary)',
+						fontSize: '13px', // Disesuaikan agar pas berdampingan
+						color: colorTheme,
 						fontWeight: 500,
+						gap: '8px',
 					}}
 				>
 					<span
 						style={{
 							display: 'flex',
 							alignItems: 'center',
-							gap: 5,
+							gap: '4px',
 							overflow: 'hidden',
-							maxWidth: '60%',
+							maxWidth: '50%',
 						}}
 					>
 						<MapPin size={14} style={{ flexShrink: 0 }} />
@@ -266,9 +290,9 @@ const EventCard = ({ ev = {}, onClick }) => {
 						style={{
 							display: 'flex',
 							alignItems: 'center',
-							gap: 5,
+							gap: '4px',
 							overflow: 'hidden',
-							maxWidth: '40%',
+							maxWidth: '50%',
 						}}
 					>
 						<User size={14} style={{ flexShrink: 0 }} />
@@ -289,4 +313,3 @@ const EventCard = ({ ev = {}, onClick }) => {
 };
 
 export default EventCard;
-

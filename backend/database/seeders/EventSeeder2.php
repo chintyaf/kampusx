@@ -36,7 +36,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Indonesia AI Summit 2025',
-                    'description' => 'Konferensi kecerdasan buatan terbesar di Indonesia yang menghadirkan para ahli dan praktisi AI dari berbagai sektor.',
+                    'description' => 'Konferensi kecerdasan buatan terbesar di Indonesia yang menghadirkan para ahli dan praktisi AI dari berbagai sektor. Dalam acara ini, kita akan membahas perkembangan terbaru dalam machine learning, NLP, dan implementasi AI dalam industri kreatif, kesehatan, serta manufaktur. Jangan lewatkan kesempatan untuk berjejaring dengan ribuan profesional teknologi, mendengarkan studi kasus nyata dari perusahaan terkemuka, dan melihat demo produk AI inovatif yang dapat mengubah cara kita bekerja di masa depan.',
                     'type_name'   => 'Conference',
                     'status'      => 'published',
                     'is_featured' => true,
@@ -75,8 +75,8 @@ class EventSeeder2 extends Seeder
                     ],
                 ],
                 'tickets'        => [
-                    ['name' => 'General Admission - Online', 'type' => 'online',  'price' => 150000,  'capacity' => 1000, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(28)],
-                    ['name' => 'General Admission - Offline', 'type' => 'offline', 'price' => 750000,  'capacity' => 300, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(25)],
+                    ['name' => 'Tiket Event (Online)', 'type' => 'online',  'price' => 150000,  'capacity' => 1000, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(28)],
+                    ['name' => 'Tiket Event (Offline)', 'type' => 'offline', 'price' => 750000,  'capacity' => 300, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(25)],
                 ],
                 'collaborators'  => [
                     ['institution' => 1, 'role' => 'co_host'],
@@ -88,7 +88,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Webinar Nasional: Startup Funding & Pitching 101',
-                    'description' => 'Webinar intensif sehari untuk para founder startup yang ingin memahami ekosistem pendanaan.',
+                    'description' => 'Webinar intensif sehari penuh yang dirancang khusus untuk para founder startup tahap awal yang ingin memahami seluk-beluk ekosistem pendanaan. Anda akan mempelajari langkah demi langkah cara mempersiapkan pitch deck yang menarik, memahami valuasi startup, serta strategi negosiasi dengan angel investor maupun venture capital. Sesi ini juga akan menghadirkan investor berpengalaman yang akan membedah contoh-contoh pitching yang berhasil maupun yang gagal.',
                     'type_name'   => 'Webinar',
                     'status'      => 'published',
                     'is_featured' => false,
@@ -104,9 +104,19 @@ class EventSeeder2 extends Seeder
                     'meeting_link'       => 'https://meet.google.com/startup-funding-101',
                     'online_instruction' => 'Link akan dikirim ke email 1 jam sebelum acara.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Sesi Utama',
+                        'description' => 'Sesi pemaparan materi dan tanya jawab.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(14)->toDateString(),
+                        'start_time'  => '09:00:00',
+                        'end_time'    => '12:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Tiket Reguler', 'type' => 'online', 'price' => 50000, 'capacity' => 1000, 'sale_start' => Carbon::now()->subDays(5), 'sale_end' => Carbon::now()->addDays(13)],
+                    ['name' => 'Tiket Event', 'type' => 'online', 'price' => 50000, 'capacity' => 1000, 'sale_start' => Carbon::now()->subDays(5), 'sale_end' => Carbon::now()->addDays(13)],
                 ],
                 'collaborators' => [
                     ['institution' => 3, 'role' => 'sponsor'],
@@ -117,7 +127,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'HackBandung 2025 — 36 Hours of Innovation',
-                    'description' => 'Hackathon 36 jam non-stop di Kota Bandung! Tim mahasiswa dari seluruh Indonesia bersaing.',
+                    'description' => 'HackBandung 2025 adalah hackathon 36 jam non-stop di mana inovasi bertemu dengan eksekusi nyata! Tim mahasiswa dan profesional muda dari seluruh Indonesia akan bersaing memecahkan tantangan di bidang smart city, green tech, dan inklusi finansial. Dapatkan bimbingan langsung dari mentor industri, nikmati makanan dan minuman gratis selama acara, serta menangkan total hadiah puluhan juta rupiah beserta kesempatan inkubasi ide bisnis Anda.',
                     'type_name'   => 'Competition',
                     'status'      => 'published',
                     'is_featured' => true,
@@ -141,9 +151,19 @@ class EventSeeder2 extends Seeder
                     'address_detail'      => 'Jl. Ganesa No.10, Lebak Siliwangi',
                     'offline_instruction' => 'Peserta wajib membawa laptop, charger, dan sleeping bag.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Pelaksanaan Lomba Hari 1',
+                        'description' => 'Sesi pertama perlombaan.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(45)->toDateString(),
+                        'start_time'  => '08:00:00',
+                        'end_time'    => '17:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Registrasi Tim (Maks. 4 orang)', 'type' => 'offline', 'price' => 200000, 'capacity' => 150, 'sale_start' => Carbon::now()->subDays(20), 'sale_end' => Carbon::now()->addDays(40)],
+                    ['name' => 'Tiket Event', 'type' => 'offline', 'price' => 200000, 'capacity' => 150, 'sale_start' => Carbon::now()->subDays(20), 'sale_end' => Carbon::now()->addDays(40)],
                 ],
                 'collaborators' => [
                     ['institution' => 1, 'role' => 'co_host'],
@@ -154,7 +174,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'UI/UX Bootcamp: Dari Wireframe ke Prototype',
-                    'description' => 'Bootcamp intensif 3 sesi yang mengajarkan proses desain produk digital.',
+                    'description' => 'Bootcamp intensif selama 3 sesi yang akan memandu Anda memahami keseluruhan proses desain produk digital, mulai dari riset pengguna, pembuatan wireframe, hingga desain high-fidelity dan prototype interaktif menggunakan Figma. Pelatihan ini sangat cocok bagi pemula yang ingin beralih karir menjadi UI/UX Designer maupun developer yang ingin meningkatkan kepekaan visual mereka. Anda juga akan mendapatkan review portofolio di akhir sesi.',
                     'type_name'   => 'Bootcamp',
                     'status'      => 'published',
                     'is_featured' => false,
@@ -170,9 +190,19 @@ class EventSeeder2 extends Seeder
                     'meeting_link'       => 'https://zoom.us/j/uiux-bootcamp-2025',
                     'online_instruction' => 'Install Figma (gratis) sebelum sesi dimulai.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Materi Pengenalan UI/UX',
+                        'description' => 'Sesi pembuka bootcamp.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(7)->toDateString(),
+                        'start_time'  => '10:00:00',
+                        'end_time'    => '15:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Tiket Peserta', 'type' => 'online', 'price' => 195000, 'capacity' => 100, 'sale_start' => Carbon::now()->subDays(3), 'sale_end' => Carbon::now()->addDays(6)],
+                    ['name' => 'Tiket Event', 'type' => 'online', 'price' => 195000, 'capacity' => 100, 'sale_start' => Carbon::now()->subDays(3), 'sale_end' => Carbon::now()->addDays(6)],
                 ],
                 'collaborators' => [
                     ['institution' => 4, 'role' => 'sponsor'],
@@ -183,7 +213,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'FestiFit 2025: Gerak Sehat, Jiwa Sehat',
-                    'description' => 'Festival kesehatan dan wellness yang menggabungkan senam massal, talkshow kesehatan mental.',
+                    'description' => 'FestiFit 2025 adalah festival kesehatan holistik yang mengajak masyarakat untuk bergerak dan menjaga keseimbangan pikiran. Acara ini akan diisi dengan sesi zumba massal, yoga di ruang terbuka, serta berbagai talkshow inspiratif mengenai pentingnya kesehatan mental di tengah hiruk pikuk kehidupan modern. Terdapat juga bazaar makanan sehat, cek kesehatan gratis, dan area bermain anak yang membuat acara ini cocok dikunjungi bersama keluarga.',
                     'type_name'   => 'Networking Event',
                     'status'      => 'published',
                     'is_featured' => false,
@@ -207,9 +237,19 @@ class EventSeeder2 extends Seeder
                     'address_detail'      => 'Jl. Diponegoro, Citarum',
                     'offline_instruction' => 'Kenakan pakaian olahraga yang nyaman. Bawa air minum sendiri.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Senam Pagi & Talkshow',
+                        'description' => 'Sesi senam pagi dilanjutkan dengan bincang santai kesehatan.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(21)->toDateString(),
+                        'start_time'  => '06:00:00',
+                        'end_time'    => '11:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Tiket Gratis (Registrasi Wajib)', 'type' => 'offline', 'price' => 0, 'capacity' => 5000, 'sale_start' => Carbon::now()->subDays(7), 'sale_end' => Carbon::now()->addDays(20)],
+                    ['name' => 'Tiket Event (Gratis)', 'type' => 'offline', 'price' => 0, 'capacity' => 5000, 'sale_start' => Carbon::now()->subDays(7), 'sale_end' => Carbon::now()->addDays(20)],
                 ],
                 'collaborators' => [
                     ['institution' => 5, 'role' => 'co_host'],
@@ -220,7 +260,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Masterclass: Seni Roasting Kopi Nusantara',
-                    'description' => 'Pelajari teknik roasting biji kopi dari berbagai daerah di Indonesia langsung dari ahlinya. Termasuk sesi cupping dan sertifikat.',
+                    'description' => 'Pelajari teknik rahasia di balik secangkir kopi yang sempurna melalui masterclass seni roasting kopi nusantara. Dipandu oleh master roaster bersertifikat internasional, Anda akan diajak mengenal berbagai profil biji kopi dari Sumatera hingga Papua, cara mengoperasikan mesin roasting, hingga memahami kurva pemanggangan. Acara ini akan ditutup dengan sesi cupping eksklusif untuk melatih kepekaan indra perasa Anda terhadap aneka notes kopi.',
                     'type_name'   => 'Workshop',
                     'status'      => 'published',
                     'is_featured' => true,
@@ -244,9 +284,19 @@ class EventSeeder2 extends Seeder
                     'address_detail'      => 'Jl. Senopati No. 88',
                     'offline_instruction' => 'Peserta diharap hadir tepat waktu dan tidak menggunakan parfum berlebih agar tidak mengganggu sesi cupping.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Praktek Roasting Kopi',
+                        'description' => 'Peserta akan langsung mempraktekkan teknik roasting.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(10)->toDateString(),
+                        'start_time'  => '13:00:00',
+                        'end_time'    => '16:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Tiket Masterclass', 'type' => 'offline', 'price' => 350000, 'capacity' => 20, 'sale_start' => Carbon::now()->subDays(2), 'sale_end' => Carbon::now()->addDays(8)],
+                    ['name' => 'Tiket Event', 'type' => 'offline', 'price' => 350000, 'capacity' => 20, 'sale_start' => Carbon::now()->subDays(2), 'sale_end' => Carbon::now()->addDays(8)],
                 ],
                 'collaborators' => [],
             ],
@@ -255,7 +305,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Intensive Course: English for Software Engineers',
-                    'description' => 'Tingkatkan kemampuan komunikasi bahasa Inggris untuk presentasi teknis, daily stand-up, dan menulis dokumentasi kode yang profesional.',
+                    'description' => 'Tingkatkan kemampuan komunikasi bahasa Inggris Anda secara spesifik untuk lingkungan kerja bidang teknologi dan rekayasa perangkat lunak. Melalui kursus intensif ini, Anda akan berlatih melakukan presentasi teknis, memimpin sesi daily stand-up, menulis dokumentasi kode yang profesional, serta berargumen secara efektif saat code review. Penguasaan bahasa Inggris ini akan sangat membantu Anda untuk bekerja secara remote di perusahaan internasional.',
                     'type_name'   => 'Course',
                     'status'      => 'published',
                     'is_featured' => false,
@@ -271,9 +321,19 @@ class EventSeeder2 extends Seeder
                     'meeting_link'       => 'https://teams.microsoft.com/l/meetup-join/course',
                     'online_instruction' => 'Siapkan microphone yang jelas dan nyalakan kamera selama sesi diskusi berlangsung.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Basic Tech English',
+                        'description' => 'Materi dasar bahasa Inggris untuk kebutuhan teknis.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(5)->toDateString(),
+                        'start_time'  => '19:00:00',
+                        'end_time'    => '21:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Paket Kelas Intensif', 'type' => 'online', 'price' => 450000, 'capacity' => 50, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(4)],
+                    ['name' => 'Tiket Event', 'type' => 'online', 'price' => 450000, 'capacity' => 50, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(4)],
                 ],
                 'collaborators' => [],
             ],
@@ -282,7 +342,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Panel Diskusi: Transisi Energi Hijau di Indonesia',
-                    'description' => 'Bahas peluang dan tantangan Indonesia dalam mencapai net-zero emissions bersama pembuat kebijakan dan pemimpin industri energi.',
+                    'description' => 'Mari bahas secara komprehensif mengenai peluang dan tantangan nyata yang dihadapi Indonesia dalam mewujudkan target net-zero emissions. Diskusi panel ini akan menghadirkan para pembuat kebijakan, inovator teknologi hijau, serta pemimpin industri energi yang akan berdebat secara konstruktif tentang transisi dari energi fosil ke energi terbarukan. Sesi ini juga akan membahas aspek pembiayaan hijau (green financing) dan dampaknya terhadap perekonomian lokal.',
                     'type_name'   => 'Panel Discussion',
                     'status'      => 'published',
                     'is_featured' => true,
@@ -307,10 +367,20 @@ class EventSeeder2 extends Seeder
                     'district'            => 'Kuta Selatan',
                     'address_detail'      => 'Kawasan Pariwisata Nusa Dua Lot NW/1',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Panel Utama: Transisi Energi',
+                        'description' => 'Diskusi panel utama dengan para ahli.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(60)->toDateString(),
+                        'start_time'  => '09:00:00',
+                        'end_time'    => '12:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Akses Livestream', 'type' => 'online', 'price' => 0, 'capacity' => 2000, 'sale_start' => Carbon::now()->addDays(10), 'sale_end' => Carbon::now()->addDays(59)],
-                    ['name' => 'Kursi Undangan Offline', 'type' => 'offline', 'price' => 150000, 'capacity' => 200, 'sale_start' => Carbon::now()->addDays(10), 'sale_end' => Carbon::now()->addDays(50)],
+                    ['name' => 'Tiket Event (Online)', 'type' => 'online', 'price' => 0, 'capacity' => 2000, 'sale_start' => Carbon::now()->addDays(10), 'sale_end' => Carbon::now()->addDays(59)],
+                    ['name' => 'Tiket Event (Offline)', 'type' => 'offline', 'price' => 150000, 'capacity' => 200, 'sale_start' => Carbon::now()->addDays(10), 'sale_end' => Carbon::now()->addDays(50)],
                 ],
                 'collaborators' => [
                     ['institution' => 2, 'role' => 'sponsor'],
@@ -321,7 +391,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Pelatihan Basic Life Support & First Aid',
-                    'description' => 'Pelatihan pertolongan pertama pada kecelakaan (P3K) bersertifikat untuk masyarakat umum dan pekerja kantoran.',
+                    'description' => 'Kecelakaan bisa terjadi kapan saja dan di mana saja. Bekali diri Anda dengan pengetahuan krusial melalui pelatihan Basic Life Support (BLS) dan First Aid ini. Program bersertifikat ini dirancang untuk masyarakat umum maupun pekerja kantoran yang ingin belajar cara melakukan Resusitasi Jantung Paru (RJP/CPR), menangani luka pendarahan, tersedak, serta patah tulang sebelum bantuan medis profesional tiba. Keselamatan dimulai dari kesiapsiagaan Anda.',
                     'type_name'   => 'Training',
                     'status'      => 'published',
                     'is_featured' => false,
@@ -345,9 +415,19 @@ class EventSeeder2 extends Seeder
                     'address_detail'      => 'Jl. Sumatera No. 71',
                     'offline_instruction' => 'Gunakan pakaian bebas rapi dan celana panjang untuk kemudahan sesi praktik RJP (CPR).',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Teori & Praktek P3K Dasar',
+                        'description' => 'Sesi teori dan praktek langsung.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(18)->toDateString(),
+                        'start_time'  => '08:00:00',
+                        'end_time'    => '16:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Tiket Pelatihan Umum', 'type' => 'offline', 'price' => 250000, 'capacity' => 40, 'sale_start' => Carbon::now()->subDays(5), 'sale_end' => Carbon::now()->addDays(15)],
+                    ['name' => 'Tiket Event', 'type' => 'offline', 'price' => 250000, 'capacity' => 40, 'sale_start' => Carbon::now()->subDays(5), 'sale_end' => Carbon::now()->addDays(15)],
                 ],
                 'collaborators' => [],
             ],
@@ -356,7 +436,7 @@ class EventSeeder2 extends Seeder
             [
                 'meta' => [
                     'title'       => 'Talkshow Santai: Cerdas Investasi Saham untuk Pemula',
-                    'description' => 'Bingung mulai investasi dari mana? Yuk ngobrol santai bareng para perencana keuangan tentang cara baca laporan keuangan dasar dan money management.',
+                    'description' => 'Bingung mulai investasi dari mana dan takut terjebak investasi bodong? Yuk ngobrol santai bareng para perencana keuangan bersertifikat yang akan mengupas tuntas cara membaca laporan keuangan dasar, memahami profil risiko, serta merancang money management yang sehat untuk anak muda. Talkshow interaktif ini menggunakan bahasa yang mudah dipahami oleh pemula, tanpa istilah finansial yang rumit, sehingga Anda bisa langsung mempraktekkannya.',
                     'type_name'   => 'Talkshow',
                     'status'      => 'published',
                     'is_featured' => false,
@@ -372,9 +452,19 @@ class EventSeeder2 extends Seeder
                     'meeting_link'       => 'https://zoom.us/j/talkshow-investasi-2025',
                     'online_instruction' => 'Sesi tanya jawab akan menggunakan fitur Q&A di Zoom.',
                 ],
-                'sessions'   => [],
+                'sessions'   => [
+                    [
+                        'title'       => 'Materi Investasi Saham',
+                        'description' => 'Pemaparan materi investasi untuk pemula.',
+                        'day_number'  => 1,
+                        'date'        => Carbon::now()->addDays(2)->toDateString(),
+                        'start_time'  => '19:00:00',
+                        'end_time'    => '21:00:00',
+                        'speakers'    => [],
+                    ],
+                ],
                 'tickets'        => [
-                    ['name' => 'Akses Webinar', 'type' => 'online', 'price' => 25000, 'capacity' => 500, 'sale_start' => Carbon::now()->subDays(15), 'sale_end' => Carbon::now()->addDays(1)],
+                    ['name' => 'Tiket Event', 'type' => 'online', 'price' => 25000, 'capacity' => 500, 'sale_start' => Carbon::now()->subDays(15), 'sale_end' => Carbon::now()->addDays(1)],
                 ],
                 'collaborators' => [],
             ],
