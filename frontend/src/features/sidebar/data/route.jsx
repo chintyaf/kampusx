@@ -22,7 +22,6 @@ import {
 	CreditCard,
 } from 'lucide-react';
 
-// ... (kode lainnya)
 // --- Configuration Data ---
 export const MENU_ITEMS = {
 	admin: [

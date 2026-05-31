@@ -18,8 +18,8 @@ import {
 } from 'lucide-react';
 
 // API & CSS
-import api from '../../../../api/axios';
-import '../../../../assets/css/dashboard.css';
+import api from '@/api/axios';
+import '@/assets/css/dashboard.css';
 
 // Components
 import PageHeader from './PageHeader';
@@ -37,7 +37,7 @@ import PublishReadyCard from './PublishReadyCard';
 
 // Config
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
-import StatusConfirmationModal from '../../../../components/event/EventStatusDropdown/StatusConfirmationModal';
+import StatusConfirmationModal from '@/components/event/EventStatusDropdown/StatusConfirmationModal';
 
 const iconMap = {
 	'Tickets Sold': Ticket,
@@ -244,21 +244,21 @@ export default function EventDashboardPage() {
 		draft:
 			issues.length > 0
 				? {
-					bg: 'linear-gradient(135deg, #fffbeb 0%, #fefce8 100%)',
-					border: '#fde68a',
-					icon: '📋',
-					title: `${issues.length} item perlu dilengkapi sebelum publish`,
-					desc: 'Selesaikan semua item penting di bawah agar peserta dapat mendaftar ke event Anda.',
-					showPublishBtn: false,
-				}
+						bg: 'linear-gradient(135deg, #fffbeb 0%, #fefce8 100%)',
+						border: '#fde68a',
+						icon: '📋',
+						title: `${issues.length} item perlu dilengkapi sebelum publish`,
+						desc: 'Selesaikan semua item penting di bawah agar peserta dapat mendaftar ke event Anda.',
+						showPublishBtn: false,
+					}
 				: {
-					bg: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
-					border: '#86efac',
-					icon: '✅',
-					title: 'Semua data sudah lengkap!',
-					desc: 'Event siap dipublikasikan. Klik tombol di samping untuk mulai menerima peserta.',
-					showPublishBtn: true,
-				},
+						bg: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+						border: '#86efac',
+						icon: '✅',
+						title: 'Semua data sudah lengkap!',
+						desc: 'Event siap dipublikasikan. Klik tombol di samping untuk mulai menerima peserta.',
+						showPublishBtn: true,
+					},
 		published: {
 			bg: 'linear-gradient(135deg, #eff8ff 0%, #dbeafe 100%)',
 			border: '#93c5fd',
@@ -310,7 +310,7 @@ export default function EventDashboardPage() {
 	return (
 		<div>
 			{/* Action Bar (Dev Tools) */}
-			<DevToolsBar 
+			<DevToolsBar
 				setShowDraftModal={setShowDraftModal}
 				setShowPublishModal={setShowPublishModal}
 				setShowOngoingModal={setShowOngoingModal}

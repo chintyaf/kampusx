@@ -1,85 +1,248 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import {
+	CheckCircle2,
+	AlertCircle,
+	ArrowRight,
+	ChevronDown,
+	ChevronUp,
+	ClipboardList,
+} from 'lucide-react';
 
 export default function EventChecklist({ checklist = [], eventId }) {
 	const navigate = useNavigate();
+	const [isExpanded, setIsExpanded] = useState(false);
 
-	// Filter out items that are not required (e.g. Zoom link for offline events)
+	// Filter item yang wajib
 	const activeItems = checklist.filter((item) => item.required !== false);
 
 	if (activeItems.length === 0) return null;
 
 	const completedCount = activeItems.filter((item) => item.completed).length;
-	const readyPercentage = activeItems.length > 0 ? Math.round((completedCount / activeItems.length) * 100) : 100;
+	const pendingCount = activeItems.length - completedCount;
+	const readyPercentage =
+		activeItems.length > 0 ? Math.round((completedCount / activeItems.length) * 100) : 100;
+
+	// Urutkan item: yang belum selesai di atas, yang sudah selesai di bawah
+	const sortedItems = [...activeItems].sort((a, b) => {
+		if (a.completed === b.completed) return 0;
+		return a.completed ? 1 : -1;
+	});
+
+	// Logika untuk tampilan compact
+	const INITIAL_LIMIT = 3;
+	const visibleItems = isExpanded ? sortedItems : sortedItems.slice(0, INITIAL_LIMIT);
+	const hasMore = sortedItems.length > INITIAL_LIMIT;
+	const hiddenCount = sortedItems.length - INITIAL_LIMIT;
 
 	return (
-		<div className="card shadow-sm p-4 mb-4 border-0" style={{ borderRadius: '12px', backgroundColor: '#FFFFFF' }}>
-			{/* Checklist Header */}
-			<div className="d-flex flex-column gap-2 mb-3">
-				<div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-					<h3 className="h5 fw-bold text-dark m-0 d-flex align-items-center gap-2" style={{ fontFamily: 'var(--font)' }}>
-						📋 Persiapan Sebelum Hari-H (Part 2)
-					</h3>
-					<span className="fw-bold text-primary" style={{ fontSize: '15px', fontFamily: 'var(--font)' }}>
-						{readyPercentage}% Persiapan Selesai
-					</span>
-				</div>
-
-				{/* Modern Progress Bar */}
-				<div className="progress w-100" style={{ height: '8px', borderRadius: '4px', backgroundColor: '#F1F5F9' }}>
+		<div
+			className="bg-white"
+			style={{
+				borderRadius: '12px',
+				border: '1px solid #E2E8F0',
+				overflow: 'hidden',
+				marginBottom: '24px',
+			}}
+		>
+			{/* Header Style (Identik dengan MissingInformation) */}
+			<div
+				className="d-flex align-items-center justify-content-between"
+				style={{
+					padding: '16px 20px',
+					borderBottom: '1px solid #E2E8F0',
+				}}
+			>
+				<div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 					<div
-						className={`progress-bar rounded-pill transition-all ${readyPercentage === 100 ? 'bg-success' : 'bg-primary'}`}
-						role="progressbar"
-						style={{ width: `${readyPercentage}%`, transition: 'width 0.5s ease-in-out' }}
-						aria-valuenow={readyPercentage}
-						aria-valuemin="0"
-						aria-valuemax="100"
+						style={{
+							width: 35,
+							height: 35,
+							borderRadius: 8,
+							flexShrink: 0,
+							background: '#fef3c7',
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+						}}
+					>
+						<ClipboardList size={18} color="#D97706" />
+					</div>
+					<div>
+						<div
+							style={{
+								fontSize: '14px',
+								fontWeight: 700,
+								color: '#0F172A',
+								fontFamily: 'var(--font)',
+							}}
+						>
+							Persiapan Sebelum Event
+						</div>
+						<div
+							style={{
+								fontSize: '12px',
+								color: '#64748B',
+								marginTop: '2px',
+								fontFamily: 'var(--font)',
+							}}
+						>
+							{pendingCount > 0
+								? `${pendingCount} item perlu dilengkapi`
+								: 'Semua persiapan telah selesai'}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{/* Progress Bar Section */}
+			<div style={{ padding: '16px 20px' }}>
+				<div className="d-flex justify-content-between align-items-center mb-2">
+					<span style={{ fontSize: '13.5px', color: '#64748B', fontWeight: 500 }}>
+						Progres persiapan event
+					</span>
+					<span className="fs-5 text-muted fw-semibold">{readyPercentage}%</span>
+				</div>
+				<div style={{ background: '#E2E8F0', borderRadius: '99px', height: '6px' }}>
+					<div
+						style={{
+							width: `${readyPercentage}%`,
+							height: '5px',
+							borderRadius: '99px',
+							background: readyPercentage === 100 ? '#22C55E' : '#F59E0B',
+							transition: 'width 0.6s ease',
+						}}
 					/>
 				</div>
 			</div>
 
 			{/* Checklist Items */}
-			<div className="d-flex flex-column gap-3 mt-2">
-				{activeItems.map((item) => (
+			<div className="d-flex flex-column gap-3" style={{ padding: '0 20px 20px' }}>
+				{visibleItems.map((item) => (
 					<div
 						key={item.id}
-						className="d-flex align-items-center justify-content-between p-3 rounded-3"
 						style={{
-							backgroundColor: item.completed ? '#F8FAFC' : '#FFFBEB',
-							border: item.completed ? '1px solid #E2E8F0' : '1px solid #FDE68A',
-							transition: 'all 0.15s ease-in-out'
+							display: 'flex',
+							gap: '12px',
+							alignItems: 'center',
+							borderLeft: item.completed ? '3px solid #22C55E' : '3px solid #D97706', // Aksen garis kiri
+							background: item.completed ? '#F8FAFC' : '#FFFBEB',
+							borderRadius: 7,
+							border: item.completed ? '1px solid #E2E8F0' : '1px solid #e8c66b',
+							padding: '9px 14px',
 						}}
 					>
-						<div className="d-flex align-items-center gap-3">
-							{item.completed ? (
-								<CheckCircle2 size={20} className="text-success flex-shrink-0" strokeWidth={2.5} />
-							) : (
-								<AlertCircle size={20} className="text-warning flex-shrink-0" strokeWidth={2.5} />
-							)}
-							<span className="fw-semibold text-dark" style={{ fontSize: '13.5px', fontFamily: 'var(--font)' }}>
+						{item.completed ? (
+							<CheckCircle2
+								size={18}
+								color="#22C55E"
+								strokeWidth={2.5}
+								style={{ flexShrink: 0 }}
+							/>
+						) : (
+							<AlertCircle
+								size={18}
+								color="#D97706"
+								strokeWidth={2.5}
+								style={{ flexShrink: 0 }}
+							/>
+						)}
+
+						<div style={{ flex: 1, minWidth: 0 }}>
+							<div
+								style={{
+									fontSize: '12px',
+									fontWeight: 500,
+									color: item.completed ? '#64748B' : '#1E293B',
+									fontFamily: 'var(--font)',
+									lineHeight: 1.4,
+									marginBottom: 3,
+								}}
+							>
 								{item.label}
-							</span>
+							</div>
 						</div>
 
 						{/* Action link if not completed */}
 						{!item.completed ? (
 							<button
 								onClick={() => navigate(item.link)}
-								className="btn btn-sm btn-minimal btn-minimal-outline px-3 d-inline-flex align-items-center gap-1.5 fw-semibold"
-								style={{ height: '32px', fontSize: '12px', fontFamily: 'var(--font)' }}
+								style={{
+									flexShrink: 0,
+									display: 'inline-flex',
+									alignItems: 'center',
+									gap: '6px',
+									fontSize: '12px',
+									fontWeight: 700,
+									color: '#D97706',
+									background: 'white',
+									border: '1.5px solid #e8c66b',
+									padding: '6px 12px',
+									borderRadius: '8px',
+									cursor: 'pointer',
+									transition: 'background 0.15s',
+								}}
+								onMouseEnter={(e) => (e.currentTarget.style.background = '#FFFBEB')}
+								onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
 							>
-								Lengkapi
-								<ArrowRight size={13} />
+								Lengkapi <ArrowRight size={13} strokeWidth={2.5} />
 							</button>
 						) : (
-							<span className="badge bg-success-subtle text-success px-2.5 py-1 rounded" style={{ fontSize: '11px', fontWeight: '600' }}>
+							<span
+								style={{
+									fontSize: '11px',
+									fontWeight: 700,
+									color: '#166534',
+									background: 'white',
+									border: '1px solid #BBF7D0',
+									padding: '4px 10px',
+									borderRadius: '999px',
+								}}
+							>
 								Selesai
 							</span>
 						)}
 					</div>
 				))}
 			</div>
+
+			{/* Tombol Tampilkan/Sembunyikan (Identik dengan MissingInformation black button) */}
+			{hasMore && (
+				<div style={{ padding: '0 20px 20px' }}>
+					<button
+						onClick={() => setIsExpanded(!isExpanded)}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							gap: 5,
+							width: '100%',
+							padding: '8px',
+							borderRadius: 8,
+							background: '#f8fafc',
+							border: '1px dashed #cbd5e1',
+							fontSize: 12,
+							fontWeight: 600,
+							color: '#475569',
+							cursor: 'pointer',
+							transition: 'all 0.15s',
+						}}
+						onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+						onMouseLeave={(e) => (e.currentTarget.style.background = '#f8fafc')}
+					>
+						{isExpanded ? (
+							<>
+								<ChevronUp size={16} strokeWidth={2} /> Sembunyikan sebagian
+							</>
+						) : (
+							<>
+								<ChevronDown size={16} strokeWidth={2} /> Lihat {hiddenCount} item
+								lainnya
+							</>
+						)}
+					</button>
+				</div>
+			)}
 		</div>
 	);
 }

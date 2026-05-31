@@ -9,7 +9,7 @@ import {
 	ToggleButtonGroup,
 	ToggleButton,
 } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import {
 	Users,
@@ -30,11 +30,11 @@ import StatCard from '@/components/dashboard/StatCard';
 import PosTable from './PosTable';
 import PosForm from './PosForm';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
-import VenueQrModal from '@/components/event/VenueQrModal';
 
 /* ── Main ────────────────────────────────────────────────────── */
 const EventPosPage = () => {
 	const { eventId } = useParams();
+	const navigate = useNavigate();
 	const [posList, setPosList] = useState([]);
 	const [showForm, setShowForm] = useState(false);
 	const [selectedPos, setSelectedPos] = useState(null);
@@ -43,9 +43,6 @@ const EventPosPage = () => {
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [posToDelete, setPosToDelete] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
-
-	const [showVenueQr, setShowVenueQr] = useState(false);
-	const [eventTitle, setEventTitle] = useState('');
 
 	const [onlineLink, setOnlineLink] = useState('');
 	const [loadingLink, setLoadingLink] = useState(false);
@@ -71,20 +68,8 @@ const EventPosPage = () => {
 		}
 	};
 
-	const fetchEventTitle = async () => {
-		try {
-			const response = await api.get(`/event-dashboard/${eventId}/overview`);
-			if (response.data?.status === 'success') {
-				setEventTitle(response.data.data.name);
-			}
-		} catch (error) {
-			console.error('Failed to fetch event overview:', error);
-		}
-	};
-
 	useEffect(() => {
 		fetchPosList();
-		fetchEventTitle();
 	}, [eventId, showForm]);
 
 	const activeCount = posList.filter((p) => p.status === 'Aktif').length;
@@ -178,7 +163,7 @@ const EventPosPage = () => {
 					<Button
 						variant="white"
 						className="border rounded-2 px-3 py-1 d-flex align-items-center gap-2 shadow-none text-dark bg-white"
-						onClick={() => setShowVenueQr(true)}
+						onClick={() => window.open(`/organizer/${eventId}/event-dashboard/venue-qr`, '_blank')}
 						style={{ fontSize: '0.85rem' }}
 					>
 						<ScanLine size={14} className="text-primary" /> QR Venue
@@ -376,14 +361,6 @@ const EventPosPage = () => {
 					iconBorder: '#f5c2c7',
 					btnVariant: 'danger',
 				}}
-			/>
-
-			{/* ── Venue QR Modal ── */}
-			<VenueQrModal
-				show={showVenueQr}
-				onHide={() => setShowVenueQr(false)}
-				eventId={eventId}
-				eventTitle={eventTitle}
 			/>
 		</div>
 	);

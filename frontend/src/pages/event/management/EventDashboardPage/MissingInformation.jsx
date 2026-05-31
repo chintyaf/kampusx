@@ -64,7 +64,7 @@ function IssueRow({ issue, onFix }) {
 			<div style={{ flex: 1, minWidth: 0 }}>
 				<div
 					style={{
-						fontSize: 12.5,
+						fontSize: 12,
 						fontWeight: 500,
 						color: '#1e293b',
 						lineHeight: 1.4,
@@ -72,34 +72,6 @@ function IssueRow({ issue, onFix }) {
 					}}
 				>
 					{issue.message}
-				</div>
-				<div style={{ display: 'flex', gap: 4 }}>
-					<span
-						style={{
-							fontSize: 10,
-							fontWeight: 700,
-							color: cfg.color,
-							background: 'white',
-							border: `1px solid ${cfg.border}`,
-							padding: '1px 7px',
-							borderRadius: 999,
-						}}
-					>
-						{cfg.label}
-					</span>
-					<span
-						style={{
-							fontSize: 10,
-							fontWeight: 600,
-							color: '#64748b',
-							background: 'white',
-							border: '1px solid #e2e8f0',
-							padding: '1px 7px',
-							borderRadius: 999,
-						}}
-					>
-						{issue.category}
-					</span>
 				</div>
 			</div>
 			{onFix && (
@@ -124,7 +96,7 @@ function IssueRow({ issue, onFix }) {
 					onMouseEnter={(e) => (e.currentTarget.style.background = cfg.bg)}
 					onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
 				>
-					Perbaiki <ArrowRight size={11} strokeWidth={2.5} />
+					Lengkapi <ArrowRight size={11} strokeWidth={2.5} />
 				</button>
 			)}
 		</div>
@@ -173,11 +145,11 @@ export default function MissingInformation({ issues = [], onFix, highlight = fal
 						padding: '14px 20px',
 					}}
 				>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
 						<div
 							style={{
-								width: 30,
-								height: 30,
+								width: 35,
+								height: 35,
 								borderRadius: 8,
 								flexShrink: 0,
 								background: '#fef3c7',
@@ -186,55 +158,16 @@ export default function MissingInformation({ issues = [], onFix, highlight = fal
 								justifyContent: 'center',
 							}}
 						>
-							<Info size={15} color={highlight ? '#d97706' : '#64748b'} />
+							<Info size={18} color={highlight ? '#d97706' : '#64748b'} />
 						</div>
 						<div>
-							<div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+							<div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
 								Data Belum Lengkap
 							</div>
-							<div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>
+							<div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>
 								{issues.length} item perlu dilengkapi sebelum event dipublikasikan
 							</div>
 						</div>
-					</div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						{highCount > 0 && (
-							<span
-								style={{
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: 4,
-									fontSize: 11,
-									fontWeight: 700,
-									color: '#dc2626',
-									background: '#fff5f5',
-									border: '1.5px solid #fca5a5',
-									padding: '3px 9px',
-									borderRadius: 999,
-								}}
-							>
-								<AlertTriangle size={10} strokeWidth={2.5} />
-								{highCount} Penting
-							</span>
-						)}
-						{medCount > 0 && (
-							<span
-								style={{
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: 4,
-									fontSize: 11,
-									fontWeight: 700,
-									color: '#d97706',
-									background: '#fffbeb',
-									border: '1.5px solid #fde68a',
-									padding: '3px 9px',
-									borderRadius: 999,
-								}}
-							>
-								{medCount} Perlu diisi
-							</span>
-						)}
 					</div>
 				</div>
 
