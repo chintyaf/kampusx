@@ -42,11 +42,35 @@ class CheckoutController extends Controller
         DB::beginTransaction();
 
         try {
+            // Cek dulu kapasitas tiket
+            // Lock event ticket to prevent race conditions
+            $eventTicket = \App\Models\EventTicket::where('event_id', $event->id)->lockForUpdate()->first();
+            
+            if ($eventTicket && $eventTicket->capacity !== null) {
+                // Check if capacity is sufficient
+                $soldTickets = DB::table('order_items')
+                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                    ->where('orders.event_id', $event->id)
+                    ->whereIn('orders.status', ['paid', 'pending'])
+                    ->sum('order_items.quantity');
+                
+                $available = $eventTicket->capacity - $soldTickets;
+                if ($request->quantity > $available) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Kuota tiket tidak mencukupi. Sisa tiket: ' . max(0, $available),
+                    ], 422);
+                }
+            }
             // === JALUR 1: TIKET GRATIS ===
             if ($total_price == 0) {
-                $order = Order::create([
+                $generatedOrderId = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
+                $order = Order::forceCreate([
+                    'order_id'    => $generatedOrderId,
                     'event_id'    => $event->id,
                     'user_id'     => $user->id,
+                    'amount'      => 0,
                     'total_price' => 0,
                     'paid_at'     => now(), // Langsung lunas
                 ]);
@@ -84,14 +108,17 @@ class CheckoutController extends Controller
             
             // === JALUR 2: TIKET BERBAYAR (MIDTRANS) ===
             else {
-                $order = Order::create([
+                $generatedOrderId = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
+                $order = Order::forceCreate([
+                    'order_id'    => $generatedOrderId,
                     'event_id'    => $event->id,
                     'user_id'     => $user->id,
+                    'amount'      => $total_price,
                     'total_price' => $total_price,
                     'paid_at'     => null, // Belum lunas
                 ]);
 
-                $midtransOrderId = 'ORD-' . $order->id . '-' . time();
+                $midtransOrderId = $generatedOrderId;
 
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,

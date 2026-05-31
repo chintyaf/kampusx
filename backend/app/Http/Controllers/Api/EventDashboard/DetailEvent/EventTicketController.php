@@ -111,6 +111,7 @@ class EventTicketController extends Controller
         try {
             DB::beginTransaction();
 
+            $ticketIdsToKeep = [];
             foreach ($request->tickets as $ticketData) {
 
                 // Sanitasi data: Jika is_free true, pastikan harga dipaksa menjadi 0
@@ -137,16 +138,17 @@ class EventTicketController extends Controller
                                          ->where('event_id', $eventId) // Keamanan: Pastikan tiket milik event ini
                                          ->firstOrFail();
                     $ticket->update($dataToSave);
+                    $ticketIdsToKeep[] = $ticket->id;
                 } else {
                     // Buat tiket baru jika tidak ada ID
-                    EventTicket::create($dataToSave);
+                    $newTicket = EventTicket::create($dataToSave);
+                    $ticketIdsToKeep[] = $newTicket->id;
                 }
             }
 
             // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
-            $ticketIdsFromRequest = collect($request->tickets)->pluck('id')->filter()->toArray();
             EventTicket::where('event_id', $eventId)
-                       ->whereNotIn('id', $ticketIdsFromRequest)
+                       ->whereNotIn('id', $ticketIdsToKeep)
                        ->delete();
 
             DB::commit();

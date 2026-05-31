@@ -34,4 +34,41 @@ public function verifyPin(Request $request)
         'stations' => $stations
     ]);
 }
+
+    public function scan(Request $request)
+    {
+        // Re-use StaffController logic for scanning
+        return app(\App\Http\Controllers\Api\StaffController::class)->scan($request);
+    }
+
+    public function stats(Request $request)
+    {
+        $request->validate([
+            'event_id' => 'required|integer|exists:events,id',
+            'post_id' => 'required|integer|exists:event_stations,id'
+        ]);
+
+        $eventId = $request->event_id;
+        $stationId = $request->post_id;
+
+        $totalTickets = \App\Models\Ticket::whereHas('orderItem.order', function ($q) use ($eventId) {
+            $q->where('event_id', $eventId)->where('status', 'paid');
+        })->count();
+
+        $checkedIn = \Illuminate\Support\Facades\DB::table('attendance_logs')
+            ->where('event_id', $eventId)
+            ->where('post_id', $stationId)
+            ->count();
+
+        $notCheckedIn = max(0, $totalTickets - $checkedIn);
+
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'total_quota' => $totalTickets,
+                'checked_in' => $checkedIn,
+                'remaining' => $notCheckedIn
+            ]
+        ], 200);
+    }
 }

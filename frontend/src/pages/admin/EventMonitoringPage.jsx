@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Download, Calendar, CheckCircle2, Clock, Star } from 'lucide-react';
+import { Search, Download, Calendar, CheckCircle2, Clock, Star, ArrowUpDown, ArrowUp, ArrowDown, TrendingUp, ExternalLink, LayoutDashboard } from 'lucide-react';
 
 import FormHeading from '@/components/dashboard/FormHeading';
 import { STORAGE_URL } from '@/api/storage'
@@ -10,6 +10,8 @@ import Pagination from '@/features/users/components/Pagination';
 import api from '@/api/axios';
 
 const EventRow = ({ event, onToggleFeature }) => {
+	const canViewPublic = ['published', 'ongoing', 'post_event', 'completed'].includes(event.status);
+
 	return (
 		<tr>
 			<td>
@@ -98,27 +100,80 @@ const EventRow = ({ event, onToggleFeature }) => {
 					</span>
 				)}
 			</td>
+
+			{/* Kolom Action */}
 			<td>
-				<button
-					onClick={() => onToggleFeature(event)}
-					className="btn btn-sm"
-					style={{
-						padding: '4px 10px',
-						borderRadius: '8px',
-						fontSize: 12,
-						display: 'inline-flex',
-						alignItems: 'center',
-						gap: 6,
-						backgroundColor: event.is_featured ? '#fef3c7' : 'var(--light)',
-						color: event.is_featured ? '#d97706' : 'var(--text-muted)',
-						border: `1px solid ${event.is_featured ? '#fde68a' : '#cbd5e1'}`,
-						fontWeight: 600,
-						transition: 'all 0.2s'
-					}}
-				>
-					<Star size={12} fill={event.is_featured ? '#f59e0b' : 'none'} strokeWidth={2.5} color={event.is_featured ? '#d97706' : 'var(--text-muted)'} />
-					{event.is_featured ? 'Featured' : 'Regular'}
-				</button>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+					{/* Dashboard organizer */}
+					<a
+						href={`/organizer/${event.id}/event-dashboard`}
+						target="_blank"
+						rel="noreferrer"
+						title="Buka Dashboard Organizer"
+						style={{
+							display: 'inline-flex',
+							alignItems: 'center',
+							justifyContent: 'center',
+							width: 30,
+							height: 30,
+							borderRadius: 8,
+							border: '1px solid #e2e8f0',
+							backgroundColor: '#f8fafc',
+							color: 'var(--text-muted)',
+							transition: 'all 0.15s',
+							textDecoration: 'none',
+						}}
+						onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#e2e8f0'; e.currentTarget.style.color = '#475569'; }}
+						onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+					>
+						<LayoutDashboard size={14} />
+					</a>
+
+					{/* Halaman publik — hanya untuk status yang sudah live */}
+					{canViewPublic ? (
+						<a
+							href={`/event/${event.slug}`}
+							target="_blank"
+							rel="noreferrer"
+							title="Lihat Halaman Publik Event"
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 30,
+								height: 30,
+								borderRadius: 8,
+								border: '1px solid #bfdbfe',
+								backgroundColor: '#eff6ff',
+								color: '#3b82f6',
+								transition: 'all 0.15s',
+								textDecoration: 'none',
+							}}
+							onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#dbeafe'; }}
+							onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#eff6ff'; }}
+						>
+							<ExternalLink size={14} />
+						</a>
+					) : (
+						<span
+							title="Halaman publik belum tersedia"
+							style={{
+								display: 'inline-flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								width: 30,
+								height: 30,
+								borderRadius: 8,
+								border: '1px solid #e2e8f0',
+								backgroundColor: '#f8fafc',
+								color: '#cbd5e1',
+								cursor: 'not-allowed',
+							}}
+						>
+							<ExternalLink size={14} />
+						</span>
+					)}
+				</div>
 			</td>
 		</tr>
 	);
@@ -133,6 +188,16 @@ const EventMonitoringPage = () => {
 	const [statusFilter, setStatus] = useState('');
 	const [perPage, setPerPage] = useState(10);
 	const [currentPage, setPage] = useState(1);
+	const [sortConfig, setSortConfig] = useState({ key: null, dir: 'asc' });
+
+	const handleSort = (key) => {
+		setSortConfig((prev) =>
+			prev.key === key
+				? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+				: { key, dir: 'asc' }
+		);
+		setPage(1);
+	};
 
 	useEffect(() => {
 		fetchEvents();
@@ -162,13 +227,29 @@ const EventMonitoringPage = () => {
 
 	const filtered = useMemo(() => {
 		const q = search.toLowerCase();
-		return events.filter((e) => {
+		let result = events.filter((e) => {
 			const matchQ = e.title.toLowerCase().includes(q) || (e.description && e.description.toLowerCase().includes(q));
 			const matchStatus = !statusFilter || e.status === statusFilter;
-			const matchHighlight = !highlightFilter || (highlightFilter === 'featured' ? e.is_featured : !e.is_featured);
-			return matchQ && matchStatus && matchHighlight;
+			return matchQ && matchStatus;
 		});
-	}, [search, highlightFilter, statusFilter, events]);
+
+		// Sorting
+		if (sortConfig.key) {
+			result = [...result].sort((a, b) => {
+				let aVal, bVal;
+				if (sortConfig.key === 'title') { aVal = a.title?.toLowerCase(); bVal = b.title?.toLowerCase(); }
+				else if (sortConfig.key === 'organizer') { aVal = a.organizer?.name?.toLowerCase(); bVal = b.organizer?.name?.toLowerCase(); }
+				else if (sortConfig.key === 'start_date') { aVal = a.start_date || ''; bVal = b.start_date || ''; }
+				else if (sortConfig.key === 'status') { aVal = a.status; bVal = b.status; }
+				aVal = aVal ?? '';
+				bVal = bVal ?? '';
+				const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+				return sortConfig.dir === 'asc' ? cmp : -cmp;
+			});
+		}
+
+		return result;
+	}, [search, statusFilter, events, sortConfig]);
 
 	const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
 	const safePage = Math.min(currentPage, totalPages);
@@ -176,10 +257,6 @@ const EventMonitoringPage = () => {
 
 	const handleSearch = (v) => {
 		setSearch(v);
-		setPage(1);
-	};
-	const handleHighlight = (v) => {
-		setHighlightFilter(v);
 		setPage(1);
 	};
 	const handleStatus = (v) => {
@@ -214,29 +291,39 @@ const EventMonitoringPage = () => {
 			iconColor: 'var(--warning-text)',
 		},
 		{
+			label: 'Ongoing',
+			value: events.filter((e) => e.status === 'ongoing').length,
+			icon: (c) => <TrendingUp size={18} color={c} />,
+			iconBg: '#ecfdf5',
+			iconColor: '#059669',
+		},
+		/* {
 			label: 'Featured Events',
 			value: events.filter((e) => e.is_featured).length,
 			icon: (c) => <Star size={18} color={c} fill={c} />,
 			iconBg: '#fef3c7',
 			iconColor: '#d97706',
-		},
+		}, */
 	];
 
 	// Konfigurasi Kolom untuk Reusable Table
+	const SORT_KEYS = ['title', 'organizer', 'start_date', 'status', null];
 	const tableColumns = [
-		{ label: 'Event Info', sortable: true },
-		{ label: 'Organizer', sortable: true },
-		{ label: 'Start Date', sortable: true },
-		{ label: 'Status', sortable: true },
-		{ label: 'Highlight / Boost', sortable: false },
+		{ label: 'Event Info', sortable: true, key: 'title' },
+		{ label: 'Organizer', sortable: true, key: 'organizer' },
+		{ label: 'Start Date', sortable: true, key: 'start_date' },
+		{ label: 'Status', sortable: true, key: 'status' },
+		// { label: 'Highlight / Boost', sortable: false, key: null },
+		{ label: 'Action', sortable: false, key: null },
 	];
 
 	return (
 		<div className="page-content">
 			{/* Header */}
 			<FormHeading
-				heading="Event Monitoring"
-				subheading="Monitor and manage all activities/events across the system"
+				title="Event Monitoring"
+				description ="Monitor and manage all activities/events across the system"
+				className="mb-4"
 			/>
 			{/* Stats */}
 			<div className="stats-row">
@@ -271,22 +358,16 @@ const EventMonitoringPage = () => {
 
 					<select
 						className="filter-select"
-						value={highlightFilter}
-						onChange={(e) => handleHighlight(e.target.value)}
-					>
-						<option value="">All Highlights</option>
-						<option value="featured">Featured Only</option>
-						<option value="regular">Regular Only</option>
-					</select>
-
-					<select
-						className="filter-select"
 						value={statusFilter}
 						onChange={(e) => handleStatus(e.target.value)}
 					>
 						<option value="">All Status</option>
 						<option value="published">Published</option>
+						<option value="ongoing">Ongoing</option>
 						<option value="draft">Draft</option>
+						<option value="post_event">Post Event</option>
+						<option value="completed">Completed</option>
+						<option value="cancelled">Cancelled</option>
 					</select>
 
 					<div className="toolbar-spacer" />
@@ -296,19 +377,48 @@ const EventMonitoringPage = () => {
 					</button>
 				</div>
 
-				{/* Menggunakan Reusable Table Component */}
-				<Table
-					columns={tableColumns}
-					data={pageData}
-					emptyMessage={loading ? "Loading events data..." : "No events found matching your filters."}
-					renderRow={(e) => (
-						<EventRow
-							key={e.id}
-							event={e}
-							onToggleFeature={handleToggleFeature}
-						/>
-					)}
-				/>
+				{/* Table with sortable headers */}
+				<div className="table-responsive">
+					<table className="data-table">
+						<thead>
+							<tr>
+								{tableColumns.map((col) => (
+									<th
+										key={col.label}
+										onClick={col.key ? () => handleSort(col.key) : undefined}
+										style={{
+											cursor: col.key ? 'pointer' : 'default',
+											userSelect: 'none',
+											whiteSpace: 'nowrap',
+										}}
+									>
+										<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+											{col.label}
+											{col.key && (
+												sortConfig.key === col.key
+													? sortConfig.dir === 'asc'
+														? <ArrowUp size={13} color="var(--primary)" />
+														: <ArrowDown size={13} color="var(--primary)" />
+													: <ArrowUpDown size={13} color="var(--text-muted)" style={{ opacity: 0.5 }} />
+											)}
+										</span>
+									</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{loading ? (
+								<tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading events data...</td></tr>
+							) : pageData.length === 0 ? (
+								<tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No events found matching your filters.</td></tr>
+							) : (
+								pageData.map((e) => (
+									<EventRow key={e.id} event={e} onToggleFeature={handleToggleFeature} />
+								))
+							)}
+						</tbody>
+					</table>
+				</div>
 
 				{/* Pagination */}
 				<Pagination
@@ -324,4 +434,3 @@ const EventMonitoringPage = () => {
 };
 
 export default EventMonitoringPage;
-

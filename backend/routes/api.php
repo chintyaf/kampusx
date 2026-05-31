@@ -62,7 +62,7 @@ Route::get('/profile/{id}', [\App\Http\Controllers\Api\UserProfileController::cl
 // Landing Page & Explore Event
 Route::get('/events/nearest', [EventController::class, 'getNearest']);
 Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi index() di EventController
-Route::get('/events/explore', [EventController::class, 'explore']);
+Route::get('/events/explore', [EventController::class, 'index']); // Diubah ke index karena explore() tidak ada
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 // Certificate Public Verification & Rendering
@@ -78,8 +78,8 @@ Route::get('/test', function () {
 Route::post('/v1/payment/callback', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'callback']);
 
 // --- STAFF QR SCANNER & CHECK-IN ---
+Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::class, 'verifyPin']);
 Route::middleware('attendance.window')->group(function () {
-    Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::class, 'verifyPin']);
     Route::post('/v1/staff/scan', [\App\Http\Controllers\Api\StaffController::class, 'scan']);
     Route::post('/v1/staff/manual-checkin', [\App\Http\Controllers\Api\StaffController::class, 'manualCheckin']);
     Route::get('/v1/staff/search-tickets', [\App\Http\Controllers\Api\StaffController::class, 'searchTickets']);
@@ -358,8 +358,8 @@ Route::post('/engagement/claim', [EngagementController::class, 'claimPoints']);
 Route::get('/institutions', [InstitutionController::class, 'index']);
 
 // Committee
+Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
 Route::middleware('attendance.window')->group(function () {
-    Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
     Route::post('/committee/scan', [CommitteeController::class, 'scan']);
     Route::get('/committee/stats', [CommitteeController::class, 'stats']);
 });

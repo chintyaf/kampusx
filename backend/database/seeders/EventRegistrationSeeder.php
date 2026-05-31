@@ -50,9 +50,12 @@ class EventRegistrationSeeder extends Seeder
             DB::transaction(function () use ($event, $user) {
                 // Buat Order
                 $order = Order::create([
+                    'order_id'    => 'ORD-' . strtoupper(Str::random(10)),
                     'event_id'    => $event->id,
                     'user_id'     => $user->id,
+                    'amount'      => 0,
                     'total_price' => 0,
+                    'status'      => 'paid',
                     'paid_at'     => now(),
                 ]);
 

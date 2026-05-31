@@ -105,6 +105,19 @@ export default function EventDashboardPage() {
 	const [showOngoingModal, setShowOngoingModal] = useState(false);
 	const [showPostEventModal, setShowPostEventModal] = useState(false);
 	const [showCompletedModal, setShowCompletedModal] = useState(false);
+	const [showDevTools, setShowDevTools] = useState(false);
+
+	// Keyboard Shortcut for Dev Tools
+	useEffect(() => {
+		const handleKeyDown = (e) => {
+			if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') {
+				e.preventDefault();
+				setShowDevTools((prev) => !prev);
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, []);
 
 	// Fetch Data
 	useEffect(() => {
@@ -310,14 +323,16 @@ export default function EventDashboardPage() {
 	return (
 		<div>
 			{/* Action Bar (Dev Tools) */}
-			<DevToolsBar
-				setShowDraftModal={setShowDraftModal}
-				setShowPublishModal={setShowPublishModal}
-				setShowOngoingModal={setShowOngoingModal}
-				setShowPostEventModal={setShowPostEventModal}
-				setShowCompletedModal={setShowCompletedModal}
-				setShowCancelModal={setShowCancelModal}
-			/>
+			{showDevTools && (
+				<DevToolsBar
+					setShowDraftModal={setShowDraftModal}
+					setShowPublishModal={setShowPublishModal}
+					setShowOngoingModal={setShowOngoingModal}
+					setShowPostEventModal={setShowPostEventModal}
+					setShowCompletedModal={setShowCompletedModal}
+					setShowCancelModal={setShowCancelModal}
+				/>
+			)}
 
 			<PageHeader
 				title={eventData.name || 'Event Dashboard'}

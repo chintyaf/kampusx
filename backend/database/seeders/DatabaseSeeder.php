@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             EventTypeSeeder::class,
             InstitutionSeeder::class,
             EventSeeder2::class,
+            PublishedEventSeeder::class,
             EventRegistrationSeeder::class,
             EventMaterialSeeder::class,
         ]);
