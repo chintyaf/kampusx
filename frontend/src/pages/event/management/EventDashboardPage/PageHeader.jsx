@@ -61,7 +61,6 @@ export default function PageHeader({
 	onKelolaTiket,
 	onScanner,
 	onFormulir,
-	onShowVenueQr,
 }) {
 	const [showMoreMenu, setShowMoreMenu] = useState(false);
 	const menuRef = useRef(null);
@@ -191,17 +190,6 @@ export default function PageHeader({
 					>
 						<Monitor size={15} strokeWidth={2} />
 						Preview
-					</button>
-				)}
-
-				{/* QR Venue Button */}
-				{onShowVenueQr && (
-					<button
-						onClick={onShowVenueQr}
-						className="btn btn-minimal btn-minimal-outline d-inline-flex align-items-center gap-1.5 fw-semibold border-primary text-primary"
-					>
-						<ScanLine size={15} strokeWidth={2} />
-						QR Venue
 					</button>
 				)}
 

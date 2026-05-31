@@ -38,7 +38,6 @@ import PublishReadyCard from './PublishReadyCard';
 // Config
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
 import StatusConfirmationModal from '../../../../components/event/EventStatusDropdown/StatusConfirmationModal';
-import VenueQrModal from '../../../../components/event/VenueQrModal';
 
 const iconMap = {
 	'Tickets Sold': Ticket,
@@ -106,7 +105,6 @@ export default function EventDashboardPage() {
 	const [showOngoingModal, setShowOngoingModal] = useState(false);
 	const [showPostEventModal, setShowPostEventModal] = useState(false);
 	const [showCompletedModal, setShowCompletedModal] = useState(false);
-	const [showVenueQr, setShowVenueQr] = useState(false);
 
 	// Fetch Data
 	useEffect(() => {
@@ -339,7 +337,6 @@ export default function EventDashboardPage() {
 				onKelolaTiket={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
 				onScanner={() => navigate(`/organizer/${eventId}/event-dashboard/scanner`)}
 				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
-				onShowVenueQr={['published', 'ongoing'].includes(eventStatus) ? () => setShowVenueQr(true) : null}
 			/>
 
 			{/* Stat Cards */}
@@ -501,13 +498,6 @@ export default function EventDashboardPage() {
 					setEventStatus('completed');
 					setShowCompletedModal(false);
 				}}
-			/>
-
-			<VenueQrModal
-				show={showVenueQr}
-				onHide={() => setShowVenueQr(false)}
-				eventId={eventId}
-				eventTitle={eventData?.name}
 			/>
 		</div>
 	);

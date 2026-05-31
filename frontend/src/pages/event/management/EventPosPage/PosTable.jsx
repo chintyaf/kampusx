@@ -1,7 +1,8 @@
 import React from 'react';
-import { Trash2, Search, Copy, RefreshCw, MapPin, Plus, Pencil } from 'lucide-react';
+import { Trash2, Search, Copy, MapPin, Plus, Pencil, ShieldCheck } from 'lucide-react';
 import Table from '@/components/table/Table';
 import { Button } from 'react-bootstrap';
+import toast from 'react-hot-toast';
 
 /* ── Status Badge ────────────────────────────────────────────── */
 const StatusBadge = ({ status }) => {
@@ -12,14 +13,15 @@ const StatusBadge = ({ status }) => {
 				display: 'inline-flex',
 				alignItems: 'center',
 				gap: 6,
-				fontSize: 'var(--font-xs)',
-				padding: '5px 12px',
-				borderRadius: 8,
+				fontSize: '0.75rem',
+				padding: '4px 10px',
+				borderRadius: 6,
 				fontWeight: 600,
 				backgroundColor: isActive ? '#ecfdf5' : '#fefce8',
 				color: isActive ? '#065f46' : '#854d0e',
 				border: `1px solid ${isActive ? '#a7f3d0' : '#fde68a'}`,
-			}}>
+			}}
+		>
 			<span
 				style={{
 					width: 6,
@@ -34,44 +36,45 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
-/* ── Empty State (Huruf Kapital) ─────────────────────────────── */
+/* ── Empty State ─────────────────────────────────────────────── */
+// Desain diubah agar menyatu dengan card tabel utama (tanpa border luar)
 const EmptyStateView = ({ setShowForm }) => {
 	return (
-		<div className="text-center py-4 bg-white border rounded-2">
+		<div className="text-center py-5 bg-white">
 			<div
 				style={{
 					width: 56,
 					height: 56,
 					borderRadius: '50%',
-					margin: '0 auto 12px',
-					backgroundColor: 'var(--bahama-blue-50)',
+					margin: '0 auto 16px',
+					backgroundColor: '#f8f9fa',
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
-				}}>
-				<MapPin size={26} style={{ color: 'var(--bahama-blue-300)' }} />
+				}}
+			>
+				<MapPin size={26} className="text-muted" />
 			</div>
-			<div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: 4 }}>
-				Belum ada pos
+			<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
+				Belum ada pos scanner
 			</div>
-			<div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-text-muted)' }}>
-				Tambahkan pos pertama untuk memulai.
+			<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
+				Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
 			</div>
-			<div className="d-flex justify-content-center mt-4">
-				<Button
-					variant="primary"
-					className="d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
-					onClick={() => setShowForm(true)}
-					style={{ backgroundColor: '#000', border: 'none' }}>
-					<Plus size={18} /> Tambah Pos Baru
-				</Button>
-			</div>
+			<Button
+				variant="dark"
+				className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
+				onClick={() => setShowForm(true)}
+			>
+				<Plus size={16} /> Tambah Pos Baru
+			</Button>
 		</div>
 	);
 };
 
 /* ── Pos Table Component ───────────────────────────────────── */
-const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
+// Tambahkan posPin sebagai props
+const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) => {
 	const tableColumns = [
 		{ label: 'NAMA POS', sortable: false },
 		{ label: 'STATUS', sortable: false },
@@ -79,96 +82,151 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm }) => {
 		{ label: 'AKSI', sortable: false },
 	];
 
-	// Gunakan huruf kapital di sini
-	if (posList.length === 0) return <EmptyStateView setShowForm={setShowForm} />;
+	const handleCopyPin = () => {
+		if (posPin) {
+			navigator.clipboard.writeText(posPin);
+			toast.success('PIN disalin ke clipboard!');
+		}
+	};
 
 	return (
-		<div className="table-card">
-			{/* ── Table Toolbar ── */}
-			<div className="table-toolbar w-100 d-flex flex-row justify-content-between align-items-center">
-				<div className="search-box d-flex align-items-center gap-2 px-3 py-2 border rounded bg-white">
-					<Search size={16} color="var(--text-muted)" />
-					<input
-						placeholder="Search name or email..."
-						className="border-0 w-100"
-						style={{ outline: 'none' }}
+		<div className="bg-white border rounded-3 shadow-none overflow-hidden">
+			{/* ── Table Toolbar / Header ── */}
+			<div className="p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+				{/* Bagian Kiri: PIN Panitia terintegrasi di tabel */}
+				<div className="d-flex align-items-center bg-light border rounded-2 px-3 py-2 gap-2 w-fit">
+					<ShieldCheck size={16} className="text-warning" />
+					<span className="text-muted fw-medium" style={{ fontSize: '0.85rem' }}>
+						PIN Akses Panitia:
+					</span>
+					<span
+						className="fw-bold text-dark font-monospace"
+						style={{ fontSize: '0.95rem', letterSpacing: '2px' }}
+					>
+						{posPin || '-'}
+					</span>
+					<div className="vr mx-1 opacity-25" style={{ height: '16px' }}></div>
+					<Button
+						variant="link"
+						className="p-0 border-0 text-muted d-flex align-items-center shadow-none text-decoration-none"
+						onClick={handleCopyPin}
+						title="Salin PIN"
+					>
+						<Copy size={14} />
+					</Button>
+				</div>
+
+				{/* Bagian Kanan: Search & Add Button */}
+				<div className="d-flex flex-wrap align-items-center gap-2">
+					{/* <div className="d-flex align-items-center gap-2 px-3 py-1 border rounded-2 bg-light">
+						<Search size={14} className="text-muted" />
+						<input
+							placeholder="Cari pos..."
+							className="border-0 bg-transparent text-sm"
+							style={{ outline: 'none', fontSize: '0.85rem', width: '150px' }}
+						/>
+					</div> */}
+					<Button
+						variant="dark"
+						className="d-flex align-items-center gap-2 px-3 py-1 shadow-none rounded-2"
+						onClick={() => setShowForm(true)}
+						style={{ fontSize: '0.85rem' }}
+					>
+						<Plus size={14} /> Tambah Pos
+					</Button>
+				</div>
+			</div>
+
+			{/* ── Table Body / Empty State ── */}
+			{posList.length === 0 ? (
+				<EmptyStateView setShowForm={setShowForm} />
+			) : (
+				<div className="table-responsive p-0 m-0">
+					<Table
+						columns={tableColumns}
+						data={posList}
+						renderRow={(pos, idx) => (
+							<tr key={pos.id} className="border-bottom">
+								<td className="px-4 py-3 align-middle">
+									<div className="d-flex align-items-center gap-3">
+										{pos.photo_url ? (
+											<img
+												src={pos.photo_url}
+												alt={pos.name}
+												style={{
+													width: '42px',
+													height: '42px',
+													borderRadius: '8px',
+													objectFit: 'cover',
+													border: '1px solid #e0e0e0',
+												}}
+											/>
+										) : (
+											<div
+												className="d-flex align-items-center justify-content-center bg-light text-muted fw-bold border rounded"
+												style={{
+													width: '42px',
+													height: '42px',
+													fontSize: '10px',
+												}}
+											>
+												NO IMG
+											</div>
+										)}
+										<div className="d-flex flex-column">
+											<span
+												className="fw-medium text-dark"
+												style={{ fontSize: '0.95rem' }}
+											>
+												{pos.name}
+											</span>
+											<span
+												className="text-muted"
+												style={{ fontSize: '0.8rem' }}
+											>
+												{pos.description || '—'}
+											</span>
+										</div>
+									</div>
+								</td>
+								<td className="py-3 align-middle">
+									<StatusBadge status={pos.status} />
+								</td>
+								<td className="py-3 align-middle">
+									<span
+										className="fw-medium text-dark"
+										style={{ fontSize: '0.9rem' }}
+									>
+										{pos.totalScan} tiket
+									</span>
+								</td>
+								<td className="py-3 align-middle">
+									<div className="d-flex align-items-center gap-2">
+										<Button
+											variant="light"
+											size="sm"
+											className="border d-flex align-items-center justify-content-center p-1 bg-white shadow-none"
+											onClick={() => handleEdit(pos)}
+											title="Edit"
+										>
+											<Pencil size={14} className="text-secondary" />
+										</Button>
+										<Button
+											variant="light"
+											size="sm"
+											className="border d-flex align-items-center justify-content-center p-1 bg-white shadow-none"
+											onClick={() => handleDelete(pos.id)}
+											title="Delete"
+										>
+											<Trash2 size={14} className="text-danger" />
+										</Button>
+									</div>
+								</td>
+							</tr>
+						)}
 					/>
 				</div>
-				<Button
-					variant="primary"
-					className="d-flex align-items-center gap-2 px-3 py-2 fw-semibold"
-					onClick={() => setShowForm(true)}
-					style={{ backgroundColor: '#000', border: 'none' }}>
-					<Plus size={18} /> Tambah Pos Baru
-				</Button>
-			</div>
-
-			{/* ── Table ── */}
-			<div
-				className="p-0 table-responsive "
-				style={{ backgroundColor: 'var(--color-white)' }}>
-				<Table
-					columns={tableColumns}
-					data={posList}
-					renderRow={(pos, idx) => (
-						<tr key={pos.id} className="border-bottom">
-							<td className="px-4 py-3 align-middle">
-								<div className="d-flex align-items-center gap-3">
-									{pos.photo_url ? (
-										<img
-											src={pos.photo_url}
-											alt={pos.name}
-											style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #e0e0e0' }}
-										/>
-									) : (
-										<div
-											className="d-flex align-items-center justify-content-center bg-light text-muted fw-bold border rounded"
-											style={{ width: '48px', height: '48px', fontSize: '10px' }}
-										>
-											NO IMG
-										</div>
-									)}
-									<div className="d-flex flex-column">
-										<span className="fw-semibold text-dark">{pos.name}</span>
-										<span className="text-muted" style={{ fontSize: '12px' }}>{pos.description || '—'}</span>
-									</div>
-								</div>
-							</td>
-							<td className="py-3 align-middle">
-								<StatusBadge status={pos.status} />
-							</td>
-
-							<td className="py-3 align-middle">
-								<span className="fw-medium text-dark">{pos.totalScan} tiket</span>
-							</td>
-
-							<td className="py-3 align-middle">
-								<div className="d-flex align-items-center gap-2">
-									{/* <button
-										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
-										title="Refresh">
-										<RefreshCw size={14} color="#555" />
-									</button> */}
-
-									<button
-										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
-										onClick={() => handleEdit(pos)}
-										title="Edit">
-										<Pencil size={14} color="#555" />
-									</button>
-
-									<button
-										className="btn btn-sm btn-light border d-flex align-items-center justify-content-center p-1 bg-white"
-										onClick={() => handleDelete(pos.id)}
-										title="Delete">
-										<Trash2 size={14} color="#dc3545" />
-									</button>
-								</div>
-							</td>
-						</tr>
-					)}
-				/>
-			</div>
+			)}
 		</div>
 	);
 };

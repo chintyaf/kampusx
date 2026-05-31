@@ -22,6 +22,7 @@ import EventLocationTest from '@/pages/event/creation/EventLocationTest/index';
 import EventDashboardPage from '@/pages/event/management/EventDashboardPage';
 import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventPreviewPage';
 import EventPosPage from '@/pages/event/management/EventPosPage/index';
+import EventVenueQrPage from '@/pages/event/management/EventVenueQrPage/index';
 import EventParticipantList from '@/pages/event/management/EventParticipantListPage/index';
 import EventMaterialDistributionPage from '@/pages/event/management/EventMaterialDistributionPage/index';
 import OrganizerMaterialsManagePage from '@/pages/event/management/OrganizerMaterialsManagePage/index';
@@ -53,6 +54,7 @@ export const OrganizerRoutes = (
 			</Route>
 
 			<Route path="event-pos" element={<EventPosPage />} />
+			<Route path="venue-qr" element={<EventVenueQrPage />} />
 
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
 

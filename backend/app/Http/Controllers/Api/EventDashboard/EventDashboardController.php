@@ -488,7 +488,7 @@ class EventDashboardController extends Controller
                 'label' => 'Upload Materi Acara (Opsional)',
                 'completed' => $hasMaterial,
                 'required' => true,
-                'link' => "/organizer/{$eventId}/event-dashboard/materi"
+                'link' => "/organizer/{$eventId}/event-dashboard/modul-belajar/materi-after"
             ]
         ];
 

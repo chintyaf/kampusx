@@ -18,7 +18,7 @@ class EventSeeder2 extends Seeder
         $institutions = DB::table('institutions')->pluck('id')->toArray();
         $categories   = DB::table('categories')->pluck('id', 'name');
 
-        // Ambil data event_types untuk relasi event_type_id
+        // Ambil data event_types untuk relasi pivot
         $eventTypes   = DB::table('event_types')->pluck('id', 'name');
 
         // Pastikan organizer, institusi & tipe event tersedia
@@ -105,7 +105,7 @@ class EventSeeder2 extends Seeder
                     'online_instruction' => 'Link akan dikirim ke email 1 jam sebelum acara.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Tiket Reguler', 'type' => 'online', 'price' => 50000, 'capacity' => 1000, 'sale_start' => Carbon::now()->subDays(5), 'sale_end' => Carbon::now()->addDays(13)],
                 ],
                 'collaborators' => [
@@ -142,7 +142,7 @@ class EventSeeder2 extends Seeder
                     'offline_instruction' => 'Peserta wajib membawa laptop, charger, dan sleeping bag.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Registrasi Tim (Maks. 4 orang)', 'type' => 'offline', 'price' => 200000, 'capacity' => 150, 'sale_start' => Carbon::now()->subDays(20), 'sale_end' => Carbon::now()->addDays(40)],
                 ],
                 'collaborators' => [
@@ -171,7 +171,7 @@ class EventSeeder2 extends Seeder
                     'online_instruction' => 'Install Figma (gratis) sebelum sesi dimulai.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Tiket Peserta', 'type' => 'online', 'price' => 195000, 'capacity' => 100, 'sale_start' => Carbon::now()->subDays(3), 'sale_end' => Carbon::now()->addDays(6)],
                 ],
                 'collaborators' => [
@@ -208,7 +208,7 @@ class EventSeeder2 extends Seeder
                     'offline_instruction' => 'Kenakan pakaian olahraga yang nyaman. Bawa air minum sendiri.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Tiket Gratis (Registrasi Wajib)', 'type' => 'offline', 'price' => 0, 'capacity' => 5000, 'sale_start' => Carbon::now()->subDays(7), 'sale_end' => Carbon::now()->addDays(20)],
                 ],
                 'collaborators' => [
@@ -245,7 +245,7 @@ class EventSeeder2 extends Seeder
                     'offline_instruction' => 'Peserta diharap hadir tepat waktu dan tidak menggunakan parfum berlebih agar tidak mengganggu sesi cupping.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Tiket Masterclass', 'type' => 'offline', 'price' => 350000, 'capacity' => 20, 'sale_start' => Carbon::now()->subDays(2), 'sale_end' => Carbon::now()->addDays(8)],
                 ],
                 'collaborators' => [],
@@ -272,7 +272,7 @@ class EventSeeder2 extends Seeder
                     'online_instruction' => 'Siapkan microphone yang jelas dan nyalakan kamera selama sesi diskusi berlangsung.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Paket Kelas Intensif', 'type' => 'online', 'price' => 450000, 'capacity' => 50, 'sale_start' => Carbon::now()->subDays(10), 'sale_end' => Carbon::now()->addDays(4)],
                 ],
                 'collaborators' => [],
@@ -308,7 +308,7 @@ class EventSeeder2 extends Seeder
                     'address_detail'      => 'Kawasan Pariwisata Nusa Dua Lot NW/1',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Akses Livestream', 'type' => 'online', 'price' => 0, 'capacity' => 2000, 'sale_start' => Carbon::now()->addDays(10), 'sale_end' => Carbon::now()->addDays(59)],
                     ['name' => 'Kursi Undangan Offline', 'type' => 'offline', 'price' => 150000, 'capacity' => 200, 'sale_start' => Carbon::now()->addDays(10), 'sale_end' => Carbon::now()->addDays(50)],
                 ],
@@ -346,7 +346,7 @@ class EventSeeder2 extends Seeder
                     'offline_instruction' => 'Gunakan pakaian bebas rapi dan celana panjang untuk kemudahan sesi praktik RJP (CPR).',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Tiket Pelatihan Umum', 'type' => 'offline', 'price' => 250000, 'capacity' => 40, 'sale_start' => Carbon::now()->subDays(5), 'sale_end' => Carbon::now()->addDays(15)],
                 ],
                 'collaborators' => [],
@@ -373,7 +373,7 @@ class EventSeeder2 extends Seeder
                     'online_instruction' => 'Sesi tanya jawab akan menggunakan fitur Q&A di Zoom.',
                 ],
                 'sessions'   => [],
-                'tickets'       => [
+                'tickets'        => [
                     ['name' => 'Akses Webinar', 'type' => 'online', 'price' => 25000, 'capacity' => 500, 'sale_start' => Carbon::now()->subDays(15), 'sale_end' => Carbon::now()->addDays(1)],
                 ],
                 'collaborators' => [],
@@ -387,11 +387,10 @@ class EventSeeder2 extends Seeder
         foreach ($eventsData as $eventData) {
             $meta = $eventData['meta'];
 
-            // -- 1. Insert ke tabel events --
+            // -- 1. Insert ke tabel events (TANPA event_type_id) --
             $eventId = DB::table('events')->insertGetId([
                 'organizer_id'   => $organizerId,
                 'institution_id' => $institutions[$meta['institution']] ?? $institutions[0],
-                'event_type_id'  => $eventTypes[$meta['type_name']] ?? null,
                 'title'          => $meta['title'],
                 'slug'           => Str::slug($meta['title']),
                 'description'    => $meta['description'],
@@ -404,6 +403,16 @@ class EventSeeder2 extends Seeder
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ]);
+
+            // -- 1.5. Insert event_types_event (Pivot Table) --
+            $eventTypeId = $eventTypes[$meta['type_name']] ?? null;
+            if ($eventTypeId) {
+                DB::table('event_types_event')->insertOrIgnore([
+                    'event_id'       => $eventId,
+                    'event_types_id' => $eventTypeId,
+                ]);
+            }
+
             $i++;
 
             // -- 2. Insert event_categories --
