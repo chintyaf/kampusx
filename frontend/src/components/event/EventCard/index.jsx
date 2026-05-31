@@ -82,10 +82,7 @@ const EventCard = ({ ev = {}, onClick }) => {
 			onClick={onClick}
 			className="h-100"
 			style={{
-				// PERBAIKAN: Sesuaikan minWidth dan maxWidth agar logis untuk mobile
 				width: '100%',
-				minWidth: '400px', // Cukup kecil agar aman di layar HP
-				// maxWidth: '350px', // Cukup besar agar tidak terlalu melar di layar PC
 				borderRadius: '16px',
 				border: '1px solid #E5E7EB',
 				cursor: 'pointer',

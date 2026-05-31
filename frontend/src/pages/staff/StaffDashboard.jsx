@@ -422,9 +422,11 @@ const StaffDashboard = () => {
     );
 
     // Helper to format date
-    const formatDateTime = (dateStr) => {
-        if (!dateStr) return '-';
-        const date = new Date(dateStr.replace(' ', 'T'));
+    const formatDateTime = (dateObjOrStr) => {
+        if (!dateObjOrStr) return '-';
+        const date = dateObjOrStr instanceof Date 
+            ? dateObjOrStr 
+            : new Date((dateObjOrStr.includes('T') ? dateObjOrStr : dateObjOrStr.replace(' ', 'T')) + 'Z');
         return date.toLocaleString('id-ID', {
             weekday: 'long',
             day: 'numeric',
@@ -438,8 +440,8 @@ const StaffDashboard = () => {
     const getAttendanceWindow = () => {
         if (!event || !event.start_date || !event.end_date) return null;
 
-        const startDate = new Date(event.start_date.replace(' ', 'T'));
-        const endDate = new Date(event.end_date.replace(' ', 'T'));
+        const startDate = new Date(event.start_date.replace(' ', 'T') + 'Z');
+        const endDate = new Date(event.end_date.replace(' ', 'T') + 'Z');
 
         // 30 minutes before start_date
         const allowedStart = new Date(startDate.getTime() - 30 * 60 * 1000);

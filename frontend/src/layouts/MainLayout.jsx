@@ -7,7 +7,7 @@ import NavbarPublic from './partials-dashboard/NavbarPublic.jsx'; // Komponen he
 
 const VisitorLayout = () => {
 	return (
-		<div style={{ display: 'flex', minHeight: '100vh' }}>
+		<div style={{ minHeight: '100vh' }}>
 			{/* 1. Sidebar yang nempel terus di kiri */}
 			{/* <Sidebar /> */}
 			<div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -19,7 +19,8 @@ const VisitorLayout = () => {
 						// padding: "20px",
 						backgroundColor: '#f4f4f4',
 						flex: 1,
-					}}>
+					}}
+				>
 					{/* Outlet inilah yang akan berubah jadi isi dari halaman
               seperti Overview, Settings, atau Profile */}
 					<Outlet />
