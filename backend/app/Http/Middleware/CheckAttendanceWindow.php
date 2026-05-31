@@ -39,18 +39,32 @@ class CheckAttendanceWindow
             return response()->json(['message' => 'Event tidak ditemukan.'], 404);
         }
 
-        $now = Carbon::now();
+        $eventTimezone = $event->timezone ?? 'Asia/Jakarta';
+        $now = Carbon::now($eventTimezone);
         
-        // Aturan: 5 menit sebelum acara dimulai
-        $allowedStartTime = Carbon::parse($event->start_date)->subMinutes(5);
-        
-        // Aturan: Batas waktu habis (end_date)
-        $allowedEndTime = Carbon::parse($event->end_date);
+        if (!$event->start_date || !$event->end_date) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tanggal pelaksanaan event belum diatur.'
+            ], 400);
+        }
+
+        // Interpret start_date and end_date as local times of the event's timezone
+        $startDateString = $event->start_date instanceof Carbon 
+            ? $event->start_date->format('Y-m-d H:i:s') 
+            : Carbon::parse($event->start_date)->format('Y-m-d H:i:s');
+            
+        $endDateString = $event->end_date instanceof Carbon 
+            ? $event->end_date->format('Y-m-d H:i:s') 
+            : Carbon::parse($event->end_date)->format('Y-m-d H:i:s');
+
+        $allowedStartTime = Carbon::createFromFormat('Y-m-d H:i:s', $startDateString, $eventTimezone)->subMinutes(30);
+        $allowedEndTime = Carbon::createFromFormat('Y-m-d H:i:s', $endDateString, $eventTimezone);
 
         if ($now->lessThan($allowedStartTime)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Presensi belum dibuka. Silakan coba lagi 5 menit sebelum acara dimulai.'
+                'message' => 'Presensi belum dibuka. Silakan coba lagi 30 menit sebelum acara dimulai.'
             ], 403);
         }
 

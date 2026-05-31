@@ -43,7 +43,10 @@ class StaffController extends Controller
                 'id' => $event->id,
                 'title' => $event->title,
                 'slug' => $event->slug,
-                'image_path' => $event->image_path
+                'image_path' => $event->image_path,
+                'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
+                'end_date' => $event->end_date ? $event->end_date->format('Y-m-d H:i:s') : null,
+                'timezone' => $event->timezone
             ],
             'stations' => $stations
         ], 200);
@@ -270,7 +273,14 @@ class StaffController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $tickets
+            'data' => $tickets,
+            'event' => [
+                'id' => $event->id,
+                'title' => $event->title,
+                'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
+                'end_date' => $event->end_date ? $event->end_date->format('Y-m-d H:i:s') : null,
+                'timezone' => $event->timezone
+            ]
         ], 200);
     }
 

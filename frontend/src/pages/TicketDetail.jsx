@@ -228,7 +228,8 @@ const TicketDetail = () => {
                 ) : (
                   <>
                     <div style={{ background: "#fff", padding: 16, borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", marginBottom: 16 }}>
-                      <QRCode value={ticket.qr_token ?? ticket.ticket_code} size={140} />
+                      {/* <QRCode value={ticket.qr_token ?? ticket.ticket_code} size={140} /> */}
+                      <QRCode value={qrToken || ticket.qr_token || ticket.ticket_code} size={140} />
                     </div>
                     <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--color-secondary)", fontWeight: 600, lineHeight: 1.5 }}>
                       Tunjukkan QR Code ini kepada panitia saat check-in.

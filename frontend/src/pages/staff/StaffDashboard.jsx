@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Form, Button, Table, Badge, Alert, Tabs, Tab, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { 
-    QrCode, Search, UserCheck, Users, RefreshCw, LogOut, MapPin, 
-    CheckCircle2, AlertCircle, Clock, Trash2 
+import {
+    QrCode, Search, UserCheck, Users, RefreshCw, LogOut, MapPin,
+    CheckCircle2, AlertCircle, Clock, Trash2
 } from 'lucide-react';
 import api from '../../api/axios';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const StaffDashboard = () => {
     const navigate = useNavigate();
-    
+
     // Auth States
     const [event, setEvent] = useState(null);
     const [station, setStation] = useState(null);
@@ -97,10 +97,13 @@ const StaffDashboard = () => {
             const res = await api.get('/v1/staff/search-tickets', {
                 params: { event_id: event.id, pos_pin: pin, q: '' }
             });
-            
+            if (res.data.event) {
+                setEvent(res.data.event);
+            }
+
             // Generate dynamic stats based on tickets status
             const tickets = res.data.data;
-            
+
             // To get accurate attendance stats at this POS, we query stats via search ticket or a dummy query
             // Let's do a dummy scan or manual check-in search to calculate stats dynamically
             const resLogs = await api.get('/v1/staff/search-tickets', {
@@ -111,7 +114,7 @@ const StaffDashboard = () => {
             // let's fetch the overall status dynamically!
             const totalTicketsCount = tickets.length;
             const checkedInCount = tickets.filter(t => t.status === 'used').length; // simple proxy
-            
+
             setStats({
                 total_quota: totalTicketsCount,
                 checked_in: checkedInCount,
@@ -157,11 +160,11 @@ const StaffDashboard = () => {
                     attendee
                 });
                 if (newStats) setStats(newStats);
-                
+
                 // Add to recent logs
                 setCheckInLogs(prev => [attendee, ...prev.slice(0, 4)]);
                 setQrInput('');
-                
+
                 // Kunci scanner selama 2.5 detik untuk cegah spamming read
                 setScanLock(true);
                 setTimeout(() => {
@@ -310,11 +313,11 @@ const StaffDashboard = () => {
         <Card className="border-0 shadow-sm rounded-4 mb-4">
             <Card.Body className="p-4">
                 <h5 className="fw-bold mb-3">Kamera Scanner QR</h5>
-                
+
                 {/* Scan State Feedback */}
                 {scanFeedback && (
-                    <Alert 
-                        variant={scanFeedback.type === 'success' ? 'success' : 'danger'} 
+                    <Alert
+                        variant={scanFeedback.type === 'success' ? 'success' : 'danger'}
                         className="d-flex align-items-center gap-3 rounded-3"
                         onClose={() => setScanFeedback(null)}
                         dismissible
@@ -337,14 +340,14 @@ const StaffDashboard = () => {
 
                 {/* Camera Control / Reader Box */}
                 {!isCameraActive ? (
-                    <div 
-                        className="border border-dashed rounded-4 p-4 text-center mb-4 bg-light position-relative" 
+                    <div
+                        className="border border-dashed rounded-4 p-4 text-center mb-4 bg-light position-relative"
                         style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
                     >
                         <QrCode size={64} className="text-secondary mb-3 opacity-25" />
                         <h6 className="fw-semibold text-dark">Kamera Scanner Nonaktif</h6>
                         <p className="text-muted small mb-3">Klik tombol di bawah untuk mengaktifkan kamera scanner pos.</p>
-                        <Button 
+                        <Button
                             variant="primary"
                             onClick={() => setIsCameraActive(true)}
                             className="px-4 py-2 fw-bold rounded-3"
@@ -355,14 +358,14 @@ const StaffDashboard = () => {
                 ) : (
                     <div>
                         <div className="position-relative w-100 rounded-4 overflow-hidden mb-3 border bg-dark">
-                            <div 
-                                id="reader" 
+                            <div
+                                id="reader"
                                 className="w-100"
                                 style={{ minHeight: '300px' }}
                             ></div>
-                            
+
                             {scanLock && (
-                                <div 
+                                <div
                                     style={{
                                         position: 'absolute',
                                         top: 0,
@@ -384,8 +387,8 @@ const StaffDashboard = () => {
                             )}
                         </div>
                         <div className="text-center mb-4">
-                            <Button 
-                                variant="danger" 
+                            <Button
+                                variant="danger"
                                 className="rounded-pill px-4 py-2 small fw-bold"
                                 onClick={() => setIsCameraActive(false)}
                             >
@@ -405,9 +408,9 @@ const StaffDashboard = () => {
                         className="py-2.5 px-3 rounded-3"
                         disabled={isScanning}
                     />
-                    <Button 
-                        type="submit" 
-                        className="px-4 border-0 fw-bold rounded-3" 
+                    <Button
+                        type="submit"
+                        className="px-4 border-0 fw-bold rounded-3"
                         style={{ backgroundColor: '#1A365D' }}
                         disabled={isScanning}
                     >
@@ -418,9 +421,40 @@ const StaffDashboard = () => {
         </Card>
     );
 
+    // Helper to format date
+    const formatDateTime = (dateStr) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr.replace(' ', 'T'));
+        return date.toLocaleString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getAttendanceWindow = () => {
+        if (!event || !event.start_date || !event.end_date) return null;
+
+        const startDate = new Date(event.start_date.replace(' ', 'T'));
+        const endDate = new Date(event.end_date.replace(' ', 'T'));
+
+        // 30 minutes before start_date
+        const allowedStart = new Date(startDate.getTime() - 30 * 60 * 1000);
+
+        return {
+            start: allowedStart,
+            end: endDate
+        };
+    };
+
+    const windowTimes = getAttendanceWindow();
+
     return (
         <div style={{ backgroundColor: 'var(--color-bg, #f8fafc)', minHeight: '100vh', paddingBottom: '60px' }}>
-            
+
             {/* Nav Bar Staff */}
             <div className="bg-white border-bottom shadow-sm py-3 mb-4">
                 <Container className="d-flex justify-content-between align-items-center">
@@ -442,16 +476,16 @@ const StaffDashboard = () => {
                         </div>
                     </div>
                     <div className="d-flex gap-2">
-                        <Button 
-                            variant="light" 
-                            className="rounded-pill px-3 py-1.5 small border" 
+                        <Button
+                            variant="light"
+                            className="rounded-pill px-3 py-1.5 small border"
                             onClick={fetchStats}
                             title="Refresh Data"
                         >
                             <RefreshCw size={14} />
                         </Button>
-                        <Button 
-                            variant="outline-danger" 
+                        <Button
+                            variant="outline-danger"
                             className="rounded-pill px-3 py-1.5 small d-flex align-items-center gap-1.5"
                             onClick={handleExit}
                         >
@@ -463,7 +497,34 @@ const StaffDashboard = () => {
             </div>
 
             <Container>
-                
+
+                {/* ── Rongga Waktu Presensi (Attendance Window Info) ── */}
+                {event && windowTimes && (
+                    <div className="bg-white border-start border-primary border-4 rounded-3 p-3 mb-4 d-flex align-items-center gap-3 shadow-sm border" style={{ borderLeft: '4px solid #1A365D' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            backgroundColor: 'rgba(26, 54, 93, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#1A365D',
+                            flexShrink: 0
+                        }}>
+                            <Clock size={20} />
+                        </div>
+                        <div>
+                            <div className="fw-semibold text-dark" style={{ fontSize: '0.9rem' }}>
+                                Rongga Waktu Presensi Aktif (Attendance Window)
+                            </div>
+                            <div className="text-muted mt-0.5" style={{ fontSize: '0.82rem' }}>
+                                Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start.toISOString())}</span> s/d <span className="fw-semibold text-danger">{formatDateTime(windowTimes.end.toISOString())}</span> ({event.timezone || 'WIB'})
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Stats Row */}
                 <Row className="g-3 mb-4">
                     {[
@@ -525,7 +586,7 @@ const StaffDashboard = () => {
                                                             <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '14px' }}>{ticket.attendee_name}</h6>
                                                             <span className="text-muted small" style={{ fontSize: '12px' }}>{ticket.ticket_code} · {ticket.attendee_email}</span>
                                                         </div>
-                                                        <Button 
+                                                        <Button
                                                             variant={ticket.status === 'used' ? "success" : "outline-primary"}
                                                             size="sm"
                                                             className="rounded-pill px-3"
@@ -597,7 +658,7 @@ const StaffDashboard = () => {
                                                                 <Badge bg="light" text="dark" className="border px-2.5 py-1.5">{ticket.ticket_code}</Badge>
                                                             </td>
                                                             <td className="text-end">
-                                                                <Button 
+                                                                <Button
                                                                     variant={ticket.status === 'used' ? "success" : "outline-primary"}
                                                                     size="sm"
                                                                     className="rounded-pill px-3"
@@ -626,7 +687,7 @@ const StaffDashboard = () => {
                             <Clock size={18} className="text-secondary" />
                             <span>Log Kehadiran POS Terkini</span>
                         </h5>
-                        
+
                         {checkInLogs.length === 0 ? (
                             <p className="text-muted small mb-0 py-2">Belum ada aktivitas presensi di sesi POS ini.</p>
                         ) : (

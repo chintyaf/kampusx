@@ -22,11 +22,15 @@ class EventDashboardStateTest extends TestCase
 
     public function test_event_state_transitions()
     {
+        // Setup Organizer User
+        $user = User::factory()->create(['role' => 'organizer']);
+
         // 1. Setup Event
         $startDate = Carbon::today()->addDays(1)->setTime(9, 0); // Tomorrow 09:00
         $endDate = Carbon::today()->addDays(2)->setTime(17, 0);  // Day after tomorrow 17:00
 
         $event = Event::factory()->create([
+            'organizer_id' => $user->id,
             'status' => 'published',
             'start_date' => $startDate,
             'end_date' => $endDate,
@@ -54,9 +58,7 @@ class EventDashboardStateTest extends TestCase
         // --- SCENARIO 1: PUBLISHED (Before event starts) ---
         Carbon::setTestNow($startDate->copy()->subHours(2)); // Day 1 07:00
         
-        $response = $this->getJson("/api/events/{$event->id}/dashboard-overview");
+        $response = $this->actingAs($user)->getJson("/api/event-dashboard/{$event->id}/overview");
         $response->assertStatus(200);
-        // Wait, if it's protected by auth, we need to bypass or act as organizer.
-        // Let's assume we can test the logic directly or through API.
     }
 }
