@@ -41,14 +41,16 @@ function TicketCard({
 		if (!dateStr) return '';
 		const date = new Date(dateStr);
 		if (isNaN(date.getTime())) return '';
-		return date.toLocaleString('id-ID', {
-			day: '2-digit',
-			month: 'long',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-			hour12: false
-		}).replace(/\./g, ':');
+		return date
+			.toLocaleString('id-ID', {
+				day: '2-digit',
+				month: 'long',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false,
+			})
+			.replace(/\./g, ':');
 	};
 
 	// Helper format Rupiah
@@ -65,11 +67,11 @@ function TicketCard({
 	if (ticket.sale_start) {
 		const sVal = ticket.sale_start.slice(0, 16);
 		if (sVal < todayDateTime) {
-			startWarning = 'tidak bisa';
+			startWarning = 'Waktu mulai tidak boleh di masa lalu.';
 		} else if (maxDateTime && sVal >= maxDateTime) {
-			startWarning = 'tidak bisa';
+			startWarning = 'Waktu mulai harus sebelum acara dimulai.';
 		} else if (ticket.sale_end && sVal >= ticket.sale_end.slice(0, 16)) {
-			startWarning = 'tidak bisa';
+			startWarning = 'Waktu mulai harus sebelum akhir pendaftaran.';
 		}
 	}
 
@@ -77,11 +79,11 @@ function TicketCard({
 	if (ticket.sale_end) {
 		const eVal = ticket.sale_end.slice(0, 16);
 		if (eVal < todayDateTime) {
-			endWarning = 'tidak bisa';
+			endWarning = 'Waktu berakhir tidak boleh di masa lalu.';
 		} else if (maxDateTime && eVal > maxDateTime) {
-			endWarning = 'tidak bisa';
+			endWarning = 'Waktu berakhir tidak boleh melewati waktu acara.';
 		} else if (ticket.sale_start && eVal <= ticket.sale_start.slice(0, 16)) {
-			endWarning = 'tidak bisa';
+			endWarning = 'Waktu berakhir harus setelah waktu mulai.';
 		}
 	}
 	// ==========================================
@@ -232,13 +234,13 @@ function TicketCard({
 							</Col>
 						</Row>
 
-
 						<Row className="mb-4">
 							<Col md={6} className="mb-3 mb-md-0">
 								<Form.Group>
 									<div className="d-flex justify-content-between align-items-center mb-2">
-										<label className="form-label required mb-0">Mulai Pendaftaran</label>
-									
+										<label className="form-label required mb-0">
+											Mulai Pendaftaran
+										</label>
 									</div>
 									<Form.Control
 										type="datetime-local"
@@ -267,9 +269,14 @@ function TicketCard({
 							<Col md={6}>
 								<Form.Group>
 									<div className="d-flex justify-content-between align-items-center mb-2">
-										<label className="form-label required mb-0">Akhir Pendaftaran</label>
+										<label className="form-label required mb-0">
+											Akhir Pendaftaran
+										</label>
 										{eventStartDate && (
-											<span className="text-muted small" style={{ fontSize: '11px', fontWeight: '500' }}>
+											<span
+												className="text-muted small"
+												style={{ fontSize: '11px', fontWeight: '500' }}
+											>
 												Maks: {formatReadableDatetime(eventStartDate)}
 											</span>
 										)}
