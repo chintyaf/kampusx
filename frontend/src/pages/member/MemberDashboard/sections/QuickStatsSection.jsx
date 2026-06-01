@@ -3,7 +3,7 @@ import { Row, Col } from 'react-bootstrap';
 import { Ticket, Star, Calendar } from 'lucide-react';
 import { clr } from '../constants';
 
-const QuickStatsSection = ({ activeTicketsCount, points, totalTicketsCount }) => (
+const QuickStatsSection = ({ activeTicketsCount, totalTicketsCount }) => (
   <Row className="g-3 mb-4">
     {[
       {
@@ -12,12 +12,14 @@ const QuickStatsSection = ({ activeTicketsCount, points, totalTicketsCount }) =>
         value: activeTicketsCount,
         color: '#00699e',
       },
+      /*
       {
         icon: <Star size={16} />,
         label: 'Poin Reward',
         value: points,
         color: '#F59E0B',
       },
+      */
       {
         icon: <Calendar size={16} />,
         label: 'Event Diikuti',
@@ -25,7 +27,7 @@ const QuickStatsSection = ({ activeTicketsCount, points, totalTicketsCount }) =>
         color: '#10B981',
       },
     ].map((s, i) => (
-      <Col xs={4} key={i}>
+      <Col xs={6} key={i}>
         <div
           style={{
             background: 'var(--color-white)',

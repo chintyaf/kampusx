@@ -61,6 +61,7 @@ Route::get('/profile/{id}', [\App\Http\Controllers\Api\UserProfileController::cl
 
 // Landing Page & Explore Event
 Route::get('/events/nearest', [EventController::class, 'getNearest']);
+Route::get('/events/personalized', [EventController::class, 'getPersonalized']);
 Route::get('/events', [EventController::class, 'index']); // Akan mengeksekusi index() di EventController
 Route::get('/events/explore', [EventController::class, 'index']); // Diubah ke index karena explore() tidak ada
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
@@ -231,6 +232,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // 2. Dashboard Overview
             Route::get('/overview', [EventDashboardController::class, 'getOverview']);
+            Route::patch('/toggle-attendance', [EventDashboardController::class, 'toggleAttendance']);
             Route::get('/revenue-analytics', [EventDashboardController::class, 'getRevenueAnalytics']);
             Route::get('/venue-qr', [EventDashboardController::class, 'getVenueQr']);
             Route::get('/export-report', [EventDashboardController::class, 'exportReport']);

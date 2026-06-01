@@ -20,9 +20,11 @@ const MemberDashboard = () => {
 
 	const [tickets, setTickets] = useState([]);
 	const [allEvents, setAllEvents] = useState([]);
+	const [personalizedEvents, setPersonalizedEvents] = useState([]);
 	const [nearbyEvents, setNearbyEvents] = useState([]);
 	const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
 	const [isLoading, setIsLoading] = useState(true);
+	const [loadingPersonalized, setLoadingPersonalized] = useState(true);
 
 	const banners = [
 		{ id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
@@ -99,6 +101,45 @@ const MemberDashboard = () => {
 			}
 		})();
 	}, []);
+
+	// Fetch personalized events (Untuk Kamu)
+	useEffect(() => {
+		(async () => {
+			try {
+				const res = await api.get('events/personalized');
+				const data = res.data?.data ?? res.data ?? [];
+				setPersonalizedEvents(
+					data.map((ev) => {
+						const loc = ev.location_detail || ev.locationDetail || {};
+						const eventType = loc.type || ev.location_type || "offline";
+						const display = eventType === "online"
+							? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
+							: (loc.location_name || loc.city || "Offline Venue");
+						return {
+							...ev,
+							id: ev.id,
+							slug: ev.slug,
+							title: ev.title,
+							org: ev.organizer?.name ?? "Unknown",
+							image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
+							date: ev.start_date
+								? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+								: "Tanggal Belum Ditentukan",
+							price: ev.price,
+							location: display,
+							isOnline: ["online", "hybrid"].includes(eventType),
+							isInPerson: ["offline", "hybrid"].includes(eventType),
+							isFeatured: ev.id % 2 === 0,
+						};
+					})
+				);
+			} catch (err) {
+				console.error('Gagal fetch personalized events:', err);
+			} finally {
+				setLoadingPersonalized(false);
+			}
+		})();
+	}, [token]);
 
 	// Fetch my tickets
 	useEffect(() => {
@@ -205,7 +246,7 @@ const MemberDashboard = () => {
 	}).length;
 
 	const eventTerbaru = [...allEvents].sort((a, b) => b.id - a.id).slice(0, 8);
-	const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 8);
+	// const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 8);
 
 	if (isLoading)
 		return (
@@ -250,7 +291,6 @@ const MemberDashboard = () => {
 
 				<QuickStatsSection
 					activeTicketsCount={activeTickets.length}
-					points={user?.points ?? 0}
 					totalTicketsCount={totalPaidTicketsCount}
 				/>
 
@@ -262,12 +302,18 @@ const MemberDashboard = () => {
 					requestLocation={requestLocation}
 				/>
 
-				<EventListSection
-					title="🔥 Event Terpopuler"
-					events={eventTerpopuler}
-					seeAllUrl="/explore?sort=popular"
-					style={{ marginBottom: 36 }}
-				/>
+				{loadingPersonalized ? (
+					<div style={{ textAlign: 'center', padding: '24px 0', marginBottom: 36 }}>
+						<Spinner animation="border" style={{ color: clr.primaryHex }} />
+					</div>
+				) : (
+					<EventListSection
+						title="✨ Untuk Kamu"
+						events={personalizedEvents}
+						seeAllUrl="/explore"
+						style={{ marginBottom: 36 }}
+					/>
+				)}
 
 				<EventListSection
 					title="✨ Event Terbaru"

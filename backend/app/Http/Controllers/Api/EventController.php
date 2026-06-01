@@ -289,6 +289,50 @@ class EventController extends Controller
     }
 
 
+    /**
+     * Get personalized events based on logged-in user preferences (favorite categories).
+     * Fallback to latest events if guest or no preferences set.
+     * Note: "Featured Events" query logic is disabled/commented out here to reduce DB load.
+     */
+    public function getPersonalized(Request $request)
+    {
+        // Retrieve the authenticated user via sanctum if present
+        $user = auth('sanctum')->user();
+
+        // Base query for published events with all necessary relationships eager loaded
+        $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets'])
+            ->where('status', 'published');
+
+        if ($user) {
+            // Get user's preferred category IDs
+            $preferredCategoryIds = $user->categories()->pluck('categories.id')->toArray();
+
+            if (!empty($preferredCategoryIds)) {
+                // Filter events that belong to any of the user's preferred categories
+                $query->whereHas('categories', function ($q) use ($preferredCategoryIds) {
+                    $q->whereIn('categories.id', $preferredCategoryIds);
+                });
+            }
+        }
+
+        // Limit to 8 events, ordered by latest id desc (featured events query is omitted to maximize performance)
+        $events = $query->orderBy('id', 'desc')->take(8)->get();
+
+        // If no events found or user has no preferences / not logged in, fallback to general latest events
+        if ($events->isEmpty()) {
+            $events = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets'])
+                ->where('status', 'published')
+                ->orderBy('id', 'desc')
+                ->take(8)
+                ->get();
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $events
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $event = Event::findOrFail($id);

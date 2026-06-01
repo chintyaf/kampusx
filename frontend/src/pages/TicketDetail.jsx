@@ -178,12 +178,12 @@ const TicketDetail = () => {
                       {ticket.attendee_name ?? "-"}
                     </p>
                   </Col>
-                  <Col xs={6}>
+                  {/* <Col xs={6}>
                     <p style={{ margin: "0 0 4px", fontSize: "var(--font-xs)", color: "var(--color-secondary)", fontWeight: 500 }}>Kode Tiket</p>
                     <p style={{ margin: 0, fontWeight: 700, color: "var(--color-primary)", fontSize: "var(--font-sm)", fontFamily: "monospace", letterSpacing: "0.5px" }}>
                       {ticket.ticket_code}
                     </p>
-                  </Col>
+                  </Col> */}
                   {ticket.order_item?.order?.payment_status && (
                     <Col xs={6}>
                       <p style={{ margin: "0 0 4px", fontSize: "var(--font-xs)", color: "var(--color-secondary)", fontWeight: 500 }}>Status Bayar</p>
@@ -234,9 +234,9 @@ const TicketDetail = () => {
                     <p style={{ margin: "0 0 6px", fontSize: 12, color: "var(--color-secondary)", fontWeight: 600, lineHeight: 1.5 }}>
                       Tunjukkan QR Code ini kepada panitia saat check-in.
                     </p>
-                    <p style={{ margin: 0, fontSize: 11, color: "var(--color-secondary)", fontFamily: "monospace" }}>
+                    {/* <p style={{ margin: 0, fontSize: 11, color: "var(--color-secondary)", fontFamily: "monospace" }}>
                       {ticket.ticket_code}
-                    </p>
+                    </p> */}
                   </>
                 )}
               </Col>

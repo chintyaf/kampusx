@@ -530,6 +530,7 @@ class EventDashboardController extends Controller
                 'canCancel' => $canCancel,
                 'cancelMessage' => $cancelMessage,
                 'pos_pin' => $event->pos_pin,
+                'is_attendance_open' => (bool)$event->is_attendance_open,
                 'timeline' => $timeline,
                 'stats' => $stats,
                 'sessions' => $sessionsData,
@@ -538,6 +539,21 @@ class EventDashboardController extends Controller
                 'preparation_checklist' => $preparationChecklist,
             ]
         ]);
+    }
+
+    public function toggleAttendance($eventId)
+    {
+        $event = Event::findOrFail($eventId);
+        
+        $event->update([
+            'is_attendance_open' => !$event->is_attendance_open
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Status presensi berhasil diubah.',
+            'is_attendance_open' => (bool)$event->is_attendance_open
+        ], 200);
     }
 
     public function getStatus($eventId)

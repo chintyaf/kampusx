@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\Ticket;
+use App\Models\SurveyResponse;
 use Carbon\Carbon;
 
 class UserProfileController extends Controller
@@ -45,10 +47,7 @@ class UserProfileController extends Controller
         // Pastikan hanya order yang sudah dibayar (status = paid)
         $orders = Order::where('user_id', $id)
             ->where('status', 'paid')
-            ->with(['event' => function($query) {
-                // Ambil field penting saja agar efisien
-                $query->select('id', 'title', 'start_date', 'end_date', 'image_path', 'status');
-            }])
+            ->with(['event.organizer', 'event.institution'])
             ->get();
 
         $upcomingEvents = [];
@@ -84,20 +83,50 @@ class UserProfileController extends Controller
             $isOwnProfile = true;
         }
 
-        // 6. Bangun list sertifikat dinamis dari event masa lalu (past events)
+        // 6. Bangun list sertifikat dinamis dari tiket yang sudah di-klaim/di-unlock (lewat pengisian survei)
+        $tickets = Ticket::with(['orderItem.order.event.institution', 'orderItem.order.event.organizer', 'orderItem.order.event.certificateTemplate'])
+            ->where('participant_id', $id)
+            ->where(function($query) {
+                $query->where('status', 'used')
+                      ->orWhere(function($q) {
+                          $q->where('status', 'active')
+                            ->whereHas('orderItem.order.event', function($evQuery) {
+                                $evQuery->whereIn('status', ['published', 'ongoing', 'post_event', 'completed']);
+                            });
+                      });
+            })
+            ->get();
+
         $certificates = [];
-        foreach ($pastEvents as $index => $event) {
-            $certificates[] = [
-                'id' => 'CERT-' . (10000 + $event->id),
-                'eventName' => $event->title,
-                'date' => Carbon::parse($event->start_date)->format('d M Y'),
-                'organizer' => $event->organizer ? $event->organizer->name : 'KampusX Organizer',
-                'status' => 'unlocked',
-                'image' => $event->image_path 
-                    ? asset('storage/' . $event->image_path)
-                    : 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'validation_url' => url('/verify/CERT-' . (10000 + $event->id))
-            ];
+        foreach ($tickets as $ticket) {
+            $event = $ticket->orderItem->order->event ?? null;
+            if (!$event) continue;
+
+            // User mendapatkan sertifikat jika sudah mengisi kuesioner/survei event tersebut
+            $isUnlocked = SurveyResponse::where('user_id', $id)
+                ->where('event_id', $event->id)
+                ->exists();
+
+            if ($isUnlocked) {
+                $template = $event->certificateTemplate;
+                $imageUrl = 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'; // fallback
+                
+                if ($template && $template->background_path) {
+                    $imageUrl = url("/api/certificate/background/{$event->id}");
+                } elseif ($event->image_path) {
+                    $imageUrl = asset('storage/' . $event->image_path);
+                }
+
+                $certificates[] = [
+                    'id' => 'CERT-' . $ticket->ticket_code,
+                    'eventName' => $event->title,
+                    'date' => $event->start_date ? Carbon::parse($event->start_date)->format('d M Y') : '',
+                    'organizer' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
+                    'status' => 'unlocked',
+                    'image' => $imageUrl,
+                    'validation_url' => '/certificate/verify/' . $ticket->ticket_code
+                ];
+            }
         }
 
         // 7. Return data JSON

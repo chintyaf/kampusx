@@ -4,8 +4,8 @@ import { Award, Zap, Calendar as CalendarIcon } from 'lucide-react';
 
 const ProfileStats = ({ stats = {} }) => {
 	const items = [
-		{ label: 'Total Point', value: stats.points ?? 0, icon: <Zap size={20} style={{ color: '#ffb020' }} className="mb-1" /> },
-		{ label: 'Level', value: stats.level ?? 1, icon: <Award size={20} style={{ color: 'var(--color-primary)' }} className="mb-1" /> },
+		// { label: 'Total Point', value: stats.points ?? 0, icon: <Zap size={20} style={{ color: '#ffb020' }} className="mb-1" /> },
+		// { label: 'Level', value: stats.level ?? 1, icon: <Award size={20} style={{ color: 'var(--color-primary)' }} className="mb-1" /> },
 		{ label: 'Event Diikuti', value: stats.total_events ?? 0, icon: <CalendarIcon size={20} style={{ color: '#10b981' }} className="mb-1" /> },
 	];
 
