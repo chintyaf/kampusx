@@ -1,21 +1,34 @@
 {
-  "short_name": "KampusX Staff",
-  "name": "KampusX Staff QR Scanner & Check-in",
+  "short_name": "KampusX",
+  "name": "KampusX",
   "icons": [
     {
-      "src": "icon.svg",
-      "type": "image/svg+xml",
-      "sizes": "any"
+      "src": "/Logo_KampusX_NoText_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "Logo_KampusX_NoText.svg",
-      "type": "image/svg+xml",
-      "sizes": "any"
+      "src": "/Logo_KampusX_NoText_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
   "start_url": "/staff/login",
   "background_color": "#ffffff",
   "theme_color": "#1A365D",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png"
+    }
+  ]
 }
