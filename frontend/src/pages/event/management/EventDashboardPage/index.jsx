@@ -77,13 +77,13 @@ const mapMissingDataToIssues = (missingData = []) => {
 const handleIssueNavigation = (issue, eventId, navigate) => {
 	const msg = issue.message.toLowerCase();
 	if (msg.match(/judul|deskripsi|poster|kategori|tipe/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/info`);
+		navigate(`/organizer/${eventId}/event-dashboard/info`);
 	} else if (msg.match(/lokasi|platform|meeting|kuota|tempat|provinsi|alamat|maps/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/tempat`);
+		navigate(`/organizer/${eventId}/event-dashboard/tempat`);
 	} else if (msg.match(/jadwal|waktu|sesi|pembicara/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/sesi`);
+		navigate(`/organizer/${eventId}/event-dashboard/sesi`);
 	} else {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/info`);
+		navigate(`/organizer/${eventId}/event-dashboard/info`);
 	}
 };
 

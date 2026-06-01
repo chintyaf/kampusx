@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, InputGroup, Spinner } from 'react-bootstrap';
-import { Link as LinkIcon, Copy, RefreshCw } from 'lucide-react';
+import { Button, Form, InputGroup, Spinner, Modal } from 'react-bootstrap';
+import { Link as LinkIcon, Copy, RefreshCw, QrCode } from 'lucide-react'; // Tambah QrCode icon
 import { useParams } from 'react-router-dom';
+import { QRCodeCanvas } from 'qrcode.react'; // Import library QR Code
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
 
@@ -17,6 +18,10 @@ const OnlineAttendanceTool = () => {
 	const [linkOut, setLinkOut] = useState('');
 	const [loadingOut, setLoadingOut] = useState(false);
 	const [expiresOut, setExpiresOut] = useState('');
+
+	// State untuk Modal QR Code
+	const [showQRModal, setShowQRModal] = useState(false);
+	const [qrData, setQrData] = useState({ link: '', title: '' });
 
 	const formatDateTimeForInput = (dbDateTime) => {
 		if (!dbDateTime) return '';
@@ -49,19 +54,17 @@ const OnlineAttendanceTool = () => {
 	const handleGenerate = async (type) => {
 		const expiresAt = type === 'in' ? expiresIn : expiresOut;
 
-		// --- VALIDASI WAJIB ISI TANGGAL ---
 		if (!expiresAt) {
 			notify('error', 'Perhatian!', 'Batas waktu akses wajib diisi sebelum membuat link.');
 			return;
 		}
-		// ----------------------------------
 
 		const setLoading = type === 'in' ? setLoadingIn : setLoadingOut;
 		const setLink = type === 'in' ? setLinkIn : setLinkOut;
 
 		setLoading(true);
 		try {
-			let query = `?type=${type}&expires_at=${expiresAt}`; // expires_at sekarang pasti ada
+			let query = `?type=${type}&expires_at=${expiresAt}`;
 
 			const res = await api.get(`/event-dashboard/${eventId}/attendance/create-link${query}`);
 
@@ -100,6 +103,11 @@ const OnlineAttendanceTool = () => {
 			.catch(() => notify('error', 'Gagal!', 'Gagal menyalin link.'));
 	};
 
+	const handleShowQR = (link, title) => {
+		setQrData({ link, title });
+		setShowQRModal(true);
+	};
+
 	const renderActionRow = (type, title, link, loading, expires, setExpires) => (
 		<div className="p-3 border rounded-3 bg-light d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 shadow-none">
 			<div className="fw-medium text-dark" style={{ fontSize: '0.875rem' }}>
@@ -110,7 +118,7 @@ const OnlineAttendanceTool = () => {
 						size="sm"
 						value={expires}
 						onChange={(e) => setExpires(e.target.value)}
-						className={`shadow-none border rounded-2 ${!expires && !link ? 'border-danger' : ''}`} // Memberikan highlight merah jika kosong
+						className={`shadow-none border rounded-2 ${!expires && !link ? 'border-danger' : ''}`}
 						style={{ width: '180px', height: '34px', fontSize: '0.875rem' }}
 						title="Batas waktu akses (Wajib)"
 						required
@@ -121,7 +129,7 @@ const OnlineAttendanceTool = () => {
 						className="border bg-white"
 						style={{ height: '34px' }}
 						onClick={() => handleGenerate(type)}
-						disabled={loading || (!link && !expires)} // Disable tombol jika link belum ada dan input kosong
+						disabled={loading || (!link && !expires)}
 					>
 						{loading ? (
 							<Spinner size="sm" />
@@ -139,19 +147,28 @@ const OnlineAttendanceTool = () => {
 				)}
 			</div>
 
-			<div className="d-flex flex-wrap align-items-center gap-2">
+			<div className="d-flex align-items-center gap-2 flex-grow-1" style={{ maxWidth: '650px', width: '100%' }}>
 				{link && (
-					<InputGroup size="sm" style={{ width: '1000px', height: '34px' }}>
+					<InputGroup size="sm" style={{ width: '100%', height: '34px' }}>
 						<Form.Control
 							value={link}
 							readOnly
-							className="bg-white border-end-0 shadow-none text-muted"
-							style={{ fontSize: '0.875rem' }}
+							className="bg-white border-end-0 shadow-none text-muted text-truncate"
+							style={{ fontSize: '0.825rem' }}
 						/>
+						{/* Tombol Tampilkan QR Code */}
+						<Button
+							variant="white"
+							onClick={() => handleShowQR(link, title)}
+							className="d-flex align-items-center border border-start-0 px-3 shadow-none text-dark bg-white"
+							title="Tampilkan QR Code"
+						>
+							<QrCode size={14} />
+						</Button>
 						<Button
 							variant="white"
 							onClick={() => handleCopy(link)}
-							className="d-flex align-items-center border border-start-0 px-3 shadow-none text-dark"
+							className="d-flex align-items-center border border-start-0 px-3 shadow-none text-dark bg-white"
 							title="Salin Link"
 						>
 							<Copy size={14} />
@@ -159,8 +176,8 @@ const OnlineAttendanceTool = () => {
 						<Button
 							variant="white"
 							onClick={() => handleGenerate(type)}
-							disabled={loading || !expires} // Disable tombol regenerasi jika input dikosongkan
-							className="d-flex align-items-center border px-3 shadow-none ms-1 rounded-end text-dark"
+							disabled={loading || !expires}
+							className="d-flex align-items-center border px-3 shadow-none ms-1 rounded-end text-dark bg-white"
 							title="Buat ulang link"
 						>
 							{loading ? <Spinner size="sm" /> : <RefreshCw size={14} />}
@@ -208,6 +225,29 @@ const OnlineAttendanceTool = () => {
 					setExpiresOut,
 				)}
 			</div>
+
+			{/* Modal untuk menampilkan QR Code */}
+			<Modal show={showQRModal} onHide={() => setShowQRModal(false)} centered>
+				<Modal.Header closeButton>
+					<Modal.Title className="fs-5">QR Code {qrData.title}</Modal.Title>
+				</Modal.Header>
+				<Modal.Body className="text-center p-4">
+					<QRCodeCanvas
+						value={qrData.link}
+						size={256} // Ukuran QR agar mudah di-scan
+						level={'H'} // Error correction level High (bagus jika layarnya kotor/berkedip)
+					/>
+					<p className="mt-4 mb-0 text-muted" style={{ fontSize: '0.875rem' }}>
+						Minta peserta untuk melakukan scan QR Code ini menggunakan kamera atau
+						aplikasi pemindai QR.
+					</p>
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setShowQRModal(false)}>
+						Tutup
+					</Button>
+				</Modal.Footer>
+			</Modal>
 		</div>
 	);
 };

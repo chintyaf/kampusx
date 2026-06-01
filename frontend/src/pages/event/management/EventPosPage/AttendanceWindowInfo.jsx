@@ -69,6 +69,8 @@ const AttendanceWindowInfo = ({ event }) => {
 
 	if (!event || !windowTimes) return null;
 
+	const isExpired = new Date() > windowTimes.end;
+
 	return (
 		<div className="bg-white border-start border-primary border-4 rounded-3 p-3 d-flex align-items-center gap-3 shadow-none border" style={{ borderLeft: '4px solid #1A365D' }}>
 			{/* Icon Box */}
@@ -89,10 +91,11 @@ const AttendanceWindowInfo = ({ event }) => {
 			{/* Text info layout */}
 			<div>
 				<div className="fw-semibold text-dark" style={{ fontSize: '0.9rem' }}>
-					Rongga Waktu Presensi Aktif (Attendance Window)
+					Rentang Waktu Presensi Aktif
 				</div>
 				<div className="text-muted mt-0.5" style={{ fontSize: '0.82rem' }}>
-					Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start)}</span> s/d <span className="fw-semibold text-danger">{formatDateTime(windowTimes.end)}</span> ({event.timezone || 'WIB'})
+					Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start)}</span> s/d <span className={`fw-semibold ${isExpired ? 'text-danger' : 'text-dark'}`}>{formatDateTime(windowTimes.end)}</span> ({event.timezone || 'WIB'})
+					{isExpired && <span className="text-danger ms-2 fw-semibold">(Sudah Berakhir)</span>}
 				</div>
 			</div>
 		</div>

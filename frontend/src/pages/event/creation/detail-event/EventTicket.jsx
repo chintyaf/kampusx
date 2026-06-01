@@ -36,6 +36,7 @@ function parsePriceNum(val) {
 export default function EventTicket() {
 	const [tickets, setTickets] = useState([]);
 	const [eventStartDate, setEventStartDate] = useState('');
+	const [locationType, setLocationType] = useState('offline'); // KEMBALIKAN STATE INI
 	const [saved, setSaved] = useState(true);
 	const { eventId } = useParams();
 	const { eventStatus, hasParticipants, participantCount } = useEventMeta(eventId);
@@ -45,15 +46,45 @@ export default function EventTicket() {
 		setSaved(false);
 	};
 
+	// KEMBALIKAN FUNGSI HAPUS TIKET
+	const remove = (id) => {
+		setTickets((ts) => ts.filter((t) => t.id !== id));
+		setSaved(false);
+	};
+
+	// KEMBALIKAN FUNGSI TAMBAH TIKET (Penting agar ada temporary ID)
+	const addTicket = () => {
+		const tempId = `new-${Date.now()}`;
+		setTickets((ts) => [
+			...ts,
+			{
+				id: tempId,
+				name: '',
+				type: locationType === 'online' ? 'online' : 'offline',
+				isFree: false,
+				price: 0,
+				capacity: null,
+				unlimited: true,
+				sale_start: null,
+				sale_end: null,
+				description: null,
+			},
+		]);
+		setSaved(false);
+	};
+
 	useEffect(() => {
-		// Auto-save logic (debounced)
 		const fetchData = async () => {
 			try {
 				const response = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
 				const result = response.data;
-				setTickets(result.data || []);
+				const formattedFromApi = (result.data || []).map((t) => ({
+					...t,
+					unlimited: t.unlimited ?? (t.capacity === null || t.capacity === undefined),
+				}));
+				setTickets(formattedFromApi);
 				setEventStartDate(result.event_start_date || '');
-				// console.log(result.data);
+				setLocationType(result.location_type || 'offline'); // SIMPAN LOCATION TYPE DARI API
 			} catch (err) {
 				console.error('Error saving tickets:', err);
 			}
@@ -62,7 +93,7 @@ export default function EventTicket() {
 		if (tickets.length === 0) {
 			fetchData();
 		}
-	}, [tickets, eventId]);
+	}, [tickets.length, eventId]);
 
 	const handleUpdate = async (shouldNotify = false) => {
 		// Validasi kelengkapan data di frontend
@@ -185,31 +216,37 @@ export default function EventTicket() {
 		}
 
 		// 1. Format ulang data agar sesuai dengan validasi Laravel (snake_case)
-		const formattedTickets = tickets.map((t) => ({
-			id: t.id,
-			name: t.name,
-			type: t.type || 'offline', // Pastikan type tidak kosong
-			is_free: t.isFree ?? t.is_free, // Handle properti isFree
-			price: t.price ? parsePriceNum(t.price) : 0, // Bersihkan format "Rp 100.000" menjadi angka murni
-			capacity: t.unlimited ? null : parseInt(t.capacity) || null,
-			sale_start: t.saleStart ?? t.sale_start ?? null,
-			sale_end: t.saleEnd ?? t.sale_end ?? null,
-			description: t.description || null,
-		}));
+		const formattedTickets = tickets.map((t) => {
+			// Tangani kapasitas: Jika unlimited, kirim null secara eksplisit.
+			// Jika tidak, parsing sebagai Integer. Jika gagal di-parsing, kirim null.
+			let finalCapacity = null;
+			if (!t.unlimited) {
+				const parsedCap = parseInt(t.capacity, 10);
+				finalCapacity = !isNaN(parsedCap) && parsedCap > 0 ? parsedCap : null;
+			}
 
-		// 2. Bungkus array ke dalam object dengan key 'tickets'
+			return {
+				id: String(t.id).startsWith('new-') ? null : t.id,
+				name: t.name,
+				type: t.type || 'offline',
+				is_free: t.isFree ?? t.is_free,
+				price: (t.isFree ?? t.is_free) ? 0 : t.price ? parsePriceNum(t.price) : 0,
+				capacity: finalCapacity, // <--- PERBAIKAN DI SINI
+				sale_start: t.saleStart ?? t.sale_start ?? null,
+				sale_end: t.saleEnd ?? t.sale_end ?? null,
+				description: t.description || null,
+			};
+		});
+
 		const payload = {
 			tickets: formattedTickets,
 		};
-
-		console.log('Payload yang dikirim:', payload);
 
 		try {
 			const response = await api.post(
 				`event-dashboard/${eventId}/info-utama/tickets`,
 				payload,
 			);
-			console.log('Sukses update:', response.data);
 			setSaved(true);
 			if (response.data?.notified_participants || shouldNotify) {
 				notify(
@@ -221,7 +258,6 @@ export default function EventTicket() {
 				notify('success', 'Berhasil!', 'Data tiket berhasil disimpan.');
 			}
 		} catch (error) {
-			// Log error dari response Laravel agar tahu persis kolom mana yang gagal validasi
 			console.error('Gagal update data:', error.response?.data?.errors || error.message);
 		}
 	};
@@ -239,7 +275,6 @@ export default function EventTicket() {
 				return false;
 			}
 
-			// Validasi Tanggal Tiket (Kurang dari hari ini, hari H, atau salah urutan)
 			const startVal = t.sale_start || t.saleStart;
 			const endVal = t.sale_end || t.saleEnd;
 			const now = new Date();
@@ -279,12 +314,12 @@ export default function EventTicket() {
 			sidebar={<TicketSummary tickets={tickets} />}
 			onSave={handleUpdate}
 			prevPath="sesi"
+			nextPath=""
 			eventStatus={eventStatus}
 			hasParticipants={hasParticipants}
 			isCurrentStepCompleted={isCurrentStepCompleted}
 			isSaveDisabled={!isCurrentStepCompleted}
 		>
-			{/* Banner peringatan harga terkunci */}
 			{hasParticipants && (
 				<div
 					style={{
@@ -325,21 +360,31 @@ export default function EventTicket() {
 				</div>
 			)}
 
-			{/* Ticket cards */}
-			<div className="d-flex flex-column gap-2">
-				{tickets &&
-					tickets.map((t, idx) => (
-						<TicketCard
-							key={t.id}
-							ticket={t}
-							index={idx}
-							onChange={(patch) => update(t.id, patch)}
-							onDelete={() => remove(t.id)}
-							canDelete={tickets.length > 1}
-							priceLocked={hasParticipants}
-							eventStartDate={eventStartDate}
-						/>
-					))}
+			<div>
+				<div className="d-flex flex-column gap-2 mt-3">
+					{tickets &&
+						tickets.map((t, idx) => (
+							<TicketCard
+								key={t.id}
+								ticket={t}
+								index={idx}
+								onChange={(patch) => update(t.id, patch)}
+								onDelete={() => remove(t.id)}
+								canDelete={tickets.length > 1}
+								priceLocked={hasParticipants}
+								eventStartDate={eventStartDate}
+								locationType={locationType} // PASS PROPS INI AGAR DROPDOWN MUNCUL
+							/>
+						))}
+				</div>
+
+				<Button
+					className="btn-add d-flex align-items-center gap-1 p-3 "
+					onClick={addTicket} // GUNAKAN FUNGSI YANG SUDAH DIPERBAIKI
+				>
+					<Plus size={18} />
+					Tambah Tiket
+				</Button>
 			</div>
 		</EventLayout>
 	);

@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import api from '../../../../api/axios';
-import { toast } from 'react-hot-toast';
-import {
-	Spinner,
-	Dropdown,
-	Button,
-} from 'react-bootstrap';
+import api from '@/api/axios';
+import { Spinner, Dropdown, Button } from 'react-bootstrap';
 import {
 	Search,
 	Filter,
@@ -28,7 +23,8 @@ import {
 	CalendarX,
 } from 'lucide-react';
 import FormHeading from '@/components/dashboard/FormHeading';
-import '../../../../assets/css/participant-list.css';
+import '@/assets/css/participant-list.css';
+import { notify } from '@/utils/notify';
 
 // ─── Utility: masking helpers ────────────────────────────────────────────────
 const maskEmail = (email) => {
@@ -139,7 +135,9 @@ const EventParticipantListPage = () => {
 			const params = { all: showAll, page };
 			if (attendanceFilter) params.attendance = attendanceFilter;
 
-			const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, { params });
+			const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, {
+				params,
+			});
 			const { data, attendance_summary } = response.data;
 
 			// Update summary dari API (akurat untuk semua data, bukan hanya halaman ini)
@@ -156,8 +154,8 @@ const EventParticipantListPage = () => {
 					total: data.total,
 				});
 			}
-		} catch {
-			toast.error('Tidak dapat memuat daftar peserta.');
+		} catch (error) {
+			notify('error', 'Gagal', 'Tidak dapat memuat daftar peserta. Silakan coba lagi nanti.');
 		} finally {
 			setLoading(false);
 		}
@@ -192,10 +190,10 @@ const EventParticipantListPage = () => {
 			document.body.appendChild(link);
 			link.click();
 			link.parentNode.removeChild(link);
-			toast.success('Laporan berhasil diunduh!');
+			notify('success', 'Berhasil', 'Laporan berhasil diunduh!');
 		} catch (error) {
 			console.error('Export error:', error);
-			toast.error('Gagal mengunduh laporan');
+			notify('error', 'Gagal', 'Tidak dapat mengunduh laporan. Silakan coba lagi nanti.');
 		} finally {
 			setIsExporting(false);
 		}
@@ -203,9 +201,8 @@ const EventParticipantListPage = () => {
 
 	// ── Attendance rate ──────────────────────────────────────────────────────
 	const attendedTotal = summary.checked_in + summary.checked_out;
-	const attendanceRate = summary.total > 0
-		? Math.round((attendedTotal / summary.total) * 100)
-		: 0;
+	const attendanceRate =
+		summary.total > 0 ? Math.round((attendedTotal / summary.total) * 100) : 0;
 
 	// ── Pagination ────────────────────────────────────────────────────────────
 	const renderPagination = () => {
@@ -274,11 +271,11 @@ const EventParticipantListPage = () => {
 		);
 	};
 
-	const currentFilterLabel = ATTENDANCE_FILTERS.find(f => f.value === attendanceFilter)?.label ?? 'Semua Status';
+	const currentFilterLabel =
+		ATTENDANCE_FILTERS.find((f) => f.value === attendanceFilter)?.label ?? 'Semua Status';
 
 	return (
 		<div className="participant-page">
-
 			<div className="d-flex justify-content-between align-items-start">
 				<FormHeading
 					title="Daftar Peserta Event"
@@ -288,7 +285,6 @@ const EventParticipantListPage = () => {
 
 			{/* ── Stats row ─────────────────────────────────────────────── */}
 			<div className="participant-stats">
-
 				{/* Total */}
 				<div className="stat-card">
 					<div className="stat-card__icon stat-card__icon--blue">
@@ -340,7 +336,9 @@ const EventParticipantListPage = () => {
 							<circle className="rate-ring-bg" cx="18" cy="18" r="15.9" />
 							<circle
 								className="rate-ring-fill"
-								cx="18" cy="18" r="15.9"
+								cx="18"
+								cy="18"
+								r="15.9"
 								strokeDasharray={`${attendanceRate} ${100 - attendanceRate}`}
 								strokeDashoffset="25"
 							/>
@@ -349,10 +347,11 @@ const EventParticipantListPage = () => {
 					</div>
 					<div>
 						<p className="stat-card__label">Tingkat Kehadiran</p>
-						<p className="stat-card__value--sm">{attendedTotal} / {summary.total} hadir</p>
+						<p className="stat-card__value--sm">
+							{attendedTotal} / {summary.total} hadir
+						</p>
 					</div>
 				</div>
-
 			</div>
 
 			{/* ── Main card ─────────────────────────────────────────────── */}
@@ -402,7 +401,7 @@ const EventParticipantListPage = () => {
 							className="d-flex align-items-center gap-2"
 						>
 							{isExporting ? <Spinner size="sm" /> : <Download size={15} />}
-							Export
+							Export Excel
 						</Button>
 					</div>
 
@@ -474,8 +473,12 @@ const EventParticipantListPage = () => {
 									// Attendance data
 									const attendanceStatus = getAttendanceStatus(ticket);
 									const log = ticket.attendance_log;
-									const checkinTime = log?.scan_time ? fmtTime(log.scan_time) : null;
-									const checkoutTime = log?.checkout_time ? fmtTime(log.checkout_time) : null;
+									const checkinTime = log?.scan_time
+										? fmtTime(log.scan_time)
+										: null;
+									const checkoutTime = log?.checkout_time
+										? fmtTime(log.checkout_time)
+										: null;
 
 									return (
 										<tr key={ticket.id} className="participant-row">
@@ -595,7 +598,10 @@ const EventParticipantListPage = () => {
 													{/* Waktu check-in */}
 													{checkinTime && (
 														<div className="attendance-time-row">
-															<LogIn size={10} className="attendance-time-icon attendance-time-icon--in" />
+															<LogIn
+																size={10}
+																className="attendance-time-icon attendance-time-icon--in"
+															/>
 															<span className="attendance-time-text">
 																{checkinTime}
 															</span>
@@ -605,7 +611,10 @@ const EventParticipantListPage = () => {
 													{/* Waktu check-out */}
 													{checkoutTime && (
 														<div className="attendance-time-row">
-															<LogOut size={10} className="attendance-time-icon attendance-time-icon--out" />
+															<LogOut
+																size={10}
+																className="attendance-time-icon attendance-time-icon--out"
+															/>
 															<span className="attendance-time-text">
 																{checkoutTime}
 															</span>

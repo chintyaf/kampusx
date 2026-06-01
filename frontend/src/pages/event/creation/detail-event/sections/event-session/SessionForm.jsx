@@ -221,9 +221,17 @@ const SessionForm = ({
 								type="text"
 								name="title"
 								value={sessionData.title}
-								onChange={handleChange}
+								onChange={(e) => {
+									// 1. Regex untuk mengubah huruf pertama di setiap kata menjadi kapital
+									e.target.value = e.target.value.replace(/\b\w/g, (char) =>
+										char.toUpperCase(),
+									);
+									// 2. Jalankan fungsi handleChange bawaan kamu
+									handleChange(e);
+								}}
 								onBlur={() => handleBlur('title')}
-								style={flatInputStyle}
+								// 3. Gunakan 'capitalize' untuk menyelaraskan visual di layar
+								style={{ ...flatInputStyle, textTransform: 'capitalize' }}
 								isInvalid={touched.title && !sessionData.title?.trim()}
 							/>
 						</Form.Group>

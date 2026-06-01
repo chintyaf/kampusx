@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Spinner } from 'react-bootstrap';
+import { Button, Spinner, Row, Col } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MapPin, Plus, Trash2 } from 'lucide-react';
@@ -27,6 +27,7 @@ const EventPosPage = () => {
 	const [selectedPos, setSelectedPos] = useState(null);
 	const [posPin, setPosPin] = useState('-');
 	const [event, setEvent] = useState(null);
+	const [activeMethod, setActiveMethod] = useState('qr'); // 'qr' | 'online'
 
 	// States for deleting POS station
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -104,73 +105,136 @@ const EventPosPage = () => {
 			{/* ── 1. Page Header ── */}
 			<div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
 				<div>
-					<h4 className="fw-bold text-dark mb-1" style={{ fontSize: '1.25rem' }}>
-						Manajemen Pos Scanner
+					<h4 className="fw-bold text-dark mb-1" style={{ fontSize: '1.35rem' }}>
+						Manajemen Kehadiran
 					</h4>
 					<p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-						Kelola akses dan peran tim panitia Anda di sini.
+						Kelola metode absensi peserta, buat stasiun scanner QR, atau bagikan link presensi mandiri.
 					</p>
 				</div>
 			</div>
 
-			{/* ── 2. Panduan Cara Kerja Presensi ── */}
-			<PosGuideCard />
+			{/* ── 2. Dua Kolom Layout Responsive ── */}
+			<Row className="g-4">
+				{/* Kolom Kiri: Main Area (8 dari 12 bagian) */}
+				<Col lg={8} className="d-flex flex-column gap-4">
+					{/* Rongga Waktu Presensi (Rentang Waktu Presensi Aktif) */}
+					<AttendanceWindowInfo event={event} />
 
-			{/* ── 3. Link Presensi Online (Magic Link Tool) ── */}
-			<OnlineAttendanceTool />
-
-			{/* ── 3. Rongga Waktu Presensi (Attendance Window Info) ── */}
-			<AttendanceWindowInfo event={event} />
-
-			{/* ── 4. Stat Cards Row ── */}
-			<PosStats posList={posList} />
-
-			{/* ── 5. POS Stations Management Table ── */}
-			<div className="d-flex flex-column gap-3">
-				{posList.length === 0 ? (
-					/* Empty State */
-					<div className="text-center py-5 bg-white border rounded-4 shadow-none">
-						<div
-							style={{
-								width: 56,
-								height: 56,
-								borderRadius: '50%',
-								backgroundColor: '#f8f9fa',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								margin: '0 auto 16px',
+					{/* Custom Method Toggle (Tab modern dengan garis bawah) */}
+					<div 
+						className="d-flex border-bottom" 
+						style={{ gap: '24px' }}
+					>
+						<button
+							onClick={() => setActiveMethod('qr')}
+							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+							style={{ 
+								fontSize: '0.9rem', 
+								cursor: 'pointer', 
+								color: activeMethod === 'qr' ? '#1E293B' : '#94A3B8',
+								padding: '8px 4px',
+								transition: 'color 0.2s',
 							}}
 						>
-							<MapPin size={24} className="text-muted" />
-						</div>
-						<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
-							Belum ada pos scanner
-						</div>
-						<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
-							Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
-						</div>
-						<Button
-							variant="dark"
-							className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
-							onClick={handleAdd}
+							Pos Scanner QR (Offline)
+							{activeMethod === 'qr' && (
+								<div 
+									className="position-absolute bottom-0 start-0 end-0 bg-primary"
+									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+								/>
+							)}
+						</button>
+						<button
+							onClick={() => setActiveMethod('online')}
+							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+							style={{ 
+								fontSize: '0.9rem', 
+								cursor: 'pointer', 
+								color: activeMethod === 'online' ? '#1E293B' : '#94A3B8',
+								padding: '8px 4px',
+								transition: 'color 0.2s',
+							}}
 						>
-							<Plus size={16} /> Tambah Pos Baru
-						</Button>
+							Magic Link (Online)
+							{activeMethod === 'online' && (
+								<div 
+									className="position-absolute bottom-0 start-0 end-0 bg-primary"
+									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+								/>
+							)}
+						</button>
 					</div>
-				) : (
-					/* Station Table */
-					<PosTable
-						posList={posList}
-						handleDelete={handleDeleteClick}
-						handleEdit={handleEdit}
-						setShowForm={handleAdd}
-						posPin={posPin}
-					/>
-				)}
-			</div>
 
-			{/* ── 6. Form Modal (Add/Edit POS Station) ── */}
+					{/* Konten Berdasarkan Metode yang Dipilih */}
+					{activeMethod === 'qr' ? (
+						<div className="d-flex flex-column gap-4">
+							{/* Stat Cards Row */}
+							<PosStats posList={posList} />
+
+							{/* POS Stations Management Table */}
+							<div className="d-flex flex-column gap-3">
+								{posList.length === 0 ? (
+									/* Empty State */
+									<div className="text-center py-5 bg-white border rounded-4 shadow-none">
+										<div
+											style={{
+												width: 56,
+												height: 56,
+												borderRadius: '50%',
+												backgroundColor: '#f8f9fa',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+												margin: '0 auto 16px',
+											}}
+										>
+											<MapPin size={24} className="text-muted" />
+										</div>
+										<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
+											Belum ada pos scanner
+										</div>
+										<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
+											Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
+										</div>
+										<Button
+											variant="dark"
+											className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
+											onClick={handleAdd}
+										>
+											<Plus size={16} /> Tambah Pos Baru
+										</Button>
+									</div>
+								) : (
+									/* Station Table */
+									<PosTable
+										posList={posList}
+										handleDelete={handleDeleteClick}
+										handleEdit={handleEdit}
+										setShowForm={handleAdd}
+										posPin={posPin}
+									/>
+								)}
+							</div>
+						</div>
+					) : (
+						<div>
+							{/* Link Presensi Online (Magic Link Tool) */}
+							<OnlineAttendanceTool />
+						</div>
+					)}
+				</Col>
+
+				{/* Kolom Kanan: Sidebar Panduan (4 dari 12 bagian) */}
+				<Col lg={4}>
+					<div className="sticky-lg-top" style={{ top: '24px', zIndex: 10 }}>
+						{/* Panduan Cara Kerja Presensi */}
+						<PosGuideCard />
+					</div>
+				</Col>
+			</Row>
+
+			{/* ── 3. Form Modal (Add/Edit POS Station) ── */}
 			<PosForm
 				show={showForm}
 				posData={selectedPos}
@@ -180,7 +244,7 @@ const EventPosPage = () => {
 				}}
 			/>
 
-			{/* ── 7. Confirmation Modal (Delete POS Station) ── */}
+			{/* ── 4. Confirmation Modal (Delete POS Station) ── */}
 			<ConfirmationModal
 				show={showDeleteModal}
 				onHide={() => {

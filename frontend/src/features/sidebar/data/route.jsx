@@ -120,7 +120,7 @@ export const MENU_ITEMS = {
 			id: 'detil-event',
 			name: 'Detail Event',
 			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
-			path: '/organizer/:eventId/event-dashboard/detail',
+			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
 				{
 					name: 'Informasi Umum',

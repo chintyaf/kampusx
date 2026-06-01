@@ -11,85 +11,66 @@ use Illuminate\Support\Facades\DB;
 class EventTicketController extends Controller
 {
     /**
-     * Menampilkan tiket event, jika belum ada buat otomatis berdasarkan tipe lokasi.
+     * Menampilkan tiket event, jika belum ada buat otomatis 1 tiket kosong.
      */
     public function index(int $eventId)
     {
         // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
-
-        // Ambil tipe lokasi (default ke offline jika null)
-        // Note: Saya sesuaikan pemanggilan relasinya ke 'locationDetail' sesuai dengan query 'with' di atas
         $locationType = $event->locationDetail->type ?? 'offline';
-
-        // 3. Tentukan tipe tiket yang DIBUTUHKAN berdasarkan tipe lokasi event
-        $requiredTypes = [];
-        if ($locationType === 'online') {
-            $requiredTypes = ['online'];
-        } elseif ($locationType === 'offline') {
-            $requiredTypes = ['offline'];
-        } elseif ($locationType === 'hybrid') {
-            $requiredTypes = ['online', 'offline'];
-        }
-
-        // Hapus tiket yang tipenya tidak sesuai dengan tipe lokasi saat ini
-        EventTicket::where('event_id', $eventId)->whereNotIn('type', $requiredTypes)->delete();
 
         // 2. Ambil tiket yang sudah ada untuk event ini
         $tickets = EventTicket::where('event_id', $eventId)->get();
 
-        // 4. Ambil array tipe tiket yang SUDAH ADA di database
-        // Asumsi: Model EventTicket punya kolom 'type' untuk membedakan online/offline
-        $existingTypes = $tickets->pluck('type')->toArray();
+        // 3. Jika belum ada tiket sama sekali, buatkan 1 tiket default yang kosong
+        if ($tickets->isEmpty()) {
+            // Penentuan tipe default awal (jika online -> online, sisanya offline)
+            // User nanti bisa mengubahnya di frontend jika event hybrid
+            $defaultType = ($locationType === 'online') ? 'online' : 'offline';
 
-        // 5. Cari tipe tiket yang DIBUTUHKAN tapi BELUM ADA (Missing types)
-        $missingTypes = array_diff($requiredTypes, $existingTypes);
+            $newTicket = EventTicket::create([
+                'event_id'    => $eventId,
+                'name'        => '', // Dikosongkan agar user yang mengisi
+                'type'        => $defaultType,
+                'description' => null,
+                'is_free'     => false,
+                'price'       => 0,
+                'capacity'    => 0, // Null = unlimited
+                'sale_start'  => null,
+                'sale_end'    => null,
+            ]);
 
-        // Jika ada tipe tiket yang belum dibuat, maka insert
-        if (!empty($missingTypes)) {
-            $ticketsToInsert = [];
-
-            foreach ($missingTypes as $type) {
-                if ($type === 'online') {
-                    $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Online Ticket', 'online');
-                } elseif ($type === 'offline') {
-                    $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Offline Ticket', 'offline');
-                }
-            }
-
-            // Insert data ke database
-            if (!empty($ticketsToInsert)) {
-                EventTicket::insert($ticketsToInsert);
-
-                // Ambil ulang data tiket yang baru saja ditambahkan agar up-to-date
-                $tickets = EventTicket::where('event_id', $eventId)->get();
-            }
+            // Masukkan tiket baru ke dalam collection agar langsung ter-map
+            $tickets->push($newTicket);
         }
 
-        // 6. Mapping data untuk response
+        // 4. Mapping data untuk response
         $data = $tickets->map(function ($ticket) {
             return [
-                'id' => $ticket->id,
-                'name' => $ticket->name,
-                'isFree' => $ticket->is_free,
-                'price' => $ticket->price,
-                'capacity' => $ticket->capacity,
-                'sale_start' => $ticket->sale_start,
-                'sale_end' => $ticket->sale_end,
+                'id'          => $ticket->id,
+                'name'        => $ticket->name,
+                'isFree'      => $ticket->is_free,
+                'price'       => $ticket->price,
+                'capacity'    => $ticket->capacity,
+                'unlimited'   => is_null($ticket->capacity),
+                'sale_start'  => $ticket->sale_start,
+                'sale_end'    => $ticket->sale_end,
                 'description' => $ticket->description,
-                'type' => $ticket->type, // Opsional: bagus untuk dikembalikan ke frontend
+                'type'        => $ticket->type,
             ];
         });
 
-        // 7. Return data JSON
+        // 5. Return data JSON
         return response()->json([
-            'status' => 'success',
-            'data' => $data,
-            'event_start_date' => $event->start_date
+            'status'           => 'success',
+            'data'             => $data,
+            'event_start_date' => $event->start_date,
+            'event_end_date'   => $event->end_date,
+            'location_type'    => $locationType,
         ]);
     }
 
-/**
+    /**
      * Memperbarui atau menambahkan tiket baru untuk event tertentu secara massal.
      */
     public function update(Request $request, int $eventId)
@@ -146,7 +127,7 @@ class EventTicketController extends Controller
                 }
             }
 
-            // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
+            // Hapus tiket yang tidak dikirim dari FE
             EventTicket::where('event_id', $eventId)
                        ->whereNotIn('id', $ticketIdsToKeep)
                        ->delete();
@@ -171,25 +152,5 @@ class EventTicketController extends Controller
                 'message' => 'Gagal menyimpan data tiket: ' . $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Helper function untuk menyiapkan array data tiket default.
-     */
-    private function generateDefaultTicket(int $eventId, string $name, string $type): array
-    {
-        return [
-            'event_id'   => $eventId,
-            'name'       => $name,
-            'description'=> null,
-            'type'       => $type,
-            'is_free'    => false, // Default tidak gratis, harga 0 (sesuai seed React Anda)
-            'price'      => 0,
-            'capacity'   => null,  // Sesuai migration: null berarti unlimited
-            'sale_start' => null,
-            'sale_end'   => null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
     }
 }

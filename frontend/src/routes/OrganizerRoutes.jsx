@@ -61,13 +61,11 @@ export const OrganizerRoutes = (
 			<Route index element={<EventDashboardPage />} />
 
 			{/* Pemecahan Detail Event (Bungkus dengan path "detail") */}
-			<Route path="detail">
-				<Route path="info" element={<EventGeneralInfo />} />
-				<Route path="tempat" element={<EventScheduleLocation />} />
-				<Route path="sesi" element={<EventSession />} />
-				<Route path="tiket" element={<EventTicket />} />
-			</Route>
-
+			<Route path="info" element={<EventGeneralInfo />} />
+			<Route path="tempat" element={<EventScheduleLocation />} />
+			<Route path="sesi" element={<EventSession />} />
+			<Route path="tiket" element={<EventTicket />} />
+			
 			{/* Operasional / Manajemen Peserta */}
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
 			<Route path="check-in" element={<EventPosPage />} />

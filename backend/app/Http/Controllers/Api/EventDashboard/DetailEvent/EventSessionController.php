@@ -129,6 +129,9 @@ class EventSessionController extends Controller
                     // 3. CLEAN UP (Delete)
                     // Hapus sesi di DB yang tidak ada di dalam daftar $activeSessionIds
                     $event->sessions()->whereNotIn('id', $activeSessionIds)->delete();
+
+                    // 4. Recalculate event start_date & end_date from actual session times
+                    $this->syncEventDatesFromSessions($event);
                 }
 
                 $notified = $event->notifyParticipantsOfUpdate();
@@ -149,5 +152,66 @@ class EventSessionController extends Controller
             ], 500);
         }
 
+    }
+
+    /**
+     * Sinkronisasi start_date & end_date Event berdasarkan data sesi yang ada.
+     * Menggabungkan date + start_time/end_time dari sesi untuk mendapatkan
+     * datetime yang akurat di level event.
+     */
+    private function syncEventDatesFromSessions(Event $event): void
+    {
+        $sessions = $event->sessions()
+            ->whereNotNull('date')
+            ->get();
+
+        if ($sessions->isEmpty()) {
+            return;
+        }
+
+        $earliestStart = null;
+        $latestEnd = null;
+
+        foreach ($sessions as $session) {
+            // Gabungkan date + start_time menjadi full datetime
+            if ($session->date && $session->start_time) {
+                $startDatetime = Carbon::parse($session->date . ' ' . $session->start_time);
+                if (!$earliestStart || $startDatetime->lt($earliestStart)) {
+                    $earliestStart = $startDatetime;
+                }
+            } elseif ($session->date) {
+                // Fallback: jika start_time belum diisi, gunakan awal hari
+                $startDatetime = Carbon::parse($session->date)->startOfDay();
+                if (!$earliestStart || $startDatetime->lt($earliestStart)) {
+                    $earliestStart = $startDatetime;
+                }
+            }
+
+            // Gabungkan date + end_time menjadi full datetime
+            if ($session->date && $session->end_time) {
+                $endDatetime = Carbon::parse($session->date . ' ' . $session->end_time);
+                if (!$latestEnd || $endDatetime->gt($latestEnd)) {
+                    $latestEnd = $endDatetime;
+                }
+            } elseif ($session->date) {
+                // Fallback: jika end_time belum diisi, gunakan akhir hari
+                $endDatetime = Carbon::parse($session->date)->endOfDay();
+                if (!$latestEnd || $endDatetime->gt($latestEnd)) {
+                    $latestEnd = $endDatetime;
+                }
+            }
+        }
+
+        $updateData = [];
+        if ($earliestStart) {
+            $updateData['start_date'] = $earliestStart;
+        }
+        if ($latestEnd) {
+            $updateData['end_date'] = $latestEnd;
+        }
+
+        if (!empty($updateData)) {
+            $event->update($updateData);
+        }
     }
 }
