@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'attendance.window' => \App\Http\Middleware\CheckAttendanceWindow::class,
+            'event.participant' => \App\Http\Middleware\CheckEventParticipant::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

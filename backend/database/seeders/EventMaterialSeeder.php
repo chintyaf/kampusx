@@ -21,34 +21,40 @@ class EventMaterialSeeder extends Seeder
                 continue;
             }
 
-            // 1. Materi Video Pendek (Micro-learning)
+            // 1. Materi Booklet PDF (document)
             EventMaterial::create([
                 'event_id' => $event->id,
-                'title' => 'Micro-learning: Pengantar Strategi & Pitching Bisnis Terarah',
-                'type' => 'video',
-                'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                'description' => 'Pelajari landasan fundamental strategi menyusun deck proposal bisnis dalam durasi 10 menit.',
-                'require_attendance' => false
-            ]);
-
-            // 2. Modul Infografis Ringkasan (Buku Saku PDF)
-            EventMaterial::create([
-                'event_id' => $event->id,
+                'session_name' => 'Day 1 - Sesi Pagi',
+                'speaker_name' => 'Dr. Budi Santoso',
                 'title' => 'E-Booklet & Infografis Ringkasan Kelas (PDF)',
                 'type' => 'document',
-                'url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                'content_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
                 'description' => 'Unduh rangkuman presentasi pemateri lengkap dengan diagram infografis untuk belajar luring di perangkat Anda.',
-                'require_attendance' => false
+                'status' => 'published'
             ]);
 
-            // 3. Eksklusif Link Rekaman Q&A (Terbuka khusus untuk peserta yang HADIR Check-in)
+            // 2. Kode Repository GitHub (code_repo)
             EventMaterial::create([
                 'event_id' => $event->id,
-                'title' => 'Eksklusif: Video Rekaman Sesi Q&A & Tanya Jawab Panelis',
-                'type' => 'video',
-                'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                'description' => 'Akses eksklusif rekaman diskusi tanya jawab interaktif panelis ahli di akhir sesi acara. Hanya dapat dibuka oleh peserta terverifikasi Hadir.',
-                'require_attendance' => true
+                'session_name' => 'Day 1 - Sesi Siang',
+                'speaker_name' => 'Jane Doe, M.Cs.',
+                'title' => 'Repository Source Code Starter Pack',
+                'type' => 'code_repo',
+                'content_url' => 'https://github.com/example/starter-pack',
+                'description' => 'Akses repositori kode sumber latihan untuk memulai sesi praktik lab secara langsung.',
+                'status' => 'published'
+            ]);
+
+            // 3. Desain Interaktif Figma (design_interactive)
+            EventMaterial::create([
+                'event_id' => $event->id,
+                'session_name' => 'Day 2 - Sesi Pagi',
+                'speaker_name' => 'Rian Wijaya, UI/UX Designer',
+                'title' => 'Figma Prototype Link & Design Assets',
+                'type' => 'design_interactive',
+                'content_url' => 'https://figma.com/file/example-design',
+                'description' => 'Akses berkas desain interaktif Figma dan aset UI untuk materi kolaborasi desain.',
+                'status' => 'published'
             ]);
         }
     }

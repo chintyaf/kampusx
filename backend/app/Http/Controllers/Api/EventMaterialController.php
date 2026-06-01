@@ -5,178 +5,142 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\EventMaterial;
-use App\Models\EventSession;
-use App\Models\Ticket;
-use App\Models\SurveyResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class EventMaterialController extends Controller
 {
     /**
-     * Tampilkan daftar post-event materials ke peserta (Participant Portal)
+     * Tampilkan daftar materi yang berstatus published ke peserta (Participant Portal)
      */
-    public function index($eventId, Request $request)
+    public function index($eventId)
     {
         $event = Event::where('id', $eventId)
             ->orWhere('slug', $eventId)
             ->firstOrFail();
-        $eventId = $event->id;
-        $user = $request->user();
-
-        // =========================================================
-        // 1. VALIDASI AKSES DASAR: Cek Tiket Peserta
-        // =========================================================
-        $hasTicket = Ticket::where('participant_id', $user->id)
-            ->whereHas('orderItem.order', function ($query) use ($eventId) {
-                $query->where('event_id', $eventId);
-            })
-            ->exists();
-
-        $isOrganizerOrAdmin = ($event->organizer_id === $user->id || $user->role === 'admin');
-
-        // Jika bukan panitia dan tidak punya tiket, tolak akses.
-        if (!$hasTicket && !$isOrganizerOrAdmin) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Akses ditolak. Anda tidak memiliki tiket untuk acara ini.'
-            ], 403);
-        }
-
-        // =========================================================
-        // 2. CEK STATUS ACARA: Apakah Acara Sudah Selesai?
-        // =========================================================
-        // Syarat pertama agar materi auto-publish adalah acara sudah berakhir.
-        $isEventFinished = false;
-        if (in_array($event->status, ['post_event', 'completed'])) {
-            $isEventFinished = true;
-        } elseif ($event->end_date && Carbon::now()->greaterThan($event->end_date)) {
-            $isEventFinished = true;
-        }
-
-        // =========================================================
-        // 3. CEK SURVEI: Apakah Peserta Telah Mengisi Survei?
-        // =========================================================
-        // Syarat kedua adalah peserta wajib mengisi survei (mirip dengan e-sertifikat).
-        $hasFilledSurvey = false;
-        if (!$isOrganizerOrAdmin) {
-            $hasFilledSurvey = SurveyResponse::where('user_id', $user->id)
-                ->where('event_id', $eventId)
-                ->exists();
-        } else {
-            // Bypass untuk Organizer dan Admin (mereka bisa langsung preview)
-            $hasFilledSurvey = true;
-            $isEventFinished = true;
-        }
-
-        // =========================================================
-        // 4. LOGIKA BLOKIR (LOCKED): Jika Syarat Belum Terpenuhi
-        // =========================================================
-        if (!$isEventFinished || !$hasFilledSurvey) {
-            return response()->json([
-                'success' => true,
-                'is_unlocked' => false,
-                'is_event_finished' => $isEventFinished,
-                'has_filled_survey' => $hasFilledSurvey,
-                'message' => 'Materi terkunci. Pastikan acara sudah selesai dan Anda telah mengisi survei kepuasan.',
-                'data' => [] // Kirim data kosong agar UI tidak bocor
-            ], 200);
-        }
-
-        // =========================================================
-        // 5. AMBIL MATERI (UNLOCKED): Ambil SessionMaterials Terbaru
-        // =========================================================
-        $sessions = EventSession::with(['materials' => function ($query) {
-                $query->orderBy('sort_order', 'asc');
-            }])
-            ->where('event_id', $eventId)
-            ->orderBy('date', 'asc')
-            ->orderBy('start_time', 'asc')
+            
+        $materials = EventMaterial::where('event_id', $event->id)
+            ->where('status', 'published')
+            ->orderBy('session_name', 'asc')
+            ->orderBy('created_at', 'asc')
             ->get();
 
-        // Format data agar mudah dikonsumsi frontend peserta (seperti UI di dashboard)
-        $data = $sessions->map(function ($session) {
-            $materials = $session->materials->map(function ($material) {
-                return [
-                    'id' => $material->id,
-                    'type' => $material->type,
-                    'name' => $material->name,
-                    'path_or_url' => $material->path_or_url,
-                    // Hasilkan absolute URL untuk dokumen/video lokal agar bisa diunduh/ditonton
-                    'url' => in_array($material->type, ['video_file', 'document']) && !filter_var($material->path_or_url, FILTER_VALIDATE_URL)
-                        ? asset('storage/' . $material->path_or_url)
-                        : $material->path_or_url,
-                    'file_size' => $material->file_size,
-                ];
-            });
-
+        // Transform data untuk menyertakan absolute URL untuk berkas fisik
+        $data = $materials->map(function ($material) {
             return [
-                'id' => $session->id,
-                'title' => $session->title,
-                'description' => $session->description,
-                // Mengubah format tanggal agar human-readable
-                'date' => $session->date ? Carbon::parse($session->date)->format('d M Y') : 'Belum dijadwalkan',
-                'start_time' => $session->start_time,
-                'end_time' => $session->end_time,
-                'materials' => $materials
+                'id' => $material->id,
+                'event_id' => $material->event_id,
+                'session_name' => $material->session_name,
+                'speaker_name' => $material->speaker_name,
+                'title' => $material->title,
+                'description' => $material->description,
+                'type' => $material->type,
+                'content_url' => $material->content_url,
+                'file_path' => $material->file_path,
+                // Jika ada file fisik, buatkan absolute url
+                'file_url' => $material->file_path ? asset('storage/' . $material->file_path) : null,
+                'status' => $material->status,
+                'created_at' => $material->created_at,
+                'updated_at' => $material->updated_at,
             ];
         });
 
-        // =========================================================
-        // 6. KEMBALIKAN DATA MATERI KE PESERTA
-        // =========================================================
         return response()->json([
             'success' => true,
-            'is_unlocked' => true,
-            'is_event_finished' => $isEventFinished,
-            'has_filled_survey' => $hasFilledSurvey,
-            'message' => 'Berhasil mengambil materi acara.',
+            'message' => 'Berhasil mengambil materi event.',
             'data' => $data
         ], 200);
     }
 
     /**
-     * Digunakan oleh organizer untuk mendapatkan seluruh materi tanpa filter peserta
+     * Tampilkan seluruh materi (draft & published) ke organizer
      */
     public function organizerIndex($eventId)
     {
         $event = Event::where('id', $eventId)
             ->orWhere('slug', $eventId)
             ->firstOrFail();
-        $eventId = $event->id;
-        $materials = EventMaterial::where('event_id', $eventId)->get();
-        return response()->json(['data' => $materials], 200);
+
+        $materials = EventMaterial::where('event_id', $event->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Sertakan absolute URL untuk file fisik
+        $data = $materials->map(function ($material) {
+            return [
+                'id' => $material->id,
+                'event_id' => $material->event_id,
+                'session_name' => $material->session_name,
+                'speaker_name' => $material->speaker_name,
+                'title' => $material->title,
+                'description' => $material->description,
+                'type' => $material->type,
+                'content_url' => $material->content_url,
+                'file_path' => $material->file_path,
+                'file_url' => $material->file_path ? asset('storage/' . $material->file_path) : null,
+                'status' => $material->status,
+                'created_at' => $material->created_at,
+                'updated_at' => $material->updated_at,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ], 200);
     }
 
     /**
-     * Tambah materi baru (Hanya untuk organizer/admin)
+     * Tambah materi baru (Organizer)
      */
     public function store(Request $request, $eventId)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'type' => 'required|in:video,document,link',
-            'url' => 'required|url',
-            'description' => 'nullable|string',
-            'require_attendance' => 'boolean'
-        ]);
-
         $event = Event::where('id', $eventId)
             ->orWhere('slug', $eventId)
             ->firstOrFail();
-        $eventId = $event->id;
 
-        // Pastikan yg insert adalah owner-nya
-        // (Bisa juga ditangani oleh middleware spesifik role+ownership)
+        // Validasi input dasar
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'session_name' => 'nullable|string|max:255',
+            'speaker_name' => 'nullable|string|max:255',
+            'type' => 'required|string|in:document,code_repo,design_interactive,media_form',
+            'description' => 'nullable|string',
+            'status' => 'required|string|in:draft,published',
+            'content_url' => 'nullable|url|max:500',
+            'file' => 'nullable|file|max:5120', // Maksimal 5MB (5120 KB)
+        ]);
+
+        $filePath = null;
+        $contentUrl = $request->content_url;
+
+        // Logika Penyimpanan File Fisik (Tipe document saja)
+        if ($request->type === 'document' && $request->hasFile('file')) {
+            $file = $request->file('file');
+            try {
+                $filePath = Storage::disk('public')->putFile('event_materials', $file);
+                // Jika upload file fisik, abaikan content_url
+                $contentUrl = null;
+            } catch (\Exception $e) {
+                Log::error("Gagal mengunggah file materi: " . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengunggah file materi ke server.'
+                ], 500);
+            }
+        }
 
         $material = EventMaterial::create([
             'event_id' => $event->id,
+            'session_name' => $request->session_name,
+            'speaker_name' => $request->speaker_name,
             'title' => $request->title,
-            'type' => $request->type,
-            'url' => $request->url,
             'description' => $request->description,
-            'require_attendance' => $request->require_attendance ?? false,
+            'type' => $request->type,
+            'content_url' => $contentUrl,
+            'file_path' => $filePath,
+            'status' => $request->status,
         ]);
 
         return response()->json([
@@ -187,6 +151,87 @@ class EventMaterialController extends Controller
     }
 
     /**
+     * Edit / Update materi (Organizer)
+     */
+    public function update(Request $request, $eventId, $materialId)
+    {
+        $event = Event::where('id', $eventId)
+            ->orWhere('slug', $eventId)
+            ->firstOrFail();
+
+        $material = EventMaterial::where('event_id', $event->id)->findOrFail($materialId);
+
+        // Validasi input
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'session_name' => 'nullable|string|max:255',
+            'speaker_name' => 'nullable|string|max:255',
+            'type' => 'required|string|in:document,code_repo,design_interactive,media_form',
+            'description' => 'nullable|string',
+            'status' => 'required|string|in:draft,published',
+            'content_url' => 'nullable|url|max:500',
+            'file' => 'nullable|file|max:5120', // Maksimal 5MB
+        ]);
+
+        $filePath = $material->file_path;
+        $contentUrl = $request->content_url;
+
+        // Logika pembaruan file fisik
+        if ($request->type === 'document') {
+            if ($request->hasFile('file')) {
+                // Hapus file lama jika ada
+                if ($material->file_path) {
+                    Storage::disk('public')->delete($material->file_path);
+                }
+
+                // Unggah file baru
+                try {
+                    $file = $request->file('file');
+                    $filePath = Storage::disk('public')->putFile('event_materials', $file);
+                    $contentUrl = null;
+                } catch (\Exception $e) {
+                    Log::error("Gagal memperbarui file materi: " . $e->getMessage());
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal memperbarui file materi ke server.'
+                    ], 500);
+                }
+            } else {
+                // Jika tipe document diubah menjadi menggunakan external URL saja
+                if ($contentUrl) {
+                    if ($material->file_path) {
+                        Storage::disk('public')->delete($material->file_path);
+                        $filePath = null;
+                    }
+                }
+            }
+        } else {
+            // Jika beralih dari document ke tipe lain (bukan document)
+            if ($material->file_path) {
+                Storage::disk('public')->delete($material->file_path);
+                $filePath = null;
+            }
+        }
+
+        $material->update([
+            'session_name' => $request->session_name,
+            'speaker_name' => $request->speaker_name,
+            'title' => $request->title,
+            'description' => $request->description,
+            'type' => $request->type,
+            'content_url' => $contentUrl,
+            'file_path' => $filePath,
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Materi berhasil diperbarui.',
+            'data' => $material
+        ], 200);
+    }
+
+    /**
      * Hapus materi (Organizer)
      */
     public function destroy($eventId, $id)
@@ -194,8 +239,14 @@ class EventMaterialController extends Controller
         $event = Event::where('id', $eventId)
             ->orWhere('slug', $eventId)
             ->firstOrFail();
-        $eventId = $event->id;
-        $material = EventMaterial::where('event_id', $eventId)->findOrFail($id);
+
+        $material = EventMaterial::where('event_id', $event->id)->findOrFail($id);
+
+        // Hapus file fisik dari storage jika ada
+        if ($material->file_path) {
+            Storage::disk('public')->delete($material->file_path);
+        }
+
         $material->delete();
 
         return response()->json([

@@ -135,7 +135,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/events/{id}/bookmark', [\App\Http\Controllers\Api\BookmarkController::class, 'toggle']);
     Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
     Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
-    Route::get('/events/{id}/materials', [EventMaterialController::class, 'index']);
+    Route::get('/events/{id}/materials', [EventMaterialController::class, 'index'])->middleware('event.participant');
     Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'index']);
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
@@ -169,6 +169,8 @@ Route::middleware('auth:sanctum')->group(function () {
             // Post-event Material Management
             Route::get('/events/{id}/materials', [EventMaterialController::class, 'organizerIndex'])->middleware(CheckEventOrganizer::class);
             Route::post('/events/{id}/materials', [EventMaterialController::class, 'store'])->middleware(CheckEventOrganizer::class);
+            Route::post('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'update'])->middleware(CheckEventOrganizer::class);
+            Route::put('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'update'])->middleware(CheckEventOrganizer::class);
             Route::delete('/events/{id}/materials/{materialId}', [EventMaterialController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
 
             // Event Announcements Management

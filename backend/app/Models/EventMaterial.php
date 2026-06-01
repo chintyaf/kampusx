@@ -11,11 +11,14 @@ class EventMaterial extends Model
 
     protected $fillable = [
         'event_id',
+        'session_name',
+        'speaker_name',
         'title',
-        'type',
-        'url',
         'description',
-        'require_attendance'
+        'type',
+        'content_url',
+        'file_path',
+        'status'
     ];
 
     public function event()

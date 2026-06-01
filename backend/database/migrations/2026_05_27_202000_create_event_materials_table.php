@@ -19,15 +19,14 @@ return new class extends Migration
                   ->constrained('events')
                   ->cascadeOnDelete();
 
-            // Tipe materi: video, document, link
-            $table->string('type'); // 'video', 'document', 'link'
-
+            $table->string('session_name')->nullable();
+            $table->string('speaker_name')->nullable();
             $table->string('title');
-            $table->text('url');
             $table->text('description')->nullable();
-            
-            // Apakah materi ini memerlukan kehadiran (check-in) untuk diakses
-            $table->boolean('require_attendance')->default(false);
+            $table->string('type'); // document, code_repo, design_interactive, media_form
+            $table->string('content_url')->nullable();
+            $table->string('file_path')->nullable();
+            $table->string('status')->default('published'); // draft, published
 
             $table->timestamps();
         });

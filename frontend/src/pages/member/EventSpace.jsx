@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
-import LmsPlayer from '../../components/lms/LmsPlayer';
+import ParticipantMaterialsTab from '../../components/event/ParticipantMaterialsTab';
 import EventAnnouncementsTab from '../../components/event/EventAnnouncementsTab';
 import { STORAGE_URL } from '../../api/storage';
 
@@ -165,7 +165,7 @@ const EventSpace = () => {
 
     // Merging fallback title and backend dynamic data
     const title = event?.title || "Workshop & Kelas Pembelajaran Unggulan";
-    const organizer = event?.institution?.name || event?.organizer?.name || "Penyelenggara KampusX";
+    const organizer = event?.organizer?.name || event?.institution?.name || "Penyelenggara KampusX";
     const progress = alreadySubmitted ? 100 : 75; // Completing survey gives 100% completion
 
     // --- RENDER AREA KONTEN BERDASARKAN TAB ---
@@ -251,9 +251,9 @@ const EventSpace = () => {
                             </Alert>
                         )}
 
-                        <Row className="g-4">
+                        {/* <Row className="g-4"> */}
                             {/* LEFT DETAIL COLUMN */}
-                            <Col lg={8} md={12}>
+                            {/* <Col lg={8} md={12}> */}
                                 {/* PAPAN PENGUMUMAN PANITIA */}
                                 <Card className="border-0 shadow-sm rounded-4 mb-4">
                                     <Card.Header className="bg-white border-0 pt-4 px-4 pb-2">
@@ -386,10 +386,10 @@ const EventSpace = () => {
                                         )}
                                     </Card.Body>
                                 </Card>
-                            </Col>
+                            {/* </Col> */}
 
                             {/* RIGHT STICKY TICKET DETAILS COLUMN */}
-                            <Col lg={4} md={12}>
+                            {/* <Col lg={4} md={12}>
                                 <Card className="border-0 shadow-sm rounded-4 text-center p-4 bg-white position-sticky" style={{ top: '100px', zIndex: 10 }}>
                                     <h6 className="fw-extrabold text-dark mb-3">E-Tiket Check-in Anda</h6>
                                     <div className="bg-light p-3.5 rounded-4 d-inline-block border border-dashed mb-3">
@@ -406,8 +406,8 @@ const EventSpace = () => {
                                         STATUS: TIKET AKTIF
                                     </Badge>
                                 </Card>
-                            </Col>
-                        </Row>
+                            </Col> */}
+                        {/* </Row> */}
                     </div>
                 );
             case 'materi':
@@ -613,7 +613,7 @@ const EventSpace = () => {
                     <Col lg={9} md={8}>
                         {activeTab === 'materi' ? (
                             <div className="fade-in">
-                                <LmsPlayer eventId={id} />
+                                <ParticipantMaterialsTab eventId={id} />
                             </div>
                         ) : (
                             <Card className="border-0 shadow-sm rounded-4" style={{ minHeight: '450px' }}>

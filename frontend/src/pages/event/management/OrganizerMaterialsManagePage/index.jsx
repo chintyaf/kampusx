@@ -1,9 +1,8 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import OrganizerMaterialsManage from '../../../../components/event/OrganizerMaterialsManage';
+import MateriAcara from '../../../../components/event/MateriAcara';
 
 const OrganizerMaterialsManagePage = () => {
-    const { eventId } = useParams();
-    return <OrganizerMaterialsManage eventId={eventId} />;
+    return <MateriAcara />;
 };
 export default OrganizerMaterialsManagePage;
