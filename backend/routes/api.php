@@ -42,7 +42,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoControll
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\SessionMaterialController;
-
+use App\Http\Controllers\Api\EventDashboard\EventAttendanceController;
 
 // use App\Http\Controllers\CommitteeController;
 use App\Http\Controllers\Api\CommitteeController;
@@ -140,8 +140,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
 
     // Peserta scan QR venue
-    Route::middleware('attendance.window')->post('/attendance/venue-scan', [AttendanceController::class, 'venueScan']);
 
+    Route::post('/attendance/process', [EventAttendanceController::class, 'processAttendance']);
+
+    Route::post('/attendance/venue-scan', [AttendanceController::class, 'venueScan']);
+    Route::post('/attend-venue', [AttendanceController::class, 'attendVenue']);
     // Mendaftar jadi Organizer
     Route::get('/organizer-requests/status', [OrganizerRequestController::class, 'checkStatus']);
     Route::post('/organizer-requests/apply', [OrganizerRequestController::class, 'apply']);
@@ -242,6 +245,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/stations/{id}', [EventStationController::class, 'update']);
             Route::delete('/stations/{id}', [EventStationController::class, 'destroy']);
 
+            Route::get('/attendance/links', [EventAttendanceController::class, 'getLinks']);
+            Route::get('/attendance/create-link', [EventAttendanceController::class, 'generateLink']);
+
+
+
             // 5. Certificate Design Template
             Route::get('/certificate', [CertificateController::class, 'show']);
             Route::get('/certificate/background-file', [CertificateController::class, 'getBackground']);
@@ -288,12 +296,10 @@ Route::middleware(['auth:sanctum', 'role:committee,organizer'])->group(function 
         ], 200);
     });
 
-    Route::middleware('attendance.window')->group(function () {
-        // 1. Validasi Scanner & 3. Manual Insert & 2. Search Manual
-        Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
-        Route::post('/attendance/manual', [AttendanceController::class, 'manualOverride']);
-        Route::get('/ticket/search', [AttendanceController::class, 'searchTicket']);
-    });
+    // 1. Validasi Scanner & 3. Manual Insert & 2. Search Manual
+    Route::post('/attendance/scan', [AttendanceController::class, 'scanQr']);
+    Route::post('/attendance/manual', [AttendanceController::class, 'manualOverride']);
+    Route::get('/ticket/search', [AttendanceController::class, 'searchTicket']);
 });
 
 // ==========================================
@@ -360,10 +366,8 @@ Route::get('/institutions', [InstitutionController::class, 'index']);
 
 // Committee
 Route::post('/committee/verify-pin', [CommitteeController::class, 'verifyPin']);
-Route::middleware('attendance.window')->group(function () {
-    Route::post('/committee/scan', [CommitteeController::class, 'scan']);
-    Route::get('/committee/stats', [CommitteeController::class, 'stats']);
-});
+Route::post('/committee/scan', [CommitteeController::class, 'scan']);
+Route::get('/committee/stats', [CommitteeController::class, 'stats']);
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('event-types', [EventTypeController::class, 'index']);
 // Route::get('institutions', [InstitutionController::class, 'index']);

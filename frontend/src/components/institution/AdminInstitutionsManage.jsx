@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Table, Badge, Spinner } from 'react-bootstrap';
 import { Building, ShieldCheck, Mail } from 'lucide-react';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 const AdminInstitutionsManage = () => {
     const [institutions, setInstitutions] = useState([]);
@@ -58,7 +58,7 @@ const AdminInstitutionsManage = () => {
 
     return (
         <div className="mt-4">
-            <Toaster />
+
             <h4 className="mb-4 d-flex align-items-center fw-bold">
                 <ShieldCheck className="me-2 text-danger" size={28} />
                 Registrasi Institusi Induk (Super Admin)

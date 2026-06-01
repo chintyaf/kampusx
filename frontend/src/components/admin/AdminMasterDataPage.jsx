@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tab, Tabs, Card, Form, Button, Table, Spinner, Badge } from 'react-bootstrap';
 import { Layers, Bookmark, Building, Edit, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import AdminInstitutionsManage from '../institution/AdminInstitutionsManage';
 
 const GenericMasterDataCRUD = ({ title, endpoint, itemName }) => {
@@ -131,7 +131,7 @@ const GenericMasterDataCRUD = ({ title, endpoint, itemName }) => {
 const AdminMasterDataPage = () => {
     return (
         <div className="container mt-4">
-            <Toaster />
+
             <h4 className="mb-4 d-flex align-items-center fw-bold">
                 <Layers className="me-2 text-primary" size={28} />
                 Master Data Control Panel

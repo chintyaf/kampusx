@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../api/axios';
-import { toast, Toaster } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import {
 	Table,
 	Badge,
@@ -254,7 +254,7 @@ const EventParticipantListPage = () => {
 
 	return (
 		<div className="participant-page">
-			<Toaster position="top-right" />
+
 			<div className="d-flex justify-content-between align-items-start">
 				<FormHeading
 					title="Daftar Peserta Event"

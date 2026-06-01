@@ -30,7 +30,7 @@ class AttendanceController extends Controller
         $receivedHash = $qrParts[1];
 
         $ticket = Ticket::where('ticket_code', $ticketCode)->first();
-        
+
         if (!$ticket) {
             return response()->json(['message' => 'Tiket tidak ditemukan'], 404);
         }
@@ -151,7 +151,8 @@ class AttendanceController extends Controller
     {
         $request->validate([
             'qr_string' => 'required|string',
-            'event_id' => 'required|integer'
+            'event_id' => 'required|integer',
+            'device_id' => 'nullable|string'
         ]);
 
         $qrParts = explode('.', $request->qr_string);
@@ -218,6 +219,21 @@ class AttendanceController extends Controller
             return response()->json(['message' => 'Anda tidak memiliki tiket yang valid untuk event ini'], 404);
         }
 
+        // Anti "titip absen": Cek apakah device ini sudah dipakai oleh peserta LAIN pada event ini
+        if ($request->device_id) {
+            $duplicateDevice = DB::table('attendance_logs')
+                ->where('event_id', $request->event_id)
+                ->where('device_id', $request->device_id)
+                ->where('ticket_id', '!=', $ticket->id)
+                ->exists();
+
+            if ($duplicateDevice) {
+                return response()->json([
+                    'message' => 'Gagal Presensi! Perangkat (device) Anda sudah digunakan untuk mencatat kehadiran peserta lain pada acara ini. (Satu perangkat hanya diperbolehkan untuk satu akun peserta)'
+                ], 403);
+            }
+        }
+
         // Cek log absensi
         $attendanceLog = DB::table('attendance_logs')
             ->where('ticket_id', $ticket->id)
@@ -237,6 +253,7 @@ class AttendanceController extends Controller
                 'scan_time' => Carbon::now(),
                 'scanned_by' => $userId, // User menscan dirinya sendiri
                 'method' => 'venue_qr',
+                'device_id' => $request->device_id, // Simpan perangkat
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -262,6 +279,7 @@ class AttendanceController extends Controller
                 ->where('id', $attendanceLog->id)
                 ->update([
                     'checkout_time' => Carbon::now(),
+                    'device_id' => $request->device_id, // Update perangkat
                     'updated_at' => Carbon::now()
                 ]);
 
@@ -272,4 +290,80 @@ class AttendanceController extends Controller
             ], 200);
         }
     }
+
+
+
+    public function attendVenue(Request $request)
+    {
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'type' => 'required|in:in,out',
+            'expires_at' => 'nullable|date',
+            'signature' => 'required|string',
+            'device_token' => 'required|string' // Dikirim dari React localStorage
+        ]);
+
+        $eventId = $request->event_id;
+        $type = $request->type;
+        $expiresAt = $request->expires_at;
+        $signature = $request->signature;
+        $deviceToken = $request->device_token;
+        $userId = auth()->id();
+
+        // 1. Verifikasi Integritas Link (Anti-Tamper)
+        $payload = $eventId . '|' . $type . '|' . $expiresAt;
+        $expectedSignature = hash_hmac('sha256', $payload, config('app.key'));
+
+        if (!hash_equals($expectedSignature, $signature)) {
+            return response()->json(['success' => false, 'message' => 'Link presensi tidak valid atau telah dimodifikasi.'], 403);
+        }
+
+        // 2. Verifikasi Batas Waktu
+        if ($expiresAt && Carbon::now()->greaterThan(Carbon::parse($expiresAt))) {
+            return response()->json(['success' => false, 'message' => 'Link presensi sudah kedaluwarsa.'], 403);
+        }
+
+        // 3. Cari Data Presensi Peserta (Asumsi data attendance di-generate saat mendaftar event)
+        // Jika skema databasenya berbeda, sesuaikan query ini
+        $attendance = Attendance::where('event_id', $eventId)
+                                ->where('user_id', $userId)
+                                ->first();
+
+        if (!$attendance) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak terdaftar dalam event ini.'], 403);
+        }
+
+        // 4. Verifikasi Device Lock
+        if (is_null($attendance->device_id)) {
+            // Pertama kali presensi, kunci perangkat ini
+            $attendance->device_id = $deviceToken;
+        } elseif ($attendance->device_id !== $deviceToken) {
+            // Mencoba dari perangkat lain
+            return response()->json(['success' => false, 'message' => 'Presensi ditolak. Anda harus menggunakan perangkat yang sama dengan saat pertama kali check-in.'], 403);
+        }
+
+        // 5. Update Waktu Presensi
+        if ($type === 'in') {
+            if ($attendance->check_in_time) {
+                return response()->json(['success' => false, 'message' => 'Anda sudah melakukan check-in sebelumnya.'], 400);
+            }
+            $attendance->check_in_time = Carbon::now();
+        } else {
+            if (!$attendance->check_in_time) {
+                return response()->json(['success' => false, 'message' => 'Anda harus check-in terlebih dahulu sebelum check-out.'], 400);
+            }
+            if ($attendance->check_out_time) {
+                return response()->json(['success' => false, 'message' => 'Anda sudah melakukan check-out.'], 400);
+            }
+            $attendance->check_out_time = Carbon::now();
+        }
+
+        $attendance->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Presensi berhasil dicatat.'
+        ]);
+    }
+
 }

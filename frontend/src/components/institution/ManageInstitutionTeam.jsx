@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Table, Badge, Spinner } from 'react-bootstrap';
 import { Users, MailPlus, Trash2, KeyRound } from 'lucide-react';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 const ManageInstitutionTeam = ({ institutionId }) => {
     const [members, setMembers] = useState([]);
@@ -61,7 +61,7 @@ const ManageInstitutionTeam = ({ institutionId }) => {
 
     return (
         <div className="mt-4">
-            <Toaster />
+
             <h5 className="mb-3 d-flex align-items-center fw-bold">
                 <Users className="me-2 text-primary" size={24} />
                 Manajemen Tim Organizer

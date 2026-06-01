@@ -11,7 +11,7 @@ import {
 	ArrowRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import api from '@/api/axios';
 import PreviewModal from '@/components/event/certificate/PreviewModal';
 import CertificateCard from './CertificateCard';
@@ -92,7 +92,7 @@ const MemberCertificatePage = () => {
 
 	return (
 		<div className="bg-light min-vh-100 py-5">
-			<Toaster position="top-right" />
+
 			<Container>
 				{/* Header Section */}
 				<div className="d-flex align-items-center justify-content-between mb-5 flex-wrap gap-3">

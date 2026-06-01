@@ -390,22 +390,55 @@ const EventSpace = () => {
 
                             {/* RIGHT STICKY TICKET DETAILS COLUMN */}
                             <Col lg={4} md={12}>
-                                <Card className="border-0 shadow-sm rounded-4 text-center p-4 bg-white position-sticky" style={{ top: '100px', zIndex: 10 }}>
-                                    <h6 className="fw-extrabold text-dark mb-3">E-Tiket Check-in Anda</h6>
-                                    <div className="bg-light p-3.5 rounded-4 d-inline-block border border-dashed mb-3">
-                                        <img
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${ticketCode}`}
-                                            alt="QR Code Tiket"
-                                            className="mix-blend-multiply"
-                                            style={{ width: '130px', height: '130px' }}
-                                        />
-                                    </div>
-                                    <div className="fw-bold text-dark mb-1" style={{ fontSize: '16px' }}>{ticketCode}</div>
-                                    <div className="text-muted small mb-3" style={{ fontSize: '11px' }}>Tunjukkan QR Code ini ke petugas pos kehadiran untuk check-in kehadiran di venue.</div>
-                                    <Badge bg="success" className="px-2.5 py-1.5 rounded-pill fw-semibold bg-success bg-opacity-10 text-success border border-success border-opacity-10" style={{ fontSize: '11px' }}>
-                                        STATUS: TIKET AKTIF
-                                    </Badge>
-                                </Card>
+                                <div className="position-sticky" style={{ top: '100px', zIndex: 10 }}>
+                                    {/* Link Pertemuan Online (jika online/hybrid) */}
+                                    {(event?.locationDetail?.type === 'online' || event?.locationDetail?.type === 'hybrid') && event?.locationDetail?.meeting_link && (
+                                        <Card className="border-0 shadow-sm rounded-4 p-4 bg-white mb-3 text-start">
+                                            <h6 className="fw-extrabold text-dark mb-2.5 d-flex align-items-center gap-2">
+                                                <Wifi size={18} className="text-primary animate-pulse" />
+                                                <span>Akses Kelas Online</span>
+                                            </h6>
+                                            <p className="text-muted mb-3 small" style={{ fontSize: '12px', lineHeight: '1.5' }}>
+                                                Acara ini diselenggarakan secara <strong>{event?.locationDetail?.type === 'hybrid' ? 'Hybrid' : 'Online'}</strong> melalui platform <strong>{event?.locationDetail?.platform || 'Video Conference'}</strong>.
+                                            </p>
+                                            
+                                            {event?.locationDetail?.online_instruction && (
+                                                <div className="bg-light p-3 rounded-3 mb-3 text-muted small" style={{ fontSize: '11.5px', whiteSpace: 'pre-line', border: '1px solid #f1f3f5' }}>
+                                                    <span className="fw-bold text-dark d-block mb-1">📖 Petunjuk Akses:</span>
+                                                    {event.locationDetail.online_instruction}
+                                                </div>
+                                            )}
+                                            
+                                            <a 
+                                                href={event.locationDetail.meeting_link} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-decoration-none"
+                                            >
+                                                <Button variant="primary" className="w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                                                    <PlayCircle size={16} /> Gabung Pertemuan
+                                                </Button>
+                                            </a>
+                                        </Card>
+                                    )}
+
+                                    <Card className="border-0 shadow-sm rounded-4 text-center p-4 bg-white">
+                                        <h6 className="fw-extrabold text-dark mb-3">E-Tiket Check-in Anda</h6>
+                                        <div className="bg-light p-3.5 rounded-4 d-inline-block border border-dashed mb-3">
+                                            <img
+                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${ticketCode}`}
+                                                alt="QR Code Tiket"
+                                                className="mix-blend-multiply"
+                                                style={{ width: '130px', height: '130px' }}
+                                            />
+                                        </div>
+                                        <div className="fw-bold text-dark mb-1" style={{ fontSize: '16px' }}>{ticketCode}</div>
+                                        <div className="text-muted small mb-3" style={{ fontSize: '11px' }}>Tunjukkan QR Code ini ke petugas pos kehadiran untuk check-in kehadiran di venue.</div>
+                                        <Badge bg="success" className="px-2.5 py-1.5 rounded-pill fw-semibold bg-success bg-opacity-10 text-success border border-success border-opacity-10" style={{ fontSize: '11px' }}>
+                                            STATUS: TIKET AKTIF
+                                        </Badge>
+                                    </Card>
+                                </div>
                             </Col>
                         </Row>
                     </div>
