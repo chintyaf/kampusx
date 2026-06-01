@@ -34,6 +34,7 @@ const MemberCertificatePage = () => {
 				// Sesuaikan endpoint ini dengan endpoint pengambilan daftar sertifikat Anda
 				const response = await api.get('/my-certificates');
 				if (response.data.success) {
+					// console.log('Fetched certificates:', response.data.data);
 					setCertificates(response.data.data || []);
 				} else {
 					setError('Gagal mengambil daftar sertifikat.');
@@ -70,6 +71,7 @@ const MemberCertificatePage = () => {
 			if (response.data.success) {
 				toast.dismiss('loading-cert');
 				// Simpan data lengkap (ticket, event, template) ke state
+				console.log('Certificate render data:', response.data.data);
 				setSelectedCert(response.data.data);
 				setShowPreviewModal(true);
 			} else {
@@ -191,10 +193,19 @@ const MemberCertificatePage = () => {
 				show={showPreviewModal}
 				onHide={() => {
 					setShowPreviewModal(false);
-					setSelectedCert(null); // Reset state saat modal ditutup
+					setSelectedCert(null);
 				}}
 				templateFile={selectedCert?.template?.background_url}
 				elements={selectedCert?.template?.elements || []}
+				previewData={{
+					// Sesuaikan key dengan response JSON dari Controller
+					f1: selectedCert?.ticket?.attendee_name || 'Nama Peserta',
+					f2: selectedCert?.ticket?.ticket_code || 'ID Sertifikat',
+					f3: `${window.location.origin}/certificate/verify/${selectedCert?.ticket?.ticket_code || ''}`,
+					f4: selectedCert?.event?.title || 'Nama Event',
+					f5: selectedCert?.event?.start_date || 'Tanggal Event',
+					f6: selectedCert?.event?.organizer_name || 'Instansi Penyelenggara',
+				}}
 			/>
 		</div>
 	);

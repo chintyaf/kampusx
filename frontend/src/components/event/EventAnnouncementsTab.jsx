@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Spinner, Alert } from 'react-bootstrap';
-import { Megaphone, FileText, Download, ExternalLink, RefreshCw } from 'lucide-react';
+import { Megaphone, FileText, Download, ExternalLink, RefreshCw, Calendar, Image } from 'lucide-react';
 import api from '../../api/axios';
 
 const EventAnnouncementsTab = ({ eventId }) => {
@@ -167,120 +167,55 @@ const EventAnnouncementsTab = ({ eventId }) => {
                 </div>
             ) : (
                 <div className="d-flex flex-column gap-4">
-                    {announcements.map((ann) => {
-                        const badgeConfig = {
-                            announcement: { label: "📌 PENGUMUMAN", color: "#3b82f6", bg: "rgba(59, 130, 246, 0.08)" },
-                            event_updated: { label: "🔄 UPDATE ACARA", color: "#06b6d4", bg: "rgba(6, 182, 212, 0.08)" },
-                            'H-24': { label: "📅 H-1 ACARA", color: "#eab308", bg: "rgba(234, 179, 8, 0.08)" },
-                            'H-1': { label: "⚠️ PENTING (1 JAM)", color: "#f97316", bg: "rgba(249, 115, 22, 0.08)" },
-                            'M-15': { label: "🚨 MENDESAK (15 MENIT)", color: "#ef4444", bg: "rgba(239, 68, 68, 0.08)" }
-                        };
+					{announcements.map((ann) => (
+						<Card key={ann.id} className="border border-light rounded-4 shadow-sm p-3.5 mb-3">
+							<div className="d-flex justify-content-between align-items-start mb-2">
+								<div className="text-muted small d-flex align-items-center gap-1.5" style={{ fontSize: '11px' }}>
+									<Calendar size={13} className="text-primary" />
+									<span>
+										{new Date(ann.date).toLocaleDateString('id-ID', {
+											day: '2-digit',
+											month: 'long',
+											year: 'numeric',
+											hour: '2-digit',
+											minute: '2-digit'
+										})}
+									</span>
+								</div>
+							</div>
 
-                        const config = badgeConfig[ann.type] || { label: "📢 UPDATE", color: "var(--color-primary, #1A365D)", bg: "rgba(26, 54, 93, 0.08)" };
+							<h6 className="fw-extrabold text-dark mb-1.5">{ann.title}</h6>
+							<p className="text-muted small mb-3" style={{ fontSize: '12.5px', lineHeight: '1.6', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
+								{ann.content}
+							</p>
 
-                        return (
-                            <Card
-                                key={ann.id}
-                                className="border-0 shadow-sm rounded-4 overflow-hidden hover-shadow transition-all bg-white"
-                                style={{
-                                    borderLeft: `4px solid ${config.color}`,
-                                    backgroundColor: config.bg,
-                                    transition: 'all 0.2s ease-in-out'
-                                }}
-                            >
-                                {/* BUNGKUS TEKS DENGAN PADDING (p-4) */}
-                                <div className="p-4 pb-3">
-                                    {/* Metadata */}
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <span
-                                            className="badge border px-2.5 py-1.5 rounded small fw-bold"
-                                            style={{
-                                                fontSize: '10px',
-                                                borderColor: `${config.color}22`,
-                                                color: config.color,
-                                                backgroundColor: '#ffffff'
-                                            }}
-                                        >
-                                            {config.label}
-                                        </span>
-                                        <span className="text-muted small" style={{ fontSize: '11px' }}>
-                                            {formatTimeAgo(ann.date)}
-                                        </span>
-                                    </div>
-
-                                    {/* Title & Body */}
-                                    <h5 className="fw-extrabold text-dark mb-2">{ann.title}</h5>
-                                    <p className="text-muted small mb-0" style={{ fontSize: '13.5px', lineHeight: '1.75', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
-                                        {ann.content}
-                                    </p>
-                                </div>
-
-                                {/* TAMPILAN LAMPIRAN */}
-                                {ann.raw && ann.raw.attachment_path && (
-                                    <div>
-                                        {/* Jika lampiran adalah PDF (Tetap di dalam area padding bawah) */}
-                                        {ann.raw.attachment_type !== 'image' && (
-                                            <div className="px-4 pb-4 pt-2">
-                                                <div className="p-3.5 rounded-4 bg-light border d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3" style={{ maxWidth: '500px' }}>
-                                                    <div className="d-flex align-items-center gap-3">
-                                                        <div className="bg-danger bg-opacity-10 text-danger rounded-circle p-2.5 border border-danger border-opacity-10 d-flex flex-shrink-0">
-                                                            <FileText size={20} />
-                                                        </div>
-                                                        <div className="text-start overflow-hidden">
-                                                            <h6 className="fw-bold text-dark mb-1 text-truncate" style={{ fontSize: '13px', maxWidth: '240px' }}>
-                                                                {ann.raw.attachment_path.split('/').pop()}
-                                                            </h6>
-                                                            <span className="text-muted small" style={{ fontSize: '11px' }}>Dokumen Lampiran Resmi</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <Button
-                                                        variant="primary"
-                                                        href={ann.raw.attachment_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="rounded-pill px-4 py-2 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm"
-                                                        style={{
-                                                            backgroundColor: 'var(--color-primary, #1A365D)',
-                                                            borderColor: 'var(--color-primary, #1A365D)',
-                                                            fontSize: '12px'
-                                                        }}
-                                                    >
-                                                        <Download size={14} /> Unduh PDF
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Jika lampiran adalah GAMBAR (Full Width, tidak kena padding p-4) */}
-                                        {ann.raw.attachment_type === 'image' && (
-                                            <div className="mt-2 position-relative border-top">
-                                                <img
-                                                    src={ann.raw.attachment_url}
-                                                    alt="Lampiran Pengumuman"
-                                                    className="w-100 cursor-pointer"
-                                                    style={{ maxHeight: '400px', objectFit: 'cover', display: 'block' }}
-                                                    onClick={() => window.open(ann.raw.attachment_url, '_blank')}
-                                                />
-                                                <div className="bg-light p-2 text-center border-top">
-                                                    <Button
-                                                        variant="link"
-                                                        href={ann.raw.attachment_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-0 text-primary fw-bold text-decoration-none d-inline-flex align-items-center gap-1.5"
-                                                        style={{ fontSize: '12px' }}
-                                                    >
-                                                        Buka Gambar Penuh <ExternalLink size={13} />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </Card>
-                        );
-                    })}
+							{/* Attachment indicator if exists */}
+							{ann.raw && ann.raw.attachment_path && (
+								<div className="p-2.5 rounded-3 bg-light border d-inline-flex align-items-center justify-content-between gap-3" style={{ maxWidth: '300px' }}>
+									<div className="d-flex align-items-center gap-2 text-dark small" style={{ fontSize: '11.5px' }}>
+										{ann.raw.attachment_type === 'pdf' ? (
+											<FileText size={16} className="text-danger flex-shrink-0" />
+										) : (
+											<Image size={16} className="text-primary flex-shrink-0" />
+										)}
+										<span className="text-truncate fw-medium" style={{ maxWidth: '180px' }}>
+											{ann.raw.attachment_path.split('/').pop()}
+										</span>
+									</div>
+									<Button
+										variant="link"
+										href={ann.raw.attachment_url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="p-0 text-primary small d-flex align-items-center gap-1 text-decoration-none fw-bold"
+										style={{ fontSize: '11px' }}
+									>
+										Lihat <ExternalLink size={12} />
+									</Button>
+								</div>
+							)}
+						</Card>
+					))}
                 </div>
             )}
         </div>

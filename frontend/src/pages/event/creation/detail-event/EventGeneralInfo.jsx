@@ -26,6 +26,8 @@ const EventGeneralInfo = () => {
 		kategori: [],
 		eventType: [],
 		timezone: 'Asia/Jakarta',
+		checkin_window_start: 30,
+		checkin_window_end: 0,
 	});
 	const [touched, setTouched] = useState({});
 
@@ -201,6 +203,8 @@ const EventGeneralInfo = () => {
 								label: type.name,
 							}))
 							: [],
+						checkin_window_start: data.checkin_window_start ?? 30,
+						checkin_window_end: data.checkin_window_end ?? 0,
 					}));
 				}
 			} catch (error) {
@@ -233,6 +237,8 @@ const EventGeneralInfo = () => {
 		submitData.append('title', formData.title);
 		submitData.append('description', formData.description);
 		submitData.append('timezone', formData.timezone);
+		submitData.append('checkin_window_start', formData.checkin_window_start);
+		submitData.append('checkin_window_end', formData.checkin_window_end);
 
 		formData.kategori.forEach((cat) => submitData.append('kategori_ids[]', cat.value));
 		formData.eventType.forEach((type) => submitData.append('event_type_ids[]', type.value));
@@ -464,6 +470,35 @@ const EventGeneralInfo = () => {
 					<Form.Control.Feedback type="invalid">
 						Zona waktu wajib diisi.
 					</Form.Control.Feedback>
+				</Form.Group>
+
+				<Form.Group className="mb-4">
+					<Form.Label className="required">Pengaturan Batas Waktu Presensi Online Peserta</Form.Label>
+					<div className="d-flex align-items-center gap-3">
+						<div className="flex-fill">
+							<Form.Text className="text-muted d-block mb-1">Buka Check-in (Menit sebelum acara dimulai)</Form.Text>
+							<Form.Control
+								type="number"
+								name="checkin_window_start"
+								value={formData.checkin_window_start}
+								onChange={handleTextChange}
+								min={0}
+							/>
+						</div>
+						<div className="flex-fill">
+							<Form.Text className="text-muted d-block mb-1">Tutup Check-in (Menit setelah acara selesai)</Form.Text>
+							<Form.Control
+								type="number"
+								name="checkin_window_end"
+								value={formData.checkin_window_end}
+								onChange={handleTextChange}
+								min={0}
+							/>
+						</div>
+					</div>
+					<Form.Text className="text-muted small">
+						*Pengaturan ini hanya berlaku untuk link presensi online / QR peserta, tidak berlaku untuk scanner panitia.
+					</Form.Text>
 				</Form.Group>
 
 				<UploadImage formData={formData} setFormData={setFormData} />

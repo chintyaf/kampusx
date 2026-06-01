@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
 import { Modal, Button } from 'react-bootstrap';
 import { toast } from 'react-hot-toast';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'react-qr-code';
-import { Award, QrCode as QrIcon, Download, Sparkles } from 'lucide-react';
-import { FIELDS } from '@/pages/event/post-event/certificate/constants';
+import { Award, Download } from 'lucide-react';
+// Hapus import FIELDS jika tidak digunakan lagi di sini
 
-const PreviewModal = ({ show, onHide, templateFile, elements }) => {
-	const { eventId } = useParams();
+const PreviewModal = ({ show, onHide, templateFile, elements, previewData = {} }) => {
 	const previewContainerRef = useRef(null);
 	const [previewWidth, setPreviewWidth] = useState(720);
 
@@ -41,17 +39,15 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 
 		const width = element.offsetWidth;
 		const height = element.offsetHeight;
-
-		// Convert pixels to points (1 px = 0.75 pt)
 		const pdfWidth = Math.round(width * 0.75);
 		const pdfHeight = Math.round(height * 0.75) + 2;
 
 		const opt = {
 			margin: 0,
-			filename: `sertifikat_preview_${eventId || 'event'}.pdf`,
+			filename: `sertifikat_${previewData?.f1?.replace(/\s+/g, '_') || 'preview'}.pdf`,
 			image: { type: 'jpeg', quality: 1.0 },
 			html2canvas: {
-				scale: 3, // 3x scale for ultra high resolution
+				scale: 3,
 				useCORS: true,
 				allowTaint: true,
 				logging: false,
@@ -86,12 +82,10 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 			<Modal.Body className="text-center py-4">
 				{templateFile ? (
 					<div className="d-flex flex-column align-items-center">
-						{/* Beautiful outer wrapper containing border, border radius, shadow, and margin */}
 						<div
 							className="bg-white overflow-hidden border rounded-4 shadow-sm w-100 mb-4"
 							style={{ maxWidth: '720px' }}
 						>
-							{/* Pure target container for PDF screenshot with ZERO margins, borders, paddings, or shadow */}
 							<div
 								id="certificate-preview-area"
 								ref={previewContainerRef}
@@ -109,15 +103,17 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 									style={{ display: 'block', objectFit: 'cover' }}
 								/>
 
-								{/* Render Elements Dynamically inside the live preview */}
 								{elements.map((el) => {
 									const xPct = el.x;
 									const yPct = el.y;
 
+									// Prioritas 1: Data dari Parent (previewData)
+									// Prioritas 2: Label bawaan dari Database (el.label)
+									const displayContent = previewData[el.fieldId] || el.label;
+
 									if (el.fieldId === 'f3') {
 										const qrSize = (el.fontSize / 1920) * previewWidth;
 										const qrPadding = (4 / 1920) * previewWidth;
-										console.log('Rendering QR Code :', el.label);
 										return (
 											<div
 												key={el.id}
@@ -137,7 +133,7 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 												}}
 											>
 												<QRCode
-													value={el.label || '-'}
+													value={displayContent || '-'}
 													size={Math.max(16, Math.round(qrSize) - 8)}
 													fgColor={
 														el.color === '#ffffff'
@@ -150,10 +146,7 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 											</div>
 										);
 									} else {
-										const field = FIELDS.find((f) => f.id === el.fieldId);
-										const content = field?.example || el.label;
 										const scaledFontSize = (el.fontSize / 1920) * previewWidth;
-
 										return (
 											<div
 												key={el.id}
@@ -166,9 +159,10 @@ const PreviewModal = ({ show, onHide, templateFile, elements }) => {
 													color: el.color || '#000',
 													fontFamily: el.fontFamily || 'Arial',
 													fontWeight: el.bold ? 'bold' : 'normal',
+													textAlign: el.textAlign || 'center',
 												}}
 											>
-												{content}
+												{displayContent}
 											</div>
 										);
 									}

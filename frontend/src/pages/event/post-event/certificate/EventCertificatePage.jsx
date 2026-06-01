@@ -15,6 +15,56 @@ import { FIELDS } from './constants';
 import EventLayout from '@/layouts/EventLayout';
 import PreviewModal from '@/components/event/certificate/PreviewModal';
 
+// ==========================================
+// PURE FUNCTIONS (Dipindah ke luar komponen)
+// ==========================================
+const typeToFieldId = {
+	nama_peserta: 'f1',
+	id_sertifikat: 'f2',
+	qr_code: 'f3',
+	nama_event: 'f4',
+	tanggal: 'f5',
+	instansi: 'f6',
+	teks_kustom: 'f7',
+};
+
+const fieldIdToType = Object.fromEntries(Object.entries(typeToFieldId).map(([k, v]) => [v, k]));
+
+const mapDbToElement = (el) => {
+	const fieldId = typeToFieldId[el.element_type] || 'f7';
+	const field = FIELDS.find((f) => f.id === fieldId);
+
+	const rawFont = el.font_family || 'Arial';
+	const bold = rawFont.includes('|bold');
+	const fontFamily = rawFont.replace('|bold', '');
+
+	return {
+		id: el.id ? `db-${el.id}` : `ce-${Date.now()}-${Math.random()}`,
+		fieldId,
+		label: fieldId === 'f7' ? (el.custom_value || 'Teks Kustom') : (field?.key || '{ Kustom }'),
+		x: el.position_x,
+		y: el.position_y,
+		fontSize: el.font_size || (fieldId === 'f1' ? 64 : fieldId === 'f3' ? 80 : 24),
+		bold,
+		fontFamily,
+		color: el.font_color || '#0f172a',
+	};
+};
+
+const mapElementToDb = (el) => ({
+	element_type: fieldIdToType[el.fieldId] || 'teks_kustom',
+	position_x: el.x,
+	position_y: el.y,
+	font_size: el.fontSize || (el.fieldId === 'f3' ? 80 : 14),
+	font_color: el.color || '#0f172a',
+	font_family: `${el.fontFamily || 'Arial'}${el.bold ? '|bold' : ''}`,
+	text_align: 'center',
+	custom_value: el.fieldId === 'f7' ? el.label : null,
+});
+
+// ==========================================
+// MAIN COMPONENT
+// ==========================================
 const EventCertificatePage = () => {
 	const { eventId } = useParams();
 	const fileInputRef = useRef(null);
@@ -43,63 +93,9 @@ const EventCertificatePage = () => {
 		};
 	}, []);
 
-	// Derived State
 	const selectedEl = elements.find((e) => e.id === selectedId) ?? null;
 
-	// Mapping functions
-	const mapDbToElement = useCallback((el) => {
-		let fieldId = 'f7'; // fallback to teks kustom
-		if (el.element_type === 'nama_peserta') fieldId = 'f1';
-		else if (el.element_type === 'id_sertifikat') fieldId = 'f2';
-		else if (el.element_type === 'qr_code') fieldId = 'f3';
-		else if (el.element_type === 'nama_event') fieldId = 'f4';
-		else if (el.element_type === 'tanggal') fieldId = 'f5';
-		else if (el.element_type === 'instansi') fieldId = 'f6';
-		else if (el.element_type === 'teks_kustom') fieldId = 'f7';
-
-		const field = FIELDS.find((f) => f.id === fieldId);
-
-		// Parse bold dan fontFamily dari font_family
-		const rawFont = el.font_family || 'Arial';
-		const bold = rawFont.includes('|bold');
-		const fontFamily = rawFont.replace('|bold', '');
-
-		return {
-			id: el.id ? `db-${el.id}` : `ce-${Date.now()}-${Math.random()}`,
-			fieldId,
-			label: field?.key || '{ Kustom }',
-			x: el.position_x,
-			y: el.position_y,
-			fontSize: el.font_size || (fieldId === 'f1' ? 64 : fieldId === 'f3' ? 80 : 24),
-			bold: bold,
-			fontFamily: fontFamily,
-			color: el.font_color || '#0f172a',
-		};
-	}, []);
-
-	const mapElementToDb = (el) => {
-		let element_type = 'teks_kustom';
-		if (el.fieldId === 'f1') element_type = 'nama_peserta';
-		else if (el.fieldId === 'f2') element_type = 'id_sertifikat';
-		else if (el.fieldId === 'f3') element_type = 'qr_code';
-		else if (el.fieldId === 'f4') element_type = 'nama_event';
-		else if (el.fieldId === 'f5') element_type = 'tanggal';
-		else if (el.fieldId === 'f6') element_type = 'instansi';
-		else if (el.fieldId === 'f7') element_type = 'teks_kustom';
-
-		return {
-			element_type,
-			position_x: el.x,
-			position_y: el.y,
-			font_size: el.fontSize || (el.fieldId === 'f3' ? 80 : 14),
-			font_color: el.color || '#0f172a',
-			font_family: `${el.fontFamily || 'Arial'}${el.bold ? '|bold' : ''}`,
-			text_align: 'center',
-			custom_value: null,
-		};
-	};
-
-	// 1. Fetch Template data on Mount
+	// Fetch Template data on Mount
 	useEffect(() => {
 		const fetchTemplate = async () => {
 			setIsLoading(true);
@@ -107,20 +103,16 @@ const EventCertificatePage = () => {
 				const response = await api.get(`/event-dashboard/${eventId}/certificate`);
 				const template = response.data.data;
 				if (template) {
-					// Resolve background image URL menggunakan blob untuk menghindari isu CORS
 					let bgUrl = '';
 					if (template.background_path) {
 						try {
 							const imgRes = await api.get(
-								`/event-dashboard/${eventId}/certificate/background-file`,
-								{
-									responseType: 'blob',
-								},
+								`/event-dashboard/${eventId}/certificate/background-file?v=${new Date().getTime()}`,
+								{ responseType: 'blob' },
 							);
 							bgUrl = URL.createObjectURL(imgRes.data);
 						} catch (err) {
 							console.error('Gagal memuat blob background gambar:', err);
-							// Fallback ke public storage URL
 							const cleanPath = template.background_path.startsWith('/')
 								? template.background_path.slice(1)
 								: template.background_path;
@@ -129,14 +121,9 @@ const EventCertificatePage = () => {
 					}
 					setTemplateFile(bgUrl);
 					setBackgroundPath(template.background_path);
-
-					// Map elements to fields
-					if (template.elements && template.elements.length > 0) {
-						const mappedFields = template.elements.map(mapDbToElement);
-						setElements(mappedFields);
-					} else {
-						setElements([]);
-					}
+					setElements(
+						template.elements?.length ? template.elements.map(mapDbToElement) : [],
+					);
 				} else {
 					setElements([]);
 				}
@@ -148,7 +135,7 @@ const EventCertificatePage = () => {
 		};
 
 		fetchTemplate();
-	}, [eventId, mapDbToElement]);
+	}, [eventId]);
 
 	// Handlers
 	const handleFileSelect = async (file) => {
@@ -161,17 +148,11 @@ const EventCertificatePage = () => {
 			const response = await api.post(
 				`/event-dashboard/${eventId}/certificate/upload-background`,
 				formData,
-				{
-					headers: {
-						'Content-Type': 'multipart/form-data',
-					},
-				},
+				{ headers: { 'Content-Type': 'multipart/form-data' } },
 			);
 
-			const data = response.data.data;
-			let bgUrl = URL.createObjectURL(file); // Langsung gunakan blob URL dari file lokal!
-			setTemplateFile(bgUrl);
-			setBackgroundPath(data.background_path);
+			setTemplateFile(URL.createObjectURL(file));
+			setBackgroundPath(response.data.data.background_path);
 		} catch (error) {
 			console.error('Gagal mengunggah template:', error);
 		} finally {
@@ -180,35 +161,29 @@ const EventCertificatePage = () => {
 	};
 
 	const handleSave = async () => {
-		console.log('1. Tombol save ditekan!');
-
 		if (!backgroundPath) {
-			// Tambahkan parameter kedua untuk Title, dan ketiga untuk Message
-			notify('error', 'Validasi Gagal', 'Silakan unggah gambar template terlebih dahulu.');
-			return;
+			return notify(
+				'error',
+				'Validasi Gagal',
+				'Silakan unggah gambar template terlebih dahulu.',
+			);
 		}
 
-		const hasQr = elements.some((el) => el.fieldId === 'f3');
-		if (!hasQr) {
-			notify(
+		if (!elements.some((el) => el.fieldId === 'f3')) {
+			return notify(
 				'error',
 				'Validasi Gagal',
 				'QR Code wajib dimasukkan ke dalam template sertifikat.',
 			);
-			return;
 		}
 
-		const hasName = elements.some((el) => el.fieldId === 'f1');
-		if (!hasName) {
-			notify(
+		if (!elements.some((el) => el.fieldId === 'f1')) {
+			return notify(
 				'error',
 				'Validasi Gagal',
 				'Nama peserta wajib dimasukkan ke dalam template sertifikat.',
 			);
-			return;
 		}
-
-		const elementsPayload = elements.map(mapElementToDb);
 
 		setIsSaving(true);
 		try {
@@ -217,17 +192,15 @@ const EventCertificatePage = () => {
 				background_path: backgroundPath,
 				canvas_width: 1920,
 				canvas_height: 1080,
-				elements: elementsPayload,
+				elements: elements.map(mapElementToDb),
 			});
 
 			notify('success', 'Berhasil', 'Template Sertifikat berhasil disimpan!');
-
 			setSaved(true);
 			setTimeout(() => setSaved(false), 2000);
 		} catch (error) {
 			console.error('Gagal menyimpan template sertifikat:', error);
 			notify('error', 'Gagal', 'Tidak bisa menyimpan template sertifikat');
-			throw error;
 		} finally {
 			setIsSaving(false);
 		}
@@ -274,7 +247,6 @@ const EventCertificatePage = () => {
 
 	return (
 		<EventLayout
-			onSave={handleSave}
 			sidebar={
 				selectedEl ? (
 					<SidebarEdit
@@ -294,7 +266,6 @@ const EventCertificatePage = () => {
 			}
 		>
 			<div className="d-flex flex-column certificate-builder">
-				{/* Top Header */}
 				<Topbar
 					saved={saved}
 					onSave={handleSave}
@@ -304,8 +275,6 @@ const EventCertificatePage = () => {
 					isSaving={isSaving}
 				/>
 
-				{/* Main Body */}
-				{/* Canvas / Gambar Sertifikat */}
 				<CanvasArea
 					templateFile={templateFile}
 					elements={elements}
@@ -330,12 +299,20 @@ const EventCertificatePage = () => {
 				}}
 			/>
 
-			{/* Modal Preview Sertifikat */}
 			<PreviewModal
 				show={showPreview}
 				onHide={() => setShowPreview(false)}
 				templateFile={templateFile}
 				elements={elements}
+				previewData={{
+					f1: 'Nama Peserta',
+					f2: 'ID Sertifikat',
+					f3: `${window.location.origin}/verify/ID-SERTIFIKAT`,
+					f4: 'Nama Event',
+					f5: 'Tanggal Acara',
+					f6: 'Instansi/Organisasi',
+					f7: 'Teks Kustom',
+				}}
 			/>
 		</EventLayout>
 	);

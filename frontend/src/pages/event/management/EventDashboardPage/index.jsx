@@ -34,6 +34,7 @@ import DemographicsCard from './DemographicsCard';
 import TicketDistribution from './TicketDistribution';
 import DashboardSkeleton from './DashboardSkeleton';
 import PublishReadyCard from './PublishReadyCard';
+import OngoingDashboardCard from './OngoingDashboardCard';
 
 // Config
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
@@ -353,6 +354,11 @@ export default function EventDashboardPage() {
 				onScanner={() => navigate(`/organizer/${eventId}/event-dashboard/scanner`)}
 				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
 			/>
+
+			{/* Ongoing Dashboard Card */}
+			{eventStatus === 'ongoing' && (
+				<OngoingDashboardCard eventData={eventData} sessions={sessions} />
+			)}
 
 			{/* Stat Cards */}
 			{currentConfig.showStats && (

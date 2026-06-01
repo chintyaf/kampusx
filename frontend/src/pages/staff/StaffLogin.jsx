@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldAlert, KeyRound } from 'lucide-react';
 import api from '../../api/axios';
 
@@ -9,6 +9,15 @@ const StaffLogin = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    // Initialize PIN from query params if exists
+    useEffect(() => {
+        const pinFromUrl = searchParams.get('pin');
+        if (pinFromUrl) {
+            setPin(pinFromUrl);
+        }
+    }, [searchParams]);
 
     // Redirect if already logged in as staff
     useEffect(() => {

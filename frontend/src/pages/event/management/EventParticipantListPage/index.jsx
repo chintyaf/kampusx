@@ -57,7 +57,7 @@ const STATUS_CONFIG = {
 		className: 'participant-badge participant-badge--success',
 		icon: <CheckCircle2 size={11} />,
 	},
-	checked_in: {
+	used: {
 		label: 'Hadir',
 		className: 'participant-badge participant-badge--primary',
 		icon: <UserCheck size={11} />,
@@ -181,7 +181,7 @@ const EventParticipantListPage = () => {
 
 	// ── Stats ─────────────────────────────────────────────────────────────────
 	const total = pageInfo.total || 0;
-	const checkedIn = participants.filter((t) => t.status === 'checked_in').length;
+	const checkedIn = participants.filter((t) => t.status === 'used').length;
 	const active = participants.filter((t) => t.status === 'active').length;
 	const cancelled = participants.filter((t) => t.status === 'cancelled').length;
 

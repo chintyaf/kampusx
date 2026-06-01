@@ -149,9 +149,8 @@ const QuestionItem = ({ q, index, updateQuestion, deleteQuestion, isSaving }) =>
 
 					{['text', 'textarea'].includes(q.type) && (
 						<div
-							className={`mt-2 border rounded-3 d-flex align-items-center px-3 small text-muted bg-light ${
-								q.type === 'textarea' ? 'py-4' : 'py-2'
-							}`}
+							className={`mt-2 border rounded-3 d-flex align-items-center px-3 small text-muted bg-light ${q.type === 'textarea' ? 'py-4' : 'py-2'
+								}`}
 							style={{ borderStyle: 'dashed' }}
 						>
 							{q.type === 'text'
@@ -177,7 +176,7 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 	);
 	const [description, setDescription] = useState(
 		initialSurvey?.description ||
-			'Silakan berikan masukan Anda untuk membantu meningkatkan kualitas acara.',
+		'Silakan berikan masukan Anda untuk membantu meningkatkan kualitas acara.',
 	);
 	const [isSaving, setIsSaving] = useState(false);
 
@@ -301,11 +300,10 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 					<Button
 						variant={status === 'aktif' ? 'success' : 'light'}
 						onClick={() => setStatus(status === 'aktif' ? 'draft' : 'aktif')}
-						className={`d-flex align-items-center gap-2 rounded-3 border ${
-							status === 'aktif'
+						className={`d-flex align-items-center gap-2 rounded-3 border ${status === 'aktif'
 								? 'bg-success-subtle text-success border-success-subtle'
 								: 'text-muted border-secondary-subtle'
-						}`}
+							}`}
 						disabled={isSaving}
 					>
 						{status === 'aktif' ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}

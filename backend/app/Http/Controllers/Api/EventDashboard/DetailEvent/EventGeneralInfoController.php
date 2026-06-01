@@ -16,7 +16,7 @@ class EventGeneralInfoController extends Controller
      */
     public function index($eventId)
     {
-        $event = Event::select('id', 'title', 'description', 'image_path', 'timezone') // Hapus slug jika tidak dipakai
+        $event = Event::select('id', 'title', 'description', 'image_path', 'timezone', 'checkin_window_start', 'checkin_window_end') // Hapus slug jika tidak dipakai
             ->with([
                 'categories' => function($query) {
                     $query->select('categories.id', 'categories.name');
@@ -36,6 +36,8 @@ class EventGeneralInfoController extends Controller
                 'description'   => $event->description,
                 'banner'        => $event->image_path ? url('storage/' . $event->image_path ) : null,
                 'timezone'      => $event->timezone,
+                'checkin_window_start' => $event->checkin_window_start,
+                'checkin_window_end'   => $event->checkin_window_end,
 
                 // Menyesuaikan dengan response yang dibaca di useEffect React
                 'tags_kategori' => $event->categories->map(function($cat) {
@@ -75,6 +77,8 @@ class EventGeneralInfoController extends Controller
                             ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
                             : 'nullable',
             'timezone'           => 'required|string|max:50',
+            'checkin_window_start' => 'nullable|integer|min:0',
+            'checkin_window_end'   => 'nullable|integer|min:0',
         ]);
 
         try {
@@ -85,6 +89,8 @@ class EventGeneralInfoController extends Controller
                     'title'       => $validated['title'],
                     'description' => $validated['description'] ?? null,
                     'timezone'    => $validated['timezone'],
+                    'checkin_window_start' => $validated['checkin_window_start'] ?? 30,
+                    'checkin_window_end'   => $validated['checkin_window_end'] ?? 0,
                 ];
 
               // Di dalam method update(Request $request, $eventId)

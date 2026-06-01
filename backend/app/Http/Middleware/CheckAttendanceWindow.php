@@ -58,13 +58,16 @@ class CheckAttendanceWindow
             ? $event->end_date->format('Y-m-d H:i:s') 
             : Carbon::parse($event->end_date)->format('Y-m-d H:i:s');
 
-        $allowedStartTime = Carbon::createFromFormat('Y-m-d H:i:s', $startDateString, $eventTimezone)->subMinutes(30);
-        $allowedEndTime = Carbon::createFromFormat('Y-m-d H:i:s', $endDateString, $eventTimezone);
+        $windowStart = $event->checkin_window_start ?? 30;
+        $windowEnd = $event->checkin_window_end ?? 0;
+
+        $allowedStartTime = Carbon::createFromFormat('Y-m-d H:i:s', $startDateString, $eventTimezone)->subMinutes($windowStart);
+        $allowedEndTime = Carbon::createFromFormat('Y-m-d H:i:s', $endDateString, $eventTimezone)->addMinutes($windowEnd);
 
         if ($now->lessThan($allowedStartTime)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Presensi belum dibuka. Silakan coba lagi 30 menit sebelum acara dimulai.'
+                'message' => "Presensi belum dibuka. Silakan coba lagi {$windowStart} menit sebelum acara dimulai."
             ], 403);
         }
 

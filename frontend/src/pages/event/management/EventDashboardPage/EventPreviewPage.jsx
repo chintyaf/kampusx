@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Badge, Accordion, Spinner, Alert } from 'react-bootstrap';
-import { Calendar, MapPin, Share2, Heart, User, Wifi, Users, ArrowLeft } from 'lucide-react';
+import { Container, Row, Col, Spinner, Alert, Button } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../../../api/axios';
-import { STORAGE_URL } from '../../../../api/storage';
+
+// Import Modular Sections from Public Event Detail
+import EventHeader from '../../public/EventDetail/sections/EventHeader';
+import EventAbout from '../../public/EventDetail/sections/EventAbout';
+import EventAgenda from '../../public/EventDetail/sections/EventAgenda';
+import EventTicketCard from '../../public/EventDetail/sections/EventTicketCard';
+import EventLocationCard from '../../public/EventDetail/sections/EventLocationCard';
+import EventOrganizerCard from '../../public/EventDetail/sections/EventOrganizerCard';
 
 export default function EventPreviewPage() {
 	const { eventId } = useParams();
@@ -14,6 +20,10 @@ export default function EventPreviewPage() {
 	const [error, setError] = useState(null);
 	const [isPublishing, setIsPublishing] = useState(false);
 	const [publishErrors, setPublishErrors] = useState(null);
+
+	const [selectedTicket, setSelectedTicket] = useState('day1');
+	// In preview mode, user is not actually registered
+	const registration = { registered: false, status: null, order_id: null };
 
 	useEffect(() => {
 		const fetchEventDetails = async () => {
@@ -49,45 +59,12 @@ export default function EventPreviewPage() {
 			const errData = err.response?.data;
 			if (err.response?.status === 422 && errData?.errors) {
 				setPublishErrors(errData.errors);
-				// Scroll to top to see errors
 				window.scrollTo({ top: 0, behavior: 'smooth' });
 			} else {
 				alert(errData?.message || 'Terjadi kesalahan saat mempublikasikan event.');
 			}
 		} finally {
 			setIsPublishing(false);
-		}
-	};
-
-	const formatDate = (dateStr) => {
-		if (!dateStr) return '-';
-		try {
-			const d = new Date(dateStr);
-			const formatTimezone = (tz) => {
-				if (!tz) return '';
-				const mapping = {
-					'Asia/Jakarta': 'WIB',
-					'Asia/Makassar': 'WITA',
-					'Asia/Jayapura': 'WIT',
-					'WIB': 'WIB',
-					'WITA': 'WITA',
-					'WIT': 'WIT',
-				};
-				return mapping[tz] || tz;
-			};
-			const tzDisplay = formatTimezone(eventDetails?.timezone);
-			return (
-				d.toLocaleDateString('id-ID', {
-					weekday: 'long',
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				}) + (tzDisplay ? ` (${tzDisplay})` : '')
-			);
-		} catch (e) {
-			return dateStr;
 		}
 	};
 
@@ -113,20 +90,20 @@ export default function EventPreviewPage() {
 		);
 	}
 
-	// Group sessions dynamically by day_number
-	const sessions = eventDetails.sessions || [];
-	const sessionsByDay = {};
-	sessions.forEach((s) => {
-		const day = s.day_number || s.dayNumber || 1;
-		if (!sessionsByDay[day]) {
-			sessionsByDay[day] = [];
-		}
-		sessionsByDay[day].push(s);
-	});
-	const sortedDays = Object.keys(sessionsByDay).sort((a, b) => Number(a) - Number(b));
+	const eventLocation = eventDetails.location_detail || eventDetails.locationDetail;
 
-	const eventTypes = eventDetails.event_types || eventDetails.eventTypes || [];
-	const categories = eventDetails.categories || [];
+	const getTzLabel = (tz) => {
+		if (!tz) return 'WIB';
+		const mapping = {
+			'Asia/Jakarta': 'WIB',
+			'Asia/Makassar': 'WITA',
+			'Asia/Jayapura': 'WIT',
+			'WIB': 'WIB',
+			'WITA': 'WITA',
+			'WIT': 'WIT',
+		};
+		return mapping[tz] || tz;
+	};
 
 	return (
 		<div style={{ backgroundColor: 'var(--color-bg, #f4f5f7)', minHeight: '100vh', paddingBottom: '80px' }}>
@@ -186,300 +163,46 @@ export default function EventPreviewPage() {
 				</Container>
 			)}
 
-			{/* --- HEADER BANNER --- */}
-			<div className="bg-white border-bottom pt-4 pb-4 mb-4">
+			<div style={{ pointerEvents: 'none' }} className="mt-4">
+				{/* --- HEADER BANNER --- */}
+				<EventHeader
+					eventDetails={eventDetails}
+					isBookmarked={false}
+					handleShare={() => {}}
+					handleToggleBookmark={() => {}}
+				/>
+
 				<Container>
-					<Button
-						variant="link"
-						className="text-decoration-none p-0 d-flex align-items-center mb-3 text-muted"
-						style={{ fontSize: '13px', fontWeight: 600 }}
-						onClick={() => navigate(-1)}
-					>
-						<ArrowLeft size={16} className="me-2" /> Kembali ke Halaman Sebelumnya
-					</Button>
-					<div className="d-flex gap-2 mb-3 flex-wrap">
-						{/* Event Types */}
-						{eventTypes.length > 0 ? (
-							eventTypes.map((t) => {
-								const typeName = typeof t === 'object' ? t.name : t;
-								return (
-									<Badge
-										key={t.id || typeName}
-										bg="light"
-										text="primary"
-										className="border border-primary px-3 py-2 d-flex align-items-center rounded-0 fw-semibold"
-										style={{ fontSize: '11px' }}
-									>
-										{typeName === 'Online' ? <Wifi size={13} className="me-1" /> : <Users size={13} className="me-1" />}
-										{typeName}
-									</Badge>
-								);
-							})
-						) : (
-							<>
-								{eventDetails.is_in_person && (
-									<Badge bg="light" text="dark" className="border px-3 py-2 d-flex align-items-center rounded-0 fw-semibold" style={{ fontSize: '11px' }}>
-										<Users size={13} className="me-1" /> Onsite
-									</Badge>
-								)}
-								{eventDetails.is_online && (
-									<Badge bg="light" text="primary" className="border border-primary px-3 py-2 d-flex align-items-center rounded-0 fw-semibold" style={{ fontSize: '11px' }}>
-										<Wifi size={13} className="me-1" /> Online
-									</Badge>
-								)}
-							</>
-						)}
+					<Row className="g-4">
+						{/* KOLOM KIRI: KONTEN UTAMA */}
+						<Col lg={8}>
+							<EventAbout eventDetails={eventDetails} />
+							<EventAgenda eventDetails={eventDetails} />
+						</Col>
 
-						{/* Categories */}
-						{categories.length > 0 ? (
-							categories.map((c) => {
-								const catName = typeof c === 'object' ? c.name : c;
-								return (
-									<Badge key={c.id || catName} bg="light" text="dark" className="border px-3 py-2 rounded-0 fw-semibold" style={{ fontSize: '11px' }}>
-										{catName}
-									</Badge>
-								);
-							})
-						) : (
-							<>
-								{eventDetails.category && (
-									<Badge bg="light" text="dark" className="border px-3 py-2 rounded-0 fw-semibold" style={{ fontSize: '11px' }}>
-										{eventDetails.category}
-									</Badge>
-								)}
-							</>
-						)}
-					</div>
+						{/* KOLOM KANAN: STICKY TICKET CARD */}
+						<Col lg={4}>
+							<div className="" style={{ top: '90px' }}>
+								<EventTicketCard
+									eventDetails={eventDetails}
+									selectedTicket={selectedTicket}
+									setSelectedTicket={setSelectedTicket}
+									registration={registration}
+									handleLanjutPembayaran={() => {}}
+								/>
 
-					<h1 className="fw-bold mb-3 text-dark" style={{ fontSize: '2.25rem', letterSpacing: '-0.5px' }}>
-						{eventDetails.title}
-					</h1>
+								<EventLocationCard
+									eventDetails={eventDetails}
+									eventLocation={eventLocation}
+									getTzLabel={getTzLabel}
+								/>
 
-					<p className="text-muted mb-0" style={{ maxWidth: '800px', fontSize: '15px', lineHeight: '1.6' }}>
-						{eventDetails.short_description || 'Bergabunglah dalam event luar biasa ini dan tingkatkan portofolio serta kemampuan profesional Anda bersama KampusX.'}
-					</p>
+								<EventOrganizerCard eventDetails={eventDetails} />
+							</div>
+						</Col>
+					</Row>
 				</Container>
 			</div>
-
-			{/* --- MAIN CONTENT --- */}
-			<Container>
-				<Row className="g-4">
-					{/* LEFT COLUMN: EVENT DETAILS */}
-					<Col lg={8}>
-						{/* Banner Image */}
-						<div className="mb-4">
-							<img
-								src={eventDetails.image_path ? `${STORAGE_URL}/${eventDetails.image_path}` : `${STORAGE_URL}/event-banners/${eventDetails.id}.jpg`}
-								alt={eventDetails.title}
-								className="w-100 rounded-0 object-fit-cover border-2 border"
-								style={{ height: '400px', objectPosition: 'center' }}
-							/>
-						</div>
-
-						{/* Description */}
-						<div className="bg-white p-4 rounded-0 border-2 border mb-4">
-							<h4 className="fw-bold mb-3 text-dark border-bottom pb-2" style={{ fontSize: '18px' }}>
-								Tentang Event Ini
-							</h4>
-							<div
-								style={{ lineHeight: '1.8', color: '#334155', fontSize: '14px' }}
-								dangerouslySetInnerHTML={{ __html: eventDetails.description || '<p className="text-muted">Deskripsi detail belum diatur.</p>' }}
-							/>
-						</div>
-
-						{/* Agenda Accordion */}
-						<div className="bg-white p-4 rounded-0 border-2 border mb-4">
-							<h4 className="fw-bold mb-4 text-dark border-bottom pb-2" style={{ fontSize: '18px' }}>
-								Jadwal &amp; Agenda
-							</h4>
-							{sortedDays.length === 0 ? (
-								<div className="py-4 text-center border-2 border border-dashed rounded-0 bg-light">
-									<p className="text-muted mb-0" style={{ fontSize: '13px' }}>
-										Belum ada jadwal sesi yang didaftarkan untuk event ini.
-									</p>
-								</div>
-							) : (
-								<Accordion defaultActiveKey="0" className="border-0 shadow-none">
-									{sortedDays.map((dayNum, index) => (
-										<Accordion.Item eventKey={index.toString()} key={dayNum} className="mb-3 border rounded-0 shadow-none border-2">
-											<Accordion.Header className="rounded-0">
-												<div className="fw-bold text-dark" style={{ fontSize: '14px' }}>
-													Hari {dayNum} ({sessionsByDay[dayNum]?.[0]?.date || 'Tanggal belum diatur'})
-												</div>
-											</Accordion.Header>
-											<Accordion.Body className="rounded-0 p-3">
-												<ul className="list-unstyled m-0">
-													{sessionsByDay[dayNum].map((session, sIdx) => (
-														<li key={session.id || sIdx} className="d-flex mb-3 align-items-start border-bottom pb-3 last-border-none flex-wrap flex-sm-nowrap gap-2">
-															<div
-																className="fw-bold me-sm-3 text-nowrap py-1 px-2 border d-inline-block text-center bg-light"
-																style={{
-																	minWidth: '120px',
-																	color: 'var(--color-primary, #00699e)',
-																	fontFamily: 'monospace',
-																	fontSize: '12px',
-																}}
-															>
-																{session.start_time ? session.start_time.substring(0, 5) : '00:00'} - {session.end_time ? session.end_time.substring(0, 5) : '00:00'}
-															</div>
-															<div className="flex-grow-1" style={{ minWidth: 0 }}>
-																<div className="fw-bold text-dark mb-1" style={{ fontSize: '14px' }}>
-																	{session.title}
-																</div>
-																<div className="text-muted mb-2" style={{ fontSize: '12px', lineHeight: '1.5' }}>
-																	{session.description || 'Tidak ada deskripsi sesi.'}
-																</div>
-																{session.speakers && session.speakers.length > 0 && (
-																	<div className="mt-2 d-flex flex-wrap gap-2">
-																		{session.speakers.map((spk) => (
-																			<span key={spk.id} className="badge bg-light text-dark border-2 border px-2 py-1 rounded-0 font-monospace" style={{ fontSize: '10px' }}>
-																				👤 {spk.name} {spk.role && `(${spk.role})`}
-																			</span>
-																		))}
-																	</div>
-																)}
-															</div>
-														</li>
-													))}
-												</ul>
-											</Accordion.Body>
-										</Accordion.Item>
-									))}
-								</Accordion>
-							)}
-						</div>
-					</Col>
-
-					{/* RIGHT COLUMN: STICKY TICKET & INFO CARDS */}
-					<Col lg={4}>
-						<div className="position-sticky" style={{ top: '80px' }}>
-							{/* Ticket purchase mock card */}
-							<Card className="border-2 rounded-0 shadow-none mb-4">
-								<Card.Body className="p-4">
-									<h4 className="fw-bold mb-1 text-dark" style={{ fontSize: '18px' }}>
-										Beli Tiket
-									</h4>
-									<p className="text-muted small mb-4">Pilih jenis tiket atau sesi yang ingin Anda ikuti.</p>
-
-									<div className="border border-2 rounded-0 p-3 mb-4 bg-light">
-										<div className="d-flex align-items-center">
-											<input type="radio" id="ticket-preview" className="me-2" checked readOnly style={{ accentColor: '#0f172a' }} />
-											<label htmlFor="ticket-preview" className="fw-bold text-dark mb-0" style={{ fontSize: '13px' }}>
-												General Admission
-											</label>
-										</div>
-										<div className="ms-4 mt-2 d-flex justify-content-between align-items-center flex-wrap gap-1">
-											<span className="small text-muted" style={{ fontSize: '11px' }}>
-												Akses ke seluruh sesi &amp; materi
-											</span>
-											<span className="fw-bold" style={{ color: 'var(--color-primary, #00699e)', fontSize: '14px' }}>
-												{eventDetails.price === 0 || eventDetails.price === 'Free' || !eventDetails.price
-													? 'Gratis'
-													: `Rp ${Number(eventDetails.price).toLocaleString('id-ID')}`}
-											</span>
-										</div>
-									</div>
-
-									<Button
-										variant="secondary"
-										className="w-100 py-3 fw-bold rounded-0 border-0 mb-3 text-uppercase shadow-none"
-										style={{ fontSize: '12px', cursor: 'not-allowed', backgroundColor: '#64748b' }}
-										disabled
-									>
-										Pendaftaran Dinonaktifkan (Pratinjau)
-									</Button>
-
-									<div className="d-flex justify-content-center gap-2">
-										<Button variant="light" className="d-flex align-items-center flex-fill justify-content-center border-2 border rounded-0 py-2 fw-semibold" style={{ fontSize: '12px' }} disabled>
-											<Share2 size={14} className="me-2" /> Share
-										</Button>
-										<Button variant="light" className="d-flex align-items-center flex-fill justify-content-center border-2 border rounded-0 py-2 fw-semibold" style={{ fontSize: '12px' }} disabled>
-											<Heart size={14} className="me-2 text-danger" /> Simpan
-										</Button>
-									</div>
-								</Card.Body>
-							</Card>
-
-							{/* Card Detail Waktu & Lokasi */}
-							<Card className="border-2 rounded-0 shadow-none mb-4">
-								<Card.Body className="p-4">
-									<h6 className="fw-bold mb-3 border-bottom pb-2" style={{ fontSize: '15px' }}>
-										Waktu &amp; Lokasi
-									</h6>
-
-									<div className="d-flex mb-3 align-items-start">
-										<div className="bg-light p-2 me-3 d-flex align-items-center justify-content-center border-2 border rounded-0" style={{ width: '40px', height: '40px' }}>
-											<Calendar size={20} style={{ color: 'var(--color-primary, #00699e)' }} />
-										</div>
-										<div>
-											<div className="fw-bold text-dark" style={{ fontSize: '13px', lineHeight: '1.4' }}>
-												Mulai
-											</div>
-											<div className="text-muted" style={{ fontSize: '12px', marginTop: '2px' }}>
-												{formatDate(eventDetails.start_date)}
-											</div>
-											<div className="fw-bold text-dark mt-2" style={{ fontSize: '13px', lineHeight: '1.4' }}>
-												Selesai
-											</div>
-											<div className="text-muted" style={{ fontSize: '12px', marginTop: '2px' }}>
-												{formatDate(eventDetails.end_date)}
-											</div>
-										</div>
-									</div>
-
-									<div className="d-flex align-items-start">
-										<div className="bg-light p-2 me-3 d-flex align-items-center justify-content-center border-2 border rounded-0" style={{ width: '40px', height: '40px' }}>
-											<MapPin size={20} style={{ color: 'var(--color-primary, #00699e)' }} />
-										</div>
-										<div>
-											<div className="fw-bold text-dark" style={{ fontSize: '13px' }}>
-												{eventDetails.location_detail?.location_name || eventDetails.location_name || 'Lokasi Acara'}
-											</div>
-											<div className="text-muted mt-1" style={{ fontSize: '12px', lineHeight: '1.5' }}>
-												{eventDetails.location_detail?.platform ? (
-													<span>Platform Online: <strong>{eventDetails.location_detail.platform}</strong></span>
-												) : (
-													<span>
-														{[
-															eventDetails.location_detail?.address_detail,
-															eventDetails.location_detail?.district,
-															eventDetails.location_detail?.city,
-															eventDetails.location_detail?.province,
-														]
-															.filter(Boolean)
-															.join(', ') ||
-															eventDetails.location ||
-															eventDetails.address ||
-															'Detail lokasi fisik belum diatur.'}
-													</span>
-												)}
-											</div>
-										</div>
-									</div>
-								</Card.Body>
-							</Card>
-
-							{/* Card Organizer */}
-							<Card className="border-2 rounded-0 shadow-none">
-								<Card.Body className="p-4 text-center">
-									<h6 className="fw-bold mb-3 text-start border-bottom pb-2" style={{ fontSize: '15px' }}>
-										Penyelenggara
-									</h6>
-									<div className="bg-light rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center border-2 border" style={{ width: '60px', height: '60px' }}>
-										<User size={30} className="text-secondary" />
-									</div>
-									<h6 className="fw-bold mb-1 text-dark" style={{ fontSize: '14px' }}>
-										{eventDetails.organizer?.name || eventDetails.institution?.name || eventDetails.organizer_name || eventDetails.org || 'Panitia KampusX'}
-									</h6>
-									<Button variant="outline-dark" size="sm" className="w-100 rounded-0 mt-3 border-2 fw-semibold" style={{ fontSize: '12px' }} disabled>
-										Follow Organizer (Mode Preview)
-									</Button>
-								</Card.Body>
-							</Card>
-						</div>
-					</Col>
-				</Row>
-			</Container>
 		</div>
 	);
 }

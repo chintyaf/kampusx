@@ -162,11 +162,17 @@ class AttendanceController extends Controller
         $venuePrefix = $qrParts[0];
         $receivedHash = $qrParts[1];
 
-        // Parse type from prefix (venue_in_eventId or venue_out_eventId)
-        // Compatibility: venue_eventId is treated as 'in'
+        // Parse type and expires_at from prefix
         $type = 'in';
         $eventIdParsed = null;
-        if (preg_match('/^venue_(in|out)_(\d+)$/', $venuePrefix, $matches)) {
+        $expiresAt = null;
+
+        // Pattern: venue_{type}_{eventId}_{expiresAt}
+        if (preg_match('/^venue_(in|out)_(\d+)_(.+)$/', $venuePrefix, $matches)) {
+            $type = $matches[1];
+            $eventIdParsed = $matches[2];
+            $expiresAt = $matches[3];
+        } elseif (preg_match('/^venue_(in|out)_(\d+)$/', $venuePrefix, $matches)) {
             $type = $matches[1];
             $eventIdParsed = $matches[2];
         } elseif (preg_match('/^venue_(\d+)$/', $venuePrefix, $matches)) {
@@ -188,6 +194,17 @@ class AttendanceController extends Controller
 
         if (!hash_equals($expectedHash, $receivedHash)) {
             return response()->json(['message' => 'QR Code tidak valid / palsu'], 403);
+        }
+
+        if ($expiresAt) {
+            try {
+                $expiryDate = \Carbon\Carbon::parse($expiresAt);
+                if (\Carbon\Carbon::now()->greaterThan($expiryDate)) {
+                    return response()->json(['message' => 'Link presensi sudah kedaluwarsa dan tidak dapat diakses lagi.'], 403);
+                }
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Format waktu kedaluwarsa tidak valid'], 400);
+            }
         }
 
         // Cari tiket user yang sedang login untuk event ini yang pembayarannya lunas (paid)

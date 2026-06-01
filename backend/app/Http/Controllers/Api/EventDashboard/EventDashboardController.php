@@ -93,7 +93,7 @@ class EventDashboardController extends Controller
 
         $now = now();
         $isPublished = in_array($event->status, ['published', 'ongoing', 'archived', 'completed']);
-        
+
         $timeline = [
             [
                 'label' => 'Draft',
@@ -192,7 +192,7 @@ class EventDashboardController extends Controller
         // Determine event status logic for stats
         $calculatedStatus = $event->status;
         $now = now();
-        
+
         $sessions = \App\Models\EventSession::with(['speakers', 'materials'])
             ->where('event_id', $eventId)
             ->orderBy('day_number', 'asc')
@@ -202,19 +202,19 @@ class EventDashboardController extends Controller
         if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
             $startDate = \Carbon\Carbon::parse($event->start_date);
             $endDate = \Carbon\Carbon::parse($event->end_date);
-            
+
             if ($now->gt($endDate)) {
                 $calculatedStatus = 'completed';
             } elseif ($now->gte($startDate) && $now->lte($endDate)) {
                 $calculatedStatus = 'ongoing';
-                
+
                 if ($sessions->isNotEmpty()) {
                     $isAnySessionActive = false;
                     $hasFutureSessions = false;
-                    
+
                     foreach ($sessions as $session) {
                         $sessionDate = $startDate->copy()->addDays($session->day_number - 1);
-                        
+
                         $sessionStart = $sessionDate->copy();
                         if ($session->start_time) {
                             $timeParts = explode(':', $session->start_time);
@@ -234,7 +234,7 @@ class EventDashboardController extends Controller
                         if ($now->between($sessionStart, $sessionEnd)) {
                             $isAnySessionActive = true;
                         }
-                        
+
                         if ($sessionStart->gt($now)) {
                             $hasFutureSessions = true;
                         }
@@ -259,7 +259,7 @@ class EventDashboardController extends Controller
                 'iconBg' => '#f3e8ff',
                 'iconColor' => '#7c3aed',
             ];
-            
+
             $stats[] = [
                 'label' => 'Absent',
                 'value' => (string)$absent,
@@ -267,7 +267,7 @@ class EventDashboardController extends Controller
                 'iconBg' => '#fee2e2',
                 'iconColor' => '#b91c1c',
             ];
-            
+
             if ($calculatedStatus === 'completed') {
                 $surveyCount = 0;
                 if (\Illuminate\Support\Facades\Schema::hasTable('survey_responses') && \Illuminate\Support\Facades\Schema::hasTable('surveys')) {
@@ -276,7 +276,7 @@ class EventDashboardController extends Controller
                         ->where('surveys.event_id', $eventId)
                         ->count();
                 }
-                
+
                 $stats[] = [
                     'label' => 'Survey Responses',
                     'value' => (string)$surveyCount,
@@ -324,8 +324,8 @@ class EventDashboardController extends Controller
             return [
                 'title' => $s->title,
                 'day' => $s->day_number,
-                'time' => $s->start_time && $s->end_time 
-                    ? substr($s->start_time, 0, 5) . ' - ' . substr($s->end_time, 0, 5) 
+                'time' => $s->start_time && $s->end_time
+                    ? substr($s->start_time, 0, 5) . ' - ' . substr($s->end_time, 0, 5)
                     : 'Belum diatur',
                 'speaker' => $s->speakers->pluck('name')->implode(', ') ?: null,
                 'materialStatus' => $s->materials->count() > 0 ? 'uploaded' : 'pending',
@@ -406,7 +406,7 @@ class EventDashboardController extends Controller
                 ->join('orders', 'order_items.order_id', '=', 'orders.id')
                 ->where('orders.event_id', $eventId)
                 ->count();
-            
+
             $ticketsData = [
                 [
                     'label' => 'Tiket Reguler',
@@ -417,11 +417,11 @@ class EventDashboardController extends Controller
         }
         $calculatedStatus = $event->status;
         $now = now();
-        
+
         if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
             $startDate = \Carbon\Carbon::parse($event->start_date);
             $endDate = \Carbon\Carbon::parse($event->end_date);
-            
+
             if ($now->gt($endDate)) {
                 $calculatedStatus = 'completed';
             } elseif ($now->gte($startDate) && $now->lte($endDate)) {
@@ -432,7 +432,7 @@ class EventDashboardController extends Controller
         $cancelThresholdDays = 1;
         $canCancel = false;
         $cancelMessage = '';
-        
+
         if (in_array($calculatedStatus, ['published', 'ongoing'])) {
             if ($event->start_date) {
                 $thresholdDate = \Carbon\Carbon::parse($event->start_date)->subDays($cancelThresholdDays);
@@ -462,13 +462,13 @@ class EventDashboardController extends Controller
                 'required' => $isOnlineOrHybrid,
                 'link' => "/organizer/{$eventId}/event-dashboard/detail/tempat"
             ],
-            [
-                'id' => 'survey',
-                'label' => 'Buat Kuesioner Survey Kepuasan Acara',
-                'completed' => $hasSurvey,
-                'required' => true,
-                'link' => "/organizer/{$eventId}/event-dashboard/survey-form"
-            ],
+            // [
+            //     'id' => 'survey',
+            //     'label' => 'Buat Kuesioner Survey Kepuasan Acara',
+            //     'completed' => $hasSurvey,
+            //     'required' => true,
+            //     'link' => "/organizer/{$eventId}/event-dashboard/survey-form"
+            // ],
             [
                 'id' => 'pos',
                 'label' => 'Atur Stasiun Scanner / Pos Check-in',
@@ -558,9 +558,9 @@ class EventDashboardController extends Controller
             ->where('event_id', $eventId)
             ->where('status', 'paid')
             ->get();
-            
+
         $grossSales = $paidOrders->sum('amount');
-        
+
         // Net Revenue mock logic (usually gross minus fees)
         $netRevenue = $grossSales * 0.97; // Example: 3% platform fee
 
@@ -583,10 +583,10 @@ class EventDashboardController extends Controller
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('orders.event_id', $eventId)
             ->where('tickets.status', 'cancelled');
-            
+
         $refundCount = $refundedTicketsQuery->count();
         $refundAmount = $refundedTicketsQuery->sum('order_items.price'); // Approximation if 1 qty per ticket
-        
+
         $refundRate = $totalTickets > 0 ? round(($refundCount / $totalTickets) * 100, 1) : 0;
 
         // 4. Breakdown per tier (EventTicket)
@@ -625,7 +625,7 @@ class EventDashboardController extends Controller
             ->where('status', 'paid')
             ->where('created_at', '>=', now()->subDays(30))
             ->select(
-                \DB::raw('DATE(created_at) as date'), 
+                \DB::raw('DATE(created_at) as date'),
                 \DB::raw('SUM(amount) as sales'),
                 \DB::raw('COUNT(id) as order_count')
             )
@@ -673,7 +673,7 @@ class EventDashboardController extends Controller
                 'date' => \Carbon\Carbon::parse($tx->date)->format('Y-m-d')
             ];
         });
-        
+
         // Funnel Data (Mocked based on visitorCount for now, but dynamic based on real values)
         $funnelData = [
             ['name' => 'Kunjungan Detail', 'value' => $event->views ?: 0, 'percentage' => 100, 'fill' => 'var(--bahama-blue-800)'],
@@ -705,26 +705,33 @@ class EventDashboardController extends Controller
     public function getVenueQr(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
-        
+
         $type = $request->query('type', 'in'); // 'in' or 'out'
         if (!in_array($type, ['in', 'out'])) {
             $type = 'in';
         }
 
+        $expiresAt = $request->query('expires_at');
+
         $secretKey = config('app.key');
         $stringToSign = "venue_{$type}_{$eventId}";
+        if ($expiresAt) {
+            $stringToSign .= "_{$expiresAt}";
+        }
         $signature = hash_hmac('sha256', $stringToSign, $secretKey);
-        
+
         return response()->json([
             'success' => true,
             'data' => [
                 'event_id' => $eventId,
                 'type' => $type,
+                'expires_at' => $expiresAt,
                 'signature' => $signature,
-                'qr_string' => "venue_{$type}_{$eventId}.{$signature}"
+                'qr_string' => "venue_{$type}_{$eventId}" . ($expiresAt ? "_{$expiresAt}" : "") . ".{$signature}"
             ]
         ], 200);
     }
+
     public function exportReport($eventId)
     {
         $event = Event::findOrFail($eventId);
@@ -784,7 +791,7 @@ class EventDashboardController extends Controller
                 ->get();
 
             $responseIds = $responses->pluck('id')->toArray();
-            
+
             $answers = collect();
             if (count($responseIds) > 0 && \Illuminate\Support\Facades\Schema::hasTable('survey_answers')) {
                 $answers = \DB::table('survey_answers')

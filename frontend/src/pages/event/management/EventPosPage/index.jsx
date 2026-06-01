@@ -24,6 +24,7 @@ import {
 	RefreshCw,
 	ScanLine,
 	Clock,
+	AlertCircle,
 } from 'lucide-react';
 
 import api from '@/api/axios';
@@ -49,6 +50,7 @@ const EventPosPage = () => {
 	const [onlineLink, setOnlineLink] = useState('');
 	const [loadingLink, setLoadingLink] = useState(false);
 	const [linkType, setLinkType] = useState('in');
+	const [expiresAt, setExpiresAt] = useState('');
 
 	const fetchPosList = async () => {
 		try {
@@ -116,10 +118,17 @@ const EventPosPage = () => {
 	const handleGenerateLink = async () => {
 		setLoadingLink(true);
 		try {
-			const res = await api.get(`/event-dashboard/${eventId}/venue-qr?type=${linkType}`);
+			let query = `?type=${linkType}`;
+			if (expiresAt) {
+				query += `&expires_at=${expiresAt}`;
+			}
+			const res = await api.get(`/event-dashboard/${eventId}/venue-qr${query}`);
 			if (res.data?.success) {
-				const { event_id, signature, type } = res.data.data;
-				const url = `${window.location.origin}/attend-venue?event_id=${event_id}&type=${type}&signature=${signature}`;
+				const { event_id, signature, type, expires_at } = res.data.data;
+				let url = `${window.location.origin}/attend-venue?event_id=${event_id}&type=${type}&signature=${signature}`;
+				if (expires_at) {
+					url += `&expires_at=${expires_at}`;
+				}
 				setOnlineLink(url);
 				toast.success('Magic link berhasil dibuat!');
 			}
@@ -159,6 +168,8 @@ const EventPosPage = () => {
 		const startDate = new Date(event.start_date.replace(' ', 'T') + 'Z');
 		const endDate = new Date(event.end_date.replace(' ', 'T') + 'Z');
 		
+		if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
+
 		// 30 minutes before start_date
 		const allowedStart = new Date(startDate.getTime() - 30 * 60 * 1000);
 		
@@ -186,32 +197,18 @@ const EventPosPage = () => {
 				</div>
 			</div>
 
-			{/* ── Alat Presensi (QR Venue & Link Online) ── */}
+			{/* ── Alat Presensi (Link Online) ── */}
 			<div className="bg-light border rounded-3 p-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 shadow-none">
 				<div>
 					<div className="fw-medium text-dark" style={{ fontSize: '0.95rem' }}>
-						Alat Presensi
+						Link Presensi Online
 					</div>
 					<div className="text-muted mt-1" style={{ fontSize: '0.85rem' }}>
-						Tampilkan QR venue fisik atau buat magic link untuk peserta online.
+						Buat magic link presensi yang dapat Anda bagikan untuk peserta online.
 					</div>
 				</div>
 
 				<div className="d-flex flex-wrap align-items-center gap-3">
-					<Button
-						variant="white"
-						className="border rounded-2 px-3 py-1 d-flex align-items-center gap-2 shadow-none text-dark bg-white"
-						onClick={() => window.open(`/organizer/${eventId}/event-dashboard/venue-qr`, '_blank')}
-						style={{ fontSize: '0.85rem' }}
-					>
-						<ScanLine size={14} className="text-primary" /> QR Venue
-					</Button>
-
-					<div
-						className="vr d-none d-lg-block opacity-25"
-						style={{ height: '24px' }}
-					></div>
-
 					<div className="d-flex flex-wrap align-items-center gap-2">
 						<ToggleButtonGroup
 							type="radio"
@@ -244,52 +241,71 @@ const EventPosPage = () => {
 						</ToggleButtonGroup>
 
 						{!onlineLink ? (
-							<Button
-								variant="outline-secondary"
-								className="rounded-2 px-3 py-1 d-flex align-items-center gap-2 bg-white shadow-none"
-								onClick={handleGenerateLink}
-								disabled={loadingLink}
-								style={{ fontSize: '0.85rem', borderStyle: 'dashed' }}
-							>
-								{loadingLink ? (
-									<Spinner size="sm" />
-								) : (
-									<>
-										<LinkIcon size={14} /> Link Online
-									</>
-								)}
-							</Button>
-						) : (
 							<div className="d-flex align-items-center gap-2">
-								<InputGroup
+								<Form.Control
+									type="datetime-local"
 									size="sm"
-									className="shadow-none"
-									style={{ width: '200px' }}
-								>
-									<Form.Control
-										value={onlineLink}
-										readOnly
-										className="bg-white border-end-0 text-muted"
-										style={{ cursor: 'text', fontSize: '0.85rem' }}
-									/>
-									<Button
-										variant="white"
-										onClick={handleCopyLink}
-										className="border border-start-0 text-dark d-flex align-items-center"
-										title="Salin Link"
-									>
-										<Copy size={14} />
-									</Button>
-								</InputGroup>
+									value={expiresAt}
+									onChange={(e) => setExpiresAt(e.target.value)}
+									className="shadow-none border"
+									title="Batas waktu akses link (opsional)"
+									style={{ fontSize: '0.85rem', width: '180px' }}
+								/>
 								<Button
-									variant="link"
-									className="text-muted p-0 ms-1 d-flex align-items-center"
+									variant="outline-secondary"
+									className="rounded-2 px-3 py-1 d-flex align-items-center gap-2 bg-white shadow-none"
 									onClick={handleGenerateLink}
 									disabled={loadingLink}
-									title="Buat ulang link"
+									style={{ fontSize: '0.85rem', borderStyle: 'dashed' }}
 								>
-									<RefreshCw size={14} />
+									{loadingLink ? (
+										<Spinner size="sm" />
+									) : (
+										<>
+											<LinkIcon size={14} /> Link Online
+										</>
+									)}
 								</Button>
+							</div>
+						) : (
+							<div>
+								<div className="d-flex align-items-center gap-2">
+									<InputGroup
+										size="sm"
+										className="shadow-none"
+										style={{ width: '200px' }}
+									>
+										<Form.Control
+											value={onlineLink}
+											readOnly
+											className="bg-white border-end-0 text-muted"
+											style={{ cursor: 'text', fontSize: '0.85rem' }}
+										/>
+										<Button
+											variant="white"
+											onClick={handleCopyLink}
+											className="border border-start-0 text-dark d-flex align-items-center"
+											title="Salin Link"
+										>
+											<Copy size={14} />
+										</Button>
+									</InputGroup>
+									<Button
+										variant="link"
+										className="text-muted p-0 ms-1 d-flex align-items-center"
+										onClick={handleGenerateLink}
+										disabled={loadingLink}
+										title="Buat ulang link"
+									>
+										<RefreshCw size={14} />
+									</Button>
+								</div>
+								<div className="text-warning mt-2 small d-flex align-items-start gap-1" style={{ maxWidth: '280px', lineHeight: '1.2' }}>
+									<AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+									<span>
+										Link ini memiliki batas waktu buka/tutup presensi sesuai pengaturan acara Anda. Pastikan membagikannya ke peserta di waktu yang tepat!
+									</span>
+								</div>
 							</div>
 						)}
 					</div>

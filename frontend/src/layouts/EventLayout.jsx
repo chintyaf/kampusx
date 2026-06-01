@@ -274,43 +274,43 @@ const EventLayout = ({
 					</div>
 
 					{/* Footer Buttons */}
-					<div className="w-100 d-flex justify-content-end mt-3 pt-3 border-top gap-1">
-						{prevPath && (
-							<Button
-								variant="outline-secondary"
-								disabled={isSaving}
-								onClick={() => {
-									if (isFormDirty) {
-										alert(formDirtyMessage);
-										return;
-									}
-									navigate(`../${prevPath}`);
-								}}
-							>
-								Back
-							</Button>
-						)}
-
-						{nextPath ? (
-							isCurrentStepCompleted ? (
+					{onSave && (
+						<div className="w-100 d-flex justify-content-end mt-3 pt-3 border-top gap-1">
+							{prevPath && (
 								<Button
-									variant="primary"
-									onClick={handleSaveAndContinue}
-									disabled={isSaving || isSaveDisabled}
+									variant="outline-secondary"
+									disabled={isSaving}
+									onClick={() => {
+										if (isFormDirty) {
+											alert(formDirtyMessage);
+											return;
+										}
+										navigate(`../${prevPath}`);
+									}}
 								>
-									{isSaving ? 'Saving...' : 'Simpan & Lanjutkan'}
+									Back
 								</Button>
+							)}
+							{/* Pastikan kamu menggunakan nama variabel yang sesuai, entah itu onSave atau handleSave */}
+							(nextPath && isCurrentStepCompleted ? (
+							<Button
+								variant="primary"
+								onClick={handleSaveAndContinue}
+								disabled={isSaving || isSaveDisabled}
+							>
+								{isSaving ? 'Saving...' : 'Simpan & Lanjutkan'}
+							</Button>
 							) : (
-								<Button variant="primary" onClick={handleSave} disabled={isSaving || isSaveDisabled}>
-									{isSaving ? 'Saving...' : 'Simpan'}
-								</Button>
-							)
-						) : (
-							<Button variant="primary" onClick={handleSave} disabled={isSaving || isSaveDisabled}>
+							<Button
+								variant="primary"
+								onClick={handleSave}
+								disabled={isSaving || isSaveDisabled}
+							>
 								{isSaving ? 'Saving...' : 'Simpan'}
 							</Button>
-						)}
-					</div>
+							))
+						</div>
+					)}
 				</div>
 
 				{/* ── KOLOM KANAN: Sidebar Opsional ── */}

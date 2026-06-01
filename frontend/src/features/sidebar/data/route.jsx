@@ -20,6 +20,9 @@ import {
 	Building2,
 	Wallet,
 	CreditCard,
+	Info,
+	Ticket,
+	ScanLine,
 } from 'lucide-react';
 
 // --- Configuration Data ---
@@ -141,96 +144,45 @@ export const MENU_ITEMS = {
 				},
 			],
 		},
+
+		// --- PEMECAHAN "OPERASIONAL/PESERTA" ---
 		{
-			id: 'operasional-event',
-			name: 'Operasional',
-			icon: <Form size={16} className="me-2" />, // Icon formulir cocok untuk operasional yang biasanya melibatkan banyak form
-			path: '/organizer/:eventId/event-dashboard',
-			submenu: [
-				{
-					name: 'Check-in',
-					path: 'event-pos',
-				},
-				{
-					name: 'Daftar Peserta',
-					path: 'daftar-peserta',
-				},
-				{
-					name: 'Scanner',
-					path: 'scanner',
-				},
-			],
+			id: 'daftar-peserta',
+			name: 'Daftar Peserta',
+			icon: <UsersRound size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
 		},
-		// --- GRUP LEARNING & FEEDBACK ---
 		{
-			id: 'modul-belajar',
-			name: 'Modul Belajar',
+			id: 'check-in',
+			name: 'Check-in & Scanner',
+			icon: <ScanLine size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/check-in',
+		},
+
+		// --- PEMECAHAN "MODUL BELAJAR" & LAINNYA ---
+		{
+			id: 'materi-belajar',
+			name: 'Materi Acara',
 			icon: <BookOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/modul-belajar',
-			submenu: [
-				{
-					name: 'Materi Acara',
-					path: 'materi-acara',
-					// isCompleted: true
-				},
-				{
-					name: 'Materi Pasca-Acara',
-					path: 'materi-after',
-					//  isCompleted: false
-				},
-				{
-					name: 'Kelola Kuis',
-					path: 'kuis',
-					// isCompleted: false
-				},
-			],
+			path: '/organizer/:eventId/event-dashboard/materi-after', // Langsung arahkan ke materinya
 		},
-		{
-			id: 'survey-form',
-			name: 'Kelola Survei',
-			icon: <ClipboardList size={16} className="me-2" />, // Icon clipboard cocok untuk form/kuesioner
-			path: '/organizer/:eventId/event-dashboard/survey-form',
-		},
+		// {
+		// 	id: 'survey-form',
+		// 	name: 'Kelola Survei',
+		// 	icon: <ClipboardList size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/survey-form',
+		// },
 		{
 			id: 'sertifikat-event',
 			name: 'Sertifikat',
-			icon: <Award size={16} className="me-2" />, // Icon medali/penghargaan sangat pas untuk sertifikat
+			icon: <Award size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/sertifikat',
-			// submenu: [
-			// 	{ name: 'Atur Template', path: 'atur-template', isCompleted: true },
-			// 	{ name: 'Kirim Sertifikat', path: 'kirim-sertifikat', isCompleted: false },
-			// ],
 		},
 		{
 			id: 'pengumuman-event',
 			name: 'Pengumuman',
 			icon: <Megaphone size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/pengumuman',
-		},
-		// --- GRUP MARKETING & REPORT ---
-		// {
-		// 	id: 'promosi-event',
-		// 	name: 'Promosi',
-		// 	icon: <Megaphone size={16} className="me-2" />, // Megaphone adalah standar industri untuk marketing/promosi
-		// 	path: '/organizer/:eventId/event-dashboard/promosi',
-		// },
-		// {
-		// 	id: 'statistik-event',
-		// 	name: 'Statistik',
-		// 	icon: <ChartColumn size={16} className="me-2" />,
-		// 	path: '/organizer/:eventId/event-dashboard/statistik',
-		// },
-		// {
-		// 	id: 'wallet-split',
-		// 	name: 'Dompet & Bagi Hasil',
-		// 	icon: <Wallet size={16} className="me-2" />,
-		// 	path: '/organizer/:eventId/event-dashboard/wallet-split',
-		// },
-		{
-			id: 'revenue-analytic',
-			name: 'Revenue/Analytic',
-			icon: <ChartColumn size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/revenue-analytic',
 		},
 	],
 };

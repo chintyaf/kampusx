@@ -19,6 +19,7 @@ export default function AttendVenuePage() {
         const eventId = params.get('event_id');
         const signature = params.get('signature');
         const type = params.get('type') || 'in';
+        const expiresAt = params.get('expires_at');
         setPageType(type);
 
         if (!eventId || !signature) {
@@ -35,7 +36,10 @@ export default function AttendVenuePage() {
 
         const processScan = async () => {
             try {
-                const prefix = type === 'in' ? `venue_in_${eventId}` : `venue_out_${eventId}`;
+                let prefix = type === 'in' ? `venue_in_${eventId}` : `venue_out_${eventId}`;
+                if (expiresAt) {
+                    prefix += `_${expiresAt}`;
+                }
                 const response = await api.post('/attendance/venue-scan', {
                     event_id: eventId,
                     qr_string: `${prefix}.${signature}`
