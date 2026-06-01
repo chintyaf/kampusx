@@ -99,28 +99,8 @@ const ScannerPage = () => {
 		setManualInput('');
 	};
 
-	const handleClaimAttendance = async () => {
+	const handleClaimAttendance = () => {
 		setShowModal(false);
-		try {
-			// Kita butuh ticket_id. Jika scan QR, kita ambil ticket ID dari endpoint atau asumsikan 1 untuk demo ini
-			// Di sistem nyata, backend `scanQr` dapat mereturn `ticket_id` agar frontend bisa meneruskan ke klaim poin.
-			const targetTicketId = scannedData?.ticket_id || 1;
-
-			const res = await api.post('/engagement/claim', {
-				ticket_id: targetTicketId,
-				event_id: eventIdRef.current,
-			});
-
-			toast.success(res.data.message || 'Poin Kehadiran berhasil diklaim!', {
-				icon: <CheckCircle className="text-success" />,
-				style: { borderRadius: '10px', background: '#333', color: '#fff' },
-			});
-		} catch (error) {
-			toast.error(error.response?.data?.message || 'Gagal melakukan klaim poin', {
-				icon: <AlertCircle className="text-danger" />,
-				style: { borderRadius: '10px', background: '#333', color: '#fff' },
-			});
-		}
 		setScannedData(null);
 	};
 
@@ -322,7 +302,7 @@ const ScannerPage = () => {
 						onClick={handleClaimAttendance}
 					>
 						<CheckCircle size={20} className="me-2 mb-1" />
-						Klaim Kehadiran
+						Selesai
 					</Button>
 				</Modal.Body>
 			</Modal>

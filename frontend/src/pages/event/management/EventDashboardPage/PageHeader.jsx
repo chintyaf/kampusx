@@ -61,6 +61,9 @@ export default function PageHeader({
 	onKelolaTiket,
 	onScanner,
 	onFormulir,
+	isAttendanceOpen = false,
+	isTogglingAttendance = false,
+	onToggleAttendance,
 }) {
 	const [showMoreMenu, setShowMoreMenu] = useState(false);
 	const menuRef = useRef(null);
@@ -182,6 +185,50 @@ export default function PageHeader({
 
 			{/* Right Column: Actions (Preview, Publish, Share, More) */}
 			<div className="d-flex align-items-center gap-2 mt-3 mt-md-0 align-self-md-end mb-1">
+				{/* Attendance Toggle (Only for published or ongoing events) */}
+				{['published', 'ongoing'].includes(status) && (
+					<>
+						<style>{`
+							@keyframes pulse-green {
+								0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+								70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+								100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+							}
+							.pulse-dot-green {
+								animation: pulse-green 1.8s infinite ease-in-out;
+							}
+						`}</style>
+						<button
+							onClick={onToggleAttendance}
+							disabled={isTogglingAttendance}
+							className="btn btn-minimal d-inline-flex align-items-center gap-1.5 fw-semibold transition-all"
+							style={{
+								height: '38px',
+								backgroundColor: isAttendanceOpen ? '#ecfdf5' : '#fee2e2',
+								color: isAttendanceOpen ? '#047857' : '#b91c1c',
+								border: `1px solid ${isAttendanceOpen ? '#a7f3d0' : '#fca5a5'}`,
+								padding: '0 16px',
+								borderRadius: '8px',
+								cursor: 'pointer',
+								boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+							}}
+							title={isAttendanceOpen ? 'Presensi sedang dibuka. Klik untuk menutup.' : 'Presensi sedang ditutup. Klik untuk membuka.'}
+						>
+							<span
+								style={{
+									width: '8px',
+									height: '8px',
+									borderRadius: '50%',
+									backgroundColor: isAttendanceOpen ? '#10b981' : '#ef4444',
+									display: 'inline-block',
+								}}
+								className={isAttendanceOpen ? 'pulse-dot-green' : ''}
+							></span>
+							{isAttendanceOpen ? 'Presensi Buka' : 'Presensi Tutup'}
+						</button>
+					</>
+				)}
+
 				{/* Preview Button */}
 				{onPreview && (
 					<button

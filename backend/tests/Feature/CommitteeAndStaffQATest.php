@@ -33,7 +33,8 @@ class CommitteeAndStaffQATest extends TestCase
             'pos_pin' => '123456',
             'status' => 'published',
             'start_date' => now()->subHours(1),
-            'end_date' => now()->addDays(2)
+            'end_date' => now()->addDays(2),
+            'is_attendance_open' => true
         ]);
 
         $this->station = EventStation::create([

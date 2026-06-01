@@ -114,7 +114,7 @@ const LandingPage = () => {
     })();
   }, []);
 
-  const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 3);
+  // const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 3);
   const eventTerbaru    = [...allEvents].sort((a, b) => b.id - a.id).slice(0, 3);
 
   return (
@@ -212,7 +212,8 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* ── 3. EVENT TERPOPULER ───────────────────────────────────────────── */}
+      {/* ── 3. EVENT TERPOPULER (Deactivated / Hidden) ────────────────────── */}
+      {/* 
       <section style={{ background: "var(--color-bg)", borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)", padding: "56px 0" }}>
         <Container>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32 }}>
@@ -245,6 +246,7 @@ const LandingPage = () => {
           )}
         </Container>
       </section>
+      */}
 
       {/* ── 4. EVENT TERBARU ──────────────────────────────────────────────── */}
       <section style={{ background: "var(--color-white)", padding: "56px 0" }}>

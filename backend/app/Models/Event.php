@@ -30,13 +30,15 @@ class Event extends Model
 
         'status',
 
-        'is_featured'
+        'is_featured',
+        'is_attendance_open'
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'is_featured' => 'boolean',
+        'is_attendance_open' => 'boolean',
     ];
 
     protected $appends = [

@@ -106,6 +106,8 @@ export default function EventDashboardPage() {
 	const [showPostEventModal, setShowPostEventModal] = useState(false);
 	const [showCompletedModal, setShowCompletedModal] = useState(false);
 	const [showDevTools, setShowDevTools] = useState(false);
+	const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+	const [isTogglingAttendance, setIsTogglingAttendance] = useState(false);
 
 	// Keyboard Shortcut for Dev Tools
 	useEffect(() => {
@@ -140,6 +142,7 @@ export default function EventDashboardPage() {
 				if (overviewRes.data?.status === 'success') {
 					setEventData(overviewRes.data.data);
 					setEventStatus(overviewRes.data.data.status || 'draft');
+					setIsAttendanceOpen(!!overviewRes.data.data.is_attendance_open);
 				}
 				if (speakersRes.data?.success && speakersRes.data?.data) {
 					setSpeakers(speakersRes.data.data);
@@ -230,6 +233,28 @@ export default function EventDashboardPage() {
 				notify('success', 'Tautan Disalin', 'Link event telah disalin ke clipboard!'),
 			)
 			.catch(() => notify('error', 'Gagal', 'Gagal menyalin link event.'));
+	};
+
+	const handleToggleAttendance = async () => {
+		try {
+			setIsTogglingAttendance(true);
+			const res = await api.patch(`/event-dashboard/${eventId}/toggle-attendance`);
+			if (res.data?.success) {
+				setIsAttendanceOpen(res.data.is_attendance_open);
+				notify(
+					'success',
+					'Status Presensi Diperbarui',
+					res.data.is_attendance_open
+						? 'Presensi sekarang dibuka untuk peserta.'
+						: 'Presensi sekarang ditutup.'
+				);
+			}
+		} catch (error) {
+			console.error('Failed to toggle attendance:', error);
+			notify('error', 'Gagal', 'Gagal mengubah status presensi.');
+		} finally {
+			setIsTogglingAttendance(false);
+		}
 	};
 
 	// Loading State
@@ -343,6 +368,9 @@ export default function EventDashboardPage() {
 				categories={eventData.categories || []}
 				isPublishDisabled={isDraft && issues.length > 0}
 				posPin={eventData.pos_pin}
+				isAttendanceOpen={isAttendanceOpen}
+				isTogglingAttendance={isTogglingAttendance}
+				onToggleAttendance={handleToggleAttendance}
 				onPreview={() =>
 					window.open(`/organizer/${eventId}/event-dashboard/preview`, '_blank')
 				}
