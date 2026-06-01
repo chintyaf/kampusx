@@ -447,49 +447,71 @@ class EventDashboardController extends Controller
         }
 
         // 5. PART 2 PREPARATION CHECKLIST (Before D-Day)
-        $isOnlineOrHybrid = $event->locationDetail && in_array($event->locationDetail->type, ['online', 'hybrid']);
-        $hasMeetingLink = $event->locationDetail && !empty($event->locationDetail->meeting_link);
-        $hasSurvey = \DB::table('surveys')->where('event_id', $eventId)->exists();
-        $hasStations = \DB::table('event_stations')->where('event_id', $eventId)->exists();
+        $locationType = $event->locationDetail->type ?? 'offline'; // default offline jika belum diisi
+        $isOnlineOrHybrid  = in_array($locationType, ['online', 'hybrid']);
+        $isOfflineOrHybrid = in_array($locationType, ['offline', 'hybrid']);
+
+        $hasMeetingLink  = $event->locationDetail && !empty($event->locationDetail->meeting_link);
+        $hasCheckinLink  = !empty($event->checkin_link);
+        $hasCheckoutLink = !empty($event->checkout_link);
+        $hasOnlineLinks  = $hasCheckinLink && $hasCheckoutLink; // Keduanya harus ada
+
+        $hasSurvey      = \DB::table('surveys')->where('event_id', $eventId)->exists();
+        $hasStations    = \DB::table('event_stations')->where('event_id', $eventId)->exists();
         $hasCertificate = \DB::table('certificate_templates')->where('event_id', $eventId)->exists();
-        $hasMaterial = \DB::table('event_materials')->where('event_id', $eventId)->exists();
+        $hasMaterial    = \DB::table('event_materials')->where('event_id', $eventId)->exists();
 
         $preparationChecklist = [
+            // Item 1: Link Zoom — hanya relevan untuk event online/hybrid
             [
-                'id' => 'zoom',
-                'label' => 'Masukkan Link Zoom / Temu Online',
+                'id'        => 'zoom',
+                'label'     => 'Masukkan Link Zoom / Platform Meeting Online',
                 'completed' => $hasMeetingLink,
-                'required' => $isOnlineOrHybrid,
-                'link' => "/organizer/{$eventId}/event-dashboard/detail/tempat"
+                'required'  => $isOnlineOrHybrid,
+                'link'      => "/organizer/{$eventId}/event-dashboard/detail/tempat",
+                'hint'      => 'Diperlukan agar peserta online bisa bergabung ke sesi.'
             ],
-            // [
-            //     'id' => 'survey',
-            //     'label' => 'Buat Kuesioner Survey Kepuasan Acara',
-            //     'completed' => $hasSurvey,
-            //     'required' => true,
-            //     'link' => "/organizer/{$eventId}/event-dashboard/survey-form"
-            // ],
+
+            // Item 2: Link Presensi Online — hanya relevan untuk event online/hybrid
+            // Selesai jika KEDUA link (check-in & check-out) sudah dibuat
             [
-                'id' => 'pos',
-                'label' => 'Atur Stasiun Scanner / Pos Check-in',
+                'id'        => 'online_attendance',
+                'label'     => 'Buat Link Presensi Online (Check-in & Check-out)',
+                'completed' => $hasOnlineLinks,
+                'required'  => $isOnlineOrHybrid,
+                'link'      => "/organizer/{$eventId}/event-dashboard/check-in",
+                'hint'      => 'Peserta online menggunakan magic link untuk konfirmasi kehadiran mereka.'
+            ],
+
+            // Item 3: Scanner/POS Station — hanya relevan untuk event offline/hybrid
+            [
+                'id'        => 'pos',
+                'label'     => 'Atur Stasiun Scanner / Pos Check-in (QR)',
                 'completed' => $hasStations,
-                'required' => true,
-                'link' => "/organizer/{$eventId}/event-dashboard/event-pos"
+                'required'  => $isOfflineOrHybrid,
+                'link'      => "/organizer/{$eventId}/event-dashboard/check-in",
+                'hint'      => 'Panitia akan men-scan QR tiket peserta di lokasi menggunakan pos ini.'
             ],
+
+            // Item 4: Sertifikat
             [
-                'id' => 'certificate',
-                'label' => 'Desain Template & Layout Sertifikat',
+                'id'        => 'certificate',
+                'label'     => 'Desain Template & Layout Sertifikat',
                 'completed' => $hasCertificate,
-                'required' => true,
-                'link' => "/organizer/{$eventId}/event-dashboard/sertifikat"
+                'required'  => true,
+                'link'      => "/organizer/{$eventId}/event-dashboard/sertifikat",
+                'hint'      => 'Sertifikat akan otomatis dikirim ke peserta yang hadir setelah acara selesai.'
             ],
+
+            // Item 5: Materi (opsional)
             [
-                'id' => 'material',
-                'label' => 'Upload Materi Acara (Opsional)',
+                'id'        => 'material',
+                'label'     => 'Upload Materi Acara (Opsional)',
                 'completed' => $hasMaterial,
-                'required' => true,
-                'link' => "/organizer/{$eventId}/event-dashboard/modul-belajar/materi-after"
-            ]
+                'required'  => true,
+                'link'      => "/organizer/{$eventId}/event-dashboard/modul-belajar/materi-after",
+                'hint'      => 'Materi sesi dapat diakses peserta setelah acara selesai.'
+            ],
         ];
 
         return response()->json([
@@ -499,6 +521,7 @@ class EventDashboardController extends Controller
                 'startDate' => $event->start_date ? $event->start_date->format('d M Y, H:i') : null,
                 'endDate' => $event->end_date ? $event->end_date->format('d M Y, H:i') : null,
                 'location' => $locationText,
+                'location_type' => $event->locationDetail->type ?? 'offline',
                 'organizer' => $event->organizer->name ?? null,
                 'institution' => $event->institution->name ?? 'Independen / Umum',
                 'categories' => $event->categories->pluck('name'),

@@ -35,6 +35,7 @@ import TicketDistribution from './TicketDistribution';
 import DashboardSkeleton from './DashboardSkeleton';
 import PublishReadyCard from './PublishReadyCard';
 import OngoingDashboardCard from './OngoingDashboardCard';
+import AttendanceGuideCard from './AttendanceGuideCard';
 
 // Config
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
@@ -417,6 +418,14 @@ export default function EventDashboardPage() {
 				<EventChecklist
 					checklist={eventData.preparation_checklist || []}
 					eventId={eventId}
+				/>
+			)}
+
+			{/* Panduan Konfirmasi Kehadiran — tampil saat event published/ongoing/post_event */}
+			{['published', 'ongoing', 'paused', 'post_event'].includes(eventStatus) && (
+				<AttendanceGuideCard
+					eventId={eventId}
+					eventType={eventData.location_type || 'offline'}
 				/>
 			)}
 

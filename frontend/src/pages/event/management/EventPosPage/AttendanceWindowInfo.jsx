@@ -9,12 +9,34 @@ import { Clock } from 'lucide-react';
  * @param {Object} event - The main event object details
  */
 const AttendanceWindowInfo = ({ event }) => {
+	// Robust helper to safely parse any date string or Date object
+	const safeParseDate = (value) => {
+		if (!value) return null;
+		if (value instanceof Date) {
+			return isNaN(value.getTime()) ? null : value;
+		}
+
+		let str = String(value).trim();
+
+		// Replace space with 'T' if it is a standard date string format
+		if (!str.includes('T') && str.includes(' ')) {
+			str = str.replace(' ', 'T');
+		}
+
+		// Ensure we don't duplicate 'Z' or timezone offsets
+		const hasTimezone = str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str);
+		if (!hasTimezone) {
+			str = str + 'Z';
+		}
+
+		const date = new Date(str);
+		return isNaN(date.getTime()) ? null : date;
+	};
+
 	// Helper to format date cleanly
 	const formatDateTime = (dateObjOrStr) => {
-		if (!dateObjOrStr) return '-';
-		const date = dateObjOrStr instanceof Date
-			? dateObjOrStr
-			: new Date((dateObjOrStr.includes('T') ? dateObjOrStr : dateObjOrStr.replace(' ', 'T')) + 'Z');
+		const date = safeParseDate(dateObjOrStr);
+		if (!date) return '-';
 		return date.toLocaleString('id-ID', {
 			weekday: 'long',
 			day: 'numeric',
@@ -29,10 +51,10 @@ const AttendanceWindowInfo = ({ event }) => {
 	const getAttendanceWindow = () => {
 		if (!event || !event.start_date || !event.end_date) return null;
 
-		const startDate = new Date(event.start_date.replace(' ', 'T') + 'Z');
-		const endDate = new Date(event.end_date.replace(' ', 'T') + 'Z');
+		const startDate = safeParseDate(event.start_date);
+		const endDate = safeParseDate(event.end_date);
 
-		if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
+		if (!startDate || !endDate) return null;
 
 		// Presensi opens 30 minutes before the actual event start time
 		const allowedStart = new Date(startDate.getTime() - 30 * 60 * 1000);
@@ -70,7 +92,7 @@ const AttendanceWindowInfo = ({ event }) => {
 					Rongga Waktu Presensi Aktif (Attendance Window)
 				</div>
 				<div className="text-muted mt-0.5" style={{ fontSize: '0.82rem' }}>
-					Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start.toISOString())}</span> s/d <span className="fw-semibold text-danger">{formatDateTime(windowTimes.end.toISOString())}</span> ({event.timezone || 'WIB'})
+					Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start)}</span> s/d <span className="fw-semibold text-danger">{formatDateTime(windowTimes.end)}</span> ({event.timezone || 'WIB'})
 				</div>
 			</div>
 		</div>

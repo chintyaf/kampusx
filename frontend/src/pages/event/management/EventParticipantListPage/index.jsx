@@ -3,15 +3,9 @@ import { useParams } from 'react-router-dom';
 import api from '../../../../api/axios';
 import { toast } from 'react-hot-toast';
 import {
-	Table,
-	Badge,
-	Button,
-	InputGroup,
-	Form,
-	Dropdown,
-	Card,
 	Spinner,
-	Pagination,
+	Dropdown,
+	Button,
 } from 'react-bootstrap';
 import {
 	Search,
@@ -22,7 +16,6 @@ import {
 	EyeOff,
 	School,
 	MessageCircle,
-	ShieldCheck,
 	Users,
 	Clock,
 	CheckCircle2,
@@ -30,6 +23,9 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Download,
+	LogOut,
+	LogIn,
+	CalendarX,
 } from 'lucide-react';
 import FormHeading from '@/components/dashboard/FormHeading';
 import '../../../../assets/css/participant-list.css';
@@ -50,31 +46,41 @@ const maskPhone = (phone) => {
 	return digits.slice(0, 3) + ' **** ' + digits.slice(-3);
 };
 
-// ─── Status config ────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-	active: {
-		label: 'Aktif',
-		className: 'participant-badge participant-badge--success',
-		icon: <CheckCircle2 size={11} />,
-	},
-	used: {
+// ─── Attendance status helper ────────────────────────────────────────────────
+const getAttendanceStatus = (ticket) => {
+	const log = ticket.attendance_log;
+	if (!log || !log.scan_time) {
+		return {
+			key: 'not_attended',
+			label: 'Belum Hadir',
+			className: 'attendance-badge attendance-badge--absent',
+			icon: <CalendarX size={11} />,
+		};
+	}
+	if (log.checkout_time) {
+		return {
+			key: 'checked_out',
+			label: 'Selesai',
+			className: 'attendance-badge attendance-badge--checkout',
+			icon: <LogOut size={11} />,
+		};
+	}
+	return {
+		key: 'checked_in',
 		label: 'Hadir',
-		className: 'participant-badge participant-badge--primary',
-		icon: <UserCheck size={11} />,
-	},
-	cancelled: {
-		label: 'Batal',
-		className: 'participant-badge participant-badge--danger',
-		icon: <XCircle size={11} />,
-	},
-	default: {
-		label: 'Tidak diketahui',
-		className: 'participant-badge participant-badge--neutral',
-		icon: null,
-	},
+		className: 'attendance-badge attendance-badge--checkin',
+		icon: <LogIn size={11} />,
+	};
 };
 
-const getStatusConfig = (status) => STATUS_CONFIG[status] ?? STATUS_CONFIG.default;
+// ─── Format time helper ───────────────────────────────────────────────────────
+const fmtTime = (isoStr) => {
+	if (!isoStr) return null;
+	return new Date(isoStr).toLocaleTimeString('id-ID', {
+		hour: '2-digit',
+		minute: '2-digit',
+	});
+};
 
 // ─── Avatar initials ──────────────────────────────────────────────────────────
 const getInitials = (name = '') =>
@@ -99,6 +105,14 @@ const getAvatarColor = (name = '') => {
 	return AVATAR_COLORS[code % AVATAR_COLORS.length];
 };
 
+// ─── Filter config ─────────────────────────────────────────────────────────────
+const ATTENDANCE_FILTERS = [
+	{ value: '', label: 'Semua Status' },
+	{ value: 'not_attended', label: 'Belum Hadir' },
+	{ value: 'checked_in', label: 'Sudah Check-in' },
+	{ value: 'checked_out', label: 'Sudah Check-out' },
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 const EventParticipantListPage = () => {
 	const { eventId } = useParams();
@@ -107,22 +121,30 @@ const EventParticipantListPage = () => {
 	const [loading, setLoading] = useState(true);
 	const [isExporting, setIsExporting] = useState(false);
 	const [showAll, setShowAll] = useState(false);
-	const [statusFilter, setStatusFilter] = useState(''); // "" = Semua, "checked_in" = Hadir, "active" = Belum Hadir
-	// Per-row reveal state: { [ticketId]: { email: bool, phone: bool } }
+	const [attendanceFilter, setAttendanceFilter] = useState('');
 	const [revealed, setRevealed] = useState({});
 	const [pageInfo, setPageInfo] = useState({ current_page: 1, last_page: 1, total: 0 });
+
+	// Attendance summary (from API, accurate across all pages)
+	const [summary, setSummary] = useState({
+		total: 0,
+		not_attended: 0,
+		checked_in: 0,
+		checked_out: 0,
+	});
 
 	const fetchParticipants = async (page = 1) => {
 		try {
 			setLoading(true);
 			const params = { all: showAll, page };
-			if (statusFilter) {
-				params.status = statusFilter;
-			}
-			const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, {
-				params,
-			});
-			const data = response.data.data;
+			if (attendanceFilter) params.attendance = attendanceFilter;
+
+			const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, { params });
+			const { data, attendance_summary } = response.data;
+
+			// Update summary dari API (akurat untuk semua data, bukan hanya halaman ini)
+			if (attendance_summary) setSummary(attendance_summary);
+
 			if (showAll) {
 				setParticipants(data);
 				setPageInfo({ total: data.length });
@@ -143,7 +165,7 @@ const EventParticipantListPage = () => {
 
 	useEffect(() => {
 		if (eventId) fetchParticipants();
-	}, [eventId, showAll, statusFilter]);
+	}, [eventId, showAll, attendanceFilter]);
 
 	const toggleReveal = (ticketId, field) => {
 		setRevealed((prev) => ({
@@ -179,11 +201,11 @@ const EventParticipantListPage = () => {
 		}
 	};
 
-	// ── Stats ─────────────────────────────────────────────────────────────────
-	const total = pageInfo.total || 0;
-	const checkedIn = participants.filter((t) => t.status === 'used').length;
-	const active = participants.filter((t) => t.status === 'active').length;
-	const cancelled = participants.filter((t) => t.status === 'cancelled').length;
+	// ── Attendance rate ──────────────────────────────────────────────────────
+	const attendedTotal = summary.checked_in + summary.checked_out;
+	const attendanceRate = summary.total > 0
+		? Math.round((attendedTotal / summary.total) * 100)
+		: 0;
 
 	// ── Pagination ────────────────────────────────────────────────────────────
 	const renderPagination = () => {
@@ -252,54 +274,85 @@ const EventParticipantListPage = () => {
 		);
 	};
 
+	const currentFilterLabel = ATTENDANCE_FILTERS.find(f => f.value === attendanceFilter)?.label ?? 'Semua Status';
+
 	return (
 		<div className="participant-page">
 
 			<div className="d-flex justify-content-between align-items-start">
 				<FormHeading
 					title="Daftar Peserta Event"
-					description={`Total: ${total} tiket peserta sah`}
+					description={`Total: ${summary.total} peserta terdaftar`}
 				/>
 			</div>
 
 			{/* ── Stats row ─────────────────────────────────────────────── */}
 			<div className="participant-stats">
+
+				{/* Total */}
 				<div className="stat-card">
 					<div className="stat-card__icon stat-card__icon--blue">
 						<Users size={16} />
 					</div>
 					<div>
 						<p className="stat-card__label">Total Peserta</p>
-						<p className="stat-card__value">{total}</p>
+						<p className="stat-card__value">{summary.total}</p>
 					</div>
 				</div>
-				<div className="stat-card">
-					<div className="stat-card__icon stat-card__icon--green">
-						<UserCheck size={16} />
-					</div>
-					<div>
-						<p className="stat-card__label">Hadir</p>
-						<p className="stat-card__value">{checkedIn}</p>
-					</div>
-				</div>
+
+				{/* Belum Hadir */}
 				<div className="stat-card">
 					<div className="stat-card__icon stat-card__icon--yellow">
 						<Clock size={16} />
 					</div>
 					<div>
 						<p className="stat-card__label">Belum Hadir</p>
-						<p className="stat-card__value">{active}</p>
+						<p className="stat-card__value">{summary.not_attended}</p>
 					</div>
 				</div>
+
+				{/* Sudah Check-in */}
 				<div className="stat-card">
-					<div className="stat-card__icon stat-card__icon--red">
-						<XCircle size={16} />
+					<div className="stat-card__icon stat-card__icon--green">
+						<LogIn size={16} />
 					</div>
 					<div>
-						<p className="stat-card__label">Dibatalkan</p>
-						<p className="stat-card__value">{cancelled}</p>
+						<p className="stat-card__label">Check-in</p>
+						<p className="stat-card__value">{summary.checked_in}</p>
 					</div>
 				</div>
+
+				{/* Sudah Check-out */}
+				<div className="stat-card">
+					<div className="stat-card__icon stat-card__icon--purple">
+						<LogOut size={16} />
+					</div>
+					<div>
+						<p className="stat-card__label">Check-out</p>
+						<p className="stat-card__value">{summary.checked_out}</p>
+					</div>
+				</div>
+
+				{/* Kehadiran Rate */}
+				<div className="stat-card stat-card--rate">
+					<div className="stat-card__rate-ring">
+						<svg viewBox="0 0 36 36" className="rate-ring-svg">
+							<circle className="rate-ring-bg" cx="18" cy="18" r="15.9" />
+							<circle
+								className="rate-ring-fill"
+								cx="18" cy="18" r="15.9"
+								strokeDasharray={`${attendanceRate} ${100 - attendanceRate}`}
+								strokeDashoffset="25"
+							/>
+						</svg>
+						<span className="rate-ring-label">{attendanceRate}%</span>
+					</div>
+					<div>
+						<p className="stat-card__label">Tingkat Kehadiran</p>
+						<p className="stat-card__value--sm">{attendedTotal} / {summary.total} hadir</p>
+					</div>
+				</div>
+
 			</div>
 
 			{/* ── Main card ─────────────────────────────────────────────── */}
@@ -317,6 +370,7 @@ const EventParticipantListPage = () => {
 							/>
 						</div>
 
+						{/* Filter Kehadiran */}
 						<Dropdown>
 							<Dropdown.Toggle
 								variant="outline-secondary"
@@ -324,26 +378,22 @@ const EventParticipantListPage = () => {
 								className="d-flex align-items-center gap-2"
 							>
 								<Filter size={15} />
-								{statusFilter === ''
-									? 'Semua Status'
-									: statusFilter === 'checked_in'
-										? 'Hadir'
-										: 'Belum Hadir'}
+								{currentFilterLabel}
 							</Dropdown.Toggle>
 							<Dropdown.Menu className="shadow-sm">
-								<Dropdown.Item onClick={() => setStatusFilter('')}>
-									Semua Status
-								</Dropdown.Item>
-								<Dropdown.Item onClick={() => setStatusFilter('checked_in')}>
-									Hadir (Checked-in)
-								</Dropdown.Item>
-								<Dropdown.Item onClick={() => setStatusFilter('active')}>
-									Belum Hadir
-								</Dropdown.Item>
+								{ATTENDANCE_FILTERS.map((f) => (
+									<Dropdown.Item
+										key={f.value}
+										onClick={() => setAttendanceFilter(f.value)}
+										active={attendanceFilter === f.value}
+									>
+										{f.label}
+									</Dropdown.Item>
+								))}
 							</Dropdown.Menu>
 						</Dropdown>
 
-						{/* Tombol Export yang baru */}
+						{/* Export */}
 						<Button
 							variant="outline-secondary"
 							size="sm"
@@ -400,7 +450,7 @@ const EventParticipantListPage = () => {
 									<th>Institusi</th>
 									<th>Email</th>
 									<th>Telepon</th>
-									<th className="text-center">Status</th>
+									<th className="text-center">Kehadiran</th>
 									<th style={{ width: 48 }}></th>
 								</tr>
 							</thead>
@@ -414,13 +464,18 @@ const EventParticipantListPage = () => {
 										ticket.attendee_email || ticket.participant?.email || null;
 									const phone = ticket.participant?.phone || null;
 									const university = ticket.participant?.university?.name || null;
-									const status = getStatusConfig(ticket.status);
 									const avatarColor = getAvatarColor(name);
 									const isEmailRevealed = revealed[ticket.id]?.email;
 									const isPhoneRevealed = revealed[ticket.id]?.phone;
 									const rowNum = showAll
 										? idx + 1
 										: (pageInfo.current_page - 1) * 15 + idx + 1;
+
+									// Attendance data
+									const attendanceStatus = getAttendanceStatus(ticket);
+									const log = ticket.attendance_log;
+									const checkinTime = log?.scan_time ? fmtTime(log.scan_time) : null;
+									const checkoutTime = log?.checkout_time ? fmtTime(log.checkout_time) : null;
 
 									return (
 										<tr key={ticket.id} className="participant-row">
@@ -444,7 +499,7 @@ const EventParticipantListPage = () => {
 													<div>
 														<p className="participant-name">{name}</p>
 														<p className="participant-time">
-															Reg #{ticket.id}
+															#{ticket.ticket_code ?? ticket.id}
 														</p>
 													</div>
 												</div>
@@ -528,25 +583,33 @@ const EventParticipantListPage = () => {
 												</div>
 											</td>
 
-											{/* Status */}
+											{/* ── Kehadiran ─────────────────────────────── */}
 											<td className="text-center">
-												<div className="d-flex flex-column align-items-center gap-1">
-													<span className={status.className}>
-														{status.icon}
-														{status.label}
+												<div className="attendance-cell">
+													{/* Badge status utama */}
+													<span className={attendanceStatus.className}>
+														{attendanceStatus.icon}
+														{attendanceStatus.label}
 													</span>
-													{ticket.attendance_log?.scan_time && (
-														<span
-															className="text-muted"
-															style={{ fontSize: '0.75rem' }}
-														>
-															{new Date(
-																ticket.attendance_log.scan_time,
-															).toLocaleTimeString('id-ID', {
-																hour: '2-digit',
-																minute: '2-digit',
-															})}
-														</span>
+
+													{/* Waktu check-in */}
+													{checkinTime && (
+														<div className="attendance-time-row">
+															<LogIn size={10} className="attendance-time-icon attendance-time-icon--in" />
+															<span className="attendance-time-text">
+																{checkinTime}
+															</span>
+														</div>
+													)}
+
+													{/* Waktu check-out */}
+													{checkoutTime && (
+														<div className="attendance-time-row">
+															<LogOut size={10} className="attendance-time-icon attendance-time-icon--out" />
+															<span className="attendance-time-text">
+																{checkoutTime}
+															</span>
+														</div>
 													)}
 												</div>
 											</td>

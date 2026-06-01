@@ -124,12 +124,12 @@ export default function EventChecklist({ checklist = [], eventId }) {
 						style={{
 							display: 'flex',
 							gap: '12px',
-							alignItems: 'center',
+							alignItems: 'flex-start',
 							borderLeft: item.completed ? '3px solid #22C55E' : '3px solid #D97706', // Aksen garis kiri
 							background: item.completed ? '#F8FAFC' : '#FFFBEB',
 							borderRadius: 7,
 							border: item.completed ? '1px solid #E2E8F0' : '1px solid #e8c66b',
-							padding: '9px 14px',
+							padding: '10px 14px',
 						}}
 					>
 						{item.completed ? (
@@ -137,14 +137,14 @@ export default function EventChecklist({ checklist = [], eventId }) {
 								size={18}
 								color="#22C55E"
 								strokeWidth={2.5}
-								style={{ flexShrink: 0 }}
+								style={{ flexShrink: 0, marginTop: 2 }}
 							/>
 						) : (
 							<AlertCircle
 								size={18}
 								color="#D97706"
 								strokeWidth={2.5}
-								style={{ flexShrink: 0 }}
+								style={{ flexShrink: 0, marginTop: 2 }}
 							/>
 						)}
 
@@ -152,15 +152,28 @@ export default function EventChecklist({ checklist = [], eventId }) {
 							<div
 								style={{
 									fontSize: '12px',
-									fontWeight: 500,
+									fontWeight: 600,
 									color: item.completed ? '#64748B' : '#1E293B',
 									fontFamily: 'var(--font)',
 									lineHeight: 1.4,
-									marginBottom: 3,
+									marginBottom: item.hint ? 3 : 0,
+									textDecoration: item.completed ? 'line-through' : 'none',
 								}}
 							>
 								{item.label}
 							</div>
+							{item.hint && (
+								<div
+									style={{
+										fontSize: '11px',
+										color: '#94A3B8',
+										fontFamily: 'var(--font)',
+										lineHeight: 1.4,
+									}}
+								>
+									{item.hint}
+								</div>
+							)}
 						</div>
 
 						{/* Action link if not completed */}
@@ -181,6 +194,8 @@ export default function EventChecklist({ checklist = [], eventId }) {
 									borderRadius: '8px',
 									cursor: 'pointer',
 									transition: 'background 0.15s',
+									whiteSpace: 'nowrap',
+									marginTop: 1,
 								}}
 								onMouseEnter={(e) => (e.currentTarget.style.background = '#FFFBEB')}
 								onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
@@ -197,9 +212,12 @@ export default function EventChecklist({ checklist = [], eventId }) {
 									border: '1px solid #BBF7D0',
 									padding: '4px 10px',
 									borderRadius: '999px',
+									whiteSpace: 'nowrap',
+									flexShrink: 0,
+									marginTop: 1,
 								}}
 							>
-								Selesai
+								✓ Selesai
 							</span>
 						)}
 					</div>

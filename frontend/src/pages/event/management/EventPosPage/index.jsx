@@ -9,10 +9,10 @@ import PosTable from './PosTable';
 import PosForm from './PosForm';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
-// Sub-components extracted for clean code structure
 import OnlineAttendanceTool from './OnlineAttendanceTool';
 import AttendanceWindowInfo from './AttendanceWindowInfo';
 import PosStats from './PosStats';
+import PosGuideCard from './PosGuideCard';
 
 /**
  * Page Component: EventPosPage
@@ -113,7 +113,10 @@ const EventPosPage = () => {
 				</div>
 			</div>
 
-			{/* ── 2. Link Presensi Online (Magic Link Tool) ── */}
+			{/* ── 2. Panduan Cara Kerja Presensi ── */}
+			<PosGuideCard />
+
+			{/* ── 3. Link Presensi Online (Magic Link Tool) ── */}
 			<OnlineAttendanceTool />
 
 			{/* ── 3. Rongga Waktu Presensi (Attendance Window Info) ── */}
