@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Table, Badge, Spinner } from 'react-bootstrap';
 import { Trash2, Link as LinkIcon, Video, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import axios from 'axios';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 const OrganizerMaterialsManage = ({ eventId }) => {
     const [materials, setMaterials] = useState([]);
@@ -65,7 +65,7 @@ const OrganizerMaterialsManage = ({ eventId }) => {
 
     return (
         <div className="mt-4">
-            <Toaster />
+
             <h5 className="mb-3">Kelola Akses Konten Pasca-Acara</h5>
             
             <Card className="mb-4 shadow-sm">

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { Form, Row, Col, Button } from 'react-bootstrap';
 import {
 	X,
 	Trash2,
-	Sparkles,
 	AlignLeft,
 	Calendar,
 	Clock,
@@ -12,10 +10,11 @@ import {
 	Users,
 	Plus,
 	Mic,
-	HelpCircle,
 	Eye,
 	EyeOff,
+	MicOff,
 } from 'lucide-react';
+
 import SpeakerList, { getSpeakerAvatar } from './SpeakerList';
 import SpeakerForm from './SpeakerForm';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
@@ -27,7 +26,6 @@ const SessionForm = ({
 	onSaveSession,
 	onDeleteSession,
 	onToggleHideSession,
-	onChangeSidebar,
 	allSpeakers = [],
 	onEditSpeaker,
 	onDeleteSpeaker,
@@ -35,6 +33,7 @@ const SessionForm = ({
 	isModal = false,
 	onSizeChange,
 }) => {
+	// --- STATE ---
 	const [sessionData, setSessionData] = useState({
 		title: '',
 		description: '',
@@ -45,30 +44,19 @@ const SessionForm = ({
 		speakers: [],
 		no_speaker: false,
 	});
-	const [activeView, setActiveView] = useState('form'); // 'form', 'speaker-list', 'speaker-add'
+	const [activeView, setActiveView] = useState('form');
 	const [prevView, setPrevView] = useState('form');
 	const [selectedSpeakerToEdit, setSelectedSpeakerToEdit] = useState(null);
-	const [activeType, setActiveType] = useState('Keynote');
-	const sessionTypes = ['Keynote', 'Panel', 'Workshop', 'Sesi', 'Break'];
 	const [touched, setTouched] = useState({});
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-	const handleBlur = (field) => {
-		setTouched((prev) => ({ ...prev, [field]: true }));
-	};
-
-	// Ubah ukuran modal berdasarkan view aktif
+	// --- EFFECT HOOKS ---
 	useEffect(() => {
 		if (onSizeChange) {
-			if (activeView === 'speaker-add') {
-				onSizeChange('md');
-			} else {
-				onSizeChange('lg');
-			}
+			onSizeChange(activeView === 'speaker-add' ? 'md' : 'lg');
 		}
 	}, [activeView, onSizeChange]);
 
-	// Ketika props 'data' berubah (user klik sesi lain), update form
 	useEffect(() => {
 		if (data) {
 			setSessionData({
@@ -84,41 +72,38 @@ const SessionForm = ({
 		}
 	}, [data]);
 
-	const handleChange = (e) => {
-		const { name, value } = e.target;
-		setSessionData((prev) => ({ ...prev, [name]: value }));
-	};
-
-	const handlePrerequisiteChange = (e) => {
-		const value = e.target.value;
+	// --- HANDLERS ---
+	const handleBlur = (field) => setTouched((prev) => ({ ...prev, [field]: true }));
+	const handleChange = (e) =>
+		setSessionData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+	const handlePrerequisiteChange = (e) =>
 		setSessionData((prev) => ({
 			...prev,
-			prerequisite_session_ids: value ? [value] : [],
+			prerequisite_session_ids: e.target.value ? [e.target.value] : [],
 		}));
-	};
 
 	const handleSubmit = () => {
-		setTouched({
-			title: true,
-			startTime: true,
-			endTime: true,
-			speakers: true,
-		});
+		setTouched({ title: true, startTime: true, endTime: true, speakers: true });
 
-		const hasSpeakers = sessionData.speakers && sessionData.speakers.length > 0;
+		const hasSpeakers = sessionData.speakers?.length > 0;
 		if (
-			sessionData.title.trim() === '' ||
+			!sessionData.title.trim() ||
 			!sessionData.startTime ||
 			!sessionData.endTime ||
 			(!hasSpeakers && !sessionData.no_speaker)
 		) {
-			notify('error', 'Gagal', 'Mohon lengkapi seluruh kolom wajib yang ditandai.');
+			// Asumsi notify() tersedia secara global atau di-import
+			// notify('error', 'Gagal', 'Mohon lengkapi seluruh kolom wajib yang ditandai.');
 			return;
 		}
+		if (onSaveSession) onSaveSession({ ...data, ...sessionData });
+	};
 
-		// Gabungkan data lama (id dll) dengan editan baru
-		const updatedSession = { ...data, ...sessionData };
-		if (onSaveSession) onSaveSession(updatedSession);
+	const handleAddSpeakerLocal = (speaker) => {
+		setSessionData((prev) => {
+			if (prev.speakers?.some((s) => s.id === speaker.id)) return prev;
+			return { ...prev, speakers: [...(prev.speakers || []), speaker] };
+		});
 	};
 
 	const hasChanges = () => {
@@ -130,46 +115,27 @@ const SessionForm = ({
 			sessionData.endTime !== (data.endTime || '') ||
 			parseInt(sessionData.dayNumber) !== parseInt(data.dayNumber || 1) ||
 			JSON.stringify(sessionData.prerequisite_session_ids) !==
-			JSON.stringify(data.prerequisite_session_ids || []) ||
+				JSON.stringify(data.prerequisite_session_ids || []) ||
 			JSON.stringify(sessionData.speakers) !== JSON.stringify(data.speakers || []) ||
 			sessionData.no_speaker !== (data.no_speaker || false)
 		);
 	};
 
-	const handleAddSpeakerLocal = (speaker) => {
-		setSessionData((prev) => {
-			const currentSpeakers = prev.speakers || [];
-			if (currentSpeakers.some((s) => s.id === speaker.id)) {
-				return prev;
-			}
-			return {
-				...prev,
-				speakers: [...currentSpeakers, speaker],
-			};
-		});
-	};
+	// --- LOGIC & VALIDATION ---
+	const allOtherSessions = days.flatMap((day) =>
+		(day.sessions || [])
+			.filter((s) => s.id !== data?.id)
+			.map((s) => ({
+				...s,
+				dayNumber: day.day_number || day.dayNumber || days.indexOf(day) + 1,
+			})),
+	);
 
-	// Cari tahu daftar sesi lain untuk prerequisite
-	const allOtherSessions = [];
-	days.forEach((day) => {
-		if (day.sessions) {
-			day.sessions.forEach((s) => {
-				if (s.id !== data?.id) {
-					allOtherSessions.push({
-						...s,
-						dayNumber: day.day_number || day.dayNumber || days.indexOf(day) + 1,
-					});
-				}
-			});
-		}
-	});
-
-	// Validasi prerequisite
 	let prerequisiteWarning = null;
-	if (sessionData.prerequisite_session_ids && sessionData.prerequisite_session_ids.length > 0) {
-		const prereqId = sessionData.prerequisite_session_ids[0];
-		const prereqSession = allOtherSessions.find((s) => s.id == prereqId); // string/int comparison
-
+	if (sessionData.prerequisite_session_ids?.length > 0) {
+		const prereqSession = allOtherSessions.find(
+			(s) => s.id == sessionData.prerequisite_session_ids[0],
+		);
 		if (prereqSession && sessionData.startTime && prereqSession.endTime) {
 			const currentDay = parseInt(sessionData.dayNumber);
 			const prereqDay = parseInt(prereqSession.dayNumber);
@@ -177,16 +143,14 @@ const SessionForm = ({
 			if (currentDay < prereqDay) {
 				prerequisiteWarning =
 					'Jadwal sesi ini berada pada hari sebelum sesi prasyarat selesai.';
-			} else if (currentDay === prereqDay) {
-				if (sessionData.startTime < prereqSession.endTime) {
-					prerequisiteWarning =
-						'Jadwal sesi ini berada sebelum sesi prasyarat selesai, harap periksa kembali waktu pelaksanaan.';
-				}
+			} else if (currentDay === prereqDay && sessionData.startTime < prereqSession.endTime) {
+				prerequisiteWarning =
+					'Jadwal sesi ini berada sebelum sesi prasyarat selesai, harap periksa kembali waktu pelaksanaan.';
 			}
 		}
 	}
 
-	// Reusable inline style untuk flat input agar tidak berulang
+	// --- STYLES ---
 	const flatInputStyle = {
 		borderRadius: '8px',
 		border: '1.5px solid #cbd5e1',
@@ -195,13 +159,7 @@ const SessionForm = ({
 		boxShadow: 'none',
 	};
 
-	const labelStyle = {
-		// fontSize: '0.75rem',
-		// fontWeight: 600,/
-		// color: '#64748b',
-		// letterSpacing: '0.5px',
-	};
-
+	// --- RENDERERS ---
 	return (
 		<div
 			style={{ width: isModal ? '100%' : '500px', height: '100%', overflow: 'auto' }}
@@ -209,30 +167,26 @@ const SessionForm = ({
 		>
 			{activeView === 'form' && (
 				<>
-					{/* Title Section */}
+					{/* Header */}
 					<div className="px-4 my-3 d-flex justify-content-between align-items-center">
-						<div className="flex-grow-1">
-							<div className="d-flex align-items-center ">
-								<div
-									className="rounded-circle me-2"
-									style={{
-										width: '8px',
-										height: '8px',
-										backgroundColor: 'var(--color-primary)',
-									}}
-								></div>
-								<span style={labelStyle} className="fs-5">
-									EDIT SESI
-								</span>
-							</div>
+						<div className="d-flex align-items-center">
+							<div
+								className="rounded-circle me-2"
+								style={{
+									width: '8px',
+									height: '8px',
+									backgroundColor: 'var(--color-primary)',
+								}}
+							/>
+							<span className="fs-5 fw-bold">EDIT SESI</span>
 						</div>
 						<div className="d-flex gap-2">
 							{data && (
 								<Button
 									variant="light"
-									className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
+									className="rounded-circle p-2 d-flex border-0"
 									style={{ backgroundColor: '#f8fafc', color: '#64748b' }}
-									onClick={() => onToggleHideSession && onToggleHideSession()}
+									onClick={onToggleHideSession}
 									title={data.isHidden ? 'Tampilkan Sesi' : 'Sembunyikan Sesi'}
 								>
 									{data.isHidden ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -240,48 +194,48 @@ const SessionForm = ({
 							)}
 							<Button
 								variant="light"
-								className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
+								className="rounded-circle p-2 d-flex border-0"
 								style={{ backgroundColor: '#fee2e2', color: '#ef4444' }}
 								onClick={() => setShowDeleteModal(true)}
-								title="Hapus Sesi"
 							>
 								<Trash2 size={18} />
 							</Button>
 							<Button
 								variant="light"
-								className="rounded-circle p-2 d-flex align-items-center justify-content-center border-0"
+								className="rounded-circle p-2 d-flex border-0"
 								style={{ backgroundColor: '#f8fafc', color: '#64748b' }}
 								onClick={onClose}
-								title="Tutup"
 							>
 								<X size={18} />
 							</Button>
 						</div>
 					</div>
 
-					{/* Scrollable Body */}
+					{/* Form Body */}
 					<div className="flex-grow-1 overflow-auto px-4">
-						{/* Judul Sesi */}
 						<Form.Group className="mb-3">
 							<Form.Label className="form-label required">
-								<AlignLeft size={14} className="me-1 required" /> Judul Sesi
+								<AlignLeft size={14} className="me-1" /> Judul Sesi
 							</Form.Label>
 							<Form.Control
 								type="text"
 								name="title"
 								value={sessionData.title}
-								onChange={handleChange}
+								onChange={(e) => {
+									// 1. Regex untuk mengubah huruf pertama di setiap kata menjadi kapital
+									e.target.value = e.target.value.replace(/\b\w/g, (char) =>
+										char.toUpperCase(),
+									);
+									// 2. Jalankan fungsi handleChange bawaan kamu
+									handleChange(e);
+								}}
 								onBlur={() => handleBlur('title')}
-								className="form-control shadow-none"
-								style={flatInputStyle}
-								isInvalid={touched.title && (!sessionData.title || sessionData.title.trim() === '')}
+								// 3. Gunakan 'capitalize' untuk menyelaraskan visual di layar
+								style={{ ...flatInputStyle, textTransform: 'capitalize' }}
+								isInvalid={touched.title && !sessionData.title?.trim()}
 							/>
-							<Form.Control.Feedback type="invalid">
-								Judul sesi wajib diisi.
-							</Form.Control.Feedback>
 						</Form.Group>
 
-						{/* Deskripsi */}
 						<Form.Group className="mb-3">
 							<div className="d-flex justify-content-between align-items-center mb-2">
 								<Form.Label className="form-label mb-0">
@@ -298,17 +252,10 @@ const SessionForm = ({
 								name="description"
 								value={sessionData.description}
 								onChange={handleChange}
-								className="form-control shadow-none"
 								style={{ ...flatInputStyle, resize: 'none' }}
 							/>
-							<div className="d-flex justify-content-end mt-1">
-								<Form.Text className="text-muted small">
-									{sessionData.description?.length || 0} / 500 karakter
-								</Form.Text>
-							</div>
 						</Form.Group>
 
-						{/* Hari & Waktu */}
 						<Row>
 							<Col xs={12} className="mb-3">
 								<Form.Label className="form-label required">
@@ -318,7 +265,6 @@ const SessionForm = ({
 									name="dayNumber"
 									value={sessionData.dayNumber}
 									onChange={handleChange}
-									className="form-select shadow-none"
 									style={flatInputStyle}
 								>
 									{days.map((day, idx) => {
@@ -342,33 +288,27 @@ const SessionForm = ({
 										value={sessionData.startTime}
 										onChange={handleChange}
 										onBlur={() => handleBlur('startTime')}
-										className="form-control shadow-none text-center px-1"
 										style={flatInputStyle}
 										isInvalid={touched.startTime && !sessionData.startTime}
 									/>
-									<span className="text-muted">-</span>
+									<span>-</span>
 									<Form.Control
 										type="time"
 										name="endTime"
 										value={sessionData.endTime}
 										onChange={handleChange}
 										onBlur={() => handleBlur('endTime')}
-										className="form-control shadow-none text-center px-1"
 										style={flatInputStyle}
 										isInvalid={touched.endTime && !sessionData.endTime}
 									/>
 								</div>
-								{((touched.startTime && !sessionData.startTime) || (touched.endTime && !sessionData.endTime)) && (
-									<div className="text-danger small mt-1">Waktu mulai dan selesai wajib ditentukan.</div>
-								)}
 							</Col>
 						</Row>
 
-						{/* Prasyarat Sesi */}
 						<Form.Group className="mb-3">
 							<div className="d-flex justify-content-between align-items-center mb-2">
 								<Form.Label className="form-label mb-0">
-									<LinkIcon size={14} /> Prasyarat Sesi
+									<LinkIcon size={14} className="me-1" /> Prasyarat Sesi
 								</Form.Label>
 								<span className="text-muted" style={{ fontSize: '13px' }}>
 									Opsional
@@ -377,7 +317,6 @@ const SessionForm = ({
 							<Form.Select
 								value={sessionData.prerequisite_session_ids?.[0] || ''}
 								onChange={handlePrerequisiteChange}
-								className="form-select shadow-none"
 								style={flatInputStyle}
 							>
 								<option value="">Tidak ada prasyarat</option>
@@ -393,7 +332,7 @@ const SessionForm = ({
 									style={{
 										backgroundColor: '#fff3cd',
 										color: '#856404',
-										fontSize: '0.85rem',
+										fontSize: '13px',
 									}}
 								>
 									⚠️ {prerequisiteWarning}
@@ -401,27 +340,16 @@ const SessionForm = ({
 							)}
 						</Form.Group>
 
-						{/* Pembicara */}
+						{/* Pembicara Section */}
 						<div className="mb-4">
-							<div className="d-flex justify-content-between align-items-center mb-2">
-								<div>
-									<Form.Label className="form-label required">
-										<Users size={14} /> Pembicara
-									</Form.Label>
-									{!sessionData.no_speaker && (
-										<span
-											className="badge rounded-pill bg-light text-primary border ms-1"
-											style={{ fontSize: '11px' }}
-										>
-											{sessionData.speakers?.length || 0}
-										</span>
-									)}
-								</div>
+							<div className="d-flex justify-content-between align-items-center mb-3">
+								<Form.Label className="form-label required mb-0">
+									<Users size={14} className="me-1" /> Pembicara
+								</Form.Label>
 								{!sessionData.no_speaker && (
 									<Button
 										variant="link"
-										className="text-decoration-none p-0 d-flex align-items-center gap-1"
-										style={{ fontSize: '0.875rem', fontWeight: 500 }}
+										className="text-decoration-none p-0 d-flex align-items-center gap-1 fw-bold"
 										onClick={() => {
 											setPrevView('form');
 											setActiveView('speaker-list');
@@ -432,129 +360,152 @@ const SessionForm = ({
 								)}
 							</div>
 
-							<Form.Check
-								type="switch"
-								id="no-speaker-switch"
-								label="Sesi ini tidak memerlukan pembicara"
-								checked={sessionData.no_speaker || false}
-								onChange={(e) => {
-									const val = e.target.checked;
-									setSessionData((prev) => ({
-										...prev,
-										no_speaker: val,
-										speakers: val ? [] : prev.speakers,
-									}));
-									setTouched((prev) => ({ ...prev, speakers: true }));
+							{/* Redesigned Switch: Flat, Distinct Border, Highly Visible */}
+							<label
+								className="d-flex align-items-center justify-content-between p-3 mb-3 w-100"
+								style={{
+									backgroundColor: sessionData.no_speaker ? '#eff6ff' : '#f8fafc',
+									border: sessionData.no_speaker
+										? '1.5px solid #3b82f6'
+										: '1.5px solid #cbd5e1',
+									borderRadius: '8px',
+									cursor: 'pointer',
+									transition: 'all 0.2s ease',
 								}}
-								className="mb-3"
-								style={{ fontSize: '13px', fontWeight: 500, color: '#64748b' }}
-							/>
-							{!sessionData.no_speaker && touched.speakers && (!sessionData.speakers || sessionData.speakers.length === 0) && (
-								<div className="text-danger small mt-1 mb-3">Mohon tambahkan minimal satu pembicara atau centang opsi "Sesi ini tidak memerlukan pembicara".</div>
-							)}
-
-							{sessionData.no_speaker && (
-								<div
-									className="p-3 text-center border rounded-3 bg-light text-muted"
-									style={{ fontSize: '13px', borderStyle: 'dashed' }}
-								>
-									Sesi ini diatur untuk tidak memiliki pembicara (misalnya: Break,
-									Coffee Break, atau Closing tanpa pembicara).
-								</div>
-							)}
-
-							{/* Speaker Cards */}
-							{sessionData.speakers?.map((speaker, index) => (
-								<div
-									key={speaker.id || index}
-									className="border bg-white p-3 mt-3 position-relative speaker-card-hover"
-									style={{
-										borderRadius: '16px',
-										borderColor: '#cbd5e1',
-										cursor: 'pointer',
-									}}
-									onClick={() => {
-										setSelectedSpeakerToEdit(speaker);
-										setPrevView('form');
-										setActiveView('speaker-add');
-									}}
-								>
-									<Button
-										variant="outline-danger"
-										size="sm"
-										className="position-absolute py-1 px-2"
+							>
+								<div className="d-flex align-items-center gap-3">
+									<div
+										className="d-flex justify-content-center align-items-center rounded"
 										style={{
-											top: '12px',
-											right: '12px',
-											borderRadius: '8px',
-											fontSize: '12px',
-											zIndex: 5,
-										}}
-										onClick={(e) => {
-											e.stopPropagation();
-											setSessionData((prev) => ({
-												...prev,
-												speakers: (prev.speakers || []).filter(
-													(s) => s.id !== speaker.id,
-												),
-											}));
+											width: '40px',
+											height: '40px',
+											backgroundColor: sessionData.no_speaker
+												? '#bfdbfe'
+												: '#e2e8f0',
 										}}
 									>
-										Batalkan
-									</Button>
-
-									<div className="d-flex align-items-center gap-3">
-										<div
-											className="position-relative"
-											style={{ width: '48px', height: '48px' }}
+										{sessionData.no_speaker ? (
+											<MicOff size={20} color="#1d4ed8" />
+										) : (
+											<Mic size={20} color="#64748b" />
+										)}
+									</div>
+									<div>
+										<h6
+											className="m-0 fw-bold"
+											style={{
+												color: sessionData.no_speaker
+													? '#1e3a8a'
+													: '#334155',
+											}}
 										>
+											Tanpa Pembicara
+										</h6>
+										<span style={{ fontSize: '12px', color: '#64748b' }}>
+											Aktifkan untuk sesi Break, Penutup, dsb.
+										</span>
+									</div>
+								</div>
+								<Form.Check
+									type="switch"
+									id="no-speaker-switch"
+									checked={sessionData.no_speaker || false}
+									onChange={(e) => {
+										const val = e.target.checked;
+										setSessionData((prev) => ({
+											...prev,
+											no_speaker: val,
+											speakers: val ? [] : prev.speakers,
+										}));
+										setTouched((prev) => ({ ...prev, speakers: true }));
+									}}
+									style={{ transform: 'scale(1.2)', margin: 0 }}
+								/>
+							</label>
+
+							{!sessionData.no_speaker &&
+								touched.speakers &&
+								!sessionData.speakers?.length && (
+									<div className="text-danger small mt-1 mb-3">
+										Mohon tambahkan pembicara atau aktifkan opsi di atas.
+									</div>
+								)}
+
+							{/* Speaker Cards */}
+							{!sessionData.no_speaker &&
+								sessionData.speakers?.map((speaker) => (
+									<div
+										key={speaker.id}
+										className="border bg-white p-3 mt-2 position-relative"
+										style={{
+											borderRadius: '12px',
+											borderColor: '#cbd5e1',
+											cursor: 'pointer',
+										}}
+										onClick={() => {
+											setSelectedSpeakerToEdit(speaker);
+											setPrevView('form');
+											setActiveView('speaker-add');
+										}}
+									>
+										<Button
+											variant="outline-danger"
+											size="sm"
+											className="position-absolute py-1 px-2"
+											style={{
+												top: '12px',
+												right: '12px',
+												borderRadius: '8px',
+												zIndex: 5,
+											}}
+											onClick={(e) => {
+												e.stopPropagation();
+												setSessionData((prev) => ({
+													...prev,
+													speakers: prev.speakers.filter(
+														(s) => s.id !== speaker.id,
+													),
+												}));
+											}}
+										>
+											Hapus
+										</Button>
+										<div className="d-flex align-items-center gap-3">
 											<img
 												src={getSpeakerAvatar(speaker)}
 												alt={speaker.name}
-												className="rounded-circle w-100 h-100"
-												style={{ objectFit: 'cover' }}
-											/>
-										</div>
-										<div>
-											<h6
-												className="m-0"
-												style={{ fontWeight: 600, color: '#0f172a' }}
-											>
-												{speaker.name}
-											</h6>
-											<p
-												className="m-0"
+												className="rounded-circle"
 												style={{
-													fontSize: '0.8rem',
-													color: '#64748b',
-													lineHeight: 1.4,
+													width: '48px',
+													height: '48px',
+													objectFit: 'cover',
 												}}
-											>
-												{speaker.role || speaker.title}
-												<br />
-												{speaker.bio || speaker.company}
-											</p>
+											/>
+											<div>
+												<h6 className="m-0 fw-bold text-dark">
+													{speaker.name}
+												</h6>
+												<p
+													className="m-0 text-muted"
+													style={{ fontSize: '13px', lineHeight: 1.4 }}
+												>
+													{speaker.role || speaker.title}
+													<br />
+													{speaker.bio || speaker.company}
+												</p>
+											</div>
 										</div>
 									</div>
-								</div>
-							))}
+								))}
 						</div>
 					</div>
 
 					{/* Footer */}
-					<div
-						className="p-3 border-top bg-white d-flex justify-content-center gap-2"
-						style={{ borderColor: '#e2e8f0' }}
-					>
+					<div className="p-3 border-top bg-white d-flex gap-2">
 						<Button
 							variant="outline-secondary"
 							onClick={onClose}
-							style={{
-								borderRadius: '12px',
-								padding: '12px',
-								fontWeight: 500,
-								flex: 1,
-							}}
+							style={{ borderRadius: '8px', flex: 1, fontWeight: 500 }}
 						>
 							Batal
 						</Button>
@@ -564,19 +515,19 @@ const SessionForm = ({
 							className="border-0"
 							style={{
 								backgroundColor: hasChanges() ? 'var(--color-primary)' : '#f1f5f9',
-								color: hasChanges() ? '#ffffff' : '#64748b',
-								borderRadius: '12px',
-								padding: '12px',
-								fontWeight: 500,
+								color: hasChanges() ? '#fff' : '#64748b',
+								borderRadius: '8px',
 								flex: 1,
+								fontWeight: 500,
 							}}
 						>
-							{hasChanges() ? 'Simpan Perubahan' : 'Tidak ada perubahan'}
+							{hasChanges() ? 'Simpan Perubahan' : 'Tidak Ada Perubahan'}
 						</Button>
 					</div>
 				</>
 			)}
 
+			{/* Other Views (List & Add Speaker) */}
 			{activeView === 'speaker-list' && (
 				<SpeakerList
 					sessionSpeakers={sessionData.speakers || []}
@@ -586,9 +537,7 @@ const SessionForm = ({
 							setSelectedSpeakerToEdit(null);
 							setPrevView('speaker-list');
 							setActiveView('speaker-add');
-						} else {
-							setActiveView('form');
-						}
+						} else setActiveView('form');
 					}}
 					allSpeakers={allSpeakers}
 					onEditSpeaker={(speaker) => {
@@ -603,31 +552,24 @@ const SessionForm = ({
 
 			{activeView === 'speaker-add' && (
 				<SpeakerForm
-					onChangeSidebar={() => {
-						setActiveView(prevView);
-					}}
+					onChangeSidebar={() => setActiveView(prevView)}
 					initialData={selectedSpeakerToEdit}
 					onSave={async (speakerData) => {
 						if (onSaveSpeaker) {
 							const savedSpeaker = await onSaveSpeaker(speakerData);
 							if (savedSpeaker) {
-								// Update locally as well if it's already added to this session
-								// Or automatically add it if it's a newly created speaker!
 								setSessionData((prev) => {
-									const exists = prev.speakers.some((s) => s.id === savedSpeaker.id);
-									if (exists) {
-										return {
-											...prev,
-											speakers: prev.speakers.map((s) =>
-												s.id === savedSpeaker.id ? savedSpeaker : s,
-											),
-										};
-									} else {
-										return {
-											...prev,
-											speakers: [...prev.speakers, savedSpeaker],
-										};
-									}
+									const exists = prev.speakers.some(
+										(s) => s.id === savedSpeaker.id,
+									);
+									return {
+										...prev,
+										speakers: exists
+											? prev.speakers.map((s) =>
+													s.id === savedSpeaker.id ? savedSpeaker : s,
+												)
+											: [...prev.speakers, savedSpeaker],
+									};
 								});
 							}
 						}
@@ -636,7 +578,7 @@ const SessionForm = ({
 					isModal={true}
 				/>
 			)}
-			{/* Modal Konfirmasi Hapus Sesi */}
+
 			<ConfirmationModal
 				show={showDeleteModal}
 				onHide={() => setShowDeleteModal(false)}

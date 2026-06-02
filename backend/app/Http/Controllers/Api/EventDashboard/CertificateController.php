@@ -46,7 +46,8 @@ class CertificateController extends Controller
 
             if ($template) {
                 // Sediakan URL penuh untuk background_path agar frontend mudah memuat gambar dengan CORS
-                $template->background_url = url("/api/certificate/background/{$eventId}");
+                // Tambahkan parameter cache-buster agar browser memuat gambar baru setelah diupdate
+                $template->background_url = url("/api/certificate/background/{$eventId}?v=" . ($template->updated_at ? $template->updated_at->timestamp : time()));
             }
 
             return response()->json([
@@ -333,8 +334,8 @@ class CertificateController extends Controller
                 ], 404);
             }
 
-            $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
-            $template->background_url = url("/api/certificate/background/{$event->id}");
+            $organizerName = $event->institution?->name ?? $event->organizer?->name;
+            $template->background_url = url("/api/certificate/background/{$event->id}?v=" . ($template->updated_at ? $template->updated_at->timestamp : time()));
 
             $surveyResponse = \App\Models\SurveyResponse::where('user_id', $ticket->participant_id)
                 ->where('event_id', $event->id)
@@ -346,22 +347,26 @@ class CertificateController extends Controller
             }
 
             // Map data element dari snake_case (DB) ke camelCase (Format Admin/Frontend)
-            $formattedElements = $template->elements->map(function ($element) use ($ticketCode) {
-                $fieldId = 'f_custom';
-                $labelPlaceholder = $element->custom_value ?? '{ Teks }';
+            $formattedElements = $template->elements->map(function ($element) use ($ticketCode, $ticket, $event, $organizerName) {
+                $typeMap = [
+                    'nama_peserta'  => 'f1',
+                    'id_sertifikat' => 'f2',
+                    'qr_code'       => 'f3',
+                    'nama_event'    => 'f4',
+                    'tanggal'       => 'f5',
+                    'instansi'      => 'f6',
+                    'teks_kustom'   => 'f7', // Fallback default
+                ];
+                $fieldId = $typeMap[$element->element_type] ?? 'f7';
 
-                // f.. dilihat dari certificate constant di frontend, jadi disesuaikan dengan element_type yang ada di database
-                if ($element->element_type === 'nama_peserta') {
-                    $fieldId = 'f1';
-                    $labelPlaceholder = '{ Nama Peserta }';
-                } elseif ($element->element_type === 'id_sertifikat') {
-                    $fieldId = 'f2';
-                    $labelPlaceholder = '{ ID Sertifikat }';
-                } elseif ($element->element_type === 'qr_code') {
-                    $fieldId = 'f3';
-                    $frontendUrl = env('FRONTEND_URL');
-                    $labelPlaceholder = "{$frontendUrl}/certificate/verify/{$ticketCode}";
-                }
+                // Set default label jika dari frontend tidak mengirimkan previewData
+                $labelPlaceholder = $element->custom_value ?? '{ Teks Kustom }';
+                if ($fieldId === 'f1') $labelPlaceholder = $ticket->attendee_name ?? '{ Nama Peserta }';
+                if ($fieldId === 'f2') $labelPlaceholder = $ticket->ticket_code ?? '{ ID Sertifikat }';
+                if ($fieldId === 'f3') $labelPlaceholder = env('FRONTEND_URL') . "/certificate/verify/{$ticketCode}";
+                if ($fieldId === 'f4') $labelPlaceholder = $event->title ?? '{ Nama Event }';
+                if ($fieldId === 'f5') $labelPlaceholder = $event->start_date ? $event->start_date->translatedFormat('d F Y') : '{ Tanggal }';
+                if ($fieldId === 'f6') $labelPlaceholder = $organizerName;
 
                 return [
                     'id'          => "db-" . $element->id,
@@ -373,7 +378,7 @@ class CertificateController extends Controller
                     'color'       => $element->font_color ?? '#000000',
                     'fontFamily'  => $element->font_family ?? 'Arial',
                     'textAlign'   => $element->text_align ?? 'center',
-                    'bold'        => $element->element_type === 'nama_peserta',
+                    'bold'        => in_array($element->element_type, ['nama_peserta', 'nama_event']),
                     'elementType' => $element->element_type
                 ];
             });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Container, Card, Spinner, Button } from 'react-bootstrap';
 import { CheckCircle, XCircle, Info } from 'lucide-react';
@@ -6,120 +6,189 @@ import api from '@/api/axios';
 import { useAuth } from '@/context/AuthContext';
 
 export default function AttendVenuePage() {
-    const [status, setStatus] = useState('loading'); // loading, success, error, unauthenticated
-    const [message, setMessage] = useState('Memproses kehadiran Anda...');
-    const [pageType, setPageType] = useState('in'); // 'in' or 'out'
-    const location = useLocation();
-    const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuth();
+	const [status, setStatus] = useState('loading'); // loading, success, error, unauthenticated
+	const [message, setMessage] = useState('Memproses kehadiran Anda...');
+	const [pageType, setPageType] = useState('in');
 
-    useEffect(() => {
-        // Parse URL params
-        const params = new URLSearchParams(location.search);
-        const eventId = params.get('event_id');
-        const signature = params.get('signature');
-        const type = params.get('type') || 'in';
-        setPageType(type);
+	const location = useLocation();
+	const navigate = useNavigate();
+	const { isAuthenticated } = useAuth();
 
-        if (!eventId || !signature) {
-            setStatus('error');
-            setMessage('Tautan tidak valid atau tidak lengkap.');
-            return;
-        }
+	// useRef digunakan untuk mencegah Double-Render API Call di React 18
+	const hasProcessed = useRef(false);
 
-        if (!isAuthenticated) {
-            setStatus('unauthenticated');
-            setMessage('Silakan login ke akun Anda untuk mencatat kehadiran.');
-            return;
-        }
+	useEffect(() => {
+		// Eksekusi hanya boleh berjalan satu kali
+		if (hasProcessed.current) return;
 
-        const processScan = async () => {
-            try {
-                const prefix = type === 'in' ? `venue_in_${eventId}` : `venue_out_${eventId}`;
-                const response = await api.post('/attendance/venue-scan', {
-                    event_id: eventId,
-                    qr_string: `${prefix}.${signature}`
-                });
+		const params = new URLSearchParams(location.search);
+		const eventId = params.get('event_id');
+		const signature = params.get('signature');
+		const type = params.get('type') || 'in';
+		const expiresAt = params.get('expires_at');
 
-                if (response.data?.success) {
-                    setStatus('success');
-                    setMessage(response.data.message || (type === 'out' ? 'Check-out berhasil dicatat. Terima kasih!' : 'Kehadiran berhasil dicatat! Selamat mengikuti acara.'));
-                }
-            } catch (err) {
-                setStatus('error');
-                if (err.response?.status === 409) {
-                    setMessage('Anda sudah pernah melakukan check-in untuk acara ini.');
-                } else if (err.response?.status === 403) {
-                    setMessage(err.response?.data?.message || 'Waktu presensi belum dibuka atau sudah ditutup.');
-                } else if (err.response?.status === 404) {
-                    setMessage('Tiket tidak ditemukan atau belum lunas.');
-                } else {
-                    setMessage(err.response?.data?.message || 'Terjadi kesalahan saat memproses data.');
-                }
-            }
-        };
+		setPageType(type);
 
-        processScan();
-    }, [location.search, isAuthenticated]);
+		if (!eventId || !signature) {
+			setStatus('error');
+			setMessage('Tautan tidak valid atau tidak lengkap.');
+			return;
+		}
 
-    const handleLogin = () => {
-        // Simpan URL saat ini untuk redirect setelah login
-        const returnUrl = encodeURIComponent(location.pathname + location.search);
-        navigate(`/login?return_to=${returnUrl}`);
-    };
+		if (!isAuthenticated) {
+			setStatus('unauthenticated');
+			setMessage('Silakan login ke akun Anda untuk mencatat kehadiran.');
+			return;
+		}
 
-    return (
-        <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
-            <Card className="text-center shadow-lg border-0" style={{ maxWidth: '400px', width: '100%', borderRadius: '1rem' }}>
-                <Card.Body className="p-5">
-                    {status === 'loading' && (
-                        <>
-                            <Spinner animation="border" variant="primary" style={{ width: '4rem', height: '4rem' }} className="mb-4" />
-                            <h4 className="fw-bold text-dark">Memproses Scan</h4>
-                            <p className="text-muted">{message}</p>
-                        </>
-                    )}
+		const processScan = async () => {
+			// Tandai bahwa API sudah dipanggil agar tidak mengulang
+			hasProcessed.current = true;
 
-                    {status === 'success' && (
-                        <>
-                            <div className="text-success mb-4 d-flex justify-content-center">
-                                <CheckCircle size={80} strokeWidth={1.5} />
-                            </div>
-                            <h4 className="fw-bold text-dark">{pageType === 'out' ? 'Check-out Berhasil!' : 'Check-in Berhasil!'}</h4>
-                            <p className="text-muted mb-4">{message}</p>
-                            <Button variant="primary" className="w-100 rounded-pill px-4" onClick={() => navigate('/my-tickets')}>
-                                Lihat Tiket Saya
-                            </Button>
-                        </>
-                    )}
+			try {
+				// Mencari atau membuat Device ID di browser peserta
+				let deviceId = localStorage.getItem('kampusx_device_id');
+				if (!deviceId) {
+					deviceId =
+						'dev_' +
+						Math.random().toString(36).substring(2, 15) +
+						Math.random().toString(36).substring(2, 15);
+					localStorage.setItem('kampusx_device_id', deviceId);
+				}
 
-                    {status === 'error' && (
-                        <>
-                            <div className="text-danger mb-4 d-flex justify-content-center">
-                                <XCircle size={80} strokeWidth={1.5} />
-                            </div>
-                            <h4 className="fw-bold text-dark">Gagal {pageType === 'out' ? 'Check-out' : 'Check-in'}</h4>
-                            <p className="text-muted mb-4">{message}</p>
-                            <Button variant="outline-secondary" className="w-100 rounded-pill px-4" onClick={() => navigate('/events')}>
-                                Kembali ke Beranda
-                            </Button>
-                        </>
-                    )}
+				// Payload disesuaikan sama persis dengan yang diminta Laravel
+				const payload = {
+					event_id: eventId,
+					type: type,
+					signature: signature,
+					device_token: deviceId,
+					expires_at: expiresAt || null,
+				};
 
-                    {status === 'unauthenticated' && (
-                        <>
-                            <div className="text-info mb-4 d-flex justify-content-center">
-                                <Info size={80} strokeWidth={1.5} />
-                            </div>
-                            <h4 className="fw-bold text-dark">Login Diperlukan</h4>
-                            <p className="text-muted mb-4">{message}</p>
-                            <Button variant="primary" className="w-100 rounded-pill px-4" onClick={handleLogin}>
-                                Login / Daftar
-                            </Button>
-                        </>
-                    )}
-                </Card.Body>
-            </Card>
-        </Container>
-    );
+				// Pastikan URL endpoint ini cocok dengan route api.php Laravel kamu
+				const response = await api.post('/attendance/process', payload);
+
+				if (response.data?.success) {
+					setStatus('success');
+					setMessage(
+						response.data.message ||
+							(type === 'out'
+								? 'Check-out berhasil dicatat. Terima kasih!'
+								: 'Kehadiran berhasil dicatat! Selamat mengikuti acara.'),
+					);
+				}
+			} catch (err) {
+				setStatus('error');
+				// Menangkap pesan error spesifik dari 5 Layer backend Laravel
+				if (err.response?.status === 400 || err.response?.status === 403) {
+					setMessage(err.response?.data?.message || 'Akses presensi ditolak.');
+				} else if (err.response?.status === 404) {
+					setMessage('Data acara tidak ditemukan.');
+				} else {
+					setMessage(
+						err.response?.data?.message ||
+							'Terjadi kesalahan saat memproses data pada server.',
+					);
+				}
+			}
+		};
+
+		processScan();
+	}, [location.search, isAuthenticated]);
+
+	const handleLogin = () => {
+		const returnUrl = encodeURIComponent(location.pathname + location.search);
+		navigate(`/login?return_to=${returnUrl}`);
+	};
+
+	return (
+		<Container
+			className="d-flex align-items-center justify-content-center"
+			style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}
+		>
+			{/* Mengganti shadow tebal dengan flat border yang lebih clean */}
+			<Card
+				className="text-center shadow-none border"
+				style={{ maxWidth: '400px', width: '100%', borderRadius: '0.5rem' }}
+			>
+				<Card.Body className="p-5">
+					{status === 'loading' && (
+						<>
+							<Spinner
+								animation="border"
+								variant="dark"
+								style={{ width: '3rem', height: '3rem', borderWidth: '0.2em' }}
+								className="mb-4"
+							/>
+							<h5 className="fw-semibold text-dark">Memproses Kehadiran</h5>
+							<p className="text-muted" style={{ fontSize: '0.875rem' }}>
+								{message}
+							</p>
+						</>
+					)}
+
+					{status === 'success' && (
+						<>
+							<div className="text-success mb-4 d-flex justify-content-center">
+								<CheckCircle size={64} strokeWidth={1.5} />
+							</div>
+							<h5 className="fw-semibold text-dark">
+								{pageType === 'out' ? 'Check-out Berhasil!' : 'Check-in Berhasil!'}
+							</h5>
+							<p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>
+								{message}
+							</p>
+							<Button
+								variant="dark"
+								className="w-100 rounded-2 px-4 shadow-none"
+								onClick={() => navigate('/my-tickets')}
+							>
+								Lihat Tiket Saya
+							</Button>
+						</>
+					)}
+
+					{status === 'error' && (
+						<>
+							<div className="text-danger mb-4 d-flex justify-content-center">
+								<XCircle size={64} strokeWidth={1.5} />
+							</div>
+							<h5 className="fw-semibold text-dark">
+								Gagal {pageType === 'out' ? 'Check-out' : 'Check-in'}
+							</h5>
+							<p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>
+								{message}
+							</p>
+							<Button
+								variant="outline-dark"
+								className="w-100 rounded-2 px-4 shadow-none bg-white"
+								onClick={() => navigate('/events')}
+							>
+								Kembali ke Beranda
+							</Button>
+						</>
+					)}
+
+					{status === 'unauthenticated' && (
+						<>
+							<div className="text-dark mb-4 d-flex justify-content-center">
+								<Info size={64} strokeWidth={1.5} />
+							</div>
+							<h5 className="fw-semibold text-dark">Login Diperlukan</h5>
+							<p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>
+								{message}
+							</p>
+							<Button
+								variant="dark"
+								className="w-100 rounded-2 px-4 shadow-none"
+								onClick={handleLogin}
+							>
+								Login / Daftar
+							</Button>
+						</>
+					)}
+				</Card.Body>
+			</Card>
+		</Container>
+	);
 }

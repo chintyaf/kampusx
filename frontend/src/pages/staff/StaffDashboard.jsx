@@ -437,22 +437,6 @@ const StaffDashboard = () => {
         });
     };
 
-    const getAttendanceWindow = () => {
-        if (!event || !event.start_date || !event.end_date) return null;
-
-        const startDate = new Date(event.start_date.replace(' ', 'T') + 'Z');
-        const endDate = new Date(event.end_date.replace(' ', 'T') + 'Z');
-
-        // 30 minutes before start_date
-        const allowedStart = new Date(startDate.getTime() - 30 * 60 * 1000);
-
-        return {
-            start: allowedStart,
-            end: endDate
-        };
-    };
-
-    const windowTimes = getAttendanceWindow();
 
     return (
         <div style={{ backgroundColor: 'var(--color-bg, #f8fafc)', minHeight: '100vh', paddingBottom: '60px' }}>
@@ -499,33 +483,6 @@ const StaffDashboard = () => {
             </div>
 
             <Container>
-
-                {/* ── Rongga Waktu Presensi (Attendance Window Info) ── */}
-                {event && windowTimes && (
-                    <div className="bg-white border-start border-primary border-4 rounded-3 p-3 mb-4 d-flex align-items-center gap-3 shadow-sm border" style={{ borderLeft: '4px solid #1A365D' }}>
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '8px',
-                            backgroundColor: 'rgba(26, 54, 93, 0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#1A365D',
-                            flexShrink: 0
-                        }}>
-                            <Clock size={20} />
-                        </div>
-                        <div>
-                            <div className="fw-semibold text-dark" style={{ fontSize: '0.9rem' }}>
-                                Rongga Waktu Presensi Aktif (Attendance Window)
-                            </div>
-                            <div className="text-muted mt-0.5" style={{ fontSize: '0.82rem' }}>
-                                Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start.toISOString())}</span> s/d <span className="fw-semibold text-danger">{formatDateTime(windowTimes.end.toISOString())}</span> ({event.timezone || 'WIB'})
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Stats Row */}
                 <Row className="g-3 mb-4">

@@ -114,6 +114,21 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) =>
 					>
 						<Copy size={14} />
 					</Button>
+					<div className="vr mx-1 opacity-25" style={{ height: '16px' }}></div>
+					<Button
+						variant="link"
+						className="p-0 border-0 text-primary d-flex align-items-center gap-1 shadow-none text-decoration-none"
+						style={{ fontSize: '0.85rem' }}
+						onClick={() => {
+							const url = `${window.location.origin}/staff/login?pin=${posPin}`;
+							navigator.clipboard.writeText(url)
+								.then(() => toast.success('Link Login Staf disalin!'))
+								.catch(() => toast.error('Gagal menyalin link.'));
+						}}
+						title="Salin Link Login Staf"
+					>
+						Salin Link Staf
+					</Button>
 				</div>
 
 				{/* Bagian Kanan: Search & Add Button */}

@@ -1,55 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import {
-	Button,
-	Row,
-	Col,
-	InputGroup,
-	Form,
-	Spinner,
-	ToggleButtonGroup,
-	ToggleButton,
-} from 'react-bootstrap';
-import { useParams, useNavigate } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
-import {
-	Users,
-	CheckCircle2,
-	Box,
-	Ticket,
-	Plus,
-	MapPin,
-	Trash2,
-	Link as LinkIcon,
-	Copy,
-	RefreshCw,
-	ScanLine,
-	Clock,
-} from 'lucide-react';
+import { Button, Spinner, Row, Col } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { MapPin, Plus, Trash2 } from 'lucide-react';
 
 import api from '@/api/axios';
-import StatCard from '@/components/dashboard/StatCard';
 import PosTable from './PosTable';
 import PosForm from './PosForm';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
-/* ── Main ────────────────────────────────────────────────────── */
+import OnlineAttendanceTool from './OnlineAttendanceTool';
+import AttendanceWindowInfo from './AttendanceWindowInfo';
+import PosStats from './PosStats';
+import PosGuideCard from './PosGuideCard';
+
+/**
+ * Page Component: EventPosPage
+ * Main entry point for Organizer POS and Scanner Station management.
+ * Displays statistics, active attendance windows, online attendance tools,
+ * and allows CRUD operations for POS scanner stations.
+ */
 const EventPosPage = () => {
 	const { eventId } = useParams();
-	const navigate = useNavigate();
 	const [posList, setPosList] = useState([]);
 	const [showForm, setShowForm] = useState(false);
 	const [selectedPos, setSelectedPos] = useState(null);
 	const [posPin, setPosPin] = useState('-');
 	const [event, setEvent] = useState(null);
+	const [activeMethod, setActiveMethod] = useState('qr'); // 'qr' | 'online'
 
+	// States for deleting POS station
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
 	const [posToDelete, setPosToDelete] = useState(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
-	const [onlineLink, setOnlineLink] = useState('');
-	const [loadingLink, setLoadingLink] = useState(false);
-	const [linkType, setLinkType] = useState('in');
-
+	// Fetch active POS stations and general event details
 	const fetchPosList = async () => {
 		try {
 			const response = await api.get(`/event-dashboard/${eventId}/stations`);
@@ -65,27 +50,27 @@ const EventPosPage = () => {
 				description: station.description,
 				photo_url: station.photo_url,
 				status: station.is_active ? 'Aktif' : 'Tidak Aktif',
-				totalScan: 0,
+				totalScan: 0, // Placeholder for total scans computed or loaded
 			}));
 			setPosList(mappedData);
 		} catch (error) {
 			console.error('Failed to fetch stations:', error);
+			toast.error('Gagal mengambil daftar pos.');
 		}
 	};
 
+	// Refetch data whenever page mounts or form modal closes
 	useEffect(() => {
 		fetchPosList();
 	}, [eventId, showForm]);
 
-	const activeCount = posList.filter((p) => p.status === 'Aktif').length;
-	const unusedCount = posList.filter((p) => p.status === 'Tidak Aktif').length;
-	const totalScanCount = posList.reduce((acc, curr) => acc + curr.totalScan, 0);
-
+	// Open deletion confirmation modal
 	const handleDeleteClick = (id) => {
 		setPosToDelete(id);
 		setShowDeleteModal(true);
 	};
 
+	// Sends delete request to backend and updates list state
 	const executeDelete = async () => {
 		if (!posToDelete) return;
 		setIsDeleting(true);
@@ -103,302 +88,153 @@ const EventPosPage = () => {
 		}
 	};
 
+	// Triggers editing form modal
 	const handleEdit = (pos) => {
 		setSelectedPos(pos);
 		setShowForm(true);
 	};
 
+	// Triggers adding form modal
 	const handleAdd = () => {
 		setSelectedPos(null);
 		setShowForm(true);
 	};
 
-	const handleGenerateLink = async () => {
-		setLoadingLink(true);
-		try {
-			const res = await api.get(`/event-dashboard/${eventId}/venue-qr?type=${linkType}`);
-			if (res.data?.success) {
-				const { event_id, signature, type } = res.data.data;
-				const url = `${window.location.origin}/attend-venue?event_id=${event_id}&type=${type}&signature=${signature}`;
-				setOnlineLink(url);
-				toast.success('Magic link berhasil dibuat!');
-			}
-		} catch (error) {
-			toast.error('Gagal membuat magic link.');
-		} finally {
-			setLoadingLink(false);
-		}
-	};
-
-	const handleCopyLink = () => {
-		navigator.clipboard
-			.writeText(onlineLink)
-			.then(() => toast.success('Link disalin ke clipboard!'))
-			.catch(() => toast.error('Gagal menyalin link.'));
-	};
-
-	// Helper to format date
-	const formatDateTime = (dateObjOrStr) => {
-		if (!dateObjOrStr) return '-';
-		const date = dateObjOrStr instanceof Date 
-			? dateObjOrStr 
-			: new Date((dateObjOrStr.includes('T') ? dateObjOrStr : dateObjOrStr.replace(' ', 'T')) + 'Z');
-		return date.toLocaleString('id-ID', {
-			weekday: 'long',
-			day: 'numeric',
-			month: 'short',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	};
-
-	const getAttendanceWindow = () => {
-		if (!event || !event.start_date || !event.end_date) return null;
-		
-		const startDate = new Date(event.start_date.replace(' ', 'T') + 'Z');
-		const endDate = new Date(event.end_date.replace(' ', 'T') + 'Z');
-		
-		// 30 minutes before start_date
-		const allowedStart = new Date(startDate.getTime() - 30 * 60 * 1000);
-		
-		return {
-			start: allowedStart,
-			end: endDate
-		};
-	};
-
-	const windowTimes = getAttendanceWindow();
-
 	return (
 		<div className="d-flex flex-column gap-4">
-			<Toaster position="top-right" />
-
-			{/* ── Header ── */}
+			{/* ── 1. Page Header ── */}
 			<div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
 				<div>
-					<h4 className="fw-bold text-dark mb-1" style={{ fontSize: '1.25rem' }}>
-						Manajemen Pos Scanner
+					<h4 className="fw-bold text-dark mb-1" style={{ fontSize: '1.35rem' }}>
+						Manajemen Kehadiran
 					</h4>
 					<p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-						Kelola akses dan peran tim panitia Anda di sini.
+						Kelola metode absensi peserta, buat stasiun scanner QR, atau bagikan link presensi mandiri.
 					</p>
 				</div>
 			</div>
 
-			{/* ── Alat Presensi (QR Venue & Link Online) ── */}
-			<div className="bg-light border rounded-3 p-3 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 shadow-none">
-				<div>
-					<div className="fw-medium text-dark" style={{ fontSize: '0.95rem' }}>
-						Alat Presensi
-					</div>
-					<div className="text-muted mt-1" style={{ fontSize: '0.85rem' }}>
-						Tampilkan QR venue fisik atau buat magic link untuk peserta online.
-					</div>
-				</div>
+			{/* ── 2. Dua Kolom Layout Responsive ── */}
+			<Row className="g-4">
+				{/* Kolom Kiri: Main Area (8 dari 12 bagian) */}
+				<Col lg={8} className="d-flex flex-column gap-4">
+					{/* Rongga Waktu Presensi (Rentang Waktu Presensi Aktif) */}
+					<AttendanceWindowInfo event={event} />
 
-				<div className="d-flex flex-wrap align-items-center gap-3">
-					<Button
-						variant="white"
-						className="border rounded-2 px-3 py-1 d-flex align-items-center gap-2 shadow-none text-dark bg-white"
-						onClick={() => window.open(`/organizer/${eventId}/event-dashboard/venue-qr`, '_blank')}
-						style={{ fontSize: '0.85rem' }}
+					{/* Custom Method Toggle (Tab modern dengan garis bawah) */}
+					<div 
+						className="d-flex border-bottom" 
+						style={{ gap: '24px' }}
 					>
-						<ScanLine size={14} className="text-primary" /> QR Venue
-					</Button>
-
-					<div
-						className="vr d-none d-lg-block opacity-25"
-						style={{ height: '24px' }}
-					></div>
-
-					<div className="d-flex flex-wrap align-items-center gap-2">
-						<ToggleButtonGroup
-							type="radio"
-							name="posLinkType"
-							value={linkType}
-							onChange={(val) => {
-								setLinkType(val);
-								setOnlineLink('');
+						<button
+							onClick={() => setActiveMethod('qr')}
+							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+							style={{ 
+								fontSize: '0.9rem', 
+								cursor: 'pointer', 
+								color: activeMethod === 'qr' ? '#1E293B' : '#94A3B8',
+								padding: '8px 4px',
+								transition: 'color 0.2s',
 							}}
-							className="bg-white border rounded-2 p-1"
 						>
-							<ToggleButton
-								id="pos-tbg-btn-1"
-								value="in"
-								variant={linkType === 'in' ? 'dark' : 'white'}
-								className={`border-0 rounded-1 px-3 py-1 ${linkType !== 'in' && 'text-muted bg-transparent'}`}
-								style={{ fontSize: '0.85rem' }}
-							>
-								Check-in
-							</ToggleButton>
-							<ToggleButton
-								id="pos-tbg-btn-2"
-								value="out"
-								variant={linkType === 'out' ? 'dark' : 'white'}
-								className={`border-0 rounded-1 px-3 py-1 ${linkType !== 'out' && 'text-muted bg-transparent'}`}
-								style={{ fontSize: '0.85rem' }}
-							>
-								Check-out
-							</ToggleButton>
-						</ToggleButtonGroup>
+							Pos Scanner QR (Offline)
+							{activeMethod === 'qr' && (
+								<div 
+									className="position-absolute bottom-0 start-0 end-0 bg-primary"
+									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+								/>
+							)}
+						</button>
+						<button
+							onClick={() => setActiveMethod('online')}
+							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+							style={{ 
+								fontSize: '0.9rem', 
+								cursor: 'pointer', 
+								color: activeMethod === 'online' ? '#1E293B' : '#94A3B8',
+								padding: '8px 4px',
+								transition: 'color 0.2s',
+							}}
+						>
+							Magic Link (Online)
+							{activeMethod === 'online' && (
+								<div 
+									className="position-absolute bottom-0 start-0 end-0 bg-primary"
+									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+								/>
+							)}
+						</button>
+					</div>
 
-						{!onlineLink ? (
-							<Button
-								variant="outline-secondary"
-								className="rounded-2 px-3 py-1 d-flex align-items-center gap-2 bg-white shadow-none"
-								onClick={handleGenerateLink}
-								disabled={loadingLink}
-								style={{ fontSize: '0.85rem', borderStyle: 'dashed' }}
-							>
-								{loadingLink ? (
-									<Spinner size="sm" />
+					{/* Konten Berdasarkan Metode yang Dipilih */}
+					{activeMethod === 'qr' ? (
+						<div className="d-flex flex-column gap-4">
+							{/* Stat Cards Row */}
+							<PosStats posList={posList} />
+
+							{/* POS Stations Management Table */}
+							<div className="d-flex flex-column gap-3">
+								{posList.length === 0 ? (
+									/* Empty State */
+									<div className="text-center py-5 bg-white border rounded-4 shadow-none">
+										<div
+											style={{
+												width: 56,
+												height: 56,
+												borderRadius: '50%',
+												backgroundColor: '#f8f9fa',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+												margin: '0 auto 16px',
+											}}
+										>
+											<MapPin size={24} className="text-muted" />
+										</div>
+										<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
+											Belum ada pos scanner
+										</div>
+										<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
+											Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
+										</div>
+										<Button
+											variant="dark"
+											className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
+											onClick={handleAdd}
+										>
+											<Plus size={16} /> Tambah Pos Baru
+										</Button>
+									</div>
 								) : (
-									<>
-										<LinkIcon size={14} /> Link Online
-									</>
-								)}
-							</Button>
-						) : (
-							<div className="d-flex align-items-center gap-2">
-								<InputGroup
-									size="sm"
-									className="shadow-none"
-									style={{ width: '200px' }}
-								>
-									<Form.Control
-										value={onlineLink}
-										readOnly
-										className="bg-white border-end-0 text-muted"
-										style={{ cursor: 'text', fontSize: '0.85rem' }}
+									/* Station Table */
+									<PosTable
+										posList={posList}
+										handleDelete={handleDeleteClick}
+										handleEdit={handleEdit}
+										setShowForm={handleAdd}
+										posPin={posPin}
 									/>
-									<Button
-										variant="white"
-										onClick={handleCopyLink}
-										className="border border-start-0 text-dark d-flex align-items-center"
-										title="Salin Link"
-									>
-										<Copy size={14} />
-									</Button>
-								</InputGroup>
-								<Button
-									variant="link"
-									className="text-muted p-0 ms-1 d-flex align-items-center"
-									onClick={handleGenerateLink}
-									disabled={loadingLink}
-									title="Buat ulang link"
-								>
-									<RefreshCw size={14} />
-								</Button>
+								)}
 							</div>
-						)}
-					</div>
-				</div>
-			</div>
-
-			{/* ── Rongga Waktu Presensi (Attendance Window Info) ── */}
-			{event && windowTimes && (
-				<div className="bg-white border-start border-primary border-4 rounded-3 p-3 d-flex align-items-center gap-3 shadow-none border" style={{ borderLeft: '4px solid #1A365D' }}>
-					<div style={{
-						width: '40px',
-						height: '40px',
-						borderRadius: '8px',
-						backgroundColor: 'rgba(26, 54, 93, 0.1)',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						color: '#1A365D',
-						flexShrink: 0
-					}}>
-						<Clock size={20} />
-					</div>
-					<div>
-						<div className="fw-semibold text-dark" style={{ fontSize: '0.9rem' }}>
-							Rongga Waktu Presensi Aktif (Attendance Window)
 						</div>
-						<div className="text-muted mt-0.5" style={{ fontSize: '0.82rem' }}>
-							Scanner hanya dapat memproses QR pada: <span className="fw-semibold text-primary">{formatDateTime(windowTimes.start.toISOString())}</span> s/d <span className="fw-semibold text-danger">{formatDateTime(windowTimes.end.toISOString())}</span> ({event.timezone || 'WIB'})
+					) : (
+						<div>
+							{/* Link Presensi Online (Magic Link Tool) */}
+							<OnlineAttendanceTool />
 						</div>
-					</div>
-				</div>
-			)}
+					)}
+				</Col>
 
-			{/* ── Stat Cards ── */}
-			<Row className="g-3">
-				<Col xs={12} md={6} lg={3}>
-					<StatCard Icon={Users} label="Total Pos" value={`${posList.length}`} />
-				</Col>
-				<Col xs={12} md={6} lg={3}>
-					<StatCard
-						Icon={CheckCircle2}
-						label="Pos Aktif"
-						value={`${activeCount}`}
-						type="green"
-					/>
-				</Col>
-				<Col xs={12} md={6} lg={3}>
-					<StatCard
-						Icon={Box}
-						label="Belum Digunakan"
-						value={`${unusedCount}`}
-						type="yellow"
-					/>
-				</Col>
-				<Col xs={12} md={6} lg={3}>
-					<StatCard
-						Icon={Ticket}
-						label="Total Scan"
-						value={`${totalScanCount}`}
-						type="purple"
-					/>
+				{/* Kolom Kanan: Sidebar Panduan (4 dari 12 bagian) */}
+				<Col lg={4}>
+					<div className="sticky-lg-top" style={{ top: '24px', zIndex: 10 }}>
+						{/* Panduan Cara Kerja Presensi */}
+						<PosGuideCard />
+					</div>
 				</Col>
 			</Row>
 
-			{/* ── Manajemen Pos & Akses PIN ── */}
-			<div className="d-flex flex-column gap-3">
-				{/* Konten Utama Pos (Table / Empty State) */}
-				{posList.length === 0 ? (
-					<div className="text-center py-5 bg-white border rounded-4 shadow-none">
-						<div
-							style={{
-								width: 56,
-								height: 56,
-								borderRadius: '50%',
-								backgroundColor: '#f8f9fa',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								margin: '0 auto 16px',
-							}}
-						>
-							<MapPin size={24} className="text-muted" />
-						</div>
-						<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
-							Belum ada pos scanner
-						</div>
-						<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
-							Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
-						</div>
-						<Button
-							variant="dark"
-							className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
-							onClick={handleAdd}
-						>
-							<Plus size={16} /> Tambah Pos Baru
-						</Button>
-					</div>
-				) : (
-					<PosTable
-						posList={posList}
-						handleDelete={handleDeleteClick}
-						handleEdit={handleEdit}
-						setShowForm={handleAdd}
-						posPin={posPin}
-					/>
-				)}
-			</div>
-
-			{/* ── Form Modal (Add/Edit) ── */}
+			{/* ── 3. Form Modal (Add/Edit POS Station) ── */}
 			<PosForm
 				show={showForm}
 				posData={selectedPos}
@@ -408,7 +244,7 @@ const EventPosPage = () => {
 				}}
 			/>
 
-			{/* ── Confirmation Modal (Delete) ── */}
+			{/* ── 4. Confirmation Modal (Delete POS Station) ── */}
 			<ConfirmationModal
 				show={showDeleteModal}
 				onHide={() => {

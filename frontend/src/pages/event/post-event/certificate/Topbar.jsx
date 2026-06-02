@@ -4,7 +4,7 @@ import { Award, Eye, Save, Check, Upload } from 'lucide-react';
 import FormHeading from '@/components/dashboard/FormHeading';
 const Topbar = ({ saved, onSave, onPreview, isSaving, templateFile, onFileTrigger }) => {
 	return (
-		<div className="d-flex align-items-center justify-content-between py-3 ">
+		<div className="d-flex align-items-center justify-content-between pb-3 ">
 			<div className="d-flex align-items-center gap-3">
 				<div>
 					<FormHeading
@@ -35,6 +35,14 @@ const Topbar = ({ saved, onSave, onPreview, isSaving, templateFile, onFileTrigge
 					onClick={onPreview}
 				>
 					<Eye size={16} /> Preview
+				</Button>
+				<Button
+					variant="dark"
+					size="sm"
+					className="d-flex align-items-center gap-2"
+					onClick={onSave}
+				>
+					<Save size={16} /> Simpan
 				</Button>
 			</div>
 		</div>

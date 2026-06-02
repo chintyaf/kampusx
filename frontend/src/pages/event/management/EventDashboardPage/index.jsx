@@ -34,6 +34,8 @@ import DemographicsCard from './DemographicsCard';
 import TicketDistribution from './TicketDistribution';
 import DashboardSkeleton from './DashboardSkeleton';
 import PublishReadyCard from './PublishReadyCard';
+import OngoingDashboardCard from './OngoingDashboardCard';
+import AttendanceGuideCard from './AttendanceGuideCard';
 
 // Config
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
@@ -75,13 +77,13 @@ const mapMissingDataToIssues = (missingData = []) => {
 const handleIssueNavigation = (issue, eventId, navigate) => {
 	const msg = issue.message.toLowerCase();
 	if (msg.match(/judul|deskripsi|poster|kategori|tipe/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/info`);
+		navigate(`/organizer/${eventId}/event-dashboard/info`);
 	} else if (msg.match(/lokasi|platform|meeting|kuota|tempat|provinsi|alamat|maps/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/tempat`);
+		navigate(`/organizer/${eventId}/event-dashboard/tempat`);
 	} else if (msg.match(/jadwal|waktu|sesi|pembicara/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/sesi`);
+		navigate(`/organizer/${eventId}/event-dashboard/sesi`);
 	} else {
-		navigate(`/organizer/${eventId}/event-dashboard/detail/info`);
+		navigate(`/organizer/${eventId}/event-dashboard/info`);
 	}
 };
 
@@ -382,6 +384,11 @@ export default function EventDashboardPage() {
 				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
 			/>
 
+			{/* Ongoing Dashboard Card */}
+			{eventStatus === 'ongoing' && (
+				<OngoingDashboardCard eventData={eventData} sessions={sessions} />
+			)}
+
 			{/* Stat Cards */}
 			{currentConfig.showStats && (
 				<Row className="g-3 mb-4">
@@ -439,6 +446,14 @@ export default function EventDashboardPage() {
 				<EventChecklist
 					checklist={eventData.preparation_checklist || []}
 					eventId={eventId}
+				/>
+			)}
+
+			{/* Panduan Konfirmasi Kehadiran — tampil saat event published/ongoing/post_event */}
+			{['published', 'ongoing', 'paused', 'post_event'].includes(eventStatus) && (
+				<AttendanceGuideCard
+					eventId={eventId}
+					eventType={eventData.location_type || 'offline'}
 				/>
 			)}
 

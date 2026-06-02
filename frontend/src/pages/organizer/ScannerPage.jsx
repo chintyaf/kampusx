@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Form, Button, Tabs, Tab, Modal, InputGroup, Spinner, ToggleButtonGroup, ToggleButton } from 'react-bootstrap';
 import { Camera, Search, UserCheck, AlertCircle, CheckCircle, Link as LinkIcon, Copy, RefreshCw } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useParams } from 'react-router-dom';
 import api from '@/api/axios';
@@ -129,8 +129,7 @@ const ScannerPage = () => {
 
 	return (
 		<Container className="py-5" style={{ maxWidth: '600px' }}>
-			{/* UI Feedback System via react-hot-toast */}
-			<Toaster position="top-right" reverseOrder={false} />
+
 
 			<h3 className="mb-4 text-center fw-bold text-primary">Event Scanner Panel</h3>
 

@@ -41,7 +41,7 @@ class CheckAttendanceWindow
 
         $eventTimezone = $event->timezone ?? 'Asia/Jakarta';
         $now = Carbon::now($eventTimezone);
-        
+
         if (!$event->start_date || !$event->end_date) {
             return response()->json([
                 'success' => false,
@@ -50,19 +50,31 @@ class CheckAttendanceWindow
         }
 
         // Interpret start_date and end_date as local times of the event's timezone
-        $startDateString = $event->start_date instanceof Carbon 
-            ? $event->start_date->format('Y-m-d H:i:s') 
+        $startDateString = $event->start_date instanceof Carbon
+            ? $event->start_date->format('Y-m-d H:i:s')
             : Carbon::parse($event->start_date)->format('Y-m-d H:i:s');
-            
-        $endDateString = $event->end_date instanceof Carbon 
-            ? $event->end_date->format('Y-m-d H:i:s') 
+
+        $endDateString = $event->end_date instanceof Carbon
+            ? $event->end_date->format('Y-m-d H:i:s')
             : Carbon::parse($event->end_date)->format('Y-m-d H:i:s');
 
-        // Validate based on manual toggling status (is_attendance_open)
-        if (!$event->is_attendance_open) {
+        $windowStart = $event->checkin_window_start ?? 30;
+        $windowEnd = $event->checkin_window_end ?? 0;
+
+        $allowedStartTime = Carbon::createFromFormat('Y-m-d H:i:s', $startDateString, $eventTimezone)->subMinutes($windowStart);
+        $allowedEndTime = Carbon::createFromFormat('Y-m-d H:i:s', $endDateString, $eventTimezone)->addMinutes($windowEnd);
+
+        if ($now->lessThan($allowedStartTime)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Presensi sedang ditutup oleh panitia.'
+                'message' => "Presensi belum dibuka. Silakan coba lagi {$windowStart} menit sebelum acara dimulai."
+            ], 403);
+        }
+
+        if ($now->greaterThan($allowedEndTime)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Waktu presensi telah habis.'
             ], 403);
         }
 

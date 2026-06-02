@@ -46,6 +46,19 @@ const SidebarEdit = ({ selectedEl, updateEl, deleteEl, clearSelection }) => {
 	// --- BLOK RENDER: KHUSUS TEKS ---
 	const renderTextControls = () => (
 		<>
+			{selectedEl.fieldId === 'f7' && (
+				<div className="mb-3">
+					<SectionLabel>Teks Kustom</SectionLabel>
+					<Form.Control
+						type="text"
+						size="sm"
+						placeholder="Masukkan teks kustom..."
+						value={selectedEl.label !== '{ Kustom }' ? selectedEl.label : ''}
+						onChange={(e) => handleChange('label', e.target.value || 'Teks Kustom')}
+						className="py-2"
+					/>
+				</div>
+			)}
 			<div className="mb-3">
 				<SectionLabel>Jenis Font</SectionLabel>
 				<Form.Select
@@ -75,10 +88,12 @@ const SidebarEdit = ({ selectedEl, updateEl, deleteEl, clearSelection }) => {
 						list="font-sizes-datalist" // 1. Hubungkan input dengan ID datalist
 						min={0}
 						max={300}
-						value={selectedEl.fontSize || 24}
+						value={selectedEl.fontSize || ''}
 						onChange={(e) => {
 							const val = Number(e.target.value);
-							if (val >= 0) handleChange('fontSize', val);
+							if (val >= 0 && val <= 300) {
+								handleChange('fontSize', val);
+							}
 						}}
 						className="text-center"
 					/>
@@ -131,14 +146,14 @@ const SidebarEdit = ({ selectedEl, updateEl, deleteEl, clearSelection }) => {
 
 			<div className="p-3 flex-grow-1 overflow-auto sidebar-scrollable">
 				{/* Info Elemen yang Sedang Diedit */}
-				<Card className="border mb-4 shadow-none">
+				{/* <Card className="border mb-4 shadow-none">
 					<Card.Body className="p-2">
 						<p className="mb-0 fw-bold fs-6">{selectedEl.label}</p>
 						<small className="text-primary">
 							{FIELDS.find((f) => f.id === selectedEl.fieldId)?.example}
 						</small>
 					</Card.Body>
-				</Card>
+				</Card> */}
 
 				{/* Kontrol Spesifik (Tergantung jenis elemen) */}
 				{isQr ? renderQRControls() : renderTextControls()}
@@ -183,6 +198,7 @@ const SidebarEdit = ({ selectedEl, updateEl, deleteEl, clearSelection }) => {
 						))}
 					</div>
 				</div>
+
 				{/* Kontrol Umum: Posisi */}
 				<div className="mb-4">
 					<SectionLabel>Posisi (%)</SectionLabel>

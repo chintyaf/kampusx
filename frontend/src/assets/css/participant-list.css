@@ -55,10 +55,11 @@
     justify-content: center;
     flex-shrink: 0;
 }
-.stat-card__icon--blue  { background: #dff3ff; color: #00699e; }
-.stat-card__icon--green { background: #dcfce7; color: #166534; }
-.stat-card__icon--yellow{ background: #fef3c7; color: #92400e; }
-.stat-card__icon--red   { background: #fee2e2; color: #991b1b; }
+.stat-card__icon--blue   { background: #dff3ff; color: #00699e; }
+.stat-card__icon--green  { background: #dcfce7; color: #166534; }
+.stat-card__icon--yellow { background: #fef3c7; color: #92400e; }
+.stat-card__icon--red    { background: #fee2e2; color: #991b1b; }
+.stat-card__icon--purple { background: #ede9fe; color: #5b21b6; }
 
 .stat-card__label {
     font-size: 11px;
@@ -74,6 +75,51 @@
     color: var(--text);
     margin: 0;
     line-height: 1;
+}
+.stat-card__value--sm {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* ── Rate ring card ──────────────────────────────── */
+.stat-card--rate {
+    gap: 14px;
+}
+.stat-card__rate-ring {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+.rate-ring-svg {
+    width: 48px;
+    height: 48px;
+    transform: rotate(-90deg);
+}
+.rate-ring-bg {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 3.5;
+}
+.rate-ring-fill {
+    fill: none;
+    stroke: #22c55e;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.4s ease;
+}
+.rate-ring-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text);
 }
 
 /* ── Main card ─────────────────────────────────────── */
@@ -290,7 +336,57 @@
     color: var(--primary);
 }
 
-/* Status badges */
+/* ── Attendance cell ──────────────────────────────── */
+.attendance-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Attendance badges */
+.attendance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+.attendance-badge--absent {
+    background: #f1f5f9;
+    color: #64748b;
+}
+.attendance-badge--checkin {
+    background: #dcfce7;
+    color: #15803d;
+}
+.attendance-badge--checkout {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+/* Time rows (check-in / check-out) */
+.attendance-time-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.attendance-time-icon { flex-shrink: 0; }
+.attendance-time-icon--in  { color: #15803d; }
+.attendance-time-icon--out { color: #6d28d9; }
+.attendance-time-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+
+/* Legacy ticket status badges (kept for compatibility) */
 .participant-badge {
     display: inline-flex;
     align-items: center;
