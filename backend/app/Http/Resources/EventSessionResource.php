@@ -23,11 +23,14 @@ class EventSessionResource extends JsonResource
             'startTime' => $this->start_time,
             'endTime' => $this->end_time,
             'prerequisite_session_ids' => $this->prerequisite_session_ids,
+            'checkin_link' => $this->checkin_link,
+            'checkin_expires_at' => $this->checkin_expires_at,
+            'checkout_link' => $this->checkout_link,
+            'checkout_expires_at' => $this->checkout_expires_at,
             'no_speaker' => $this->no_speaker,
 
             // Masukkan speakers di sini (bisa juga pakai Resource terpisah seperti SpeakerResource)
             'speakers' => $this->whenLoaded('speakers'),
         ];
-        return parent::toArray($request);
     }
 }

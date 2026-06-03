@@ -4,14 +4,52 @@ import { PlayCircle, Clock, Users, ArrowRight } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import api from '@/api/axios';
 
-const flattenSessions = (data) => {
+const flattenSessions = (data, startDateStr) => {
 	if (!data) return [];
-	if (Array.isArray(data)) return data;
 
-	const groupedDaysArray = Object.values(data);
+	let arrayToProcess = [];
+	let isAlreadyFlat = false;
+	if (Array.isArray(data)) {
+		if (data.length > 0 && (!data[0].sessions || !Array.isArray(data[0].sessions))) {
+			isAlreadyFlat = true;
+		}
+		arrayToProcess = data;
+	} else if (typeof data === 'object') {
+		arrayToProcess = Object.values(data);
+	}
+
 	const fetchedSessions = [];
 
-	groupedDaysArray.forEach((day, index) => {
+	if (isAlreadyFlat) {
+		arrayToProcess.forEach((s) => {
+			let dayNumber = s.day || s.day_number;
+			if (!dayNumber && s.date && startDateStr) {
+				const start = new Date(startDateStr);
+				const sessDate = new Date(s.date);
+				const diffTime = sessDate - start;
+				const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+				if (diffDays >= 0) {
+					dayNumber = diffDays + 1;
+				}
+			}
+			if (!dayNumber) dayNumber = 1;
+
+			fetchedSessions.push({
+				id: s.id,
+				title: s.title || s.name,
+				day: dayNumber,
+				time: s.time || (s.start_time && s.end_time ? `${s.start_time.substring(0, 5)} - ${s.end_time.substring(0, 5)}` : ''),
+				speaker: s.speaker || (s.speakers ? s.speakers.map(sp => sp.name).join(', ') : ''),
+				materialStatus: s.materialStatus || s.material_status || 'not_required',
+				checkin_link: s.checkin_link || s.checkinLink,
+				checkout_link: s.checkout_link || s.checkoutLink,
+				date: s.date
+			});
+		});
+		return fetchedSessions;
+	}
+
+	arrayToProcess.forEach((day, index) => {
 		const dayNumber = day.day_number || index + 1;
 		if (day.sessions && Array.isArray(day.sessions)) {
 			day.sessions.forEach((s) => {
@@ -33,6 +71,9 @@ const flattenSessions = (data) => {
 					speaker: speakerNames,
 					materialStatus:
 						s.material_status || s.materialStatus || 'not_required',
+					checkin_link: s.checkin_link || s.checkinLink,
+					checkout_link: s.checkout_link || s.checkoutLink,
+					date: s.date
 				});
 			});
 		}
@@ -44,7 +85,7 @@ const flattenSessions = (data) => {
 const OngoingDashboardCard = ({ eventData: initialEventData, sessions: initialSessions = [] }) => {
 	const { eventId } = useParams();
 	const [localEventData, setLocalEventData] = useState(initialEventData);
-	const [localSessions, setLocalSessions] = useState(() => flattenSessions(initialSessions));
+	const [localSessions, setLocalSessions] = useState(() => flattenSessions(initialSessions, initialEventData?.startDate));
 	const [currentSession, setCurrentSession] = useState(null);
 	const [nextSession, setNextSession] = useState(null);
 
@@ -54,8 +95,8 @@ const OngoingDashboardCard = ({ eventData: initialEventData, sessions: initialSe
 	}, [initialEventData]);
 
 	useEffect(() => {
-		setLocalSessions(flattenSessions(initialSessions));
-	}, [initialSessions]);
+		setLocalSessions(flattenSessions(initialSessions, initialEventData?.startDate));
+	}, [initialSessions, initialEventData]);
 
 	// Polling data terbaru dari database
 	useEffect(() => {
@@ -67,7 +108,7 @@ const OngoingDashboardCard = ({ eventData: initialEventData, sessions: initialSe
 				if (res.data?.status === 'success' && res.data?.data) {
 					setLocalEventData(res.data.data);
 					if (res.data.data.sessions) {
-						setLocalSessions(flattenSessions(res.data.data.sessions));
+						setLocalSessions(flattenSessions(res.data.data.sessions, res.data.data.startDate));
 					}
 				}
 			} catch (error) {
@@ -245,14 +286,38 @@ const OngoingDashboardCard = ({ eventData: initialEventData, sessions: initialSe
 										<PlayCircle size={16} /> Sesi Saat Ini
 									</h6>
 									{currentSession ? (
-										<div className="p-3 bg-light rounded-3 border-start border-4 border-primary">
-											<h5 className="fw-bold text-dark mb-1">
-												{currentSession.title}
-											</h5>
-											<p className="text-muted small mb-0 d-flex align-items-center gap-2">
-												<Clock size={14} /> {currentSession.time} | 👤{' '}
-												{currentSession.speaker || 'Tanpa Pembicara'}
-											</p>
+										<div className="p-3 bg-light rounded-3 border-start border-4 border-primary d-flex justify-content-between align-items-center">
+											<div>
+												<h5 className="fw-bold text-dark mb-1">
+													{currentSession.title}
+												</h5>
+												<p className="text-muted small mb-0 d-flex align-items-center gap-2">
+													<Clock size={14} /> {currentSession.time} | 👤{' '}
+													{currentSession.speaker || 'Tanpa Pembicara'}
+												</p>
+											</div>
+											<div className="d-flex gap-2">
+												{currentSession.checkin_link && (
+													<a
+														href={currentSession.checkin_link}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="btn btn-sm btn-primary py-1 px-3 rounded-pill text-xs fw-semibold"
+													>
+														Check-in
+													</a>
+												)}
+												{currentSession.checkout_link && (
+													<a
+														href={currentSession.checkout_link}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="btn btn-sm btn-success py-1 px-3 rounded-pill text-xs fw-semibold"
+													>
+														Check-out
+													</a>
+												)}
+											</div>
 										</div>
 									) : (
 										<div className="p-3 bg-light rounded-3 border border-dashed text-muted small">
@@ -266,7 +331,7 @@ const OngoingDashboardCard = ({ eventData: initialEventData, sessions: initialSe
 										<ArrowRight size={16} className="text-secondary" /> Sesi Berikutnya
 									</h6>
 									{nextSession ? (
-										<div className="p-2 border rounded-3 d-flex justify-content-between align-items-center">
+										<div className="p-2 border rounded-3 d-flex justify-content-between align-items-center bg-white">
 											<div>
 												<div
 													className="fw-bold text-dark"
@@ -280,6 +345,28 @@ const OngoingDashboardCard = ({ eventData: initialEventData, sessions: initialSe
 												>
 													{nextSession.time}
 												</div>
+											</div>
+											<div className="d-flex gap-2">
+												{nextSession.checkin_link && (
+													<a
+														href={nextSession.checkin_link}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="btn btn-sm btn-outline-primary py-1 px-3 rounded-pill text-xs fw-semibold"
+													>
+														Check-in
+													</a>
+												)}
+												{nextSession.checkout_link && (
+													<a
+														href={nextSession.checkout_link}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="btn btn-sm btn-outline-success py-1 px-3 rounded-pill text-xs fw-semibold"
+													>
+														Check-out
+													</a>
+												)}
 											</div>
 										</div>
 									) : (

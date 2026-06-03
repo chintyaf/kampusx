@@ -14,10 +14,6 @@ use Illuminate\Support\Facades\DB;
 
 class EventAnnouncementController extends Controller
 {
-    /**
-     * Tampilkan seluruh pengumuman untuk suatu event (Sisi Peserta)
-     * GET /api/events/{eventId}/announcements
-     */
     public function index($eventId)
     {
         $event = Event::where('id', $eventId)
@@ -29,9 +25,29 @@ class EventAnnouncementController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $notifications = \Illuminate\Support\Facades\DB::table('notifications')
+            ->where('data', 'like', '%"event_id":' . $eventId . '%')
+            ->latest()
+            ->get()
+            ->map(function ($notif) {
+                $data = json_decode($notif->data, true);
+                return [
+                    'id' => $notif->id,
+                    'title' => $data['title'] ?? 'Update Acara',
+                    'content' => $data['message'] ?? '',
+                    'created_at' => $notif->created_at,
+                    'type' => $data['type'] ?? 'system',
+                ];
+            })
+            ->unique(function ($item) {
+                return $item['type'] . '-' . $item['content'];
+            })
+            ->values();
+
         return response()->json([
             'success' => true,
-            'data' => $announcements
+            'data' => $announcements,
+            'notifications' => $notifications
         ], 200);
     }
 
@@ -50,9 +66,29 @@ class EventAnnouncementController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $notifications = \Illuminate\Support\Facades\DB::table('notifications')
+            ->where('data', 'like', '%"event_id":' . $eventId . '%')
+            ->latest()
+            ->get()
+            ->map(function ($notif) {
+                $data = json_decode($notif->data, true);
+                return [
+                    'id' => $notif->id,
+                    'title' => $data['title'] ?? 'Update Acara',
+                    'content' => $data['message'] ?? '',
+                    'created_at' => $notif->created_at,
+                    'type' => $data['type'] ?? 'system',
+                ];
+            })
+            ->unique(function ($item) {
+                return $item['type'] . '-' . $item['content'];
+            })
+            ->values();
+
         return response()->json([
             'success' => true,
-            'data' => $announcements
+            'data' => $announcements,
+            'notifications' => $notifications
         ], 200);
     }
 

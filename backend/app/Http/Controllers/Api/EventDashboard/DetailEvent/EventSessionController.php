@@ -103,6 +103,7 @@ class EventSessionController extends Controller
                             $sessionModel->update([
                                 'title'       => $sessionData['title'],
                                 'description' => $sessionData['description'] ?? null,
+                                'day_number'  => $sessionData['day'] ?? 1,
                                 'date'        => $sessionDate,
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
@@ -114,6 +115,7 @@ class EventSessionController extends Controller
                             $sessionModel = $event->sessions()->create([
                                 'title'       => $sessionData['title'],
                                 'description' => $sessionData['description'] ?? null,
+                                'day_number'  => $sessionData['day'] ?? 1,
                                 'date'        => $sessionDate,
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],

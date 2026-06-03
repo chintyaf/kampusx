@@ -83,6 +83,33 @@ class EventDashboardController extends Controller
     {
         $event = Event::with(['categories', 'institution', 'locationDetail', 'organizer'])->findOrFail($eventId);
 
+        $tzMap = [
+            'WIB' => 'Asia/Jakarta',
+            'WITA' => 'Asia/Makassar',
+            'WIT' => 'Asia/Jayapura',
+        ];
+        $tz = $tzMap[$event->timezone] ?? $event->timezone ?? 'UTC';
+
+        $now = now()->setTimezone($tz);
+        if ($event->status === 'published' && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date->format('Y-m-d H:i:s'), $tz);
+            $endDate = \Carbon\Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
+
+            if ($now->gt($endDate)) {
+                $event->update(['status' => 'completed']);
+                $event->status = 'completed';
+            } elseif ($now->gte($startDate) && $now->lte($endDate)) {
+                $event->update(['status' => 'ongoing']);
+                $event->status = 'ongoing';
+            }
+        } elseif ($event->status === 'ongoing' && $event->end_date) {
+            $endDate = \Carbon\Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
+            if ($now->gt($endDate)) {
+                $event->update(['status' => 'completed']);
+                $event->status = 'completed';
+            }
+        }
+
         $locationText = 'Belum diatur';
         if ($event->locationDetail) {
             if ($event->locationDetail->type === 'online') {
@@ -92,7 +119,6 @@ class EventDashboardController extends Controller
             }
         }
 
-        $now = now();
         $isPublished = in_array($event->status, ['published', 'ongoing', 'archived', 'completed']);
 
         $timeline = [
@@ -192,17 +218,15 @@ class EventDashboardController extends Controller
 
         // Determine event status logic for stats
         $calculatedStatus = $event->status;
-        $now = now();
+        $now = now()->setTimezone($tz);
 
         $sessions = \App\Models\EventSession::with(['speakers', 'materials'])
             ->where('event_id', $eventId)
-            ->orderBy('day_number', 'asc')
-            ->orderBy('start_time', 'asc')
             ->get();
 
-        if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
-            $startDate = \Carbon\Carbon::parse($event->start_date);
-            $endDate = \Carbon\Carbon::parse($event->end_date);
+        if (in_array($calculatedStatus, ['published', 'ongoing']) && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date->format('Y-m-d H:i:s'), $tz);
+            $endDate = \Carbon\Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
 
             if ($now->gt($endDate)) {
                 $calculatedStatus = 'completed';
@@ -214,23 +238,8 @@ class EventDashboardController extends Controller
                     $hasFutureSessions = false;
 
                     foreach ($sessions as $session) {
-                        $sessionDate = $startDate->copy()->addDays($session->day_number - 1);
-
-                        $sessionStart = $sessionDate->copy();
-                        if ($session->start_time) {
-                            $timeParts = explode(':', $session->start_time);
-                            $sessionStart->setTime($timeParts[0], $timeParts[1]);
-                        } else {
-                            $sessionStart->setTime(0, 0);
-                        }
-
-                        $sessionEnd = $sessionDate->copy();
-                        if ($session->end_time) {
-                            $timeParts = explode(':', $session->end_time);
-                            $sessionEnd->setTime($timeParts[0], $timeParts[1]);
-                        } else {
-                            $sessionEnd->setTime(23, 59, 59);
-                        }
+                        $sessionStart = \Carbon\Carbon::parse($session->date . ' ' . ($session->start_time ?? '00:00:00'), $tz);
+                        $sessionEnd = \Carbon\Carbon::parse($session->date . ' ' . ($session->end_time ?? '23:59:59'), $tz);
 
                         if ($now->between($sessionStart, $sessionEnd)) {
                             $isAnySessionActive = true;
@@ -323,14 +332,18 @@ class EventDashboardController extends Controller
             }
 
             return [
+                'id' => $s->id,
                 'title' => $s->title,
                 'day' => $s->day_number,
+                'date' => $s->date,
                 'time' => $s->start_time && $s->end_time
                     ? substr($s->start_time, 0, 5) . ' - ' . substr($s->end_time, 0, 5)
                     : 'Belum diatur',
                 'speaker' => $s->speakers->pluck('name')->implode(', ') ?: null,
                 'materialStatus' => $s->materials->count() > 0 ? 'uploaded' : 'pending',
                 'prerequisite' => implode(', ', $prereqs) ?: null,
+                'checkin_link' => $s->checkin_link,
+                'checkout_link' => $s->checkout_link,
             ];
         });
 

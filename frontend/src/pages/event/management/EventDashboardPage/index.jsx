@@ -212,7 +212,7 @@ export default function EventDashboardPage() {
 			)}
 
 			{/* Ongoing Dashboard Card */}
-			{eventStatus === 'ongoing' && (
+			{['ongoing', 'paused'].includes(eventStatus) && (
 				<OngoingDashboardCard eventData={eventData} sessions={sessions} />
 			)}
 

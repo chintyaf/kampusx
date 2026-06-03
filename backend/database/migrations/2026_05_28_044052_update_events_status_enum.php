@@ -13,6 +13,10 @@ return new class extends Migration
     {
         if (\Illuminate\Support\Facades\DB::getDriverName() !== 'sqlite') {
             \Illuminate\Support\Facades\DB::statement("ALTER TABLE events MODIFY COLUMN status ENUM('draft', 'published', 'cancelled', 'ongoing', 'post_event', 'completed') DEFAULT 'draft'");
+        } else {
+            Schema::table('events', function (Blueprint $table) {
+                $table->string('status')->default('draft')->change();
+            });
         }
     }
 
@@ -23,6 +27,10 @@ return new class extends Migration
     {
         if (\Illuminate\Support\Facades\DB::getDriverName() !== 'sqlite') {
             \Illuminate\Support\Facades\DB::statement("ALTER TABLE events MODIFY COLUMN status ENUM('draft', 'published', 'cancelled') DEFAULT 'draft'");
+        } else {
+            Schema::table('events', function (Blueprint $table) {
+                $table->string('status')->default('draft')->change();
+            });
         }
     }
 };
