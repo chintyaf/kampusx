@@ -227,19 +227,7 @@ const SessionContentCard = ({
 								</Badge>
 							</div>
 						)}
-						<Button
-							variant="link"
-							className="p-0 text-secondary d-flex align-items-center justify-content-center"
-							style={{ width: '32px', height: '32px', transition: 'color 0.2s ease' }}
-							onClick={(e) => {
-								e.stopPropagation();
-								onDelete();
-							}}
-							onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-							onMouseLeave={(e) => (e.currentTarget.style.color = '')}
-						>
-							<Trash2 size={18} strokeWidth={1.5} />
-						</Button>
+
 						<div
 							className="text-secondary"
 							style={{

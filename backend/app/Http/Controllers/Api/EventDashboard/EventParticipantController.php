@@ -24,6 +24,9 @@ class EventParticipantController extends Controller
                 'attendanceLog',
             ])
             ->withCount('attendanceLogs')
+            ->withCount(['attendanceLogs as checkouts_count' => function($q) {
+                $q->whereNotNull('checkout_time');
+            }])
             ->whereHas('orderItem.order', fn($q) => $q->where('event_id', $eventId))
             ->whereIn('status', ['active', 'used']);
 
@@ -42,9 +45,17 @@ class EventParticipantController extends Controller
         $totalValid      = $allTicketIds->count();
         $notAttendedCount = $totalValid - $checkedInCount - $checkedOutCount;
 
-        // Hitung total sesi kehadiran yang tersedia (sesi + 1 untuk check-in awal)
-        $totalSessions = \App\Models\EventSession::where('event_id', $eventId)->count();
-        $totalAttendance = $totalSessions > 0 ? $totalSessions + 1 : 1;
+        // Hitung total sesi kehadiran yang tersedia (total sesi + total hari unik)
+        $sessions = \App\Models\EventSession::where('event_id', $eventId)->get();
+        $totalSessions = $sessions->count();
+        $uniqueDays = $sessions->pluck('day_number')->filter()->unique()->count();
+        if ($uniqueDays === 0 && $totalSessions > 0) {
+            $uniqueDays = $sessions->pluck('date')->filter()->unique()->count();
+        }
+        if ($uniqueDays === 0) {
+            $uniqueDays = 1;
+        }
+        $totalAttendance = $totalSessions + $uniqueDays;
 
         // ── Terapkan filter kehadiran ─────────────────────────────────────────
         $query = clone $baseQuery;

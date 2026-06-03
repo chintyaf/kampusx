@@ -290,7 +290,7 @@ class EventDashboardController extends Controller
             $stats[] = [
                 'label' => 'Page Views',
                 'value' => number_format($visitorCount, 0, ',', '.'),
-                'sub' => $conversionRate . "% conversion rate",
+                'sub' => 'Total kunjungan halaman',
                 'iconBg' => '#f3e8ff',
                 'iconColor' => '#7c3aed',
             ];
@@ -396,6 +396,9 @@ class EventDashboardController extends Controller
             $ticketsData[] = [
                 'label' => $et->name,
                 'count' => $count,
+                'capacity' => $et->capacity,
+                'price' => $et->price,
+                'is_free' => (bool)$et->is_free,
                 'color' => $colors[$idx % count($colors)],
             ];
             $idx++;
@@ -412,6 +415,9 @@ class EventDashboardController extends Controller
                 [
                     'label' => 'Tiket Reguler',
                     'count' => $generalCount,
+                    'capacity' => null,
+                    'price' => 0,
+                    'is_free' => true,
                     'color' => '#3c84a8'
                 ]
             ];

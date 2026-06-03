@@ -117,7 +117,7 @@ export default function AttendVenuePage() {
 					setStatus('success');
 					setMessage(
 						response.data.message ||
-						(params.type === 'out'
+						((params.type === 'out' || params.type === 'session_out')
 							? 'Check-out berhasil dicatat. Terima kasih!'
 							: 'Kehadiran berhasil dicatat! Selamat mengikuti acara.'),
 					);
@@ -177,7 +177,7 @@ export default function AttendVenuePage() {
 								<CheckCircle size={64} strokeWidth={1.5} />
 							</div>
 							<h5 className="fw-semibold text-dark">
-								{pageType === 'out' ? 'Check-out Berhasil!' : 'Check-in Berhasil!'}
+								{(pageType === 'out' || pageType === 'session_out') ? 'Check-out' : 'Check-in'} Berhasil!
 							</h5>
 							<p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>
 								{message}
@@ -198,7 +198,7 @@ export default function AttendVenuePage() {
 								<XCircle size={64} strokeWidth={1.5} />
 							</div>
 							<h5 className="fw-semibold text-dark">
-								Gagal {pageType === 'out' ? 'Check-out' : 'Check-in'}
+								Gagal {(pageType === 'out' || pageType === 'session_out') ? 'Check-out' : 'Check-in'}
 							</h5>
 							<p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>
 								{message}

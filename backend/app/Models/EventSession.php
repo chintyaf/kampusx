@@ -21,6 +21,8 @@ class EventSession extends Model
         'no_speaker',
         'checkin_link',
         'checkin_expires_at',
+        'checkout_link',
+        'checkout_expires_at',
     ];
 
     protected $casts = [

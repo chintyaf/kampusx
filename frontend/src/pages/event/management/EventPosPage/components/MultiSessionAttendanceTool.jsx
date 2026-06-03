@@ -31,6 +31,18 @@ const MultiSessionAttendanceTool = () => {
 		return dbDateTime.replace(' ', 'T').substring(0, 16);
 	};
 
+	const addMinutesToTime = (timeStr, minutes) => {
+		if (!timeStr) return '';
+		const parts = timeStr.split(':');
+		const hours = parseInt(parts[0], 10);
+		const mins = parseInt(parts[1], 10);
+		const date = new Date();
+		date.setHours(hours, mins + minutes, 0, 0);
+		const h = String(date.getHours()).padStart(2, '0');
+		const m = String(date.getMinutes()).padStart(2, '0');
+		return `${h}:${m}`;
+	};
+
 	const fetchAttendanceData = async () => {
 		try {
 			setIsFetching(true);
@@ -38,12 +50,12 @@ const MultiSessionAttendanceTool = () => {
 			if (res.data?.success) {
 				const data = res.data.data;
 				
-				// Auto-fill initialCheckIn if empty using first session's start time
+				// Auto-fill initialCheckIn if empty using first session's start time + 15 mins
 				let checkinExpires = formatDateTimeForInput(data.checkin_expires_at);
 				if (!checkinExpires && data.sessions && data.sessions.length > 0) {
 					const firstSession = data.sessions[0];
 					if (firstSession.date && firstSession.start_time) {
-						checkinExpires = `${firstSession.date}T${firstSession.start_time.substring(0, 5)}`;
+						checkinExpires = `${firstSession.date}T${addMinutesToTime(firstSession.start_time, 15)}`;
 					}
 				}
 
@@ -69,8 +81,13 @@ const MultiSessionAttendanceTool = () => {
 
 				const fetchedSessions = (data.sessions || []).map((session, index) => {
 					let sessionExpires = formatDateTimeForInput(session.checkin_expires_at);
-					if (!sessionExpires && session.date && session.end_time) {
-						sessionExpires = `${session.date}T${session.end_time.substring(0, 5)}`;
+					if (!sessionExpires && session.date && session.start_time) {
+						sessionExpires = `${session.date}T${addMinutesToTime(session.start_time, 15)}`;
+					}
+
+					let sessionCheckoutExpires = formatDateTimeForInput(session.checkout_expires_at);
+					if (!sessionCheckoutExpires && session.date && session.end_time) {
+						sessionCheckoutExpires = `${session.date}T${session.end_time.substring(0, 5)}`;
 					}
 
 					return {
@@ -84,6 +101,11 @@ const MultiSessionAttendanceTool = () => {
 						checkin: {
 							link: session.checkin_link || '',
 							expires: sessionExpires,
+							loading: false,
+						},
+						checkout: {
+							link: session.checkout_link || '',
+							expires: sessionCheckoutExpires,
 							loading: false,
 						},
 					};
@@ -106,9 +128,12 @@ const MultiSessionAttendanceTool = () => {
 		let expiresAt = '';
 		if (type === 'in') expiresAt = initialCheckIn.expires;
 		else if (type === 'out') expiresAt = finalCheckOut.expires;
-		else {
+		else if (type === 'session_in') {
 			const s = sessions.find((session) => session.id === sessionId);
 			expiresAt = s?.checkin.expires;
+		} else if (type === 'session_out') {
+			const s = sessions.find((session) => session.id === sessionId);
+			expiresAt = s?.checkout.expires;
 		}
 
 		if (!expiresAt) {
@@ -119,9 +144,13 @@ const MultiSessionAttendanceTool = () => {
 		// Set loading state
 		if (type === 'in') setInitialCheckIn((prev) => ({ ...prev, loading: true }));
 		else if (type === 'out') setFinalCheckOut((prev) => ({ ...prev, loading: true }));
-		else {
+		else if (type === 'session_in') {
 			setSessions((prev) =>
 				prev.map((s) => (s.id === sessionId ? { ...s, checkin: { ...s.checkin, loading: true } } : s))
+			);
+		} else if (type === 'session_out') {
+			setSessions((prev) =>
+				prev.map((s) => (s.id === sessionId ? { ...s, checkout: { ...s.checkout, loading: true } } : s))
 			);
 		}
 
@@ -149,13 +178,28 @@ const MultiSessionAttendanceTool = () => {
 						expires: formatDateTimeForInput(responseData.expires_at),
 						loading: false,
 					});
-				} else {
+				} else if (type === 'session_in') {
 					setSessions((prev) =>
 						prev.map((s) =>
 							s.id === sessionId
 								? {
 										...s,
 										checkin: {
+											link: finalUrl,
+											expires: formatDateTimeForInput(responseData.expires_at),
+											loading: false,
+										},
+								  }
+								: s
+						)
+					);
+				} else if (type === 'session_out') {
+					setSessions((prev) =>
+						prev.map((s) =>
+							s.id === sessionId
+								? {
+										...s,
+										checkout: {
 											link: finalUrl,
 											expires: formatDateTimeForInput(responseData.expires_at),
 											loading: false,
@@ -174,9 +218,13 @@ const MultiSessionAttendanceTool = () => {
 			// Reset loading states
 			if (type === 'in') setInitialCheckIn((prev) => ({ ...prev, loading: false }));
 			else if (type === 'out') setFinalCheckOut((prev) => ({ ...prev, loading: false }));
-			else {
+			else if (type === 'session_in') {
 				setSessions((prev) =>
 					prev.map((s) => (s.id === sessionId ? { ...s, checkin: { ...s.checkin, loading: false } } : s))
+				);
+			} else if (type === 'session_out') {
+				setSessions((prev) =>
+					prev.map((s) => (s.id === sessionId ? { ...s, checkout: { ...s.checkout, loading: false } } : s))
 				);
 			}
 		}
@@ -199,9 +247,13 @@ const MultiSessionAttendanceTool = () => {
 			setInitialCheckIn((prev) => ({ ...prev, expires: value }));
 		} else if (type === 'out') {
 			setFinalCheckOut((prev) => ({ ...prev, expires: value }));
-		} else {
+		} else if (type === 'session_in') {
 			setSessions((prev) =>
 				prev.map((s) => (s.id === sessionId ? { ...s, checkin: { ...s.checkin, expires: value } } : s))
+			);
+		} else if (type === 'session_out') {
+			setSessions((prev) =>
+				prev.map((s) => (s.id === sessionId ? { ...s, checkout: { ...s.checkout, expires: value } } : s))
 			);
 		}
 	};
@@ -309,6 +361,28 @@ const MultiSessionAttendanceTool = () => {
 		);
 	};
 
+	// Group sessions by day using date fallback
+	const sessionsByDay = {};
+	const uniqueDates = [...new Set(sessions.map((s) => s.date).filter(Boolean))].sort();
+
+	sessions.forEach((session) => {
+		let day = session.dayNumber;
+		if (!day && session.date) {
+			day = uniqueDates.indexOf(session.date) + 1;
+		}
+		if (!day) day = 1;
+
+		if (!sessionsByDay[day]) {
+			sessionsByDay[day] = [];
+		}
+		sessionsByDay[day].push(session);
+	});
+
+	// Sort sessions in each day by start time
+	Object.keys(sessionsByDay).forEach((day) => {
+		sessionsByDay[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
+	});
+
 	return (
 		<div className="bg-white border rounded-4 p-4 shadow-none">
 			<div className="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -326,36 +400,138 @@ const MultiSessionAttendanceTool = () => {
 			</div>
 
 			<div className="border rounded-3 overflow-hidden d-flex flex-column bg-white">
-				{/* 1. INITIAL CHECK-IN */}
-				{renderActionRow(
-					'in',
-					'Check-in Masuk Awal Event',
-					'Akses masuk utama & registrasi perangkat',
-					initialCheckIn,
-					<CheckCircle size={16} className="text-success" />
-				)}
+				{Object.keys(sessionsByDay).length > 1 ? (
+					// Multi-day layout
+					Object.keys(sessionsByDay).sort((a, b) => Number(a) - Number(b)).map((day) => {
+						const daySessions = sessionsByDay[day];
+						return (
+							<div key={day} className="border-bottom last-border-0">
+								<div className="bg-light px-3 py-2 fw-bold text-dark border-bottom" style={{ fontSize: '0.85rem' }}>
+									Hari {day} {daySessions[0]?.date ? `(${daySessions[0].date})` : ''}
+								</div>
+								<div>
+									{daySessions.map((session, idx) => {
+										const isFirst = idx === 0;
+										const isLast = idx === daySessions.length - 1;
+										const isMiddle = !isFirst && !isLast;
 
-				{/* 2. SESSION CHECK-INS */}
-				{sessions.map((session, index) => {
-					if (session.isFirstSession) return null;
+										if (daySessions.length === 1) {
+											return (
+												<React.Fragment key={session.id}>
+													{renderActionRow(
+														'session_in',
+														`Check-in Masuk Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+														session.checkin,
+														<CheckCircle size={16} className="text-success" />,
+														session.id
+													)}
+													{renderActionRow(
+														'session_out',
+														`Check-out Keluar Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+														session.checkout,
+														<CheckCircle size={16} className="text-danger" />,
+														session.id
+													)}
+												</React.Fragment>
+											);
+										}
 
-					return renderActionRow(
-						'session_in',
-						`Check-in Sesi: ${session.title}`,
-						`Sesi ${index + 1} (${session.startTime} - ${session.endTime})`,
-						session.checkin,
-						<Calendar size={16} className="text-primary" />,
-						session.id
-					);
-				})}
+										if (isFirst) {
+											return (
+												<React.Fragment key={session.id}>
+													{renderActionRow(
+														'session_in',
+														`Check-in Masuk Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+														session.checkin,
+														<CheckCircle size={16} className="text-success" />,
+														session.id
+													)}
+												</React.Fragment>
+											);
+										}
 
-				{/* 3. FINAL CHECK-OUT */}
-				{renderActionRow(
-					'out',
-					'Check-out Keluar Akhir Event',
-					'Akses keluar setelah seluruh sesi selesai',
-					finalCheckOut,
-					<CheckCircle size={16} className="text-danger" />
+										if (isMiddle) {
+											return (
+												<React.Fragment key={session.id}>
+													{renderActionRow(
+														'session_in',
+														`Check-in Sesi: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+														session.checkin,
+														<Calendar size={16} className="text-primary" />,
+														session.id
+													)}
+												</React.Fragment>
+											);
+										}
+
+										if (isLast) {
+											return (
+												<React.Fragment key={session.id}>
+													{renderActionRow(
+														'session_in',
+														`Check-in Sesi: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+														session.checkin,
+														<Calendar size={16} className="text-primary" />,
+														session.id
+													)}
+													{renderActionRow(
+														'session_out',
+														`Check-out Keluar Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+														session.checkout,
+														<CheckCircle size={16} className="text-danger" />,
+														session.id
+													)}
+												</React.Fragment>
+											);
+										}
+
+										return null;
+									})}
+								</div>
+							</div>
+						);
+					})
+				) : (
+					// Single-day / original layout
+					<>
+						{/* 1. INITIAL CHECK-IN */}
+						{renderActionRow(
+							'in',
+							'Check-in Masuk Awal Event',
+							'Akses masuk utama & registrasi perangkat',
+							initialCheckIn,
+							<CheckCircle size={16} className="text-success" />
+						)}
+
+						{/* 2. SESSION CHECK-INS */}
+						{sessions.map((session, index) => {
+							if (session.isFirstSession) return null;
+
+							return renderActionRow(
+								'session_in',
+								`Check-in Sesi: ${session.title}`,
+								`Sesi ${index + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
+								session.checkin,
+								<Calendar size={16} className="text-primary" />,
+								session.id
+							);
+						})}
+
+						{/* 3. FINAL CHECK-OUT */}
+						{renderActionRow(
+							'out',
+							'Check-out Keluar Akhir Event',
+							'Akses keluar setelah seluruh sesi selesai',
+							finalCheckOut,
+							<CheckCircle size={16} className="text-danger" />
+						)}
+					</>
 				)}
 			</div>
 

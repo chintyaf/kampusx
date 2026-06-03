@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Card, Badge, ProgressBar } from 'react-bootstrap';
 import { notify } from '@/utils/notify';
 import { Ticket, DollarSign, UserCheck, UserMinus, Eye, Clock, FileText } from 'lucide-react';
 
@@ -187,6 +187,7 @@ export default function EventDashboardPage() {
 				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/tiket`)}
 			/>
 
+
 			{/* Stat Cards */}
 			{currentConfig.showStats && (
 				<Row className="g-3 mb-4">
@@ -233,6 +234,63 @@ export default function EventDashboardPage() {
 						eventId={eventId}
 					/>
 				)
+			)}
+
+			{/* Sisa Tiket per Tipe (Jika lebih dari 1 tipe tiket) */}
+			{eventData.tickets && eventData.tickets.length > 1 && (
+				<Card className="border shadow-none rounded-4 mb-4">
+					<Card.Body className="p-4">
+						<div className="d-flex justify-content-between align-items-center mb-3">
+							<div>
+								<h5 className="mb-1 text-dark fw-bold" style={{ fontSize: '1.1rem' }}>
+									Status Penjualan & Sisa Tiket
+								</h5>
+								<p className="mb-0 text-muted" style={{ fontSize: '0.8rem' }}>
+									Pantau kuota dan sisa tiket aktif berdasarkan tipenya.
+								</p>
+							</div>
+							<Badge bg="light" className="text-dark border px-2.5 py-1 text-xs font-semibold rounded-pill">
+								{eventData.tickets.length} Tipe Tiket
+							</Badge>
+						</div>
+						<Row className="g-3">
+							{eventData.tickets.map((t, idx) => {
+								const cap = parseInt(t.capacity) || 0;
+								const sold = parseInt(t.count) || 0;
+								const sisa = t.capacity === null ? '∞ (Tak Terbatas)' : Math.max(0, cap - sold);
+								const pct = t.capacity === null || cap === 0 ? 0 : Math.round((sold / cap) * 100);
+
+								return (
+									<Col xs={12} md={6} key={idx}>
+										<div className="p-3 border rounded-3 bg-light">
+											<div className="d-flex justify-content-between align-items-center mb-1">
+												<span className="fw-bold text-dark" style={{ fontSize: '0.9rem' }}>
+													{t.label}
+												</span>
+												<Badge bg={t.is_free ? "success" : "primary"} className="px-2 py-1 rounded">
+													{t.is_free ? 'Gratis' : `Rp ${parseInt(t.price).toLocaleString('id-ID')}`}
+												</Badge>
+											</div>
+											<div className="mt-2">
+												<div className="d-flex justify-content-between text-muted mb-1" style={{ fontSize: '0.78rem' }}>
+													<span>Terjual: {sold} {t.capacity !== null && `/ ${cap}`}</span>
+													<span>Sisa: <strong>{sisa}</strong></span>
+												</div>
+												{t.capacity !== null && (
+													<ProgressBar
+														now={pct}
+														style={{ height: '5px' }}
+														variant={idx % 2 === 0 ? 'primary' : 'info'}
+													/>
+												)}
+											</div>
+										</div>
+									</Col>
+								);
+							})}
+						</Row>
+					</Card.Body>
+				</Card>
 			)}
 
 			{/* Kelola Link Presensi Online */}
