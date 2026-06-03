@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useOutletContext } from 'react-router-dom';
 import { Container, Button } from 'react-bootstrap';
 import { Plus, Users, BarChart2, Download, Video } from 'lucide-react';
-import SessionContentCard from './SessionContentCard';
+import SessionContentCard from './components/SessionContentCard';
 import FormHeading from '@/components/dashboard/FormHeading';
 import StatCard from '@/components/dashboard/StatCard';
 import api from '@/api/axios';
@@ -11,12 +11,16 @@ import { Skeleton, SkeletonStyles } from '@/components/Skeleton';
 // --- Halaman Utama ---
 const EventPostMaterialPage = () => {
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useOutletContext() || {};
 	const [sessions, setSessions] = useState([]);
 	const [loading, setLoading] = useState(true);
 
 	const fetchSessions = async (hideLoading = false) => {
 		try {
-			if (!hideLoading) setLoading(true);
+			if (!hideLoading) {
+				setLoading(true);
+				if (setIsPageLoading) setIsPageLoading(true);
+			}
 			const response = await api.get(`event-dashboard/${eventId}/post-event/sessions`);
 			if (response.data?.status === 'success') {
 				setSessions(response.data.data);
@@ -24,7 +28,10 @@ const EventPostMaterialPage = () => {
 		} catch (error) {
 			console.error('Gagal mengambil data sesi:', error);
 		} finally {
-			if (!hideLoading) setLoading(false);
+			if (!hideLoading) {
+				setLoading(false);
+				if (setIsPageLoading) setIsPageLoading(false);
+			}
 		}
 	};
 
@@ -32,7 +39,7 @@ const EventPostMaterialPage = () => {
 		if (eventId) {
 			fetchSessions();
 		}
-	}, [eventId]);
+	}, [eventId, setIsPageLoading]);
 
 	const updateSession = (id, updates) => {
 		setSessions(sessions.map((s) => (s.id === id ? { ...s, ...updates } : s)));

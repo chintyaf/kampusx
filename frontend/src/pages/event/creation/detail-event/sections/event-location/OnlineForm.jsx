@@ -2,8 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Form } from 'react-bootstrap';
 
 const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {} }) => {
-	const predefinedList = ['Zoom', 'Google Meet', 'YouTube Live', 'Microsoft Teams', 'Webex', 'Instagram Live', 'TikTok Live'];
-	
+	const predefinedList = [
+		'Zoom',
+		'Google Meet',
+		'YouTube Live',
+		'Microsoft Teams',
+		'Webex',
+		'Instagram Live',
+		'TikTok Live',
+	];
+
 	const [isOther, setIsOther] = useState(false);
 	const initializedRef = useRef(false);
 
@@ -23,16 +31,16 @@ const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {
 			onChange({
 				target: {
 					name: 'platform',
-					value: ''
-				}
+					value: '',
+				},
 			});
 		} else {
 			setIsOther(false);
 			onChange({
 				target: {
 					name: 'platform',
-					value: val
-				}
+					value: val,
+				},
 			});
 		}
 	};
@@ -56,7 +64,9 @@ const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {
 					isInvalid={touched.platform && (!data.platform || data.platform.trim() === '')}
 					className="mb-3"
 				>
-					<option value="" disabled hidden>-- Pilih Platform --</option>
+					<option value="" disabled hidden>
+						-- Pilih Platform --
+					</option>
 					<option value="Zoom">Zoom</option>
 					<option value="Google Meet">Google Meet</option>
 					<option value="YouTube Live">YouTube Live</option>
@@ -69,7 +79,9 @@ const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {
 
 				{isOther && (
 					<div className="fade-in-down">
-						<Form.Label className="form-label required small text-muted">Nama Platform Kustom</Form.Label>
+						<Form.Label className="form-label required small text-muted">
+							Nama Platform Kustom
+						</Form.Label>
 						<Form.Control
 							name="platform"
 							type="text"
@@ -77,7 +89,9 @@ const OnlineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {
 							onChange={onChange}
 							onBlur={() => handleBlur('platform')}
 							placeholder={'Masukkan nama platform lainnya, cth: Discord, Web'}
-							isInvalid={touched.platform && (!data.platform || data.platform.trim() === '')}
+							isInvalid={
+								touched.platform && (!data.platform || data.platform.trim() === '')
+							}
 						/>
 					</div>
 				)}

@@ -48,7 +48,7 @@ const TypeCard = ({ selectedType, onSelectType }) => {
 							borderRadius: '12px',
 							transition: '0.2s ease-in-out',
 							backgroundColor: `${selectedType === type.id ? type.bgColor : 'white'}`,
-                            padding: '10px 20px',
+							padding: '10px 20px',
 						}}
 						className="h-100"
 					>

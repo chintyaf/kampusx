@@ -53,7 +53,8 @@ const TicketSummary = ({ tickets = [] }) => {
 			<div className="p-4">
 				<p
 					className="text-uppercase text-muted fw-bold mb-3"
-					style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+					style={{ fontSize: '0.75rem', letterSpacing: '1px' }}
+				>
 					Ringkasan
 				</p>
 
@@ -62,7 +63,8 @@ const TicketSummary = ({ tickets = [] }) => {
 						<div key={idx} className="d-flex align-items-center gap-3">
 							<div
 								className="bg-white border rounded d-flex align-items-center justify-content-center flex-shrink-0"
-								style={{ width: '36px', height: '36px' }}>
+								style={{ width: '36px', height: '36px' }}
+							>
 								<item.icon size={16} className="text-muted" />
 							</div>
 							<div>
@@ -71,7 +73,8 @@ const TicketSummary = ({ tickets = [] }) => {
 								</p>
 								<p
 									className="fw-bold mb-0 text-dark"
-									style={{ fontSize: '0.95rem' }}>
+									style={{ fontSize: '0.95rem' }}
+								>
 									{item.value}
 								</p>
 							</div>
@@ -83,7 +86,8 @@ const TicketSummary = ({ tickets = [] }) => {
 
 				<p
 					className="text-uppercase text-muted fw-bold mb-3"
-					style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
+					style={{ fontSize: '0.75rem', letterSpacing: '1px' }}
+				>
 					Per Tipe
 				</p>
 
@@ -98,7 +102,8 @@ const TicketSummary = ({ tickets = [] }) => {
 								<div className="d-flex justify-content-between align-items-center mb-1">
 									<span
 										className="fw-semibold text-dark"
-										style={{ fontSize: '0.85rem' }}>
+										style={{ fontSize: '0.85rem' }}
+									>
 										{t.name || `Tiket ${i + 1}`}
 									</span>
 									<span className="text-muted" style={{ fontSize: '0.8rem' }}>

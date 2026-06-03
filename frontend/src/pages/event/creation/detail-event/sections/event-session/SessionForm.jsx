@@ -305,7 +305,7 @@ const SessionForm = ({
 							</Col>
 						</Row>
 
-						<Form.Group className="mb-3">
+						{/* <Form.Group className="mb-3">
 							<div className="d-flex justify-content-between align-items-center mb-2">
 								<Form.Label className="form-label mb-0">
 									<LinkIcon size={14} className="me-1" /> Prasyarat Sesi
@@ -338,7 +338,7 @@ const SessionForm = ({
 									⚠️ {prerequisiteWarning}
 								</div>
 							)}
-						</Form.Group>
+						</Form.Group> */}
 
 						{/* Pembicara Section */}
 						<div className="mb-4">

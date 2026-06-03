@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './EventDashboardPage.css';
+import '../EventDashboardPage.css';
 import {
 	Lock,
 	Monitor,

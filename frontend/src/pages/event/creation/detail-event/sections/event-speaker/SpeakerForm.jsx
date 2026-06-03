@@ -4,8 +4,8 @@ import Select from 'react-select';
 import { User, Trash2, Plus, Camera } from 'lucide-react';
 import CreatableSelect from 'react-select/creatable';
 
-import api from '../../../../../../api/axios';
-import { STORAGE_URL } from '../../../../../../api/storage';
+import api from '@/api/axios';
+import { STORAGE_URL } from '@/api/storage';
 
 const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 	const isEdit = !!initialData;
@@ -32,7 +32,6 @@ const SpeakerForm = ({ onCancel, onSave, initialData, eventId }) => {
 		name: '',
 		role: '',
 		bio: '',
-		// social_links sekarang menggunakan array of object
 		social_links: [{ platform: 'LinkedIn', url: '' }],
 		expertise: [],
 		sessions: [],

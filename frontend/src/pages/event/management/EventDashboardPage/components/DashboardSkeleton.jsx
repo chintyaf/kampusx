@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../../../api/axios';
+import api from '@/api/axios';
 import { Row, Col } from 'react-bootstrap';
 import { Ticket, DollarSign, UserCheck, UserMinus, Users } from 'lucide-react';
-import '../../../../assets/css/dashboard.css';
+import '@/assets/css/dashboard.css';
 
 import PageHeader from './PageHeader';
 import StatCards from '@/components/dashboard/StatCards';
@@ -81,5 +81,4 @@ const DashboardSkeleton = () => (
 	</div>
 );
 
-
-export default DashboardSkeleton
+export default DashboardSkeleton;

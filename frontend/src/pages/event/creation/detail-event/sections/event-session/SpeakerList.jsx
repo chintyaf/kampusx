@@ -4,7 +4,7 @@ import { Search, X, Plus, CheckCircle } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { Edit2, Trash2 } from 'lucide-react';
-import { STORAGE_URL } from '../../../../../../api/storage';
+import { STORAGE_URL } from '@/api/storage';
 
 export const getSpeakerAvatar = (speaker) => {
 	if (!speaker) return '';
@@ -91,7 +91,10 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 			</div>
 
 			{/* Action Button/Badge */}
-			<div className="ms-2 d-flex align-items-center gap-1" onClick={(e) => e.stopPropagation()}>
+			<div
+				className="ms-2 d-flex align-items-center gap-1"
+				onClick={(e) => e.stopPropagation()}
+			>
 				{speaker.added ? (
 					<div
 						style={{

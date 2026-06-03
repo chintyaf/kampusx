@@ -4,17 +4,19 @@ import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MapPin, Plus, Trash2 } from 'lucide-react';
 
-import api from '@/api/axios';
-import PosTable from './PosTable';
-import PosForm from './PosForm';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
+import api from '@/api/axios';
 
-// import OnlineAttendanceTool from './OnlineAttendanceTool';
-import AttendanceWindowInfo from './AttendanceWindowInfo';
-import PosStats from './PosStats';
-import PosGuideCard from './PosGuideCard';
-import MultiSessionAttendanceTool from './MultiSessionAttendanceTool';
+import {
+	PosPinHeader,
+	PosStats,
+	PosTable,
+	PosForm,
+	PosGuideCard,
+	MultiSessionAttendanceTool,
+} from './components';
 
+import { useLoading } from '@/context/LoadingContext';
 
 /**
  * Page Component: EventPosPage
@@ -24,6 +26,7 @@ import MultiSessionAttendanceTool from './MultiSessionAttendanceTool';
  */
 const EventPosPage = () => {
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useLoading();
 	const [posList, setPosList] = useState([]);
 	const [showForm, setShowForm] = useState(false);
 	const [selectedPos, setSelectedPos] = useState(null);
@@ -39,6 +42,7 @@ const EventPosPage = () => {
 	// Fetch active POS stations and general event details
 	const fetchPosList = async () => {
 		try {
+			setIsPageLoading(true);
 			const response = await api.get(`/event-dashboard/${eventId}/stations`);
 			if (response.data.pos_pin) {
 				setPosPin(response.data.pos_pin);
@@ -58,6 +62,8 @@ const EventPosPage = () => {
 		} catch (error) {
 			console.error('Failed to fetch stations:', error);
 			toast.error('Gagal mengambil daftar pos.');
+		} finally {
+			setIsPageLoading(false);
 		}
 	};
 

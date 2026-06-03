@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col, Alert, Spinner, Modal } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
+import { useParams, useOutletContext } from 'react-router-dom';
 import { Megaphone, Plus, Trash2, Calendar, FileText, ExternalLink, Image, AlertCircle, CheckCircle, Badge } from 'lucide-react';
 import api from '../../api/axios';
 
 const ManageAnnouncements = () => {
     const { eventId } = useParams();
+    const { setIsPageLoading } = useOutletContext() || {};
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -21,6 +22,7 @@ const ManageAnnouncements = () => {
 
     const fetchAnnouncements = async () => {
         setLoading(true);
+        if (setIsPageLoading) setIsPageLoading(true);
         setErrorMsg(null);
         try {
             const res = await api.get(`/organizer/events/${eventId}/announcements`);
@@ -30,6 +32,7 @@ const ManageAnnouncements = () => {
             setErrorMsg('Gagal memuat daftar pengumuman. Harap muat ulang halaman.');
         } finally {
             setLoading(false);
+            if (setIsPageLoading) setIsPageLoading(false);
         }
     };
 
@@ -37,7 +40,7 @@ const ManageAnnouncements = () => {
         if (eventId) {
             fetchAnnouncements();
         }
-    }, [eventId]);
+    }, [eventId, setIsPageLoading]);
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
@@ -113,12 +116,7 @@ const ManageAnnouncements = () => {
     };
 
     if (loading) {
-        return (
-            <div className="d-flex flex-column align-items-center justify-content-center py-5" style={{ minHeight: '50vh' }}>
-                <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
-                <p className="text-muted mt-3 fw-medium">Memuat Pengumuman Event...</p>
-            </div>
-        );
+        return null;
     }
 
     return (

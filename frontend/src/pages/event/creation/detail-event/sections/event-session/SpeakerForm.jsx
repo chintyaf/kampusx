@@ -70,7 +70,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 			onSave({
 				...formData,
 				image_url: imagePreview, // to display in UI immediately
-				_imageFile: imageFile
+				_imageFile: imageFile,
 			});
 		}
 	};
@@ -102,7 +102,9 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 						{initialData ? 'Edit Pembicara' : 'Tambah Pembicara Baru'}
 					</h5>
 					<div style={{ fontSize: '13px', color: '#64748b', lineHeight: '1.2' }}>
-						{initialData ? 'Perbarui informasi pembicara' : 'Langsung ditambahkan ke daftar'}
+						{initialData
+							? 'Perbarui informasi pembicara'
+							: 'Langsung ditambahkan ke daftar'}
 					</div>
 				</div>
 			</div>
@@ -112,7 +114,10 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 				{/* Foto Pembicara */}
 				<Form.Group className="mb-3">
 					<div className="d-flex justify-content-between align-items-center mb-2">
-						<label className="form-label fw-semibold mb-0" style={{ fontSize: '13px', color: '#475569' }}>
+						<label
+							className="form-label fw-semibold mb-0"
+							style={{ fontSize: '13px', color: '#475569' }}
+						>
 							Foto Pembicara
 						</label>
 						<span className="text-muted" style={{ fontSize: '13px' }}>
@@ -132,7 +137,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 								color: '#64748b',
 								cursor: 'pointer',
 								flexShrink: 0,
-								overflow: 'hidden'
+								overflow: 'hidden',
 							}}
 						>
 							{imagePreview ? (
@@ -144,7 +149,9 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 							) : (
 								<>
 									<Upload size={18} className="mb-1" />
-									<span style={{ fontSize: '11px', fontWeight: 500 }}>Upload</span>
+									<span style={{ fontSize: '11px', fontWeight: 500 }}>
+										Upload
+									</span>
 								</>
 							)}
 						</div>
@@ -176,7 +183,10 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 
 				{/* Nama Lengkap */}
 				<Form.Group className="mb-3">
-					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
+					<Form.Label
+						className="form-label fw-semibold"
+						style={{ fontSize: '13px', color: '#475569' }}
+					>
 						Nama Lengkap <span className="text-danger">*</span>
 					</Form.Label>
 					<Form.Control
@@ -190,14 +200,17 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 							borderRadius: '8px',
 							fontSize: '14px',
 							padding: '10px 12px',
-							backgroundColor: '#f8fafc'
+							backgroundColor: '#f8fafc',
 						}}
 					/>
 				</Form.Group>
 
 				{/* Jabatan / Posisi */}
 				<Form.Group className="mb-3">
-					<Form.Label className="form-label fw-semibold" style={{ fontSize: '13px', color: '#475569' }}>
+					<Form.Label
+						className="form-label fw-semibold"
+						style={{ fontSize: '13px', color: '#475569' }}
+					>
 						Jabatan / Posisi <span className="text-danger">*</span>
 					</Form.Label>
 					<Form.Control
@@ -211,7 +224,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 							borderRadius: '8px',
 							fontSize: '14px',
 							padding: '10px 12px',
-							backgroundColor: '#f8fafc'
+							backgroundColor: '#f8fafc',
 						}}
 					/>
 				</Form.Group>
@@ -219,7 +232,10 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 				{/* Bio Textarea */}
 				<Form.Group className="mb-3">
 					<div className="d-flex justify-content-between align-items-center mb-2">
-						<label className="form-label fw-semibold mb-0" style={{ fontSize: '13px', color: '#475569' }}>
+						<label
+							className="form-label fw-semibold mb-0"
+							style={{ fontSize: '13px', color: '#475569' }}
+						>
 							Bio Singkat
 						</label>
 						<span className="text-muted" style={{ fontSize: '13px' }}>
@@ -241,7 +257,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 							fontSize: '14px',
 							padding: '10px 12px',
 							backgroundColor: '#f8fafc',
-							resize: 'none'
+							resize: 'none',
 						}}
 					/>
 					<div className="d-flex justify-content-end mt-1">
@@ -263,7 +279,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 						borderRadius: '8px',
 						border: '1.5px solid #cbd5e1',
 						backgroundColor: '#ffffff',
-						color: '#475569'
+						color: '#475569',
 					}}
 					onClick={() => onChangeSidebar('speaker-list')}
 				>
@@ -276,7 +292,7 @@ const SpeakerForm = ({ onChangeSidebar, initialData, onSave, isModal = false }) 
 						flex: 2,
 						fontSize: '14px',
 						borderRadius: '8px',
-						backgroundColor: (formData.name && formData.role) ? '#00699e' : '#cbd5e1',
+						backgroundColor: formData.name && formData.role ? '#00699e' : '#cbd5e1',
 						border: 'none',
 						display: 'flex',
 						alignItems: 'center',
