@@ -49,6 +49,10 @@ import CertificateVerificationPage from '../pages/certificate/CertificateVerific
 import StaffLogin from '../pages/staff/StaffLogin';
 import SelectPost from '../pages/staff/SelectPost';
 import StaffDashboard from '../pages/staff/StaffDashboard';
+import StaffScanner from '../pages/staff/StaffScanner';
+import StaffScanResult from '../pages/staff/StaffScanResult';
+import StaffAttendees from '../pages/staff/StaffAttendees';
+
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
 import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
 import NotFound from '../pages/NotFoundPage';
@@ -141,6 +145,9 @@ const AppRoutes = () => {
 				<Route path="/staff/login" element={<StaffLogin />} />
 				<Route path="/staff/select-post" element={<SelectPost />} />
 				<Route path="/staff/dashboard" element={<StaffDashboard />} />
+				<Route path="/staff/scanner" element={<StaffScanner />} />
+				<Route path="/staff/scan-result" element={<StaffScanResult />} />
+				<Route path="/staff/attendees" element={<StaffAttendees />} />
 
 				{/* 8. 404 NOT FOUND */}
 				<Route path="*" element={<NotFound />} />

@@ -114,17 +114,11 @@ class StaffController extends Controller
 
         $scanType = $request->input('scan_type', 'in');
 
-        // Cari log absensi hari ini untuk pos & tiket ini
-        $attendanceLog = DB::table('attendance_logs')
-            ->where('ticket_id', $ticket->id)
-            ->where('post_id', $station->id)
-            ->whereDate('scan_time', Carbon::today())
-            ->first();
-
+        // Validasi Check-in Lintas POS menggunakan status tiket
         if ($scanType === 'in') {
-            if ($attendanceLog) {
+            if ($ticket->status === 'used') {
                 return response()->json([
-                    'message' => 'Peserta sudah melakukan check-in di POS ini hari ini.',
+                    'message' => 'Tiket sudah digunakan! Peserta telah check-in sebelumnya.',
                     'attendee_name' => $ticket->attendee_name
                 ], 409);
             }
@@ -148,34 +142,42 @@ class StaffController extends Controller
 
             $msg = 'Berhasil memverifikasi check-in ' . $ticket->attendee_name;
         } else {
-            // Check-out
-            if (!$attendanceLog) {
+            // PERBAIKAN: Check-out
+            if ($ticket->status !== 'used') {
                 return response()->json([
-                    'message' => 'Peserta belum melakukan check-in hari ini, tidak bisa check-out.',
+                    'message' => 'Peserta belum melakukan check-in, tidak bisa check-out.',
                     'attendee_name' => $ticket->attendee_name
                 ], 400);
             }
 
-            if ($attendanceLog->checkout_time) {
+            // Cari log absensi terakhir untuk tiket ini
+            $attendanceLog = DB::table('attendance_logs')
+                ->where('ticket_id', $ticket->id)
+                ->latest('scan_time')
+                ->first();
+
+            if ($attendanceLog && $attendanceLog->checkout_time) {
                 return response()->json([
-                    'message' => 'Peserta sudah melakukan check-out di POS ini hari ini.',
+                    'message' => 'Peserta sudah melakukan check-out sebelumnya.',
                     'attendee_name' => $ticket->attendee_name
                 ], 409);
             }
 
             // Update waktu check-out
-            DB::table('attendance_logs')
-                ->where('id', $attendanceLog->id)
-                ->update([
-                    'checkout_time' => Carbon::now(),
-                    'updated_at' => Carbon::now()
-                ]);
+            if ($attendanceLog) {
+                DB::table('attendance_logs')
+                    ->where('id', $attendanceLog->id)
+                    ->update([
+                        'checkout_time' => Carbon::now(),
+                        'updated_at' => Carbon::now()
+                    ]);
+            }
 
             $msg = 'Berhasil memverifikasi check-out ' . $ticket->attendee_name;
         }
 
-        // Ambil Ringkasan Kehadiran
-        $stats = $this->getAttendanceStats($event->id, $station->id);
+        // Ambil Ringkasan Kehadiran Global
+        $stats = $this->getAttendanceStats($event->id);
 
         return response()->json([
             'success' => true,
@@ -227,17 +229,11 @@ class StaffController extends Controller
 
         $scanType = $request->input('scan_type', 'in');
 
-        // Cari log absensi hari ini untuk pos & tiket ini
-        $attendanceLog = DB::table('attendance_logs')
-            ->where('ticket_id', $ticket->id)
-            ->where('post_id', $station->id)
-            ->whereDate('scan_time', Carbon::today())
-            ->first();
-
+        // PERBAIKAN: Validasi Manual Lintas POS
         if ($scanType === 'in') {
-            if ($attendanceLog) {
+            if ($ticket->status === 'used') {
                 return response()->json([
-                    'message' => 'Peserta sudah melakukan check-in di POS ini hari ini.',
+                    'message' => 'Tiket sudah digunakan! Peserta telah check-in sebelumnya.',
                     'attendee_name' => $ticket->attendee_name
                 ], 409);
             }
@@ -262,33 +258,40 @@ class StaffController extends Controller
             $msg = 'Kehadiran manual (check-in) berhasil dicatat untuk ' . $ticket->attendee_name;
         } else {
             // Check-out
-            if (!$attendanceLog) {
+            if ($ticket->status !== 'used') {
                 return response()->json([
-                    'message' => 'Peserta belum melakukan check-in hari ini, tidak bisa check-out.',
+                    'message' => 'Peserta belum melakukan check-in, tidak bisa check-out.',
                     'attendee_name' => $ticket->attendee_name
                 ], 400);
             }
 
-            if ($attendanceLog->checkout_time) {
+            $attendanceLog = DB::table('attendance_logs')
+                ->where('ticket_id', $ticket->id)
+                ->latest('scan_time')
+                ->first();
+
+            if ($attendanceLog && $attendanceLog->checkout_time) {
                 return response()->json([
-                    'message' => 'Peserta sudah melakukan check-out di POS ini hari ini.',
+                    'message' => 'Peserta sudah melakukan check-out sebelumnya.',
                     'attendee_name' => $ticket->attendee_name
                 ], 409);
             }
 
             // Update waktu check-out
-            DB::table('attendance_logs')
-                ->where('id', $attendanceLog->id)
-                ->update([
-                    'checkout_time' => Carbon::now(),
-                    'updated_at' => Carbon::now()
-                ]);
+            if ($attendanceLog) {
+                DB::table('attendance_logs')
+                    ->where('id', $attendanceLog->id)
+                    ->update([
+                        'checkout_time' => Carbon::now(),
+                        'updated_at' => Carbon::now()
+                    ]);
+            }
 
             $msg = 'Kehadiran manual (check-out) berhasil dicatat untuk ' . $ticket->attendee_name;
         }
 
-        // Ambil Ringkasan Kehadiran
-        $stats = $this->getAttendanceStats($event->id, $station->id);
+        // Ambil Ringkasan Kehadiran Global
+        $stats = $this->getAttendanceStats($event->id);
 
         return response()->json([
             'success' => true,
@@ -329,19 +332,27 @@ class StaffController extends Controller
             $q->where('event_id', $event->id)->where('status', 'paid');
         });
 
+        // Simpan jumlah data total/hadir secara terpisah untuk injeksi ke response
+        $stats = $this->getAttendanceStats($event->id);
+
         if ($query) {
             $ticketsQuery->where(function($q) use ($query) {
                 $q->where('attendee_name', 'LIKE', "%{$query}%")
                   ->orWhere('ticket_code', 'LIKE', "%{$query}%")
                   ->orWhere('attendee_email', 'LIKE', "%{$query}%");
             });
+            
+            // Batasi hanya untuk query pencarian agar ringan
+            $tickets = $ticketsQuery->take(15)->get(['id', 'attendee_name', 'attendee_email', 'ticket_code', 'status']);
+        } else {
+            // Jika tidak ada query (load awal), ambil semua untuk menu daftar peserta
+            $tickets = $ticketsQuery->get(['id', 'attendee_name', 'attendee_email', 'ticket_code', 'status']);
         }
-
-        $tickets = $ticketsQuery->take(15)->get(['id', 'attendee_name', 'attendee_email', 'ticket_code', 'status']);
 
         return response()->json([
             'success' => true,
             'data' => $tickets,
+            'stats' => $stats, // Injeksi stat asli (memperbaiki bug perhitungan frontend)
             'event' => [
                 'id' => $event->id,
                 'title' => $event->title,
@@ -353,20 +364,19 @@ class StaffController extends Controller
     }
 
     /**
-     * Helper method to calculate POS stats dynamically.
+     * Helper method to calculate Global Event Stats dynamically.
      */
-    private function getAttendanceStats($eventId, $stationId)
+    private function getAttendanceStats($eventId)
     {
-        // 1. Total Kuota Pos (Total Tiket Lunas untuk event ini)
+        // 1. Total Kuota Keseluruhan Event (Tiket Lunas)
         $totalTickets = Ticket::whereHas('orderItem.order', function ($q) use ($eventId) {
             $q->where('event_id', $eventId)->where('status', 'paid');
         })->count();
 
-        // 2. Jumlah Hadir (Check-in di POS ini)
-        $checkedIn = DB::table('attendance_logs')
-            ->where('event_id', $eventId)
-            ->where('post_id', $stationId)
-            ->count();
+        // 2. Jumlah Global Hadir (Tiket berstatus 'used')
+        $checkedIn = Ticket::whereHas('orderItem.order', function ($q) use ($eventId) {
+            $q->where('event_id', $eventId)->where('status', 'paid');
+        })->where('status', 'used')->count();
 
         // 3. Jumlah Belum Hadir
         $notCheckedIn = max(0, $totalTickets - $checkedIn);

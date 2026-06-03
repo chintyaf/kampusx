@@ -1,265 +1,83 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, Form, Button, Table, Badge, Alert, Tabs, Tab, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import {
-    QrCode, Search, UserCheck, Users, RefreshCw, LogOut, MapPin,
-    CheckCircle2, AlertCircle, Clock, Trash2
-} from 'lucide-react';
+import { QrCode, Search, UserCheck, Users, RefreshCw, LogOut, Clock, List } from 'lucide-react';
 import api from '../../api/axios';
-import { Html5Qrcode } from 'html5-qrcode';
 
 const StaffDashboard = () => {
     const navigate = useNavigate();
 
-    // Auth States
     const [event, setEvent] = useState(null);
     const [station, setStation] = useState(null);
     const [pin, setPin] = useState('');
-
-    // Attendance Stats
-    const [stats, setStats] = useState({
-        total_quota: 0,
-        checked_in: 0,
-        remaining: 0
-    });
-
-    // Scanner States
-    const [qrInput, setQrInput] = useState('');
-    const [isScanning, setIsScanning] = useState(false);
-    const [scanFeedback, setScanFeedback] = useState(null); // { type: 'success' | 'error', message: '', attendee: null }
-    const [isCameraActive, setIsCameraActive] = useState(false);
-    const [scanLock, setScanLock] = useState(false);
-    const [scanMode, setScanMode] = useState('in'); // 'in' | 'out'
-
-    // Scanner Refs to prevent closure stale states
-    const html5QrCodeRef = useRef(null);
-    const scanLockRef = useRef(scanLock);
-    const pinRef = useRef(pin);
-    const stationRef = useRef(station);
-    const scanModeRef = useRef(scanMode);
-
-    // Sync refs
-    useEffect(() => { scanLockRef.current = scanLock; }, [scanLock]);
-    useEffect(() => { pinRef.current = pin; }, [pin]);
-    useEffect(() => { stationRef.current = station; }, [station]);
-    useEffect(() => { scanModeRef.current = scanMode; }, [scanMode]);
-
-    // Responsive State
+    const [stats, setStats] = useState({ total_quota: 0, checked_in: 0, remaining: 0 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+    
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [actionMessage, setActionMessage] = useState(null);
+    const [checkInLogs, setCheckInLogs] = useState([]);
+    const searchTimeoutRef = useRef(null);
+
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth < 992);
-        };
+        const handleResize = () => setIsMobile(window.innerWidth < 992);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Manual Override / Search States
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const [actionMessage, setActionMessage] = useState(null); // For manual check-in feedback
-
-    // Logs State
-    const [checkInLogs, setCheckInLogs] = useState([]);
-
-    // Initialize LocalStorage Data
     useEffect(() => {
         const storedPin = localStorage.getItem('staff_pin');
-        const storedEvent = localStorage.getItem('staff_event');
-        const storedPos = localStorage.getItem('staff_selected_pos');
+        const storedEvent = JSON.parse(localStorage.getItem('staff_event') || 'null');
+        const storedPos = JSON.parse(localStorage.getItem('staff_selected_pos') || 'null');
 
         if (!storedPin || !storedEvent || !storedPos) {
             localStorage.clear();
             navigate('/staff/login');
             return;
         }
-
-        try {
-            setPin(storedPin);
-            setEvent(JSON.parse(storedEvent));
-            setStation(JSON.parse(storedPos));
-        } catch (e) {
-            console.error('Failed to parse staff localStorage data:', e);
-            localStorage.clear();
-            navigate('/staff/login');
-        }
+        setPin(storedPin);
+        setEvent(storedEvent);
+        setStation(storedPos);
     }, [navigate]);
 
-    // Fetch Stats and Init Search on mount
     useEffect(() => {
-        if (event && station && pin) {
+        if (event?.id && station?.id && pin) {
             fetchStats();
             handleSearch('');
         }
-    }, [event, station, pin]);
+        // eslint-disable-next-line
+    }, [event?.id, station?.id, pin]);
 
-    // Fetch Attendance Stats Helper
     const fetchStats = async () => {
         try {
             const res = await api.get('/v1/staff/search-tickets', {
                 params: { event_id: event.id, pos_pin: pin, q: '' }
             });
-            if (res.data.event) {
-                setEvent(res.data.event);
+            
+            if (res.data.event) setEvent(res.data.event);
+            
+            // Simpan semua tiket untuk daftar (jika di halaman attendees)
+            if (typeof setAllTickets === 'function') {
+                setAllTickets(res.data.data);
             }
-
-            // Generate dynamic stats based on tickets status
-            const tickets = res.data.data;
-
-            // To get accurate attendance stats at this POS, we query stats via search ticket or a dummy query
-            // Let's do a dummy scan or manual check-in search to calculate stats dynamically
-            const resLogs = await api.get('/v1/staff/search-tickets', {
-                params: { event_id: event.id, pos_pin: pin, q: '' }
-            });
-            // We can also let the controller return stats on search or fetch them.
-            // Since we implemented dynamic stats calculation inside scan / manual checkin controller,
-            // let's fetch the overall status dynamically!
-            const totalTicketsCount = tickets.length;
-            const checkedInCount = tickets.filter(t => t.status === 'used').length; // simple proxy
-
-            setStats({
-                total_quota: totalTicketsCount,
-                checked_in: checkedInCount,
-                remaining: Math.max(0, totalTicketsCount - checkedInCount)
-            });
+            
+            // PERBAIKAN: Gunakan stats asli dari Backend
+            if (res.data.stats) {
+                setStats(res.data.stats);
+            }
+            
         } catch (err) {
-            console.error('Failed to fetch attendance stats:', err);
+            console.error('Failed to fetch stats:', err);
         }
     };
 
-    // General QR check-in processing
-    const processQrCode = async (qrString) => {
-        if (!qrString || !qrString.trim()) return;
-        if (scanLockRef.current) return;
-
-        setIsScanning(true);
-        setScanFeedback(null);
-
-        const currentStation = stationRef.current;
-        const currentPin = pinRef.current;
-
-        if (!currentStation || !currentPin) {
-            setScanFeedback({
-                type: 'error',
-                message: 'Stasiun POS atau PIN tidak lengkap. Silakan login kembali.'
-            });
-            setIsScanning(false);
-            return;
-        }
-
-        try {
-            const response = await api.post('/v1/staff/scan', {
-                qr_string: qrString.trim(),
-                post_id: currentStation.id,
-                pos_pin: currentPin,
-                scan_type: scanModeRef.current
-            });
-
-            if (response.data.success) {
-                const { attendee, stats: newStats } = response.data;
-                setScanFeedback({
-                    type: 'success',
-                    message: response.data.message || 'Presensi berhasil dicatat!',
-                    attendee
-                });
-                if (newStats) setStats(newStats);
-
-                // Add to recent logs
-                setCheckInLogs(prev => [attendee, ...prev.slice(0, 4)]);
-                setQrInput('');
-
-                // Kunci scanner selama 2.5 detik untuk cegah spamming read
-                setScanLock(true);
-                setTimeout(() => {
-                    setScanLock(false);
-                }, 2500);
-
-                fetchStats(); // update search tables
-                handleSearch(searchQuery);
-            }
-        } catch (err) {
-            console.error('QR Scan Error:', err);
-            setScanFeedback({
-                type: 'error',
-                message: err.response?.data?.message || 'Kode QR tidak valid atau terjadi kesalahan server.'
-            });
-        } finally {
-            setIsScanning(false);
-        }
-    };
-
-    // Handle QR Scan Submit (Manual Text Input fallback)
-    const handleQrSubmit = (e) => {
-        if (e) e.preventDefault();
-        processQrCode(qrInput);
-    };
-
-    // Camera scanner lifecycle management
-    useEffect(() => {
-        if (isCameraActive) {
-            const timer = setTimeout(() => {
-                const html5QrCode = new Html5Qrcode("reader");
-                html5QrCodeRef.current = html5QrCode;
-
-                html5QrCode.start(
-                    { facingMode: "environment" },
-                    {
-                        fps: 10,
-                        qrbox: (width, height) => {
-                            const size = Math.min(width, height) * 0.7;
-                            return { width: size, height: size };
-                        }
-                    },
-                    (decodedText, decodedResult) => {
-                        if (scanLockRef.current) return;
-                        processQrCode(decodedText);
-                    },
-                    (errorMessage) => {
-                        // Ignore standard scanning errors
-                    }
-                ).catch((err) => {
-                    console.error("Failed to start QR scanner:", err);
-                    setScanFeedback({
-                        type: 'error',
-                        message: 'Gagal mengakses kamera. Silakan periksa izin kamera pada perangkat.'
-                    });
-                    setIsCameraActive(false);
-                });
-            }, 100);
-
-            return () => {
-                clearTimeout(timer);
-                if (html5QrCodeRef.current) {
-                    const scanner = html5QrCodeRef.current;
-                    html5QrCodeRef.current = null;
-                    if (scanner.isScanning) {
-                        scanner.stop().catch(err => console.error("Failed to stop scanner:", err));
-                    }
-                }
-            };
-        } else {
-            if (html5QrCodeRef.current) {
-                const scanner = html5QrCodeRef.current;
-                html5QrCodeRef.current = null;
-                if (scanner.isScanning) {
-                    scanner.stop().catch(err => console.error("Failed to stop scanner:", err));
-                }
-            }
-        }
-    }, [isCameraActive]);
-
-    // Real-Time Search Handler
     const handleSearch = async (query) => {
         if (!event || !pin) return;
         setIsSearching(true);
         try {
             const response = await api.get('/v1/staff/search-tickets', {
-                params: {
-                    q: query,
-                    event_id: event.id,
-                    pos_pin: pin
-                }
+                params: { q: query, event_id: event.id, pos_pin: pin }
             });
             setSearchResults(response.data.data);
         } catch (err) {
@@ -269,43 +87,32 @@ const StaffDashboard = () => {
         }
     };
 
-    // Search Query Change
     const handleSearchChange = (e) => {
         const val = e.target.value;
         setSearchQuery(val);
-        handleSearch(val);
+        if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = setTimeout(() => handleSearch(val), 500);
     };
 
-    // Manual Attendance Checkin (Override)
-    const handleManualCheckIn = async (ticketId) => {
+    const handleManualCheckIn = async (ticketId, overrideMode) => {
         setActionMessage(null);
         try {
             const response = await api.post('/v1/staff/manual-checkin', {
                 ticket_id: ticketId,
                 post_id: station.id,
                 pos_pin: pin,
-                scan_type: scanMode
+                scan_type: overrideMode
             });
-
             if (response.data.success) {
                 const { attendee, stats: newStats } = response.data;
-                setActionMessage({
-                    type: 'success',
-                    message: response.data.message || 'Kehadiran manual berhasil dicatat.'
-                });
+                setActionMessage({ type: 'success', message: response.data.message });
                 if (newStats) setStats(newStats);
-
-                // Add to recent logs
                 setCheckInLogs(prev => [attendee, ...prev.slice(0, 4)]);
                 fetchStats();
                 handleSearch(searchQuery);
             }
         } catch (err) {
-            console.error('Manual Checkin Error:', err);
-            setActionMessage({
-                type: 'danger',
-                message: err.response?.data?.message || 'Gagal melakukan check-in manual.'
-            });
+            setActionMessage({ type: 'danger', message: err.response?.data?.message || 'Gagal check-in.' });
         }
     };
 
@@ -314,427 +121,123 @@ const StaffDashboard = () => {
         navigate('/staff/select-post');
     };
 
-    const renderScannerCard = () => (
-        <Card className="border-0 shadow-sm rounded-4 mb-4">
-            <Card.Body className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                    <h5 className="fw-bold mb-0">Kamera Scanner QR</h5>
-                    <div className="d-flex bg-light p-1 rounded-3 border" style={{ width: '200px' }}>
-                        <button
-                            type="button"
-                            onClick={() => setScanMode('in')}
-                            className="flex-grow-1 border-0 fw-bold rounded-2 py-1.5 transition-all text-center"
-                            style={{
-                                fontSize: '11px',
-                                backgroundColor: scanMode === 'in' ? '#1A365D' : 'transparent',
-                                color: scanMode === 'in' ? '#ffffff' : '#64748b',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            MASUK (IN)
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setScanMode('out')}
-                            className="flex-grow-1 border-0 fw-bold rounded-2 py-1.5 transition-all text-center"
-                            style={{
-                                fontSize: '11px',
-                                backgroundColor: scanMode === 'out' ? '#dc3545' : 'transparent',
-                                color: scanMode === 'out' ? '#ffffff' : '#64748b',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            KELUAR (OUT)
-                        </button>
-                    </div>
-                </div>
-
-                {/* Scan State Feedback */}
-                {scanFeedback && (
-                    <Alert
-                        variant={scanFeedback.type === 'success' ? 'success' : 'danger'}
-                        className="d-flex align-items-center gap-3 rounded-3"
-                        onClose={() => setScanFeedback(null)}
-                        dismissible
-                    >
-                        {scanFeedback.type === 'success' ? (
-                            <CheckCircle2 size={32} className="text-success flex-shrink-0" />
-                        ) : (
-                            <AlertCircle size={32} className="text-danger flex-shrink-0" />
-                        )}
-                        <div>
-                            <div className="fw-bold fs-6">{scanFeedback.message}</div>
-                            {scanFeedback.attendee && (
-                                <div className="small text-muted mt-1">
-                                    Peserta: {scanFeedback.attendee.name} ({scanFeedback.attendee.code})
-                                </div>
-                            )}
-                        </div>
-                    </Alert>
-                )}
-
-                {/* Camera Control / Reader Box */}
-                {!isCameraActive ? (
-                    <div
-                        className="border border-dashed rounded-4 p-4 text-center mb-4 bg-light position-relative"
-                        style={{ height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                        <QrCode size={64} className="text-secondary mb-3 opacity-25" />
-                        <h6 className="fw-semibold text-dark">Kamera Scanner Nonaktif</h6>
-                        <p className="text-muted small mb-3">Klik tombol di bawah untuk mengaktifkan kamera scanner pos.</p>
-                        <Button
-                            variant="primary"
-                            onClick={() => setIsCameraActive(true)}
-                            className="px-4 py-2 fw-bold rounded-3"
-                        >
-                            Buka Kamera Scanner
-                        </Button>
-                    </div>
-                ) : (
-                    <div>
-                        <div className="position-relative w-100 rounded-4 overflow-hidden mb-3 border bg-dark">
-                            <div
-                                id="reader"
-                                className="w-100"
-                                style={{ minHeight: '300px' }}
-                            ></div>
-
-                            {scanLock && (
-                                <div
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        zIndex: 10
-                                    }}
-                                >
-                                    <Spinner animation="grow" variant="success" className="mb-3" />
-                                    <h6 className="fw-bold text-success">Scan Berhasil!</h6>
-                                    <p className="text-muted small">Menghindari spam, scanner dikunci sementara...</p>
-                                </div>
-                            )}
-                        </div>
-                        <div className="text-center mb-4">
-                            <Button
-                                variant="danger"
-                                className="rounded-pill px-4 py-2 small fw-bold"
-                                onClick={() => setIsCameraActive(false)}
-                            >
-                                Matikan Kamera
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Scanner input fallback */}
-                <Form onSubmit={handleQrSubmit} className="d-flex gap-2">
-                    <Form.Control
-                        type="text"
-                        placeholder="Masukkan Kode Tiket / QR String secara manual"
-                        value={qrInput}
-                        onChange={(e) => setQrInput(e.target.value)}
-                        className="py-2.5 px-3 rounded-3"
-                        disabled={isScanning}
-                    />
-                    <Button
-                        type="submit"
-                        className="px-4 border-0 fw-bold rounded-3"
-                        style={{ backgroundColor: '#1A365D' }}
-                        disabled={isScanning}
-                    >
-                        {isScanning ? <Spinner animation="border" size="sm" /> : 'Verifikasi'}
-                    </Button>
-                </Form>
-            </Card.Body>
-        </Card>
-    );
-
-    // Helper to format date
-    const formatDateTime = (dateObjOrStr) => {
-        if (!dateObjOrStr) return '-';
-        const date = dateObjOrStr instanceof Date 
-            ? dateObjOrStr 
-            : new Date((dateObjOrStr.includes('T') ? dateObjOrStr : dateObjOrStr.replace(' ', 'T')) + 'Z');
-        return date.toLocaleString('id-ID', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-
     return (
-        <div style={{ backgroundColor: 'var(--color-bg, #f8fafc)', minHeight: '100vh', paddingBottom: '60px' }}>
-
-            {/* Nav Bar Staff */}
-            <div className="bg-white border-bottom shadow-sm py-3 mb-4">
+        <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '90px' }}>
+            <div className="bg-white border-bottom shadow-sm py-3 mb-4 sticky-top">
                 <Container className="d-flex justify-content-between align-items-center">
                     <div className="d-flex align-items-center gap-3">
-                        <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '10px',
-                            backgroundColor: '#1A365D',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}>
-                            <QrCode size={20} color="#ffffff" />
+                        <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: '#1A365D', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <QrCode size={20} color="#fff" />
                         </div>
                         <div>
-                            <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '16px' }}>{station?.name || 'Loading POS...'}</h5>
-                            <span className="text-muted small">Event: {event?.title || 'Loading Event...'}</span>
+                            <h5 className="fw-bold mb-0" style={{ fontSize: 15 }}>{station?.name || 'Loading...'}</h5>
+                            <span className="text-muted small d-block text-truncate" style={{ maxWidth: 200 }}>{event?.title}</span>
                         </div>
                     </div>
                     <div className="d-flex gap-2">
-                        <Button
-                            variant="light"
-                            className="rounded-pill px-3 py-1.5 small border"
-                            onClick={fetchStats}
-                            title="Refresh Data"
-                        >
-                            <RefreshCw size={14} />
-                        </Button>
-                        <Button
-                            variant="outline-danger"
-                            className="rounded-pill px-3 py-1.5 small d-flex align-items-center gap-1.5"
-                            onClick={handleExit}
-                        >
-                            <LogOut size={14} />
-                            <span className="d-none d-sm-inline">Ganti POS</span>
-                        </Button>
+                        <Button variant="light" className="rounded-circle p-2 border" onClick={fetchStats}><RefreshCw size={16} /></Button>
+                        <Button variant="outline-danger" className="rounded-circle p-2" onClick={handleExit}><LogOut size={16} /></Button>
                     </div>
                 </Container>
             </div>
 
             <Container>
+                <div className="d-flex justify-content-end mb-3">
+                    <Button variant="light" className="rounded-pill fw-bold border px-3 py-2 d-flex gap-2 shadow-sm bg-white" style={{ color: '#1A365D', fontSize: 13 }} onClick={() => navigate('/staff/attendees')}>
+                        <List size={16} /> Daftar Peserta
+                    </Button>
+                </div>
 
-                {/* Stats Row */}
-                <Row className="g-3 mb-4">
+                <Row className="g-2 g-sm-3 mb-4">
                     {[
-                        { label: 'Total Kuota POS', value: stats.total_quota, color: '#1A365D', icon: <Users size={16} /> },
-                        { label: 'Jumlah Hadir', value: stats.checked_in, color: '#10b981', icon: <UserCheck size={16} /> },
-                        { label: 'Belum Hadir', value: stats.remaining, color: '#f59e0b', icon: <Clock size={16} /> }
+                        { label: 'Total', value: stats.total_quota, color: '#1A365D', icon: <Users size={18} /> },
+                        { label: 'Hadir', value: stats.checked_in, color: '#10b981', icon: <UserCheck size={18} /> },
+                        { label: 'Sisa', value: stats.remaining, color: '#f59e0b', icon: <Clock size={18} /> }
                     ].map((s, idx) => (
                         <Col xs={4} key={idx}>
-                            <Card className="border-0 shadow-sm rounded-3">
-                                <Card.Body className="p-3 text-center">
-                                    <div style={{ color: s.color, marginBottom: '4px' }}>{s.icon}</div>
-                                    <h3 className="fw-extrabold mb-0" style={{ color: 'var(--color-text)', fontSize: '1.6rem' }}>{s.value}</h3>
-                                    <span className="text-secondary small" style={{ fontSize: '10px' }}>{s.label}</span>
+                            <Card className="border-0 shadow-sm rounded-4 h-100">
+                                <Card.Body className="p-2 p-sm-3 text-center d-flex flex-column align-items-center">
+                                    <div style={{ color: s.color, marginBottom: 4 }}>{s.icon}</div>
+                                    <h4 className="fw-extrabold mb-0">{s.value}</h4>
+                                    <span className="text-secondary fw-semibold" style={{ fontSize: 10, textTransform: 'uppercase' }}>{s.label}</span>
                                 </Card.Body>
                             </Card>
                         </Col>
                     ))}
                 </Row>
 
-                {isMobile ? (
-                    <div className="d-block d-lg-none">
-                        <Tabs defaultActiveKey="scan" className="mb-4 custom-tabs">
-                            <Tab eventKey="scan" title="📷 SCANNER QR">
-                                {renderScannerCard()}
-                            </Tab>
-
-                            <Tab eventKey="override" title="✏️ MANUAL OVERRIDE">
-                                <Card className="border-0 shadow-sm rounded-4">
-                                    <Card.Body className="p-4">
-                                        <h5 className="fw-bold mb-3">Pencarian Peserta</h5>
-
-                                        {actionMessage && (
-                                            <Alert variant={actionMessage.type} onClose={() => setActionMessage(null)} dismissible className="small py-2.5">
-                                                {actionMessage.message}
-                                            </Alert>
-                                        )}
-
-                                        <div className="d-flex gap-2 mb-4">
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Cari nama, email, atau kode tiket..."
-                                                value={searchQuery}
-                                                onChange={handleSearchChange}
-                                                className="py-2.5 px-3 rounded-3"
-                                            />
-                                        </div>
-
-                                        {isSearching ? (
-                                            <div className="text-center py-4">
-                                                <Spinner animation="border" size="sm" className="text-primary" />
-                                            </div>
-                                        ) : searchResults.length === 0 ? (
-                                            <p className="text-center text-muted small py-4">Tidak ada data peserta ditemukan.</p>
-                                        ) : (
-                                            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                                {searchResults.map((ticket) => (
-                                                    <div key={ticket.id} className="d-flex justify-content-between align-items-center border-bottom py-3">
-                                                        <div>
-                                                            <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '14px' }}>{ticket.attendee_name}</h6>
-                                                            <span className="text-muted small" style={{ fontSize: '12px' }}>{ticket.ticket_code} · {ticket.attendee_email}</span>
-                                                        </div>
-                                                        <Button
-                                                            variant={scanMode === 'in' ? "outline-primary" : "outline-danger"}
-                                                            size="sm"
-                                                            className="rounded-pill px-3"
-                                                            onClick={() => handleManualCheckIn(ticket.id)}
-                                                        >
-                                                            {scanMode === 'in' ? 'Hadirkan Paksa' : 'Check-out Paksa'}
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </Card.Body>
-                                </Card>
-                            </Tab>
-                        </Tabs>
-                    </div>
-                ) : (
-                    <div className="d-none d-lg-block">
-                        <Row className="g-4">
-                            <Col lg={6}>
-                                {renderScannerCard()}
-                            </Col>
-
-                            <Col lg={6}>
-                                <Card className="border-0 shadow-sm rounded-4">
-                                    <Card.Body className="p-4">
-                                        <h5 className="fw-bold mb-3">Pencarian Peserta & Manual Override</h5>
-
-                                        {actionMessage && (
-                                            <Alert variant={actionMessage.type} onClose={() => setActionMessage(null)} dismissible className="small py-2.5">
-                                                {actionMessage.message}
-                                            </Alert>
-                                        )}
-
-                                        <div className="d-flex gap-2 mb-4">
-                                            <Form.Control
-                                                type="text"
-                                                placeholder="Cari nama, email, atau kode tiket..."
-                                                value={searchQuery}
-                                                onChange={handleSearchChange}
-                                                className="py-2.5 px-3 rounded-3"
-                                            />
-                                        </div>
-
-                                        {isSearching ? (
-                                            <div className="text-center py-4">
-                                                <Spinner animation="border" size="sm" className="text-primary" />
-                                            </div>
-                                        ) : searchResults.length === 0 ? (
-                                            <p className="text-center text-muted small py-4">Tidak ada data peserta ditemukan.</p>
-                                        ) : (
-                                            <Table responsive hover className="align-middle">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Nama & Email</th>
-                                                        <th>Kode Tiket</th>
-                                                        <th className="text-end">Tindakan</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {searchResults.map((ticket) => (
-                                                        <tr key={ticket.id}>
-                                                            <td>
-                                                                <div className="fw-bold">{ticket.attendee_name}</div>
-                                                                <span className="text-muted small">{ticket.attendee_email}</span>
-                                                            </td>
-                                                            <td>
-                                                                <Badge bg="light" text="dark" className="border px-2.5 py-1.5">{ticket.ticket_code}</Badge>
-                                                            </td>
-                                                            <td className="text-end">
-                                                                <Button
-                                                                    variant={scanMode === 'in' ? "outline-primary" : "outline-danger"}
-                                                                    size="sm"
-                                                                    className="rounded-pill px-3"
-                                                                    onClick={() => handleManualCheckIn(ticket.id)}
-                                                                >
-                                                                    {scanMode === 'in' ? 'Hadirkan Paksa' : 'Check-out Paksa'}
-                                                                </Button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
-                                        )}
-                                    </Card.Body>
-                                </Card>
-                            </Col>
-                        </Row>
-                    </div>
+                {!isMobile && (
+                    <Card className="border-0 shadow-sm rounded-4 mb-4">
+                        <Card.Body className="p-4 d-flex gap-3">
+                            <Button onClick={() => navigate('/staff/scanner?mode=in')} className="flex-grow-1 fw-bold py-3 border-0 d-flex align-items-center justify-content-center" style={{ backgroundColor: '#1A365D' }}>SCAN MASUK</Button>
+                            <Button onClick={() => navigate('/staff/scanner?mode=out')} variant="danger" className="flex-grow-1 fw-bold py-3 d-flex align-items-center justify-content-center">SCAN KELUAR</Button>
+                        </Card.Body>
+                    </Card>
                 )}
 
-                {/* Check-in Log / Riwayat Scanner Terkini */}
-                <Card className="border-0 shadow-sm rounded-4 mt-4">
-                    <Card.Body className="p-4">
-                        <h5 className="fw-bold mb-3 d-flex align-items-center gap-2">
-                            <Clock size={18} className="text-secondary" />
-                            <span>Log Kehadiran POS Terkini</span>
-                        </h5>
-
-                        {checkInLogs.length === 0 ? (
-                            <p className="text-muted small mb-0 py-2">Belum ada aktivitas presensi di sesi POS ini.</p>
-                        ) : (
-                            <div className="d-flex flex-column gap-2">
-                                {checkInLogs.map((log, index) => (
-                                    <div key={index} className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3">
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div style={{
-                                                width: '32px',
-                                                height: '32px',
-                                                borderRadius: '50%',
-                                                backgroundColor: '#d1fae5',
-                                                color: '#065f46',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}>
-                                                <UserCheck size={16} />
+                <Row className="g-4">
+                    <Col lg={7}>
+                        <Card className="border-0 shadow-sm rounded-4 h-100">
+                            <Card.Body className="p-3 p-sm-4">
+                                <h6 className="fw-bold mb-3 d-flex gap-2"><Search size={18} /> Cari & Override</h6>
+                                {actionMessage && <Alert variant={actionMessage.type} onClose={() => setActionMessage(null)} dismissible className="small py-2">{actionMessage.message}</Alert>}
+                                <Form.Control type="text" placeholder="Nama / Tiket..." value={searchQuery} onChange={handleSearchChange} className="py-2.5 px-3 rounded-pill bg-light border-0 mb-3" />
+                                
+                                {isSearching ? <div className="text-center py-4"><Spinner size="sm" variant="primary" /></div> : 
+                                searchResults.length === 0 ? <p className="text-center text-muted small py-4">Data tidak ditemukan.</p> : (
+                                    <div style={{ maxHeight: 350, overflowY: 'auto' }} className="d-flex flex-column gap-2 pe-1">
+                                        {searchResults.map(t => (
+                                            <div key={t.id} className="d-flex justify-content-between align-items-center border rounded-3 p-3 bg-white">
+                                                <div className="overflow-hidden">
+                                                    <h6 className="fw-bold mb-0 text-truncate" style={{ fontSize: 14 }}>{t.attendee_name}</h6>
+                                                    <span className="text-muted small text-truncate d-block">{t.ticket_code}</span>
+                                                </div>
+                                                <div className="d-flex gap-2 ms-2">
+                                                    <Button variant="outline-primary" size="sm" onClick={() => handleManualCheckIn(t.id, 'in')}>MASUK</Button>
+                                                    <Button variant="outline-danger" size="sm" onClick={() => handleManualCheckIn(t.id, 'out')}>KELUAR</Button>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <span className="fw-bold d-block text-dark" style={{ fontSize: '13px' }}>{log.name}</span>
-                                                <span className="text-muted small" style={{ fontSize: '11px' }}>Tiket: {log.code}</span>
-                                            </div>
-                                        </div>
-                                        <span className="text-secondary small fw-semibold" style={{ fontSize: '12px' }}>{log.time}</span>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </Card.Body>
-                </Card>
-
+                                )}
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={5}>
+                        <Card className="border-0 shadow-sm rounded-4 h-100">
+                            <Card.Body className="p-3 p-sm-4">
+                                <h6 className="fw-bold mb-3 d-flex gap-2"><Clock size={18} /> Log Terkini</h6>
+                                {checkInLogs.length === 0 ? <p className="text-muted small py-2">Belum ada aktivitas.</p> : (
+                                    <div className="d-flex flex-column gap-2">
+                                        {checkInLogs.map((log, i) => (
+                                            <div key={i} className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3">
+                                                <div className="d-flex gap-3">
+                                                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#d1fae5', color: '#065f46', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><UserCheck size={16} /></div>
+                                                    <div>
+                                                        <span className="fw-bold d-block text-truncate" style={{ fontSize: 13 }}>{log.name}</span>
+                                                        <span className="text-muted small">{log.code}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="text-success small fw-semibold">Berhasil</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
             </Container>
 
-            {/* Custom keyframes animation style */}
-            <style>{`
-                @keyframes scan-anim {
-                    0% { top: 20%; }
-                    50% { top: 80%; }
-                    100% { top: 20%; }
-                }
-                .custom-tabs .nav-link {
-                    font-weight: 700;
-                    border: none;
-                    color: var(--color-secondary, #64748b);
-                    padding: 12px 16px;
-                }
-                .custom-tabs .nav-link.active {
-                    color: #1A365D;
-                    border-bottom: 3px solid #1A365D;
-                    background: transparent;
-                }
-            `}</style>
+            {isMobile && (
+                <div className="position-fixed bottom-0 start-0 end-0 bg-white border-top shadow-lg p-3" style={{ zIndex: 1000 }}>
+                    <Container className="d-flex gap-2 p-0">
+                        <Button onClick={() => navigate('/staff/scanner?mode=in')} className="flex-grow-1 fw-bold py-3 d-flex justify-content-center gap-2 rounded-4 border-0" style={{ backgroundColor: '#1A365D' }}><QrCode size={20} /> SCAN MASUK</Button>
+                        <Button onClick={() => navigate('/staff/scanner?mode=out')} variant="danger" className="fw-bold px-4 py-3 rounded-4">SCAN KELUAR</Button>
+                    </Container>
+                </div>
+            )}
         </div>
     );
 };
-
 export default StaffDashboard;
