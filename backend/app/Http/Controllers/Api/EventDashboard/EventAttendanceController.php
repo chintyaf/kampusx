@@ -70,19 +70,29 @@ class EventAttendanceController extends Controller
         // 4. Membuat signature HMAC SHA256 menggunakan APP_KEY bawaan Laravel
         $signature = hash_hmac('sha256', $payload, config('app.key'));
 
-        // 5. Merakit URL Final di Backend
+        // 5. Generate Short Code unik & Simpan ke tabel attendance_links
+        do {
+            $code = \Str::upper(\Str::random(8));
+        } while (\App\Models\AttendanceLink::where('code', $code)->exists());
+
+        \App\Models\AttendanceLink::updateOrCreate(
+            [
+                'event_id' => $event->id,
+                'type' => $type,
+                'session_id' => $sessionId ?? null
+            ],
+            [
+                'code' => $code,
+                'expires_at' => $expiresAt,
+                'signature' => $signature
+            ]
+        );
+
+        // 6. Merakit URL Pendek Final di Backend
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-        $finalUrl = "{$frontendUrl}/attend-venue?event_id={$event->id}&type={$type}&signature={$signature}";
+        $finalUrl = "{$frontendUrl}/a/{$code}";
 
-        if ($type === 'session_in') {
-            $finalUrl .= "&session_id={$sessionId}";
-        }
-
-        if ($expiresAt) {
-            $finalUrl .= "&expires_at={$expiresAt}";
-        }
-
-        // 6. Menyimpan URL dan Waktu Kedaluwarsa ke Database
+        // 7. Menyimpan URL Pendek dan Waktu Kedaluwarsa ke Database
         if ($type === 'in') {
             $event->checkin_link = $finalUrl;
             $event->checkin_expires_at = $expiresAt;
@@ -97,7 +107,7 @@ class EventAttendanceController extends Controller
             $session->save();
         }
 
-        // 7. Kembalikan response JSON yang menyertakan URL yang sudah jadi
+        // 8. Kembalikan response JSON yang menyertakan URL yang sudah jadi
         return response()->json([
             'success' => true,
             'message' => 'Link berhasil dibuat dan disimpan.',
@@ -108,6 +118,22 @@ class EventAttendanceController extends Controller
                 'expires_at' => $expiresAt,
                 'signature' => $signature,
                 'url' => $finalUrl
+            ]
+        ]);
+    }
+
+    public function resolveLink($code)
+    {
+        $link = \App\Models\AttendanceLink::where('code', $code)->firstOrFail();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'event_id' => $link->event_id,
+                'session_id' => $link->session_id,
+                'type' => $link->type,
+                'expires_at' => $link->expires_at ? \Carbon\Carbon::parse($link->expires_at)->format('Y-m-d H:i:s') : null,
+                'signature' => $link->signature
             ]
         ]);
     }

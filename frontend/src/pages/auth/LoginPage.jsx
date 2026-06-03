@@ -16,7 +16,9 @@ const SignIn = () => {
 	const location = useLocation();
 	const { login } = useAuth();
 
-	const from = location.state?.from || '/';
+	const searchParams = new URLSearchParams(location.search);
+	const returnTo = searchParams.get('return_to');
+	const from = returnTo || location.state?.from || '/';
 
 	const handleLogin = async (e) => {
 		e.preventDefault();

@@ -79,7 +79,27 @@ function TicketCard({
 		}
 	}
 	// ==========================================
+	// ==========================================
+	// LOGIKA VALIDASI PERINGATAN HARGA & KAPASITAS
+	// ==========================================
+	let priceWarning = '';
+	// Jika tiket berbayar (tidak gratis) tapi harga kosong atau 0
+	if (!ticket.isFree) {
+		const numericPrice = parseInt(String(ticket.price || '0').replace(/\D/g, ''), 10);
+		if (isNaN(numericPrice) || numericPrice <= 0) {
+			priceWarning = 'Harga tiket wajib diisi dan harus lebih dari 0.';
+		}
+	}
 
+	let capacityWarning = '';
+	// Jika tiket terbatas tapi kapasitas kosong atau kurang dari 1
+	if (!ticket.unlimited) {
+		const numericCapacity = parseInt(ticket.capacity || '0', 10);
+		if (isNaN(numericCapacity) || numericCapacity < 1) {
+			capacityWarning = 'Kapasitas wajib diisi minimal 1.';
+		}
+	}
+	// ==========================================
 	return (
 		<div className="custom-card shadow-sm mb-3">
 			{/* Header Tiket*/}
@@ -186,6 +206,7 @@ function TicketCard({
 						</Row> */}
 
 						{/* Row 2: Harga + Kapasitas */}
+						{/* Row 2: Harga + Kapasitas */}
 						<Row className="mb-4 gx-4">
 							<Col md={6} className="mb-3 mb-md-0">
 								<div className="d-flex justify-content-between align-items-center mb-2">
@@ -223,10 +244,13 @@ function TicketCard({
 									/>
 								</div>
 								<div
-									className="custom-unified-wrapper"
-									style={
-										priceLocked ? { opacity: 0.7, cursor: 'not-allowed' } : {}
-									}
+									className={`custom-unified-wrapper ${priceWarning ? 'is-invalid' : ''}`}
+									style={{
+										...(priceLocked
+											? { opacity: 0.7, cursor: 'not-allowed' }
+											: {}),
+										...(priceWarning ? { borderColor: '#dc3545' } : {}),
+									}}
 								>
 									<span className="custom-unified-prefix">Rp</span>
 									<input
@@ -247,6 +271,15 @@ function TicketCard({
 										}
 									/>
 								</div>
+								{/* Teks Peringatan Harga */}
+								{priceWarning && (
+									<div
+										className="text-danger mt-1"
+										style={{ fontSize: '0.85rem' }}
+									>
+										{priceWarning}
+									</div>
+								)}
 							</Col>
 
 							<Col md={6}>
@@ -266,7 +299,10 @@ function TicketCard({
 										}
 									/>
 								</div>
-								<div className="custom-unified-wrapper">
+								<div
+									className={`custom-unified-wrapper ${capacityWarning ? 'is-invalid' : ''}`}
+									style={capacityWarning ? { borderColor: '#dc3545' } : {}}
+								>
 									<input
 										type="number"
 										min={1}
@@ -278,6 +314,15 @@ function TicketCard({
 										}
 									/>
 								</div>
+								{/* Teks Peringatan Kapasitas */}
+								{capacityWarning && (
+									<div
+										className="text-danger mt-1"
+										style={{ fontSize: '0.85rem' }}
+									>
+										{capacityWarning}
+									</div>
+								)}
 							</Col>
 						</Row>
 

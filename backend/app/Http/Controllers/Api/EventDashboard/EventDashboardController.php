@@ -469,7 +469,7 @@ class EventDashboardController extends Controller
                 'label'     => 'Masukkan Link Zoom / Platform Meeting Online',
                 'completed' => $hasMeetingLink,
                 'required'  => $isOnlineOrHybrid,
-                'link'      => "/organizer/{$eventId}/event-dashboard/detail/tempat",
+                'link'      => "/organizer/{$eventId}/event-dashboard/tempat",
                 'hint'      => 'Diperlukan agar peserta online bisa bergabung ke sesi.'
             ],
 
@@ -544,11 +544,11 @@ class EventDashboardController extends Controller
     public function toggleAttendance($eventId)
     {
         $event = Event::findOrFail($eventId);
-        
+
         $event->update([
             'is_attendance_open' => !$event->is_attendance_open
         ]);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Status presensi berhasil diubah.',

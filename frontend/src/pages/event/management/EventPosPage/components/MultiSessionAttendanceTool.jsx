@@ -37,31 +37,57 @@ const MultiSessionAttendanceTool = () => {
 			const res = await api.get(`/event-dashboard/${eventId}/attendance/links`);
 			if (res.data?.success) {
 				const data = res.data.data;
+				
+				// Auto-fill initialCheckIn if empty using first session's start time
+				let checkinExpires = formatDateTimeForInput(data.checkin_expires_at);
+				if (!checkinExpires && data.sessions && data.sessions.length > 0) {
+					const firstSession = data.sessions[0];
+					if (firstSession.date && firstSession.start_time) {
+						checkinExpires = `${firstSession.date}T${firstSession.start_time.substring(0, 5)}`;
+					}
+				}
+
+				// Auto-fill finalCheckOut if empty using last session's end time
+				let checkoutExpires = formatDateTimeForInput(data.checkout_expires_at);
+				if (!checkoutExpires && data.sessions && data.sessions.length > 0) {
+					const lastSession = data.sessions[data.sessions.length - 1];
+					if (lastSession.date && lastSession.end_time) {
+						checkoutExpires = `${lastSession.date}T${lastSession.end_time.substring(0, 5)}`;
+					}
+				}
+
 				setInitialCheckIn({
 					link: data.checkin_link || '',
-					expires: formatDateTimeForInput(data.checkin_expires_at),
+					expires: checkinExpires,
 					loading: false,
 				});
 				setFinalCheckOut({
 					link: data.checkout_link || '',
-					expires: formatDateTimeForInput(data.checkout_expires_at),
+					expires: checkoutExpires,
 					loading: false,
 				});
 
-				const fetchedSessions = (data.sessions || []).map((session, index) => ({
-					id: session.id,
-					title: session.title,
-					dayNumber: session.day_number,
-					date: session.date,
-					startTime: session.start_time,
-					endTime: session.end_time,
-					isFirstSession: index === 0,
-					checkin: {
-						link: session.checkin_link || '',
-						expires: formatDateTimeForInput(session.checkin_expires_at),
-						loading: false,
-					},
-				}));
+				const fetchedSessions = (data.sessions || []).map((session, index) => {
+					let sessionExpires = formatDateTimeForInput(session.checkin_expires_at);
+					if (!sessionExpires && session.date && session.end_time) {
+						sessionExpires = `${session.date}T${session.end_time.substring(0, 5)}`;
+					}
+
+					return {
+						id: session.id,
+						title: session.title,
+						dayNumber: session.day_number,
+						date: session.date,
+						startTime: session.start_time,
+						endTime: session.end_time,
+						isFirstSession: index === 0,
+						checkin: {
+							link: session.checkin_link || '',
+							expires: sessionExpires,
+							loading: false,
+						},
+					};
+				});
 				setSessions(fetchedSessions);
 			}
 		} catch (error) {
@@ -269,10 +295,14 @@ const MultiSessionAttendanceTool = () => {
 							</Button>
 						</div>
 					) : (
-						<div className="text-muted d-flex align-items-center gap-1 px-2 py-1 bg-light rounded" style={{ fontSize: '0.75rem', height: '32px' }}>
-							<AlertCircle size={12} className="text-warning" />
-							<span>Belum dibuat</span>
-						</div>
+						<Badge
+							bg="warning"
+							className="text-dark d-flex align-items-center gap-1.5 px-3 py-2 rounded-pill font-semibold border-0"
+							style={{ fontSize: '0.75rem', height: '32px' }}
+						>
+							<AlertCircle size={12} />
+							<span>Belum Dibuat</span>
+						</Badge>
 					)}
 				</div>
 			</div>

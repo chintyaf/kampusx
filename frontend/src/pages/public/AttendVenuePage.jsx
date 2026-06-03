@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Container, Card, Spinner, Button } from 'react-bootstrap';
 import { CheckCircle, XCircle, Info } from 'lucide-react';
 import api from '@/api/axios';
@@ -10,31 +10,77 @@ export default function AttendVenuePage() {
 	const [message, setMessage] = useState('Memproses kehadiran Anda...');
 	const [pageType, setPageType] = useState('in');
 
+	const { code } = useParams();
+	const [params, setParams] = useState(null);
+
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { isAuthenticated } = useAuth();
 
 	// useRef digunakan untuk mencegah Double-Render API Call di React 18
 	const hasProcessed = useRef(false);
+	const hasLoadedParams = useRef(false);
 
 	useEffect(() => {
-		// Eksekusi hanya boleh berjalan satu kali
-		if (hasProcessed.current) return;
+		if (hasLoadedParams.current) return;
 
-		const params = new URLSearchParams(location.search);
-		const eventId = params.get('event_id');
-		const signature = params.get('signature');
-		const type = params.get('type') || 'in';
-		const expiresAt = params.get('expires_at');
-		const sessionId = params.get('session_id');
+		const loadParams = async () => {
+			hasLoadedParams.current = true;
+			if (code) {
+				try {
+					const response = await api.get(`/attendance/resolve/${code}`);
+					if (response.data?.success) {
+						const data = response.data.data;
+						setParams({
+							eventId: data.event_id,
+							sessionId: data.session_id,
+							type: data.type || 'in',
+							expiresAt: data.expires_at,
+							signature: data.signature,
+						});
+						setPageType(data.type || 'in');
+					} else {
+						setStatus('error');
+						setMessage('Gagal memverifikasi tautan presensi.');
+					}
+				} catch (err) {
+					setStatus('error');
+					setMessage(
+						err.response?.data?.message ||
+						'Tautan presensi tidak valid atau telah kedaluwarsa.'
+					);
+				}
+			} else {
+				const queryParams = new URLSearchParams(location.search);
+				const eventId = queryParams.get('event_id');
+				const signature = queryParams.get('signature');
+				const type = queryParams.get('type') || 'in';
+				const expiresAt = queryParams.get('expires_at');
+				const sessionId = queryParams.get('session_id');
 
-		setPageType(type);
+				setPageType(type);
 
-		if (!eventId || !signature) {
-			setStatus('error');
-			setMessage('Tautan tidak valid atau tidak lengkap.');
-			return;
-		}
+				if (!eventId || !signature) {
+					setStatus('error');
+					setMessage('Tautan tidak valid atau tidak lengkap.');
+					return;
+				}
+
+				setParams({
+					eventId,
+					signature,
+					type,
+					expiresAt,
+					sessionId,
+				});
+			}
+		};
+
+		loadParams();
+	}, [code, location.search]);
+
+	useEffect(() => {
+		if (!params) return;
 
 		if (!isAuthenticated) {
 			setStatus('unauthenticated');
@@ -42,12 +88,11 @@ export default function AttendVenuePage() {
 			return;
 		}
 
-		const processScan = async () => {
-			// Tandai bahwa API sudah dipanggil agar tidak mengulang
-			hasProcessed.current = true;
+		if (hasProcessed.current) return;
+		hasProcessed.current = true;
 
+		const processScan = async () => {
 			try {
-				// Mencari atau membuat Device ID di browser peserta
 				let deviceId = localStorage.getItem('kampusx_device_id');
 				if (!deviceId) {
 					deviceId =
@@ -57,31 +102,28 @@ export default function AttendVenuePage() {
 					localStorage.setItem('kampusx_device_id', deviceId);
 				}
 
-				// Payload disesuaikan sama persis dengan yang diminta Laravel
 				const payload = {
-					event_id: eventId,
-					type: type,
-					signature: signature,
+					event_id: params.eventId,
+					type: params.type,
+					signature: params.signature,
 					device_token: deviceId,
-					expires_at: expiresAt || null,
-					session_id: sessionId || null,
+					expires_at: params.expiresAt || null,
+					session_id: params.sessionId || null,
 				};
 
-				// Pastikan URL endpoint ini cocok dengan route api.php Laravel kamu
 				const response = await api.post('/attendance/process', payload);
 
 				if (response.data?.success) {
 					setStatus('success');
 					setMessage(
 						response.data.message ||
-						(type === 'out'
+						(params.type === 'out'
 							? 'Check-out berhasil dicatat. Terima kasih!'
 							: 'Kehadiran berhasil dicatat! Selamat mengikuti acara.'),
 					);
 				}
 			} catch (err) {
 				setStatus('error');
-				// Menangkap pesan error spesifik dari 5 Layer backend Laravel
 				if (err.response?.status === 400 || err.response?.status === 403) {
 					setMessage(err.response?.data?.message || 'Akses presensi ditolak.');
 				} else if (err.response?.status === 404) {
@@ -96,7 +138,7 @@ export default function AttendVenuePage() {
 		};
 
 		processScan();
-	}, [location.search, isAuthenticated]);
+	}, [params, isAuthenticated]);
 
 	const handleLogin = () => {
 		const returnUrl = encodeURIComponent(location.pathname + location.search);

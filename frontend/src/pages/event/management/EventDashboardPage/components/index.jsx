@@ -6,8 +6,6 @@ export { default as EventTimeline } from './EventTimeline';
 export { default as MissingInformation } from './MissingInformation';
 export { default as EventChecklist } from './EventChecklist';
 export { default as SessionTable } from './SessionTable';
-export { default as DemographicsCard } from './DemographicsCard';
-export { default as TicketDistribution } from './TicketDistribution';
 export { default as DashboardSkeleton } from './DashboardSkeleton';
 export { default as PublishReadyCard } from './PublishReadyCard';
 export { default as OngoingDashboardCard } from './OngoingDashboardCard';

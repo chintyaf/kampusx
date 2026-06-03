@@ -77,6 +77,7 @@ Route::get('/test', function () {
 });
 
 Route::post('/v1/payment/callback', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'callback']);
+Route::get('/attendance/resolve/{code}', [EventAttendanceController::class, 'resolveLink']);
 
 // --- STAFF QR SCANNER & CHECK-IN ---
 Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::class, 'verifyPin']);

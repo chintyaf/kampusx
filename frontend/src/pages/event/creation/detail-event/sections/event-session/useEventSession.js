@@ -132,14 +132,19 @@ export const useEventSession = (eventId) => {
 	// ==========================================
 
 	// Menyimpan keseluruhan layout acara (flattening dari nested array menjadi satu array panjang)
-	const handleSave = async (shouldNotify = false) => {
+	const handleSave = async (shouldNotify = false, customDays = null) => {
+		const daysToSave = customDays || days;
 		const flatSessions = [];
 
 		// Membongkar array `days` menjadi deretan sesi tunggal untuk dikirim ke API
-		days.forEach((day, index) => {
+		daysToSave.forEach((day, index) => {
 			const dayNumber = day.day_number || index + 1;
 			if (day.sessions) {
 				day.sessions.forEach((s) => {
+					// Abaikan sesi baru yang belum diisi (belum ada judul)
+					if (typeof s.id === 'string' && s.id.startsWith('new-') && !s.title) {
+						return;
+					}
 					flatSessions.push({
 						id: s.id,
 						title: s.title,
@@ -155,7 +160,7 @@ export const useEventSession = (eventId) => {
 		});
 
 		// Menghitung tanggal mulai dan selesai secara otomatis dari input valid
-		const validDates = days
+		const validDates = daysToSave
 			.map((d) => d.date)
 			.filter((d) => d && d.trim() !== '')
 			.sort();
@@ -179,10 +184,10 @@ export const useEventSession = (eventId) => {
 
 			// 2. Ambil sesi dari backend untuk mencocokkan ID database aslinya
 			const sessionRes = await api.get(`event-dashboard/${eventId}/info-utama/session`);
-			let updatedDays = days;
+			let updatedDays = daysToSave;
 			if (sessionRes.data?.status === 'success' && sessionRes.data?.data) {
 				const backendDays = sessionRes.data.data;
-				updatedDays = days.map((day, dayIdx) => {
+				updatedDays = daysToSave.map((day, dayIdx) => {
 					const backendDay = backendDays[dayIdx];
 					if (!backendDay) return day;
 
@@ -258,6 +263,7 @@ export const useEventSession = (eventId) => {
 
 	// Memperbarui/menyimpan sesi lokal. Juga menangani perpindahan sesi jika `dayNumber` diubah
 	const handleSaveSession = (updatedSession) => {
+		let nextDays = [];
 		setDays((prevDays) => {
 			// Deep copy array hari dan sesi agar tidak memutasi state secara langsung
 			const newDays = [...prevDays.map((d) => ({ ...d, sessions: [...d.sessions] }))];
@@ -308,10 +314,12 @@ export const useEventSession = (eventId) => {
 					);
 				}
 			}
+			nextDays = newDays;
 			return newDays;
 		});
 		setSelectedRow(updatedSession);
 		notify('success', 'Berhasil!', 'Sesi berhasil diperbarui.');
+		handleSave(false, nextDays);
 	};
 
 	// Menambahkan objek pembicara ke dalam sesi yang sedang dipilih
@@ -327,10 +335,11 @@ export const useEventSession = (eventId) => {
 	const handleDeleteSession = (sessionId, setSidebar) => {
 		if (!sessionId) return;
 		setDays((prevDays) => {
-			return prevDays.map((day) => ({
+			const newDays = prevDays.map((day) => ({
 				...day,
 				sessions: day.sessions.filter((session) => session.id !== sessionId),
 			}));
+			return newDays;
 		});
 		setSelectedRow(null);
 		if (setSidebar) setSidebar('summary');
@@ -339,7 +348,7 @@ export const useEventSession = (eventId) => {
 	const handleToggleHideSession = (sessionId) => {
 		if (!sessionId) return;
 		setDays((prevDays) => {
-			return prevDays.map((day) => ({
+			const newDays = prevDays.map((day) => ({
 				...day,
 				sessions: day.sessions.map((session) =>
 					session.id === sessionId
@@ -347,6 +356,7 @@ export const useEventSession = (eventId) => {
 						: session,
 				),
 			}));
+			return newDays;
 		});
 		// Update selectedRow jika kebetulan sesi yang disembunyikan sedang dibuka
 		setSelectedRow((prev) =>
@@ -387,7 +397,10 @@ export const useEventSession = (eventId) => {
 	};
 
 	const handleDeleteDay = (indexToRemove) => {
-		setDays((prevDays) => prevDays.filter((_, index) => index !== indexToRemove));
+		setDays((prevDays) => {
+			const newDays = prevDays.filter((_, index) => index !== indexToRemove);
+			return newDays;
+		});
 		notify('success', 'Berhasil', 'Hari berhasil dihapus dari daftar.');
 	};
 

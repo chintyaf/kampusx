@@ -5,14 +5,6 @@ import { Row, Col } from 'react-bootstrap';
 import { Ticket, DollarSign, UserCheck, UserMinus, Users } from 'lucide-react';
 import '@/assets/css/dashboard.css';
 
-import PageHeader from './PageHeader';
-import StatCards from '@/components/dashboard/StatCards';
-import EventInfoCard from './EventInfoCard';
-import EventTimeline from './EventTimeline';
-import MissingInformation from './MissingInformation';
-import SessionTable from './SessionTable';
-import DemographicsCard from './DemographicsCard';
-import TicketDistribution from './TicketDistribution';
 import { Skeleton, SkeletonStyles } from '@/components/Skeleton';
 
 const DashboardSkeleton = () => (

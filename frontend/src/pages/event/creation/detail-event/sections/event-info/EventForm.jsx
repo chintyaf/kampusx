@@ -98,143 +98,136 @@ const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChang
 		<>
 			<Form className="form">
 				{/* BAGIAN 1: INFORMASI UTAMA */}
-				<div id="main-info" className="mb-5">
-					<Form.Group className="mb-4" controlId="formTitle">
-						<Form.Label className="required">Nama Event</Form.Label>
-						<Form.Control
-							required
-							type="text"
-							name="title"
-							value={formData.title}
-							onChange={handleTextChange}
-							onBlur={() => handleBlur('title')}
-							placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
-							isInvalid={touched.title && formData.title?.trim() === ''}
-						/>
-						<Form.Control.Feedback type="invalid">
-							Nama event wajib diisi.
-						</Form.Control.Feedback>
-					</Form.Group>
+				<Form.Group className="mb-4" controlId="formTitle">
+					<Form.Label className="required">Nama Event</Form.Label>
+					<Form.Control
+						required
+						type="text"
+						name="title"
+						value={formData.title}
+						onChange={handleTextChange}
+						onBlur={() => handleBlur('title')}
+						placeholder="Masukan nama event (misal: Seminar Nasional Teknologi)"
+						isInvalid={touched.title && formData.title?.trim() === ''}
+					/>
+					<Form.Control.Feedback type="invalid">
+						Nama event wajib diisi.
+					</Form.Control.Feedback>
+				</Form.Group>
 
-					<Form.Group className="mb-4" controlId="formDescription">
-						<Form.Label className="required">Deskripsi Lengkap</Form.Label>
-						<Form.Control
-							as="textarea"
-							rows={5}
-							name="description"
-							value={formData.description}
-							onChange={handleTextChange}
-							onBlur={() => handleBlur('description')}
-							placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
-							isInvalid={
-								touched.description &&
-								(formData.description?.trim() === '' ||
-									formData.description?.trim().length < 50)
-							}
-						/>
-						<div className="d-flex justify-content-between align-items-start mt-1">
-							<div>
-								{touched.description &&
-									(formData.description?.trim() === '' ? (
-										<div className="text-danger small">
-											Deskripsi event wajib diisi.
-										</div>
-									) : (formData.description?.trim().length || 0) < 50 ? (
-										<div className="text-danger small">
-											Deskripsi minimal 50 karakter (saat ini{' '}
-											{formData.description?.trim().length || 0} karakter).
-										</div>
-									) : null)}
-							</div>
-							<Form.Text className="text-muted small text-end">
-								{formData.description?.length || 0} / 1000 karakter
-								{(formData.description?.length || 0) < 50 &&
-									' (Minimal 50 karakter)'}
-							</Form.Text>
+				<Form.Group className="mb-4" controlId="formDescription">
+					<Form.Label className="required">Deskripsi Lengkap</Form.Label>
+					<Form.Control
+						as="textarea"
+						rows={5}
+						name="description"
+						value={formData.description}
+						onChange={handleTextChange}
+						onBlur={() => handleBlur('description')}
+						placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
+						isInvalid={
+							touched.description &&
+							(formData.description?.trim() === '' ||
+								formData.description?.trim().length < 50)
+						}
+					/>
+					<div className="d-flex justify-content-between align-items-start mt-1">
+						<div>
+							{touched.description &&
+								(formData.description?.trim() === '' ? (
+									<div className="text-danger small">
+										Deskripsi event wajib diisi.
+									</div>
+								) : (formData.description?.trim().length || 0) < 50 ? (
+									<div className="text-danger small">
+										Deskripsi minimal 50 karakter (saat ini{' '}
+										{formData.description?.trim().length || 0} karakter).
+									</div>
+								) : null)}
 						</div>
-					</Form.Group>
+						<Form.Text className="text-muted small text-end">
+							{formData.description?.length || 0} / 1000 karakter
+							{(formData.description?.length || 0) < 50 && ' (Minimal 50 karakter)'}
+						</Form.Text>
+					</div>
+				</Form.Group>
 
-					<Form.Group className="mb-4">
-						<Form.Label className="form-label required">Tipe Event</Form.Label>
-						<Select
-							isMulti
-							value={formData.eventType}
-							options={eventTypeOptions}
-							isLoading={isEventTypeLoading}
-							onMenuOpen={fetchEventTypes}
-							placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
-							className="react-select-container"
-							classNamePrefix="react-select"
-							onChange={(selected) => {
-								handleSelectChange('eventType', selected);
-								handleBlur('eventType');
-							}}
-							onBlur={() => handleBlur('eventType')}
-							styles={{
-								control: (baseStyles) => ({
-									...baseStyles,
+				<Form.Group className="mb-4">
+					<Form.Label className="form-label required">Tipe Event</Form.Label>
+					<Select
+						isMulti
+						value={formData.eventType}
+						options={eventTypeOptions}
+						isLoading={isEventTypeLoading}
+						onMenuOpen={fetchEventTypes}
+						placeholder="Pilih Tipe Event (Bisa lebih dari satu)..."
+						className="react-select-container"
+						classNamePrefix="react-select"
+						onChange={(selected) => {
+							handleSelectChange('eventType', selected);
+							handleBlur('eventType');
+						}}
+						onBlur={() => handleBlur('eventType')}
+						styles={{
+							control: (baseStyles) => ({
+								...baseStyles,
+								borderColor:
+									touched.eventType && formData.eventType?.length === 0
+										? '#dc3545'
+										: baseStyles.borderColor,
+								'&:hover': {
 									borderColor:
 										touched.eventType && formData.eventType?.length === 0
 											? '#dc3545'
 											: baseStyles.borderColor,
-									'&:hover': {
-										borderColor:
-											touched.eventType && formData.eventType?.length === 0
-												? '#dc3545'
-												: baseStyles.borderColor,
-									},
-								}),
-							}}
-						/>
-						{touched.eventType && formData.eventType?.length === 0 && (
-							<div className="text-danger small mt-1">
-								Pilih minimal satu tipe event.
-							</div>
-						)}
-					</Form.Group>
+								},
+							}),
+						}}
+					/>
+					{touched.eventType && formData.eventType?.length === 0 && (
+						<div className="text-danger small mt-1">Pilih minimal satu tipe event.</div>
+					)}
+				</Form.Group>
 
-					<Form.Group className="mb-4">
-						<Form.Label className="required">Kategori Event</Form.Label>
-						<Select
-							isMulti
-							value={formData.kategori}
-							options={kategoriOptions}
-							isLoading={isKategoriLoading}
-							onMenuOpen={fetchCategories}
-							placeholder="Pilih kategori (Bisa lebih dari satu)..."
-							className="react-select-container"
-							classNamePrefix="react-select"
-							onChange={(selected) => {
-								handleSelectChange('kategori', selected);
-								handleBlur('kategori');
-							}}
-							onBlur={() => handleBlur('kategori')}
-							styles={{
-								control: (baseStyles) => ({
-									...baseStyles,
+				<Form.Group className="mb-4">
+					<Form.Label className="required">Kategori Event</Form.Label>
+					<Select
+						isMulti
+						value={formData.kategori}
+						options={kategoriOptions}
+						isLoading={isKategoriLoading}
+						onMenuOpen={fetchCategories}
+						placeholder="Pilih kategori (Bisa lebih dari satu)..."
+						className="react-select-container"
+						classNamePrefix="react-select"
+						onChange={(selected) => {
+							handleSelectChange('kategori', selected);
+							handleBlur('kategori');
+						}}
+						onBlur={() => handleBlur('kategori')}
+						styles={{
+							control: (baseStyles) => ({
+								...baseStyles,
+								borderColor:
+									touched.kategori && formData.kategori?.length === 0
+										? '#dc3545'
+										: baseStyles.borderColor,
+								'&:hover': {
 									borderColor:
 										touched.kategori && formData.kategori?.length === 0
 											? '#dc3545'
 											: baseStyles.borderColor,
-									'&:hover': {
-										borderColor:
-											touched.kategori && formData.kategori?.length === 0
-												? '#dc3545'
-												: baseStyles.borderColor,
-									},
-								}),
-							}}
-						/>
-						{touched.kategori && formData.kategori?.length === 0 && (
-							<div className="text-danger small mt-1">
-								Pilih minimal satu kategori event.
-							</div>
-						)}
-					</Form.Group>
-				</div>
-			</Form>
+								},
+							}),
+						}}
+					/>
+					{touched.kategori && formData.kategori?.length === 0 && (
+						<div className="text-danger small mt-1">
+							Pilih minimal satu kategori event.
+						</div>
+					)}
+				</Form.Group>
 
-			<Form className="form" id="additional-info">
 				{/* BAGIAN 2: TAMBAHAN */}
 				<Form.Group className="mb-4">
 					<Form.Label className="required">Zona Waktu</Form.Label>
@@ -264,42 +257,6 @@ const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChang
 					<Form.Control.Feedback type="invalid">
 						Zona waktu wajib diisi.
 					</Form.Control.Feedback>
-				</Form.Group>
-
-				<Form.Group className="mb-4">
-					<Form.Label className="required">
-						Pengaturan Batas Waktu Presensi Online Peserta
-					</Form.Label>
-					<div className="d-flex align-items-center gap-3">
-						<div className="flex-fill">
-							<Form.Text className="text-muted d-block mb-1">
-								Buka Check-in (Menit sebelum acara dimulai)
-							</Form.Text>
-							<Form.Control
-								type="number"
-								name="checkin_window_start"
-								value={formData.checkin_window_start}
-								onChange={handleTextChange}
-								min={0}
-							/>
-						</div>
-						<div className="flex-fill">
-							<Form.Text className="text-muted d-block mb-1">
-								Tutup Check-in (Menit setelah acara selesai)
-							</Form.Text>
-							<Form.Control
-								type="number"
-								name="checkin_window_end"
-								value={formData.checkin_window_end}
-								onChange={handleTextChange}
-								min={0}
-							/>
-						</div>
-					</div>
-					<Form.Text className="text-muted small">
-						*Pengaturan ini hanya berlaku untuk link presensi online / QR peserta, tidak
-						berlaku untuk scanner panitia.
-					</Form.Text>
 				</Form.Group>
 
 				{/* Modifikasi props UploadImage agar bisa trigger Modal Crop dari child ini */}

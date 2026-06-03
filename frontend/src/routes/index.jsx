@@ -93,6 +93,9 @@ const AppRoutes = () => {
 
 					<Route path="/profile/:id" element={<PublicProfile />} />
 
+					<Route path="/attend-venue" element={<AttendVenuePage />} />
+					<Route path="/a/:code" element={<AttendVenuePage />} />
+
 					{/* PROTECTED MEMBER PAGES (Di dalam VisitorLayout/Navbar) */}
 					<Route element={<ProtectedRoute />}>
 						<Route path="/bookmarks" element={<BookmarkPage />} />
@@ -103,8 +106,6 @@ const AppRoutes = () => {
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 						<Route path="/event-space/:id/survey" element={<SurveyPage />} />
 						<Route path="/notifications" element={<NotificationsPage />} />
-
-						<Route path="/attend-venue" element={<AttendVenuePage />} />
 					</Route>
 				</Route>
 

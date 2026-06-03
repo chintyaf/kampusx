@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
 	Info,
 	AlertTriangle,
@@ -6,16 +7,7 @@ import {
 	ArrowRight,
 	ChevronDown,
 	ChevronUp,
-	CheckCircle2,
 } from 'lucide-react';
-
-/**
- * MissingInformation — grouped by category, collapsed by default, showing HIGH items first.
- * Props:
- *   issues    {Array<{severity, category, message}>}
- *   onFix     {Function(issue)}
- *   highlight {boolean}
- */
 
 const SEV_CFG = {
 	HIGH: {
@@ -44,6 +36,35 @@ const SEV_CFG = {
 	},
 };
 
+const mapMissingDataToIssues = (missingData = []) => {
+	return missingData.map((msg) => {
+		const severity = 'HIGH';
+		let category = 'System';
+		const lowerMsg = msg.toLowerCase();
+
+		if (lowerMsg.match(/pembicara|sesi|jadwal/)) category = 'Sesi / Acara';
+		else if (lowerMsg.match(/lokasi|platform|meeting|tempat|alamat/)) category = 'Lokasi';
+		else if (lowerMsg.match(/kategori|tipe/)) category = 'Kategori';
+		else if (lowerMsg.match(/poster|gambar/)) category = 'Media';
+		else if (lowerMsg.match(/deskripsi/)) category = 'Deskripsi';
+
+		return { severity, category, message: msg };
+	});
+};
+
+const handleIssueNavigation = (issue, eventId, navigate) => {
+	const msg = issue.message.toLowerCase();
+	if (msg.match(/judul|deskripsi|poster|kategori|tipe/)) {
+		navigate(`/organizer/${eventId}/event-dashboard/info`);
+	} else if (msg.match(/lokasi|platform|meeting|kuota|tempat|provinsi|alamat|maps/)) {
+		navigate(`/organizer/${eventId}/event-dashboard/tempat`);
+	} else if (msg.match(/jadwal|waktu|sesi|pembicara/)) {
+		navigate(`/organizer/${eventId}/event-dashboard/sesi`);
+	} else {
+		navigate(`/organizer/${eventId}/event-dashboard/info`);
+	}
+};
+
 function IssueRow({ issue, onFix }) {
 	const cfg = SEV_CFG[issue.severity] || SEV_CFG.LOW;
 	const { Icon } = cfg;
@@ -69,6 +90,7 @@ function IssueRow({ issue, onFix }) {
 						color: '#1e293b',
 						lineHeight: 1.4,
 						marginBottom: 3,
+						fontFamily: 'var(--font)',
 					}}
 				>
 					{issue.message}
@@ -92,6 +114,7 @@ function IssueRow({ issue, onFix }) {
 						cursor: 'pointer',
 						transition: 'background 0.15s',
 						whiteSpace: 'nowrap',
+						fontFamily: 'var(--font)',
 					}}
 					onMouseEnter={(e) => (e.currentTarget.style.background = cfg.bg)}
 					onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
@@ -103,10 +126,17 @@ function IssueRow({ issue, onFix }) {
 	);
 }
 
-export default function MissingInformation({ issues = [], onFix, highlight = false }) {
+export default function MissingInformation({ issues: rawIssues = [], eventId, highlight = false }) {
+	const navigate = useNavigate();
 	const [showAll, setShowAll] = useState(false);
 
-	if (!issues || issues.length === 0) return null;
+	if (!rawIssues || rawIssues.length === 0) return null;
+
+	const issues = mapMissingDataToIssues(rawIssues);
+
+	const onFix = (issue) => {
+		handleIssueNavigation(issue, eventId, navigate);
+	};
 
 	// Sort: HIGH first, then MEDIUM, LOW
 	const sorted = [...issues].sort((a, b) => {
