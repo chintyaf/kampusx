@@ -9,10 +9,12 @@ import PosTable from './PosTable';
 import PosForm from './PosForm';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 
-import OnlineAttendanceTool from './OnlineAttendanceTool';
+// import OnlineAttendanceTool from './OnlineAttendanceTool';
 import AttendanceWindowInfo from './AttendanceWindowInfo';
 import PosStats from './PosStats';
 import PosGuideCard from './PosGuideCard';
+import MultiSessionAttendanceTool from './MultiSessionAttendanceTool';
+
 
 /**
  * Page Component: EventPosPage
@@ -109,7 +111,8 @@ const EventPosPage = () => {
 						Manajemen Kehadiran
 					</h4>
 					<p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-						Kelola metode absensi peserta, buat stasiun scanner QR, atau bagikan link presensi mandiri.
+						Kelola metode absensi peserta, buat stasiun scanner QR, atau bagikan link
+						presensi mandiri.
 					</p>
 				</div>
 			</div>
@@ -119,19 +122,16 @@ const EventPosPage = () => {
 				{/* Kolom Kiri: Main Area (8 dari 12 bagian) */}
 				<Col lg={8} className="d-flex flex-column gap-4">
 					{/* Rongga Waktu Presensi (Rentang Waktu Presensi Aktif) */}
-					<AttendanceWindowInfo event={event} />
+					{/* <AttendanceWindowInfo event={event} /> */}
 
 					{/* Custom Method Toggle (Tab modern dengan garis bawah) */}
-					<div 
-						className="d-flex border-bottom" 
-						style={{ gap: '24px' }}
-					>
+					<div className="d-flex border-bottom" style={{ gap: '24px' }}>
 						<button
 							onClick={() => setActiveMethod('qr')}
 							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
-							style={{ 
-								fontSize: '0.9rem', 
-								cursor: 'pointer', 
+							style={{
+								fontSize: '0.9rem',
+								cursor: 'pointer',
 								color: activeMethod === 'qr' ? '#1E293B' : '#94A3B8',
 								padding: '8px 4px',
 								transition: 'color 0.2s',
@@ -139,7 +139,7 @@ const EventPosPage = () => {
 						>
 							Pos Scanner QR (Offline)
 							{activeMethod === 'qr' && (
-								<div 
+								<div
 									className="position-absolute bottom-0 start-0 end-0 bg-primary"
 									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
 								/>
@@ -148,9 +148,9 @@ const EventPosPage = () => {
 						<button
 							onClick={() => setActiveMethod('online')}
 							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
-							style={{ 
-								fontSize: '0.9rem', 
-								cursor: 'pointer', 
+							style={{
+								fontSize: '0.9rem',
+								cursor: 'pointer',
 								color: activeMethod === 'online' ? '#1E293B' : '#94A3B8',
 								padding: '8px 4px',
 								transition: 'color 0.2s',
@@ -158,7 +158,7 @@ const EventPosPage = () => {
 						>
 							Magic Link (Online)
 							{activeMethod === 'online' && (
-								<div 
+								<div
 									className="position-absolute bottom-0 start-0 end-0 bg-primary"
 									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
 								/>
@@ -191,11 +191,24 @@ const EventPosPage = () => {
 										>
 											<MapPin size={24} className="text-muted" />
 										</div>
-										<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
+										<div
+											style={{
+												fontWeight: 500,
+												color: '#212529',
+												marginBottom: 4,
+											}}
+										>
 											Belum ada pos scanner
 										</div>
-										<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
-											Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
+										<div
+											style={{
+												fontSize: '0.9rem',
+												color: '#6c757d',
+												marginBottom: 20,
+											}}
+										>
+											Tambahkan pos pertama agar panitia bisa mulai menugaskan
+											lokasi scan.
 										</div>
 										<Button
 											variant="dark"
@@ -220,7 +233,8 @@ const EventPosPage = () => {
 					) : (
 						<div>
 							{/* Link Presensi Online (Magic Link Tool) */}
-							<OnlineAttendanceTool />
+							{/* <OnlineAttendanceTool /> */}
+							<MultiSessionAttendanceTool />
 						</div>
 					)}
 				</Col>

@@ -34,19 +34,19 @@ const PosGuideCard = () => {
 			steps: [
 				{
 					icon: <QrCode size={14} />,
-					text: 'Buat minimal 1 Stasiun Scanner di bagian "Manajemen Pos Scanner" di bawah.',
+					text: 'Buat minimal 1 Pos Scanner di bagian bawah.',
 				},
 				{
 					icon: <Smartphone size={14} />,
-					text: 'Panitia buka halaman Scanner di browser/HP mereka, lalu masukkan PIN event untuk login.',
+					text: 'Panitia buka halaman Scanner di HP/browser & masukkan PIN event.',
 				},
 				{
 					icon: <Users size={14} />,
-					text: 'Peserta membuka tiket digital di aplikasi/email → panitia scan QR code peserta.',
+					text: 'Scan QR tiket digital peserta (dari aplikasi/email).',
 				},
 				{
 					icon: <CheckCircle size={14} />,
-					text: 'Kehadiran tercatat otomatis — data check-in dan check-out peserta bisa dilihat di Daftar Peserta.',
+					text: 'Kehadiran otomatis tercatat di Daftar Peserta.',
 				},
 			],
 		},
@@ -61,23 +61,23 @@ const PosGuideCard = () => {
 			steps: [
 				{
 					icon: <Link2 size={14} />,
-					text: 'Isi batas waktu kedaluwarsa, lalu klik "Buat Link" untuk Check-in dan Check-out di bagian "Manajemen Link Presensi Online" di bawah.',
+					text: 'Atur batas waktu & buat link Check-in/Check-out online.',
 				},
 				{
 					icon: <Smartphone size={14} />,
-					text: 'Bagikan link Check-in ke peserta melalui grup WhatsApp, email blast, atau tampilkan di slide presentasi.',
+					text: 'Bagikan link via WhatsApp, email, atau slide presentasi.',
 				},
 				{
 					icon: <Users size={14} />,
-					text: 'Peserta klik link → login ke akun mereka → kehadiran tercatat otomatis oleh sistem.',
+					text: 'Peserta klik link & login untuk merekam kehadiran.',
 				},
 				{
 					icon: <Link2 size={14} />,
-					text: 'Di akhir acara, bagikan link Check-out agar data durasi kehadiran peserta tercatat lengkap.',
+					text: 'Bagikan link Check-out di akhir acara untuk mencatat kepulangan.',
 				},
 				{
 					icon: <CheckCircle size={14} />,
-					text: 'Pantau siapa saja yang sudah hadir secara real-time di halaman Daftar Peserta.',
+					text: 'Pantau status kehadiran real-time di Daftar Peserta.',
 				},
 			],
 		},

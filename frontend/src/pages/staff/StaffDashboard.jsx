@@ -29,17 +29,20 @@ const StaffDashboard = () => {
     const [scanFeedback, setScanFeedback] = useState(null); // { type: 'success' | 'error', message: '', attendee: null }
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [scanLock, setScanLock] = useState(false);
+    const [scanMode, setScanMode] = useState('in'); // 'in' | 'out'
 
     // Scanner Refs to prevent closure stale states
     const html5QrCodeRef = useRef(null);
     const scanLockRef = useRef(scanLock);
     const pinRef = useRef(pin);
     const stationRef = useRef(station);
+    const scanModeRef = useRef(scanMode);
 
     // Sync refs
     useEffect(() => { scanLockRef.current = scanLock; }, [scanLock]);
     useEffect(() => { pinRef.current = pin; }, [pin]);
     useEffect(() => { stationRef.current = station; }, [station]);
+    useEffect(() => { scanModeRef.current = scanMode; }, [scanMode]);
 
     // Responsive State
     const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
@@ -149,7 +152,8 @@ const StaffDashboard = () => {
             const response = await api.post('/v1/staff/scan', {
                 qr_string: qrString.trim(),
                 post_id: currentStation.id,
-                pos_pin: currentPin
+                pos_pin: currentPin,
+                scan_type: scanModeRef.current
             });
 
             if (response.data.success) {
@@ -279,7 +283,8 @@ const StaffDashboard = () => {
             const response = await api.post('/v1/staff/manual-checkin', {
                 ticket_id: ticketId,
                 post_id: station.id,
-                pos_pin: pin
+                pos_pin: pin,
+                scan_type: scanMode
             });
 
             if (response.data.success) {
@@ -312,7 +317,37 @@ const StaffDashboard = () => {
     const renderScannerCard = () => (
         <Card className="border-0 shadow-sm rounded-4 mb-4">
             <Card.Body className="p-4">
-                <h5 className="fw-bold mb-3">Kamera Scanner QR</h5>
+                <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h5 className="fw-bold mb-0">Kamera Scanner QR</h5>
+                    <div className="d-flex bg-light p-1 rounded-3 border" style={{ width: '200px' }}>
+                        <button
+                            type="button"
+                            onClick={() => setScanMode('in')}
+                            className="flex-grow-1 border-0 fw-bold rounded-2 py-1.5 transition-all text-center"
+                            style={{
+                                fontSize: '11px',
+                                backgroundColor: scanMode === 'in' ? '#1A365D' : 'transparent',
+                                color: scanMode === 'in' ? '#ffffff' : '#64748b',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            MASUK (IN)
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setScanMode('out')}
+                            className="flex-grow-1 border-0 fw-bold rounded-2 py-1.5 transition-all text-center"
+                            style={{
+                                fontSize: '11px',
+                                backgroundColor: scanMode === 'out' ? '#dc3545' : 'transparent',
+                                color: scanMode === 'out' ? '#ffffff' : '#64748b',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            KELUAR (OUT)
+                        </button>
+                    </div>
+                </div>
 
                 {/* Scan State Feedback */}
                 {scanFeedback && (
@@ -546,13 +581,12 @@ const StaffDashboard = () => {
                                                             <span className="text-muted small" style={{ fontSize: '12px' }}>{ticket.ticket_code} · {ticket.attendee_email}</span>
                                                         </div>
                                                         <Button
-                                                            variant={ticket.status === 'used' ? "success" : "outline-primary"}
+                                                            variant={scanMode === 'in' ? "outline-primary" : "outline-danger"}
                                                             size="sm"
                                                             className="rounded-pill px-3"
                                                             onClick={() => handleManualCheckIn(ticket.id)}
-                                                            disabled={ticket.status === 'used'}
                                                         >
-                                                            {ticket.status === 'used' ? 'Hadir' : 'Hadirkan Paksa'}
+                                                            {scanMode === 'in' ? 'Hadirkan Paksa' : 'Check-out Paksa'}
                                                         </Button>
                                                     </div>
                                                 ))}
@@ -618,13 +652,12 @@ const StaffDashboard = () => {
                                                             </td>
                                                             <td className="text-end">
                                                                 <Button
-                                                                    variant={ticket.status === 'used' ? "success" : "outline-primary"}
+                                                                    variant={scanMode === 'in' ? "outline-primary" : "outline-danger"}
                                                                     size="sm"
                                                                     className="rounded-pill px-3"
                                                                     onClick={() => handleManualCheckIn(ticket.id)}
-                                                                    disabled={ticket.status === 'used'}
                                                                 >
-                                                                    {ticket.status === 'used' ? 'Hadir' : 'Hadirkan Paksa'}
+                                                                    {scanMode === 'in' ? 'Hadirkan Paksa' : 'Check-out Paksa'}
                                                                 </Button>
                                                             </td>
                                                         </tr>

@@ -61,7 +61,8 @@ class StaffController extends Controller
         $request->validate([
             'qr_string' => 'required|string',
             'post_id' => 'required|integer|exists:event_stations,id',
-            'pos_pin' => 'required|string'
+            'pos_pin' => 'required|string',
+            'scan_type' => 'nullable|string|in:in,out'
         ]);
 
         $station = EventStation::findOrFail($request->post_id);
@@ -107,46 +108,78 @@ class StaffController extends Controller
         }
 
         // 3. VERIFIKASI TANGGAL EVENT (BELUM KEDALUWARSA)
-        // Batasan: Hari acara masih berlaku (sampai max tanggal end_date)
         if ($event->end_date && Carbon::parse($event->end_date)->endOfDay()->isPast()) {
             return response()->json(['message' => 'Event ini sudah selesai / kedaluwarsa.'], 422);
         }
 
-        // 4. VERIFIKASI DUPLIKAT ABSEN DI POS INI
-        $isDuplicate = DB::table('attendance_logs')
+        $scanType = $request->input('scan_type', 'in');
+
+        // Cari log absensi hari ini untuk pos & tiket ini
+        $attendanceLog = DB::table('attendance_logs')
             ->where('ticket_id', $ticket->id)
             ->where('post_id', $station->id)
-            ->exists();
+            ->whereDate('scan_time', Carbon::today())
+            ->first();
 
-        if ($isDuplicate) {
-            return response()->json([
-                'message' => 'Peserta sudah melakukan check-in di POS ini sebelumnya.',
-                'attendee_name' => $ticket->attendee_name
-            ], 409);
+        if ($scanType === 'in') {
+            if ($attendanceLog) {
+                return response()->json([
+                    'message' => 'Peserta sudah melakukan check-in di POS ini hari ini.',
+                    'attendee_name' => $ticket->attendee_name
+                ], 409);
+            }
+
+            // Catat Kehadiran (Check-in)
+            DB::table('attendance_logs')->insert([
+                'ticket_id' => $ticket->id,
+                'event_id' => $event->id,
+                'post_id' => $station->id,
+                'session_id' => null,
+                'scan_time' => Carbon::now(),
+                'checkout_time' => null,
+                'scanned_by' => auth('sanctum')->id(),
+                'method' => 'qr',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
+
+            // Perbarui status tiket menjadi used
+            $ticket->update(['status' => 'used']);
+
+            $msg = 'Berhasil memverifikasi check-in ' . $ticket->attendee_name;
+        } else {
+            // Check-out
+            if (!$attendanceLog) {
+                return response()->json([
+                    'message' => 'Peserta belum melakukan check-in hari ini, tidak bisa check-out.',
+                    'attendee_name' => $ticket->attendee_name
+                ], 400);
+            }
+
+            if ($attendanceLog->checkout_time) {
+                return response()->json([
+                    'message' => 'Peserta sudah melakukan check-out di POS ini hari ini.',
+                    'attendee_name' => $ticket->attendee_name
+                ], 409);
+            }
+
+            // Update waktu check-out
+            DB::table('attendance_logs')
+                ->where('id', $attendanceLog->id)
+                ->update([
+                    'checkout_time' => Carbon::now(),
+                    'updated_at' => Carbon::now()
+                ]);
+
+            $msg = 'Berhasil memverifikasi check-out ' . $ticket->attendee_name;
         }
-
-        // Catat Kehadiran
-        DB::table('attendance_logs')->insert([
-            'ticket_id' => $ticket->id,
-            'event_id' => $event->id,
-            'post_id' => $station->id,
-            'session_id' => null,
-            'scan_time' => Carbon::now(),
-            'scanned_by' => auth('sanctum')->id(),
-            'method' => 'qr',
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
-        ]);
-
-        // Perbarui status tiket menjadi used
-        $ticket->update(['status' => 'used']);
 
         // Ambil Ringkasan Kehadiran
         $stats = $this->getAttendanceStats($event->id, $station->id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Berhasil memverifikasi kehadiran ' . $ticket->attendee_name,
+            'message' => $msg,
             'attendee' => [
                 'name' => $ticket->attendee_name,
                 'email' => $ticket->attendee_email,
@@ -166,7 +199,8 @@ class StaffController extends Controller
         $request->validate([
             'ticket_id' => 'required|integer|exists:tickets,id',
             'post_id' => 'required|integer|exists:event_stations,id',
-            'pos_pin' => 'required|string'
+            'pos_pin' => 'required|string',
+            'scan_type' => 'nullable|string|in:in,out'
         ]);
 
         $station = EventStation::findOrFail($request->post_id);
@@ -191,40 +225,74 @@ class StaffController extends Controller
             return response()->json(['message' => 'Tiket belum lunas / pembayaran pending.'], 422);
         }
 
-        // 3. VERIFIKASI DUPLIKAT ABSEN DI POS INI
-        $isDuplicate = DB::table('attendance_logs')
+        $scanType = $request->input('scan_type', 'in');
+
+        // Cari log absensi hari ini untuk pos & tiket ini
+        $attendanceLog = DB::table('attendance_logs')
             ->where('ticket_id', $ticket->id)
             ->where('post_id', $station->id)
-            ->exists();
+            ->whereDate('scan_time', Carbon::today())
+            ->first();
 
-        if ($isDuplicate) {
-            return response()->json([
-                'message' => 'Peserta sudah melakukan check-in di POS ini sebelumnya.',
-                'attendee_name' => $ticket->attendee_name
-            ], 409);
+        if ($scanType === 'in') {
+            if ($attendanceLog) {
+                return response()->json([
+                    'message' => 'Peserta sudah melakukan check-in di POS ini hari ini.',
+                    'attendee_name' => $ticket->attendee_name
+                ], 409);
+            }
+
+            // Catat Kehadiran (Check-in)
+            DB::table('attendance_logs')->insert([
+                'ticket_id' => $ticket->id,
+                'event_id' => $event->id,
+                'post_id' => $station->id,
+                'session_id' => null,
+                'scan_time' => Carbon::now(),
+                'checkout_time' => null,
+                'scanned_by' => auth('sanctum')->id(),
+                'method' => 'manual',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
+
+            // Perbarui status tiket menjadi used
+            $ticket->update(['status' => 'used']);
+
+            $msg = 'Kehadiran manual (check-in) berhasil dicatat untuk ' . $ticket->attendee_name;
+        } else {
+            // Check-out
+            if (!$attendanceLog) {
+                return response()->json([
+                    'message' => 'Peserta belum melakukan check-in hari ini, tidak bisa check-out.',
+                    'attendee_name' => $ticket->attendee_name
+                ], 400);
+            }
+
+            if ($attendanceLog->checkout_time) {
+                return response()->json([
+                    'message' => 'Peserta sudah melakukan check-out di POS ini hari ini.',
+                    'attendee_name' => $ticket->attendee_name
+                ], 409);
+            }
+
+            // Update waktu check-out
+            DB::table('attendance_logs')
+                ->where('id', $attendanceLog->id)
+                ->update([
+                    'checkout_time' => Carbon::now(),
+                    'updated_at' => Carbon::now()
+                ]);
+
+            $msg = 'Kehadiran manual (check-out) berhasil dicatat untuk ' . $ticket->attendee_name;
         }
-
-        // Catat Kehadiran Manual
-        DB::table('attendance_logs')->insert([
-            'ticket_id' => $ticket->id,
-            'event_id' => $event->id,
-            'post_id' => $station->id,
-            'session_id' => null,
-            'scan_time' => Carbon::now(),
-            'scanned_by' => auth('sanctum')->id(),
-            'method' => 'manual',
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
-        ]);
-
-        $ticket->update(['status' => 'used']);
 
         // Ambil Ringkasan Kehadiran
         $stats = $this->getAttendanceStats($event->id, $station->id);
 
         return response()->json([
             'success' => true,
-            'message' => 'Kehadiran manual berhasil dicatat untuk ' . $ticket->attendee_name,
+            'message' => $msg,
             'attendee' => [
                 'name' => $ticket->attendee_name,
                 'email' => $ticket->attendee_email,

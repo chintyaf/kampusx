@@ -19,6 +19,8 @@ class EventSession extends Model
         'prerequisite_session_ids',
         'is_published',
         'no_speaker',
+        'checkin_link',
+        'checkin_expires_at',
     ];
 
     protected $casts = [

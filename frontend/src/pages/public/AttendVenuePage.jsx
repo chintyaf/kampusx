@@ -26,6 +26,7 @@ export default function AttendVenuePage() {
 		const signature = params.get('signature');
 		const type = params.get('type') || 'in';
 		const expiresAt = params.get('expires_at');
+		const sessionId = params.get('session_id');
 
 		setPageType(type);
 
@@ -63,6 +64,7 @@ export default function AttendVenuePage() {
 					signature: signature,
 					device_token: deviceId,
 					expires_at: expiresAt || null,
+					session_id: sessionId || null,
 				};
 
 				// Pastikan URL endpoint ini cocok dengan route api.php Laravel kamu
@@ -72,9 +74,9 @@ export default function AttendVenuePage() {
 					setStatus('success');
 					setMessage(
 						response.data.message ||
-							(type === 'out'
-								? 'Check-out berhasil dicatat. Terima kasih!'
-								: 'Kehadiran berhasil dicatat! Selamat mengikuti acara.'),
+						(type === 'out'
+							? 'Check-out berhasil dicatat. Terima kasih!'
+							: 'Kehadiran berhasil dicatat! Selamat mengikuti acara.'),
 					);
 				}
 			} catch (err) {
@@ -87,7 +89,7 @@ export default function AttendVenuePage() {
 				} else {
 					setMessage(
 						err.response?.data?.message ||
-							'Terjadi kesalahan saat memproses data pada server.',
+						'Terjadi kesalahan saat memproses data pada server.',
 					);
 				}
 			}
