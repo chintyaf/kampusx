@@ -20,7 +20,7 @@ const ProfileTabs = ({ activeTab, onTabChange }) => {
 					<Award size={16} className="me-2" /> Sertifikat
 				</Nav.Link>
 			</Nav.Item>
-			<Nav.Item>
+			{/* <Nav.Item>
 				<Nav.Link 
 					onClick={() => onTabChange('history')}
 					className={`px-0 py-3 fw-bold text-uppercase d-flex align-items-center ${activeTab === 'history' ? 'active' : ''}`}
@@ -34,7 +34,7 @@ const ProfileTabs = ({ activeTab, onTabChange }) => {
 				>
 					<CalendarIcon size={16} className="me-2" /> Histori Event
 				</Nav.Link>
-			</Nav.Item>
+			</Nav.Item> */}
 		</Nav>
 	);
 };

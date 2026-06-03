@@ -10,41 +10,49 @@ use Illuminate\Support\Facades\DB;
 
 class EventTicketController extends Controller
 {
-    /**
-     * Menampilkan tiket event, jika belum ada buat otomatis 1 tiket kosong.
-     */
     public function index(int $eventId)
     {
         // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
         $locationType = $event->locationDetail->type ?? 'offline';
 
-        // 2. Ambil tiket yang sudah ada untuk event ini
+        // 2. Tentukan tipe tiket wajib (Lebih bersih menggunakan match daripada if-else)
+        $requiredTypes = match($locationType) {
+            'online' => ['online'],
+            'hybrid' => ['online', 'offline'],
+            default  => ['offline'],
+        };
+
+        // 3. Hapus tiket yang tipenya sudah tidak relevan dengan lokasi event saat ini
+        // Skenario: Online -> Offline (Menghapus Online), Hybrid -> Offline (Menghapus Online)
+        EventTicket::where('event_id', $eventId)
+            ->whereNotIn('type', $requiredTypes)
+            ->delete();
+
+        // 4. Ambil tiket yang bertahan setelah pembersihan
         $tickets = EventTicket::where('event_id', $eventId)->get();
 
-        // 3. Jika belum ada tiket sama sekali, buatkan 1 tiket default yang kosong
-        if ($tickets->isEmpty()) {
-            // Penentuan tipe default awal (jika online -> online, sisanya offline)
-            // User nanti bisa mengubahnya di frontend jika event hybrid
-            $defaultType = ($locationType === 'online') ? 'online' : 'offline';
+        // Gunakan unique() agar jika organizer membuat 3 tiket online, tetap terhitung sebagai ['online']
+        $existingTypes = $tickets->pluck('type')->unique()->toArray();
 
-            $newTicket = EventTicket::create([
-                'event_id'    => $eventId,
-                'name'        => '', // Dikosongkan agar user yang mengisi
-                'type'        => $defaultType,
-                'description' => null,
-                'is_free'     => false,
-                'price'       => 0,
-                'capacity'    => 0, // Null = unlimited
-                'sale_start'  => null,
-                'sale_end'    => null,
-            ]);
+        // 5. Cari tipe tiket yang wajib ada tapi belum terbuat
+        $missingTypes = array_diff($requiredTypes, $existingTypes);
 
-            // Masukkan tiket baru ke dalam collection agar langsung ter-map
-            $tickets->push($newTicket);
+        // 6. Buat tiket jika ada yang hilang
+        if (!empty($missingTypes)) {
+            foreach ($missingTypes as $type) {
+                $ticketData = $this->generateDefaultTicket($eventId, ucfirst($type) . ' Ticket', $type);
+
+                // Gunakan create() alih-alih insert() agar 'created_at', 'updated_at',
+                // dan Eloquent Events (seperti UUID generation) tetap tereksekusi.
+                EventTicket::create($ticketData);
+            }
+
+            // Ambil ulang data agar sinkron dengan database terbaru
+            $tickets = EventTicket::where('event_id', $eventId)->get();
         }
 
-        // 4. Mapping data untuk response
+        // 7. Mapping data untuk response
         $data = $tickets->map(function ($ticket) {
             return [
                 'id'          => $ticket->id,
@@ -60,13 +68,11 @@ class EventTicketController extends Controller
             ];
         });
 
-        // 5. Return data JSON
+        // 8. Return data JSON
         return response()->json([
             'status'           => 'success',
             'data'             => $data,
-            'event_start_date' => $event->start_date,
-            'event_end_date'   => $event->end_date,
-            'location_type'    => $locationType,
+            'event_start_date' => $event->start_date
         ]);
     }
 
@@ -127,9 +133,10 @@ class EventTicketController extends Controller
                 }
             }
 
-            // Hapus tiket yang tidak dikirim dari FE
+            // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
+            $ticketIdsFromRequest = collect($request->tickets)->pluck('id')->filter()->toArray();
             EventTicket::where('event_id', $eventId)
-                       ->whereNotIn('id', $ticketIdsToKeep)
+                       ->whereNotIn('id', $ticketIdsFromRequest)
                        ->delete();
 
             DB::commit();
@@ -152,5 +159,25 @@ class EventTicketController extends Controller
                 'message' => 'Gagal menyimpan data tiket: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Helper function untuk menyiapkan array data tiket default.
+     */
+    private function generateDefaultTicket(int $eventId, string $name, string $type): array
+    {
+        return [
+            'event_id'   => $eventId,
+            'name'       => $name,
+            'description'=> null,
+            'type'       => $type,
+            'is_free'    => false, // Default tidak gratis, harga 0 (sesuai seed React Anda)
+            'price'      => 0,
+            'capacity'   => null,  // Sesuai migration: null berarti unlimited
+            'sale_start' => null,
+            'sale_end'   => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
     }
 }

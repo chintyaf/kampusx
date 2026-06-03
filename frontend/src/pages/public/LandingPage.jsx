@@ -48,12 +48,12 @@ const STEPS = [
   { id: 3, title: "Hadir & Nikmati",desc: "Ikuti event & dapatkan sertifikat otomatis.", Icon: Ticket    },
 ];
 
-const PARTNERS = [
-  { id: 1, name: "Kampus A", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+A" },
-  { id: 2, name: "Kampus B", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+B" },
-  { id: 3, name: "Kampus C", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+C" },
-  { id: 4, name: "Kampus D", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+D" },
-];
+// const PARTNERS = [
+//   { id: 1, name: "Kampus A", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+A" },
+//   { id: 2, name: "Kampus B", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+B" },
+//   { id: 3, name: "Kampus C", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+C" },
+//   { id: 4, name: "Kampus D", logo: "https://placehold.co/150x60/ffffff/00699e?text=Kampus+D" },
+// ];
 
 // EventCard is imported globally from '../../components/event/EventCard'
 
@@ -178,11 +178,26 @@ const LandingPage = () => {
             <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", marginBottom: 8 }}>Kategori Event</h2>
             <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: 0 }}>Temukan event sesuai bidang studimu</p>
           </div>
-          <Row className="g-3 justify-content-center">
+
+          <Row 
+            // flex-nowrap & overflow-x-auto di mobile, kembali flex-sm-wrap di tablet/desktop
+            className="no-scrollbar flex-nowrap overflow-x-auto flex-sm-wrap justify-content-sm-center g-3"
+            style={{
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE/Edge
+              WebkitOverflowScrolling: "touch", // Smooth scroll iOS
+              paddingBottom: "12px" // Mencegah efek hover/box-shadow terpotong
+            }}
+          >
+            {/* Gaya CSS inline untuk menyembunyikan scrollbar di Chrome/Safari */}
+            <style>{`.no-scrollbar::-webkit-scrollbar { display: none; }`}</style>
+
             {categories.map((cat) => {
               const meta = getCategoryMeta(cat.name);
               return (
-                <Col xs={6} sm={4} md={3} lg={2} key={cat.id}>
+                // Menggunakan xs={5} agar di mobile item ketiga sedikit terpotong (isyarat visual bisa di-scroll)
+                // Ditambah flex-shrink-0 agar ukuran kolom tidak gepeng di mobile
+                <Col xs={5} sm={4} md={3} lg={2} key={cat.id} className="flex-shrink-0 flex-sm-shrink-1">
                   <div
                     onClick={() => navigate(`/explore-events?category=${encodeURIComponent(cat.name)}`)}
                     style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", cursor: "pointer", padding: "12px 8px", borderRadius: 12, transition: "background .15s" }}
@@ -193,17 +208,16 @@ const LandingPage = () => {
                       <meta.Icon size={28} color={meta.color} />
                     </div>
                     <span style={{ fontSize: "var(--font-sm)", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.3 }}>{cat.name}</span>
-                    
                   </div>
                 </Col>
               );
             })}
           </Row>
+
           <div style={{ textAlign: "center", marginTop: 36 }}>
             <Button
               as={Link}
               to="/explore-events"
-              // onClick={() => navigate("/explore-events")}
               style={{ background: "var(--color-primary)", border: "none", borderRadius: 8, padding: "9px 24px", fontWeight: 600, fontSize: "var(--font-sm)", display: "inline-flex", alignItems: "center", gap: 6 }}
             >
               Lihat Semua Kategori <ChevronRight size={15} />
@@ -419,7 +433,7 @@ const LandingPage = () => {
       </section>
 
       {/* ── 7. PARTNER ────────────────────────────────────────────────────── */}
-      <section style={{ background: "var(--color-bg)", borderTop: "1px solid var(--color-border)", padding: "56px 0" }}>
+      {/* <section style={{ background: "var(--color-bg)", borderTop: "1px solid var(--color-border)", padding: "56px 0" }}>
         <Container style={{ textAlign: "center" }}>
           <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", marginBottom: 8 }}>Kampus & Partner Terpopuler</h2>
           <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", marginBottom: 40 }}>Bergabung bersama ratusan institusi terpercaya</p>
@@ -433,7 +447,7 @@ const LandingPage = () => {
             ))}
           </Row>
         </Container>
-      </section>
+      </section> */}
 
       {/* ── 8. CTA ────────────────────────────────────────────────────────── */}
       <section style={{ background: "var(--bahama-blue-950)", padding: "72px 0" }}>

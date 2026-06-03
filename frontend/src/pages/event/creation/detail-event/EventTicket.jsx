@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
-import { Plus } from 'lucide-react';
-import { Button } from 'react-bootstrap';
 import EventLayout from '@/layouts/EventLayout';
 import TicketCard from '@/pages/event/creation/detail-event/sections/event-ticket/TicketCard';
 import TicketSummary from '@/pages/event/creation/detail-event/sections/event-ticket/TicketSummary';
@@ -40,25 +38,6 @@ export default function EventTicket() {
 		setTickets((ts) => ts.filter((t) => t.id !== id));
 		setSaved(false);
 	}, []);
-
-	const addTicket = useCallback(() => {
-		setTickets((ts) => [
-			...ts,
-			{
-				id: `new-${Date.now()}`,
-				name: '',
-				type: locationType === 'online' ? 'online' : 'offline',
-				isFree: false,
-				price: 0,
-				capacity: null,
-				unlimited: true,
-				sale_start: null,
-				sale_end: null,
-				description: null,
-			},
-		]);
-		setSaved(false);
-	}, [locationType]);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -284,14 +263,6 @@ export default function EventTicket() {
 						/>
 					))}
 				</div>
-
-				<Button
-					className="btn-add d-flex align-items-center gap-1 p-3 mt-3"
-					onClick={addTicket}
-				>
-					<Plus size={18} />
-					Tambah Tiket
-				</Button>
 			</div>
 		</EventLayout>
 	);
