@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, InputGroup, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import OfflineLocationInput from '../../../../../../components/event/OfflineLocationInput';
+import OfflineLocationInput from '@/components/event/OfflineLocationInput';
 import { HelpCircle } from 'lucide-react';
 
 const OfflineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => {} }) => {

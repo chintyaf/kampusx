@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useOutletContext } from 'react-router-dom';
 import { Spinner } from 'react-bootstrap';
 import api from '@/api/axios';
 import { STORAGE_URL } from '@/api/storage';
-import './EventCertificatePage.css';
+import './components/EventCertificatePage.css';
 import { notify } from '@/utils/notify';
 
 // Mengimpor komponen-komponen yang telah dipisah
-import Topbar from './Topbar';
-import CanvasArea from './CanvasArea';
-import SidebarList from './SidebarList';
-import SidebarEdit from './SidebarEdit';
-import { FIELDS } from './constants';
+import Topbar from './components/Topbar';
+import CanvasArea from './components/CanvasArea';
+import SidebarList from './components/SidebarList';
+import SidebarEdit from './components/SidebarEdit';
+import { FIELDS } from './components/constants';
 import EventLayout from '@/layouts/EventLayout';
 import PreviewModal from '@/components/event/certificate/PreviewModal';
 
@@ -67,6 +67,7 @@ const mapElementToDb = (el) => ({
 // ==========================================
 const EventCertificatePage = () => {
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useOutletContext() || {};
 	const fileInputRef = useRef(null);
 
 	// Global State
@@ -99,6 +100,7 @@ const EventCertificatePage = () => {
 	useEffect(() => {
 		const fetchTemplate = async () => {
 			setIsLoading(true);
+			if (setIsPageLoading) setIsPageLoading(true);
 			try {
 				const response = await api.get(`/event-dashboard/${eventId}/certificate`);
 				const template = response.data.data;
@@ -131,11 +133,12 @@ const EventCertificatePage = () => {
 				console.error('Gagal memuat template sertifikat:', error);
 			} finally {
 				setIsLoading(false);
+				if (setIsPageLoading) setIsPageLoading(false);
 			}
 		};
 
 		fetchTemplate();
-	}, [eventId]);
+	}, [eventId, setIsPageLoading]);
 
 	// Handlers
 	const handleFileSelect = async (file) => {
@@ -232,17 +235,7 @@ const EventCertificatePage = () => {
 	};
 
 	if (isLoading) {
-		return (
-			<EventLayout
-				title="Buat Sertifikat"
-				description="Klik elemen untuk mengedit · Tarik untuk memindahkan"
-			>
-				<div className="d-flex flex-column align-items-center justify-content-center py-5">
-					<Spinner animation="border" variant="primary" className="mb-2" />
-					<span className="text-muted">Memuat data template sertifikat...</span>
-				</div>
-			</EventLayout>
-		);
+		return null;
 	}
 
 	return (

@@ -12,11 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('attendance_logs', function (Blueprint $table) {
-            // Menambahkan user_id (opsional: bisa dikaitkan sebagai foreign key jika tabel users kamu ada)
-            $table->unsignedBigInteger('user_id')->nullable()->after('ticket_id');
+            if (!Schema::hasColumn('attendance_logs', 'user_id')) {
+                $table->unsignedBigInteger('user_id')->nullable()->after('ticket_id');
+            }
 
-            // Menambahkan device_id untuk keperluan Anti-Titip Absen
-            $table->string('device_id')->nullable()->after('checkout_time');
+            if (!Schema::hasColumn('attendance_logs', 'device_id')) {
+                $table->string('device_id')->nullable()->after('checkout_time');
+            }
         });
     }
 

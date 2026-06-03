@@ -26,7 +26,12 @@ class Ticket extends Model
 
     public function attendanceLog()
     {
-        return $this->hasOne(AttendanceLog::class, 'ticket_id');
+        return $this->hasOne(AttendanceLog::class, 'ticket_id')->whereNull('session_id');
+    }
+
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class, 'ticket_id');
     }
 
     // Tambahkan properti ini di bagian atas kelas model

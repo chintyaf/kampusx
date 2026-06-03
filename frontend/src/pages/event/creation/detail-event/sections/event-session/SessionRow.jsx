@@ -59,7 +59,7 @@ const SessionRow = ({ session, selectedRow, onClick }) => {
 					{session.speakers && session.speakers.length > 0 ? (
 						// Jika ada data pembicara, petakan (map) gambarnya
 						session.speakers.map((speaker, index) => (
-								<img
+							<img
 								key={index}
 								src={getSpeakerAvatar(speaker)}
 								alt={speaker.name || 'Speaker'}

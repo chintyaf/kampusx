@@ -70,7 +70,10 @@ export default function EventPreviewPage() {
 
 	if (isLoading) {
 		return (
-			<div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+			<div
+				className="d-flex flex-column justify-content-center align-items-center"
+				style={{ minHeight: '80vh' }}
+			>
 				<Spinner animation="border" style={{ color: 'var(--color-primary, #00699e)' }} />
 				<p className="mt-3 text-muted">Memuat pratinjau event...</p>
 			</div>
@@ -83,7 +86,11 @@ export default function EventPreviewPage() {
 				<Alert variant="danger" className="mb-4 rounded-0 border-2">
 					{error}
 				</Alert>
-				<Button variant="outline-dark" className="rounded-0 border-2 fw-semibold" onClick={() => navigate(-1)}>
+				<Button
+					variant="outline-dark"
+					className="rounded-0 border-2 fw-semibold"
+					onClick={() => navigate(-1)}
+				>
 					Kembali ke Dashboard
 				</Button>
 			</Container>
@@ -98,15 +105,21 @@ export default function EventPreviewPage() {
 			'Asia/Jakarta': 'WIB',
 			'Asia/Makassar': 'WITA',
 			'Asia/Jayapura': 'WIT',
-			'WIB': 'WIB',
-			'WITA': 'WITA',
-			'WIT': 'WIT',
+			WIB: 'WIB',
+			WITA: 'WITA',
+			WIT: 'WIT',
 		};
 		return mapping[tz] || tz;
 	};
 
 	return (
-		<div style={{ backgroundColor: 'var(--color-bg, #f4f5f7)', minHeight: '100vh', paddingBottom: '80px' }}>
+		<div
+			style={{
+				backgroundColor: 'var(--color-bg, #f4f5f7)',
+				minHeight: '100vh',
+				paddingBottom: '80px',
+			}}
+		>
 			{/* --- STICKY WARNING BANNER --- */}
 			<div
 				className="alert alert-warning rounded-0 shadow-none d-flex justify-content-between align-items-center sticky-top m-0 border-0 border-bottom"
@@ -122,7 +135,8 @@ export default function EventPreviewPage() {
 				<div className="d-flex align-items-center gap-2">
 					<span style={{ fontSize: '1.2rem' }}>⚠️</span>
 					<div style={{ fontSize: '13px' }}>
-						<strong>Mode Preview:</strong> Ini adalah pratinjau halaman detail acara Anda. Peserta tidak dapat membeli tiket dalam mode ini.
+						<strong>Mode Preview:</strong> Ini adalah pratinjau halaman detail acara
+						Anda. Peserta tidak dapat membeli tiket dalam mode ini.
 					</div>
 				</div>
 				<div className="d-flex gap-2">
@@ -147,10 +161,16 @@ export default function EventPreviewPage() {
 			{/* --- VALIDATION ERROR CHECKLIST --- */}
 			{publishErrors && (
 				<Container className="mt-4">
-					<Alert variant="danger" className="rounded-0 border-2 shadow-none mb-0 d-flex flex-column gap-2" onClose={() => setPublishErrors(null)} dismissible>
+					<Alert
+						variant="danger"
+						className="rounded-0 border-2 shadow-none mb-0 d-flex flex-column gap-2"
+						onClose={() => setPublishErrors(null)}
+						dismissible
+					>
 						<div className="fw-bold fs-6">Tidak Dapat Mempublikasikan Event</div>
 						<div style={{ fontSize: '13px' }}>
-							Silakan lengkapi data wajib berikut terlebih dahulu sebelum melakukan publikasi acara:
+							Silakan lengkapi data wajib berikut terlebih dahulu sebelum melakukan
+							publikasi acara:
 						</div>
 						<ul className="mb-0 ps-3" style={{ fontSize: '12px', lineHeight: '1.6' }}>
 							{publishErrors.map((msg, idx) => (

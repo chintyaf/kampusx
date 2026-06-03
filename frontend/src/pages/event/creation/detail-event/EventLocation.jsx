@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useOutletContext } from 'react-router-dom';
 // import { Form, InputGroup } from "react-bootstrap"; // Unused in this snippet
 // import Select from "react-select"; // Unused in this snippet
 import EventLayout from '@/layouts/EventLayout';
@@ -11,6 +11,7 @@ import useEventMeta from '@/hooks/useEventMeta';
 
 const EventLocation = () => {
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useOutletContext() || {};
 	const [errors, setErrors] = useState({});
 	const [selectedType, setSelectedType] = useState(null);
 	const { eventStatus, hasParticipants } = useEventMeta(eventId);
@@ -55,6 +56,7 @@ const EventLocation = () => {
 		if (hasFetched.current) return;
 
 		const fetchLocationData = async () => {
+			if (setIsPageLoading) setIsPageLoading(true);
 			try {
 				const response = await api.get(`event-dashboard/${eventId}/info-utama/location`);
 				const result = response.data;
@@ -101,13 +103,15 @@ const EventLocation = () => {
 				}
 			} catch (error) {
 				console.error('Gagal mengambil data event:', error);
+			} finally {
+				if (setIsPageLoading) setIsPageLoading(false);
 			}
 		};
 
 		if (eventId && !hasFetched.current) {
 			fetchLocationData();
 		}
-	}, []);
+	}, [eventId, setIsPageLoading]);
 
 	const handleChange = (e) => {
 		const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;

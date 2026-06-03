@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Outlet, useOutletContext } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 
 import EventLayout from '../../../../layouts/EventLayout';
@@ -14,6 +14,7 @@ import './sections/event-session/EventSession.css';
 
 const EventSession = () => {
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useOutletContext() || {};
 	const { eventStatus, hasParticipants } = useEventMeta(eventId);
 
 	// summary, session-form, speaker-list, speaker-add
@@ -44,11 +45,17 @@ const EventSession = () => {
 		getStep3ValidationErrors,
 	} = useEventSession(eventId);
 
+	useEffect(() => {
+		if (setIsPageLoading) {
+			setIsPageLoading(isLoading);
+		}
+	}, [isLoading, setIsPageLoading]);
+
 	const totalSessions = days.reduce((acc, d) => acc + (d.sessions?.length || 0), 0);
 	const hasAtLeastOneDay = days.length >= 1;
 	const hasAtLeastOneSession = totalSessions >= 1;
 	const allDaysHaveDateAndSession = days.every(
-		(day) => day.date && day.date.trim() !== '' && day.sessions && day.sessions.length >= 1
+		(day) => day.date && day.date.trim() !== '' && day.sessions && day.sessions.length >= 1,
 	);
 	const isSaveDisabled = !hasAtLeastOneDay || !hasAtLeastOneSession || !allDaysHaveDateAndSession;
 
@@ -125,15 +132,7 @@ const EventSession = () => {
 		>
 			<Outlet context={{ sidebar, setSidebar, setSelectedRow }} />
 
-			{isLoading ? (
-				<div className="d-flex justify-content-center align-items-center" style={{ minHeight: '300px' }}>
-					<div className="spinner-border text-primary" role="status">
-						<span className="visually-hidden">Loading...</span>
-					</div>
-					<span className="ms-3 text-secondary">Memuat data sesi...</span>
-				</div>
-			) : (
-				<div>
+			<div>
 					{days.map((dayItem, index) => (
 						<SessionCard
 							key={index}
@@ -152,10 +151,7 @@ const EventSession = () => {
 						<Plus size={18} />
 						Tambah Hari Baru
 					</button>
-
-	
 				</div>
-			)}
 		</EventLayout>
 	);
 };

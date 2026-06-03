@@ -5,9 +5,9 @@ import FilePreviewModal from './FilePreviewModal';
 import VideoPreviewModal from './VideoPreviewModal';
 import MaterialList from './MaterialList';
 import AddMaterialForm from './AddMaterialForm';
-import api from '../../../../api/axios';
+import api from '../../../../../api/axios';
 import { useParams } from 'react-router-dom';
-import { notify } from '../../../../utils/notify';
+import { notify } from '../../../../../utils/notify';
 
 const SessionContentCard = ({
 	session,
@@ -278,12 +278,21 @@ const SessionContentCard = ({
 						{/* Flat Footer Action Bar */}
 						<div
 							className="px-4 py-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-3"
-							style={{ backgroundColor: '#f8fafc', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', borderColor: '#e2e8f0' }}
+							style={{
+								backgroundColor: '#f8fafc',
+								borderBottomLeftRadius: '12px',
+								borderBottomRightRadius: '12px',
+								borderColor: '#e2e8f0',
+							}}
 						>
-							<div className="d-flex align-items-center gap-2 text-secondary" style={{ fontSize: '13px' }}>
+							<div
+								className="d-flex align-items-center gap-2 text-secondary"
+								style={{ fontSize: '13px' }}
+							>
 								<CheckCircle size={16} className="text-success" />
 								<span>
-									Materi otomatis tersedia setelah acara selesai bagi peserta yang hadir dan telah mengisi survey.
+									Materi otomatis tersedia setelah acara selesai bagi peserta yang
+									hadir dan telah mengisi survey.
 								</span>
 							</div>
 						</div>

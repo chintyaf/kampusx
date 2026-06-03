@@ -22,24 +22,29 @@ import api from '@/api/axios';
 import '@/assets/css/dashboard.css';
 
 // Components
-import PageHeader from './PageHeader';
-import DevToolsBar from './DevToolsBar';
-import StatCard from './StatCard';
-import EventInfoCard from './EventInfoCard';
-import EventTimeline from './EventTimeline';
-import MissingInformation from './MissingInformation';
-import EventChecklist from './EventChecklist';
-import SessionTable from './SessionTable';
-import DemographicsCard from './DemographicsCard';
-import TicketDistribution from './TicketDistribution';
-import DashboardSkeleton from './DashboardSkeleton';
-import PublishReadyCard from './PublishReadyCard';
-import OngoingDashboardCard from './OngoingDashboardCard';
-import AttendanceGuideCard from './AttendanceGuideCard';
+import {
+	PageHeader,
+	DevToolsBar,
+	StatCard,
+	EventInfoCard,
+	EventTimeline,
+	MissingInformation,
+	EventChecklist,
+	SessionTable,
+	DemographicsCard,
+	TicketDistribution,
+	DashboardSkeleton,
+	PublishReadyCard,
+	OngoingDashboardCard,
+	AttendanceGuideCard,
+} from './components';
 
-// Config
+import './EventDashboardPage.css';
+
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
 import StatusConfirmationModal from '@/components/event/EventStatusDropdown/StatusConfirmationModal';
+
+import { useLoading } from '@/context/LoadingContext';
 
 const iconMap = {
 	'Tickets Sold': Ticket,
@@ -94,6 +99,7 @@ const handleIssueNavigation = (issue, eventId, navigate) => {
 export default function EventDashboardPage() {
 	const { eventId } = useParams();
 	const navigate = useNavigate();
+	const { setIsPageLoading } = useLoading();
 
 	const [eventStatus, setEventStatus] = useState('draft');
 	const [eventData, setEventData] = useState(null);
@@ -130,6 +136,7 @@ export default function EventDashboardPage() {
 		const fetchOverview = async () => {
 			try {
 				setLoading(true);
+				setIsPageLoading(true);
 				const [overviewRes, statusRes, speakersRes, sessionRes] = await Promise.all([
 					api.get(`/event-dashboard/${eventId}/overview`),
 					api.get(`/events/${eventId}/check-status`),
@@ -213,11 +220,12 @@ export default function EventDashboardPage() {
 				console.error('Gagal mengambil event overview', error);
 			} finally {
 				setLoading(false);
+				setIsPageLoading(false);
 			}
 		};
 
 		fetchOverview();
-	}, [eventId]);
+	}, [eventId, setIsPageLoading]);
 
 	const handleSendCertificates = () => {
 		notify(
@@ -248,7 +256,7 @@ export default function EventDashboardPage() {
 					'Status Presensi Diperbarui',
 					res.data.is_attendance_open
 						? 'Presensi sekarang dibuka untuk peserta.'
-						: 'Presensi sekarang ditutup.'
+						: 'Presensi sekarang ditutup.',
 				);
 			}
 		} catch (error) {

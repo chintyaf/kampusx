@@ -80,9 +80,42 @@ const PublicLayout = () => {
 						overflowY: 'auto',
 						position: 'relative',
 					}}>
+					{isPageLoading && (
+						<>
+							<div
+								style={{
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									right: 0,
+									height: '3px',
+									background: 'var(--color-primary, #00699e)',
+									zIndex: 10000,
+									animation: 'loading-bar 2s infinite ease-in-out',
+								}}
+							/>
+							<div
+								style={{
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									right: 0,
+									bottom: 0,
+									zIndex: 9999,
+									display: 'flex',
+									justifyContent: 'center',
+									alignItems: 'center',
+									backdropFilter: 'blur(2px)',
+									backgroundColor: 'rgba(247, 248, 249, 0.7)',
+								}}
+							>
+								<div className="spinner-border text-primary" role="status">
+									<span className="visually-hidden">Loading...</span>
+								</div>
+							</div>
+						</>
+					)}
 					<Toaster position="top-right" containerStyle={{ top: 100, right: 40, zIndex: 99999 }} />
-
-					{/* GLOBAL LOADING OVERLAY HAS BEEN MOVED TO LoadingContext */}
 
 					<Outlet
 						context={{

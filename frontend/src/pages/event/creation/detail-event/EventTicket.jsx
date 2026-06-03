@@ -1,64 +1,51 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
-import { Plus, Trash2, ChevronDown, Tag, Users, Calendar, DollarSign, Ticket } from 'lucide-react';
-import {
-	Container,
-	Row,
-	Col,
-	Card,
-	Form,
-	Button,
-	Badge,
-	InputGroup,
-	ProgressBar,
-	Collapse,
-} from 'react-bootstrap';
+import { Plus } from 'lucide-react';
+import { Button } from 'react-bootstrap';
 import EventLayout from '@/layouts/EventLayout';
-import FormHeading from '@/components/dashboard/FormHeading';
 import TicketCard from '@/pages/event/creation/detail-event/sections/event-ticket/TicketCard';
 import TicketSummary from '@/pages/event/creation/detail-event/sections/event-ticket/TicketSummary';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
 import useEventMeta from '@/hooks/useEventMeta';
 
-function formatRp(val) {
-	if (!val) return '';
-	const n = parseInt(String(val).replace(/\D/g, ''), 10);
-	if (isNaN(n)) return '';
-	return n.toLocaleString('id-ID');
-}
-
-function parsePriceNum(val) {
+// Helper: Ekstrak logika parsing harga
+const parsePriceNum = (val) => {
 	if (!val) return 0;
 	return parseInt(String(val).replace(/\D/g, ''), 10) || 0;
-}
+};
+
+// Helper: Dapatkan string ISO lokal (YYYY-MM-DDTHH:mm)
+const getLocalIsoString = (date = new Date()) => {
+	const tzoffset = date.getTimezoneOffset() * 60000;
+	return new Date(date.getTime() - tzoffset).toISOString().slice(0, 16);
+};
 
 export default function EventTicket() {
-	const [tickets, setTickets] = useState([]);
-	const [eventStartDate, setEventStartDate] = useState('');
-	const [locationType, setLocationType] = useState('offline'); // KEMBALIKAN STATE INI
-	const [saved, setSaved] = useState(true);
 	const { eventId } = useParams();
+	const { setIsPageLoading } = useOutletContext() || {};
 	const { eventStatus, hasParticipants, participantCount } = useEventMeta(eventId);
 
-	const update = (id, patch) => {
+	const [tickets, setTickets] = useState([]);
+	const [eventStartDate, setEventStartDate] = useState('');
+	const [locationType, setLocationType] = useState('offline');
+	const [saved, setSaved] = useState(true);
+
+	const update = useCallback((id, patch) => {
 		setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 		setSaved(false);
-	};
+	}, []);
 
-	// KEMBALIKAN FUNGSI HAPUS TIKET
-	const remove = (id) => {
+	const remove = useCallback((id) => {
 		setTickets((ts) => ts.filter((t) => t.id !== id));
 		setSaved(false);
-	};
+	}, []);
 
-	// KEMBALIKAN FUNGSI TAMBAH TIKET (Penting agar ada temporary ID)
-	const addTicket = () => {
-		const tempId = `new-${Date.now()}`;
+	const addTicket = useCallback(() => {
 		setTickets((ts) => [
 			...ts,
 			{
-				id: tempId,
+				id: `new-${Date.now()}`,
 				name: '',
 				type: locationType === 'online' ? 'online' : 'offline',
 				isFree: false,
@@ -71,183 +58,130 @@ export default function EventTicket() {
 			},
 		]);
 		setSaved(false);
-	};
+	}, [locationType]);
 
 	useEffect(() => {
 		const fetchData = async () => {
+			if (setIsPageLoading) setIsPageLoading(true);
 			try {
-				const response = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
-				const result = response.data;
-				const formattedFromApi = (result.data || []).map((t) => ({
+				const {
+					data: { data: resultTickets = [], event_start_date, location_type },
+				} = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
+
+				const formattedFromApi = resultTickets.map((t) => ({
 					...t,
 					unlimited: t.unlimited ?? (t.capacity === null || t.capacity === undefined),
 				}));
+
 				setTickets(formattedFromApi);
-				setEventStartDate(result.event_start_date || '');
-				setLocationType(result.location_type || 'offline'); // SIMPAN LOCATION TYPE DARI API
+				setEventStartDate(event_start_date || '');
+				setLocationType(location_type || 'offline');
 			} catch (err) {
-				console.error('Error saving tickets:', err);
+				console.error('Error fetching tickets:', err);
+			} finally {
+				if (setIsPageLoading) setIsPageLoading(false);
 			}
 		};
 
-		if (tickets.length === 0) {
-			fetchData();
-		}
-	}, [tickets.length, eventId]);
+		if (tickets.length === 0) fetchData();
+	}, [tickets.length, eventId, setIsPageLoading]);
 
 	const handleUpdate = async (shouldNotify = false) => {
-		// Validasi kelengkapan data di frontend
+		const todayStr = getLocalIsoString();
+		const maxStr = eventStartDate ? getLocalIsoString(new Date(eventStartDate)) : '';
+
+		// 1. Validasi Frontend
 		for (let i = 0; i < tickets.length; i++) {
 			const t = tickets[i];
-			const ticketLabel = t.name || `Tiket ke-${i + 1}`;
+			const label = t.name || `Tiket ke-${i + 1}`;
+			const startVal = (t.sale_start || t.saleStart)?.slice(0, 16);
+			const endVal = (t.sale_end || t.saleEnd)?.slice(0, 16);
 
-			if (!t.name || t.name.trim() === '') {
-				notify('error', 'Gagal!', 'Nama tiket wajib diisi.');
-				return;
-			}
-
-			if (!t.isFree && (!t.price || parsePriceNum(t.price) <= 0)) {
-				notify(
+			if (!t.name?.trim()) return notify('error', 'Gagal!', 'Nama tiket wajib diisi.');
+			if (!t.isFree && parsePriceNum(t.price) <= 0)
+				return notify(
 					'error',
 					'Gagal!',
-					`Harga untuk "${ticketLabel}" harus lebih dari 0 atau centang opsi Gratis.`,
+					`Harga untuk "${label}" harus lebih dari 0 atau Gratis.`,
 				);
-				return;
-			}
-
-			if (!t.unlimited && (!t.capacity || parseInt(t.capacity) <= 0)) {
-				notify(
+			if (!t.unlimited && (!t.capacity || parseInt(t.capacity) <= 0))
+				return notify(
 					'error',
 					'Gagal!',
-					`Kapasitas untuk "${ticketLabel}" harus lebih dari 0 atau centang opsi Tak terbatas.`,
+					`Kapasitas untuk "${label}" harus lebih dari 0 atau Tak terbatas.`,
 				);
-				return;
-			}
 
-			if (!t.sale_start && !t.saleStart) {
-				notify(
+			if (!startVal)
+				return notify(
 					'error',
 					'Gagal!',
-					`Waktu Mulai Pendaftaran untuk "${ticketLabel}" wajib ditentukan.`,
+					`Waktu Mulai Pendaftaran "${label}" wajib ditentukan.`,
 				);
-				return;
-			}
-
-			if (!t.sale_end && !t.saleEnd) {
-				notify(
+			if (!endVal)
+				return notify(
 					'error',
 					'Gagal!',
-					`Waktu Akhir Pendaftaran untuk "${ticketLabel}" wajib ditentukan.`,
+					`Waktu Akhir Pendaftaran "${label}" wajib ditentukan.`,
 				);
-				return;
-			}
 
-			// Validasi Tanggal
-			const saleStartStr = t.sale_start || t.saleStart;
-			const saleEndStr = t.sale_end || t.saleEnd;
-			const now = new Date();
-			const tzoffset = now.getTimezoneOffset() * 60000;
-			const todayStr = new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
-			const maxStr = eventStartDate
-				? new Date(new Date(eventStartDate).getTime() - tzoffset).toISOString().slice(0, 16)
-				: '';
-
-			if (saleStartStr) {
-				const sVal = saleStartStr.slice(0, 16);
-				if (sVal < todayStr) {
-					notify(
-						'error',
-						'Gagal!',
-						`Mulai Pendaftaran untuk "${ticketLabel}" tidak bisa kurang dari hari ini.`,
-					);
-					return;
-				}
-				if (maxStr && sVal >= maxStr) {
-					notify(
-						'error',
-						'Gagal!',
-						`Mulai Pendaftaran untuk "${ticketLabel}" tidak bisa melebihi atau sama dengan hari H acara.`,
-					);
-					return;
-				}
-				if (saleEndStr) {
-					const eVal = saleEndStr.slice(0, 16);
-					if (sVal >= eVal) {
-						notify(
-							'error',
-							'Gagal!',
-							`Mulai Pendaftaran untuk "${ticketLabel}" tidak bisa melebihi atau sama dengan Akhir Pendaftaran.`,
-						);
-						return;
-					}
-				}
-			}
-
-			if (saleEndStr) {
-				const eVal = saleEndStr.slice(0, 16);
-				if (eVal < todayStr) {
-					notify(
-						'error',
-						'Gagal!',
-						`Akhir Pendaftaran untuk "${ticketLabel}" tidak bisa kurang dari hari ini.`,
-					);
-					return;
-				}
-				if (maxStr && eVal > maxStr) {
-					notify(
-						'error',
-						'Gagal!',
-						`Akhir Pendaftaran untuk "${ticketLabel}" tidak bisa melebihi hari H acara.`,
-					);
-					return;
-				}
-				if (saleStartStr) {
-					const sVal = saleStartStr.slice(0, 16);
-					if (eVal <= sVal) {
-						notify(
-							'error',
-							'Gagal!',
-							`Akhir Pendaftaran untuk "${ticketLabel}" tidak bisa kurang dari atau sama dengan Mulai Pendaftaran.`,
-						);
-						return;
-					}
-				}
-			}
+			if (startVal < todayStr)
+				return notify(
+					'error',
+					'Gagal!',
+					`Mulai Pendaftaran "${label}" tidak bisa kurang dari hari ini.`,
+				);
+			if (maxStr && startVal >= maxStr)
+				return notify(
+					'error',
+					'Gagal!',
+					`Mulai Pendaftaran "${label}" tidak bisa melebihi atau sama dengan hari H.`,
+				);
+			if (endVal < todayStr)
+				return notify(
+					'error',
+					'Gagal!',
+					`Akhir Pendaftaran "${label}" tidak bisa kurang dari hari ini.`,
+				);
+			if (maxStr && endVal > maxStr)
+				return notify(
+					'error',
+					'Gagal!',
+					`Akhir Pendaftaran "${label}" tidak bisa melebihi hari H acara.`,
+				);
+			if (endVal <= startVal)
+				return notify(
+					'error',
+					'Gagal!',
+					`Akhir Pendaftaran "${label}" tidak bisa kurang dari atau sama dengan Mulai Pendaftaran.`,
+				);
 		}
 
-		// 1. Format ulang data agar sesuai dengan validasi Laravel (snake_case)
+		// 2. Format Payload
 		const formattedTickets = tickets.map((t) => {
-			// Tangani kapasitas: Jika unlimited, kirim null secara eksplisit.
-			// Jika tidak, parsing sebagai Integer. Jika gagal di-parsing, kirim null.
-			let finalCapacity = null;
-			if (!t.unlimited) {
-				const parsedCap = parseInt(t.capacity, 10);
-				finalCapacity = !isNaN(parsedCap) && parsedCap > 0 ? parsedCap : null;
-			}
+			const isUnlimited = t.unlimited;
+			const parsedCap = parseInt(t.capacity, 10);
+			const isFree = t.isFree ?? t.is_free;
 
 			return {
 				id: String(t.id).startsWith('new-') ? null : t.id,
 				name: t.name,
 				type: t.type || 'offline',
-				is_free: t.isFree ?? t.is_free,
-				price: (t.isFree ?? t.is_free) ? 0 : t.price ? parsePriceNum(t.price) : 0,
-				capacity: finalCapacity, // <--- PERBAIKAN DI SINI
+				is_free: isFree,
+				price: isFree ? 0 : parsePriceNum(t.price),
+				capacity: !isUnlimited && !isNaN(parsedCap) && parsedCap > 0 ? parsedCap : null,
 				sale_start: t.saleStart ?? t.sale_start ?? null,
 				sale_end: t.saleEnd ?? t.sale_end ?? null,
 				description: t.description || null,
 			};
 		});
 
-		const payload = {
-			tickets: formattedTickets,
-		};
-
+		// 3. Eksekusi API
 		try {
-			const response = await api.post(
-				`event-dashboard/${eventId}/info-utama/tickets`,
-				payload,
-			);
+			const response = await api.post(`event-dashboard/${eventId}/info-utama/tickets`, {
+				tickets: formattedTickets,
+			});
 			setSaved(true);
+
 			if (response.data?.notified_participants || shouldNotify) {
 				notify(
 					'success',
@@ -262,50 +196,28 @@ export default function EventTicket() {
 		}
 	};
 
-	const isCurrentStepCompleted =
-		tickets.length > 0 &&
-		tickets.every((t) => {
-			const hasName = t.name && t.name.trim() !== '';
-			const hasPrice = t.isFree || (t.price && parsePriceNum(t.price) > 0);
-			const hasCapacity = t.unlimited || (t.capacity && parseInt(t.capacity) > 0);
-			const hasSaleStart = t.sale_start || t.saleStart;
-			const hasSaleEnd = t.sale_end || t.saleEnd;
+	const isCurrentStepCompleted = useMemo(() => {
+		if (tickets.length === 0) return false;
 
-			if (!hasName || !hasPrice || !hasCapacity || !hasSaleStart || !hasSaleEnd) {
-				return false;
-			}
+		const todayStr = getLocalIsoString();
+		const maxStr = eventStartDate ? getLocalIsoString(new Date(eventStartDate)) : '';
 
-			const startVal = t.sale_start || t.saleStart;
-			const endVal = t.sale_end || t.saleEnd;
-			const now = new Date();
-			const tzoffset = now.getTimezoneOffset() * 60000;
-			const todayStr = new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
-			const maxStr = eventStartDate
-				? new Date(new Date(eventStartDate).getTime() - tzoffset).toISOString().slice(0, 16)
-				: '';
+		return tickets.every((t) => {
+			const hasName = t.name?.trim();
+			const hasPrice = t.isFree || parsePriceNum(t.price) > 0;
+			const hasCapacity = t.unlimited || parseInt(t.capacity) > 0;
+			const startVal = (t.sale_start || t.saleStart)?.slice(0, 16);
+			const endVal = (t.sale_end || t.saleEnd)?.slice(0, 16);
 
-			if (startVal) {
-				const sVal = startVal.slice(0, 16);
-				if (sVal < todayStr) return false;
-				if (maxStr && sVal >= maxStr) return false;
-				if (endVal) {
-					const eVal = endVal.slice(0, 16);
-					if (sVal >= eVal) return false;
-				}
-			}
+			if (!hasName || !hasPrice || !hasCapacity || !startVal || !endVal) return false;
 
-			if (endVal) {
-				const eVal = endVal.slice(0, 16);
-				if (eVal < todayStr) return false;
-				if (maxStr && eVal > maxStr) return false;
-				if (startVal) {
-					const sVal = startVal.slice(0, 16);
-					if (eVal <= sVal) return false;
-				}
-			}
+			if (startVal < todayStr || (maxStr && startVal >= maxStr)) return false;
+			if (endVal < todayStr || (maxStr && endVal > maxStr)) return false;
+			if (endVal <= startVal) return false;
 
 			return true;
 		});
+	}, [tickets, eventStartDate]);
 
 	return (
 		<EventLayout
@@ -335,22 +247,18 @@ export default function EventTicket() {
 					<span style={{ fontSize: 20, lineHeight: 1, marginTop: 2 }}>⚠️</span>
 					<div>
 						<p
+							className="mb-1 fs-4 fw-semibold"
 							style={{
-								margin: 0,
-								fontWeight: 700,
-								fontSize: '0.88rem',
 								color: '#92400e',
 							}}
 						>
 							Harga tiket tidak bisa diubah
 						</p>
 						<p
+							className="mb-0 fs-5 fw-medium "
 							style={{
-								margin: 0,
-								fontSize: '0.82rem',
 								color: '#78350f',
 								marginTop: 3,
-								lineHeight: 1.5,
 							}}
 						>
 							<strong>{participantCount} peserta</strong> telah mendaftar. Demi
@@ -362,25 +270,24 @@ export default function EventTicket() {
 
 			<div>
 				<div className="d-flex flex-column gap-2 mt-3">
-					{tickets &&
-						tickets.map((t, idx) => (
-							<TicketCard
-								key={t.id}
-								ticket={t}
-								index={idx}
-								onChange={(patch) => update(t.id, patch)}
-								onDelete={() => remove(t.id)}
-								canDelete={tickets.length > 1}
-								priceLocked={hasParticipants}
-								eventStartDate={eventStartDate}
-								locationType={locationType} // PASS PROPS INI AGAR DROPDOWN MUNCUL
-							/>
-						))}
+					{tickets.map((t, idx) => (
+						<TicketCard
+							key={t.id}
+							ticket={t}
+							index={idx}
+							onChange={(patch) => update(t.id, patch)}
+							onDelete={() => remove(t.id)}
+							canDelete={tickets.length > 1}
+							priceLocked={hasParticipants}
+							eventStartDate={eventStartDate}
+							locationType={locationType}
+						/>
+					))}
 				</div>
 
 				<Button
-					className="btn-add d-flex align-items-center gap-1 p-3 "
-					onClick={addTicket} // GUNAKAN FUNGSI YANG SUDAH DIPERBAIKI
+					className="btn-add d-flex align-items-center gap-1 p-3 mt-3"
+					onClick={addTicket}
 				>
 					<Plus size={18} />
 					Tambah Tiket

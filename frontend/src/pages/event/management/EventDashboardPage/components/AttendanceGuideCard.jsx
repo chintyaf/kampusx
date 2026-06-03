@@ -25,9 +25,9 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 	const navigate = useNavigate();
 	const [expanded, setExpanded] = useState(false);
 
-	const isOnline   = eventType === 'online';
-	const isOffline  = eventType === 'offline';
-	const isHybrid   = eventType === 'hybrid';
+	const isOnline = eventType === 'online';
+	const isOffline = eventType === 'offline';
+	const isHybrid = eventType === 'hybrid';
 
 	// ─── Konfigurasi per tipe event ────────────────────────────────────────────
 	const EVENT_TYPE_META = {
@@ -129,10 +129,24 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 						<QrCode size={18} color="#0284c7" />
 					</div>
 					<div>
-						<div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font)' }}>
+						<div
+							style={{
+								fontSize: 14,
+								fontWeight: 700,
+								color: '#0F172A',
+								fontFamily: 'var(--font)',
+							}}
+						>
 							Cara Mengkonfirmasi Kehadiran Peserta
 						</div>
-						<div style={{ fontSize: 12, color: '#64748B', marginTop: 2, fontFamily: 'var(--font)' }}>
+						<div
+							style={{
+								fontSize: 12,
+								color: '#64748B',
+								marginTop: 2,
+								fontFamily: 'var(--font)',
+							}}
+						>
 							Panduan metode presensi yang tersedia untuk event ini
 						</div>
 					</div>
@@ -178,7 +192,9 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 			</div>
 
 			{/* ── Method Cards ──────────────────────────────────────────────── */}
-			<div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+			<div
+				style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}
+			>
 				{activeMethods.map((method) => (
 					<div
 						key={method.id}
@@ -214,10 +230,25 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 								{method.icon}
 							</div>
 							<div style={{ flex: 1, minWidth: 0 }}>
-								<div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A', fontFamily: 'var(--font)', marginBottom: 3 }}>
+								<div
+									style={{
+										fontSize: 13,
+										fontWeight: 700,
+										color: '#0F172A',
+										fontFamily: 'var(--font)',
+										marginBottom: 3,
+									}}
+								>
 									{method.title}
 								</div>
-								<div style={{ fontSize: 12, color: '#64748B', fontFamily: 'var(--font)', lineHeight: 1.5 }}>
+								<div
+									style={{
+										fontSize: 12,
+										color: '#64748B',
+										fontFamily: 'var(--font)',
+										lineHeight: 1.5,
+									}}
+								>
 									{method.desc}
 								</div>
 							</div>
