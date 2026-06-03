@@ -29,6 +29,7 @@ const EventParticipantListPage = () => {
 		not_attended: 0,
 		checked_in: 0,
 		checked_out: 0,
+		total_attendance: 1,
 	});
 
 	const fetchParticipants = async (page = 1) => {
@@ -131,6 +132,7 @@ const EventParticipantListPage = () => {
 						pageInfo={pageInfo}
 						revealed={revealed}
 						toggleReveal={toggleReveal}
+						summary={summary}
 					/>
 				</div>
 

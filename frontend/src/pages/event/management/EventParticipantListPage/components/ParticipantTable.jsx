@@ -20,7 +20,7 @@ import {
 	getAvatarColor,
 } from './ParticipantHelpers';
 
-const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, toggleReveal }) => {
+const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, toggleReveal, summary }) => {
 	if (loading) {
 		return (
 			<div className="participant-empty">
@@ -49,6 +49,7 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 					<th>Email</th>
 					<th>Telepon</th>
 					<th className="text-center">Kehadiran</th>
+					<th className="text-center">Persentase</th>
 					<th style={{ width: 48 }}></th>
 				</tr>
 			</thead>
@@ -179,6 +180,16 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 											</span>
 										</div>
 									)}
+								</div>
+							</td>
+							<td className="text-center">
+								<div className="attendance-cell">
+									<span className="fw-semibold text-dark">
+										{Math.min(100, Math.round(((ticket.attendance_logs_count || 0) / (summary?.total_attendance || 1)) * 100))}%
+									</span>
+									<span className="text-muted" style={{ fontSize: '10px' }}>
+										({ticket.attendance_logs_count || 0}/{summary?.total_attendance || 1})
+									</span>
 								</div>
 							</td>
 							<td>

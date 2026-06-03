@@ -23,6 +23,7 @@ class EventParticipantController extends Controller
                 'orderItem.order',
                 'attendanceLog',
             ])
+            ->withCount('attendanceLogs')
             ->whereHas('orderItem.order', fn($q) => $q->where('event_id', $eventId))
             ->whereIn('status', ['active', 'used']);
 
@@ -40,6 +41,10 @@ class EventParticipantController extends Controller
 
         $totalValid      = $allTicketIds->count();
         $notAttendedCount = $totalValid - $checkedInCount - $checkedOutCount;
+
+        // Hitung total sesi kehadiran yang tersedia (sesi + 1 untuk check-in awal)
+        $totalSessions = \App\Models\EventSession::where('event_id', $eventId)->count();
+        $totalAttendance = $totalSessions > 0 ? $totalSessions + 1 : 1;
 
         // ── Terapkan filter kehadiran ─────────────────────────────────────────
         $query = clone $baseQuery;
@@ -59,10 +64,11 @@ class EventParticipantController extends Controller
 
         // ── Ringkasan kehadiran yang disertakan di setiap response ────────────
         $attendanceSummary = [
-            'total'         => $totalValid,
-            'not_attended'  => max(0, $notAttendedCount),
-            'checked_in'    => $checkedInCount,
-            'checked_out'   => $checkedOutCount,
+            'total'            => $totalValid,
+            'not_attended'     => max(0, $notAttendedCount),
+            'checked_in'       => $checkedInCount,
+            'checked_out'      => $checkedOutCount,
+            'total_attendance' => $totalAttendance,
         ];
 
         // ── Return ────────────────────────────────────────────────────────────
