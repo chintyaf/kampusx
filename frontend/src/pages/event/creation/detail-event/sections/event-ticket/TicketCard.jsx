@@ -145,7 +145,7 @@ function TicketCard({
 				<div>
 					<div className="p-4" style={{ paddingTop: '24px' }}>
 						{/* Row 1: Nama Tiket & Tipe Tiket */}
-						<Row className="mb-4 gx-4">
+						{/* <Row className="mb-4 gx-4">
 							<Col md={locationType === 'hybrid' ? 8 : 12} className="mb-3 mb-md-0">
 								<Form.Group>
 									<label className="form-label required mb-2">Nama Tiket</label>
@@ -183,7 +183,7 @@ function TicketCard({
 									</Form.Group>
 								</Col>
 							)}
-						</Row>
+						</Row> */}
 
 						{/* Row 2: Harga + Kapasitas */}
 						<Row className="mb-4 gx-4">

@@ -14,64 +14,75 @@ class EventTicketController extends Controller
     {
         // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
+
+        // Ambil tipe lokasi (default ke offline jika null)
+        // Note: Saya sesuaikan pemanggilan relasinya ke 'locationDetail' sesuai dengan query 'with' di atas
         $locationType = $event->locationDetail->type ?? 'offline';
 
-        // 2. Tentukan tipe tiket wajib (Lebih bersih menggunakan match daripada if-else)
-        $requiredTypes = match($locationType) {
-            'online' => ['online'],
-            'hybrid' => ['online', 'offline'],
-            default  => ['offline'],
-        };
-
-        // 3. Hapus tiket yang tipenya sudah tidak relevan dengan lokasi event saat ini
-        // Skenario: Online -> Offline (Menghapus Online), Hybrid -> Offline (Menghapus Online)
-        EventTicket::where('event_id', $eventId)
-            ->whereNotIn('type', $requiredTypes)
-            ->delete();
-
-        // 4. Ambil tiket yang bertahan setelah pembersihan
-        $tickets = EventTicket::where('event_id', $eventId)->get();
-
-        // Gunakan unique() agar jika organizer membuat 3 tiket online, tetap terhitung sebagai ['online']
-        $existingTypes = $tickets->pluck('type')->unique()->toArray();
-
-        // 5. Cari tipe tiket yang wajib ada tapi belum terbuat
-        $missingTypes = array_diff($requiredTypes, $existingTypes);
-
-        // 6. Buat tiket jika ada yang hilang
-        if (!empty($missingTypes)) {
-            foreach ($missingTypes as $type) {
-                $ticketData = $this->generateDefaultTicket($eventId, ucfirst($type) . ' Ticket', $type);
-
-                // Gunakan create() alih-alih insert() agar 'created_at', 'updated_at',
-                // dan Eloquent Events (seperti UUID generation) tetap tereksekusi.
-                EventTicket::create($ticketData);
-            }
-
-            // Ambil ulang data agar sinkron dengan database terbaru
-            $tickets = EventTicket::where('event_id', $eventId)->get();
+        // 3. Tentukan tipe tiket yang DIBUTUHKAN berdasarkan tipe lokasi event
+        $requiredTypes = [];
+        if ($locationType === 'online') {
+            $requiredTypes = ['online'];
+        } elseif ($locationType === 'offline') {
+            $requiredTypes = ['offline'];
+        } elseif ($locationType === 'hybrid') {
+            $requiredTypes = ['online', 'offline'];
         }
 
-        // 7. Mapping data untuk response
+        // Hapus tiket yang tipenya tidak sesuai dengan tipe lokasi saat ini
+        EventTicket::where('event_id', $eventId)->whereNotIn('type', $requiredTypes)->delete();
+
+        // 2. Ambil tiket yang sudah ada untuk event ini
+        $tickets = EventTicket::where('event_id', $eventId)->get();
+
+        // 4. Ambil array tipe tiket yang SUDAH ADA di database
+        // Asumsi: Model EventTicket punya kolom 'type' untuk membedakan online/offline
+        $existingTypes = $tickets->pluck('type')->toArray();
+
+        // 5. Cari tipe tiket yang DIBUTUHKAN tapi BELUM ADA (Missing types)
+        $missingTypes = array_diff($requiredTypes, $existingTypes);
+
+        // Jika ada tipe tiket yang belum dibuat, maka insert
+        if (!empty($missingTypes)) {
+            $ticketsToInsert = [];
+
+            foreach ($missingTypes as $type) {
+                if ($type === 'online') {
+                    $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Online Ticket', 'online');
+                } elseif ($type === 'offline') {
+                    $ticketsToInsert[] = $this->generateDefaultTicket($eventId, 'Offline Ticket', 'offline');
+                }
+            }
+
+            // Insert data ke database
+            if (!empty($ticketsToInsert)) {
+                EventTicket::insert($ticketsToInsert);
+
+                // Ambil ulang data tiket yang baru saja ditambahkan agar up-to-date
+                $tickets = EventTicket::where('event_id', $eventId)->get();
+            }
+        }
+
+        // 6. Mapping data untuk response
         $data = $tickets->map(function ($ticket) {
             return [
-                'id'          => $ticket->id,
-                'name'        => $ticket->name,
-                'isFree'      => $ticket->is_free,
-                'price'       => $ticket->price,
-                'capacity'    => $ticket->capacity,
-                'unlimited'   => is_null($ticket->capacity),
-                'sale_start'  => $ticket->sale_start,
-                'sale_end'    => $ticket->sale_end,
+                'id' => $ticket->id,
+                'name' => $ticket->name,
+                'isFree' => $ticket->is_free,
+                'price' => $ticket->price,
+                'capacity' => $ticket->capacity,
+                'unlimited' => is_null($ticket->capacity),
+                'sale_start' => $ticket->sale_start,
+                'sale_end' => $ticket->sale_end,
                 'description' => $ticket->description,
-                'type'        => $ticket->type,
+                'type' => $ticket->type, // Opsional: bagus untuk dikembalikan ke frontend
             ];
         });
 
-        // 8. Return data JSON
+        // 7. Return data JSON
         return response()->json([
-            'status'           => 'success',
-            'data'             => $data,
+            'status' => 'success',
+            'data' => $data,
             'event_start_date' => $event->start_date
         ]);
     }
