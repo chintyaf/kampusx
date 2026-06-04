@@ -85,6 +85,77 @@ class SessionMaterialController extends Controller
     }
 
     /**
+     * Tampilkan seluruh sesi dari suatu event yang berstatus published beserta materinya untuk peserta.
+     * Endpoint: GET /api/events/{id}/post-event/sessions
+     */
+    public function getSessionsWithMaterialsForParticipant($id)
+    {
+        try {
+            $event = Event::where('id', $id)->orWhere('slug', $id)->firstOrFail();
+
+            // Eager load speakers dan materials (diurutkan berdasarkan sort_order)
+            $sessions = EventSession::query()
+                ->with(['speakers', 'materials' => function ($query) {
+                    $query->orderBy('sort_order', 'asc');
+                }])
+                ->where('event_id', $event->id)
+                ->orderBy('date', 'asc')
+                ->orderBy('start_time', 'asc')
+                ->get();
+
+            // Transformasi data agar sesuai dengan struktur konsumsi React
+            $data = $sessions->map(function ($session) {
+                // Formatting data materi
+                $materials = $session->materials->map(function ($material) {
+                    return [
+                        'id' => $material->id,
+                        'type' => $material->type,
+                        'name' => $material->name,
+                        'path_or_url' => $material->path_or_url,
+                        // Menghasilkan URL absolut jika berupa file di local storage
+                        'url' => in_array($material->type, ['video_file', 'document']) && !filter_var($material->path_or_url, FILTER_VALIDATE_URL)
+                            ? asset('storage/' . $material->path_or_url)
+                            : $material->path_or_url,
+                        'file_size' => $material->file_size,
+                        'sort_order' => $material->sort_order,
+                    ];
+                });
+
+                return [
+                    'id' => $session->id,
+                    'title' => $session->title,
+                    'description' => $session->description,
+                    'date' => $session->date 
+                        ? ($session->date instanceof \Carbon\Carbon || $session->date instanceof \DateTime 
+                            ? $session->date->format('d M Y') 
+                            : \Carbon\Carbon::parse($session->date)->format('d M Y')) 
+                        : 'Belum dijadwalkan',
+                    'start_time' => $session->start_time,
+                    'end_time' => $session->end_time,
+                    'speakers' => $session->speakers->pluck('name')->implode(', '),
+                    'videoUrl' => $session->materials->where('type', 'url')->first()?->path_or_url ?? '',
+                    'videoMaterialId' => $session->materials->where('type', 'url')->first()?->id ?? null,
+                    'videoFileName' => $session->materials->where('type', 'video_file')->first()?->name ?? null,
+                    'videoFileMaterialId' => $session->materials->where('type', 'video_file')->first()?->id ?? null,
+                    'materials' => $materials->whereIn('type', ['document'])->values(),
+                    'published' => $session->is_published,
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memuat data sesi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Simpan Draft / Publikasikan Sesi.
      * Endpoint: PUT /api/event-dashboard/{eventId}/post-event/sessions/{sessionId}/status
      */

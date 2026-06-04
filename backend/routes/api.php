@@ -136,6 +136,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
     Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index'])->middleware('event.participant');
+    Route::get('/events/{id}/post-event/sessions', [SessionMaterialController::class, 'getSessionsWithMaterialsForParticipant'])->middleware('event.participant');
     Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'index']);
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);

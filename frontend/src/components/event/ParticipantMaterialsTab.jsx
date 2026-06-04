@@ -1,207 +1,512 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Spinner, Alert, Button, Badge, Row, Col } from 'react-bootstrap';
-import { Download, ExternalLink, FileText, Code, Palette, LinkIcon, FileQuestion, Users } from 'lucide-react';
+import { Card, Spinner, Alert, Button, Badge, Row, Col, Collapse } from 'react-bootstrap';
+import { ChevronDown, PlayCircle, Video, BarChart2, Users, Download, Eye, Link2, FileText, CheckCircle } from 'lucide-react';
 import api from '../../api/axios';
 import { STORAGE_URL } from '../../api/storage';
+import StatCard from '@/components/dashboard/StatCard';
+import { Skeleton, SkeletonStyles } from '@/components/Skeleton';
+import FilePreviewModal from '@/pages/event/post-event/EventPostMaterialPage/components/FilePreviewModal';
+import VideoPreviewModal from '@/pages/event/post-event/EventPostMaterialPage/components/VideoPreviewModal';
+import { getFileIcon } from '@/pages/event/post-event/EventPostMaterialPage/components/utils';
 
 const ParticipantMaterialsTab = ({ eventId }) => {
-    const [materials, setMaterials] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [errorMsg, setErrorMsg] = useState(null);
+	const [sessions, setSessions] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [errorMsg, setErrorMsg] = useState(null);
+	const [expandedSessionId, setExpandedSessionId] = useState(null);
 
-    useEffect(() => {
-        const fetchMaterials = async () => {
-            setLoading(true);
-            setErrorMsg(null);
-            try {
-                const res = await api.get(`/events/${eventId}/materials`);
-                if (res.data?.success) {
-                    setMaterials(res.data.data || []);
-                }
-            } catch (err) {
-                console.error("Gagal memuat materi:", err);
-                if (err.response?.status === 403) {
-                    setErrorMsg("Akses ditolak. Anda tidak terdaftar sebagai peserta atau sesi Anda telah berakhir.");
-                } else {
-                    setErrorMsg("Gagal mengambil data materi event space.");
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
+	// Modal states
+	const [previewMaterial, setPreviewMaterial] = useState(null);
+	const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
 
-        if (eventId) {
-            fetchMaterials();
-        }
-    }, [eventId]);
+	const fetchSessions = async () => {
+		setLoading(true);
+		setErrorMsg(null);
+		try {
+			const res = await api.get(`/events/${eventId}/post-event/sessions`);
+			if (res.data?.status === 'success') {
+				setSessions(res.data.data || []);
+			}
+		} catch (err) {
+			console.error("Gagal memuat materi sesi pasca-acara:", err);
+			if (err.response?.status === 403) {
+				setErrorMsg("Akses ditolak. Anda tidak terdaftar sebagai peserta atau belum memiliki akses ke halaman ini.");
+			} else {
+				setErrorMsg("Gagal mengambil data materi sesi pasca-acara.");
+			}
+		} finally {
+			setLoading(false);
+		}
+	};
 
-    // Grouping materials by session_name
-    const getGroupedMaterials = () => {
-        return materials.reduce((acc, mat) => {
-            const groupKey = mat.session_name || 'Materi Umum';
-            if (!acc[groupKey]) {
-                acc[groupKey] = [];
-            }
-            acc[groupKey].push(mat);
-            return acc;
-        }, {});
-    };
+	useEffect(() => {
+		if (eventId) {
+			fetchSessions();
+		}
+	}, [eventId]);
 
-    const getTypeIcon = (t) => {
-        switch (t) {
-            case 'document':
-                return <FileText className="text-primary" size={20} />;
-            case 'code_repo':
-                return <Code className="text-dark" size={20} />;
-            case 'design_interactive':
-                return <Palette className="text-danger" size={20} />;
-            case 'media_form':
-                return <LinkIcon className="text-info" size={20} />;
-            default:
-                return <FileQuestion className="text-secondary" size={20} />;
-        }
-    };
+	const toggleSession = (id) => {
+		setExpandedSessionId(expandedSessionId === id ? null : id);
+	};
 
-    const getTypeLabel = (t) => {
-        switch (t) {
-            case 'document': return 'Bahan Bacaan / Slide';
-            case 'code_repo': return 'Repository Kode';
-            case 'design_interactive': return 'Berkas Desain';
-            case 'media_form': return 'Form Media / Survei';
-            default: return 'Tautan Sumber';
-        }
-    };
+	// --- Logika Kalkulasi Statistik ---
+	const totalSessions = sessions.length;
+	const totalPublished = sessions.filter((s) => s.published).length;
 
-    if (loading) {
-        return (
-            <div className="text-center py-5">
-                <Spinner animation="border" variant="primary" style={{ width: '2.5rem', height: '2.5rem' }} />
-                <p className="text-muted mt-3 small fw-medium">Mengambil berkas materi privat...</p>
-            </div>
-        );
-    }
+	// Total partisipan yang mengakses
+	const totalAccess = sessions.reduce(
+		(acc, curr) => acc + (curr.stats?.totalAccess || 0),
+		0,
+	);
 
-    if (errorMsg) {
-        return (
-            <Alert variant="danger" className="border-0 shadow-sm rounded-4 p-4 d-flex align-items-center gap-3">
-                <div className="bg-danger bg-opacity-10 text-danger rounded-circle p-2.5 d-inline-flex">
-                    <FileText size={24} />
-                </div>
-                <div>
-                    <h6 className="fw-bold text-dark mb-1">Materi Privat Terkunci</h6>
-                    <p className="mb-0 text-muted small">{errorMsg}</p>
-                </div>
-            </Alert>
-        );
-    }
+	// Total unduhan file materi
+	const totalDownloads = sessions.reduce(
+		(acc, curr) => acc + (curr.stats?.downloadCount || 0),
+		0,
+	);
 
-    if (materials.length === 0) {
-        return (
-            <div className="text-center py-5 bg-white rounded-4 border border-dashed shadow-sm">
-                <FileText size={48} className="opacity-25 mb-3 text-secondary mx-auto" />
-                <h5 className="fw-bold text-dark mb-1">Belum Ada Materi Diterbitkan</h5>
-                <p className="small text-muted mb-0 mx-auto" style={{ maxWidth: '350px' }}>
-                    Penyelenggara belum merilis materi atau slide pembelajaran untuk event space ini.
-                </p>
-            </div>
-        );
-    }
+	// Rata-rata tingkat penyelesaian (Completion Rate)
+	const avgCompletion =
+		totalSessions > 0
+			? Math.round(
+				sessions.reduce(
+					(acc, curr) => acc + (curr.stats?.completionRate || 0),
+					0,
+				) / totalSessions,
+			)
+			: 0;
 
-    const grouped = getGroupedMaterials();
+	if (loading) {
+		return (
+			<div>
+				<SkeletonStyles />
+				<div className="mb-4">
+					<Skeleton width="250px" height="24px" className="mb-2" />
+					<Skeleton width="450px" height="16px" />
+				</div>
 
-    return (
-        <div className="participant-materials-container fade-in">
-            <div className="mb-4">
-                <h5 className="fw-bold mb-1" style={{ color: 'var(--color-primary, #1A365D)' }}>Pusat Sumber Daya (Resource Center)</h5>
-                <p className="text-muted small mb-0">Akses berkas, repositori kode, form interaktif, dan materi presentasi eksklusif seminar.</p>
-            </div>
+				{/* Stat Cards Skeletons */}
+				<div className="row g-3 mb-4">
+					{[1, 2, 3, 4].map((i) => (
+						<div key={i} className="col-md-3 col-sm-6">
+							<div
+								className="p-3 d-flex align-items-center gap-3 bg-white"
+								style={{
+									border: '1px solid #e2e8f0',
+									borderRadius: '10px',
+								}}
+							>
+								<Skeleton width="40px" height="40px" borderRadius="10px" />
+								<div className="flex-grow-1">
+									<Skeleton width="60%" height="12px" className="mb-2" />
+									<Skeleton width="40%" height="20px" />
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
 
-            <div className="d-flex flex-column gap-4">
-                {Object.keys(grouped).map((session, sIdx) => (
-                    <div key={sIdx} className="session-group-block">
-                        {/* Session Header */}
-                        <div className="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom border-light">
-                            <div className="bg-primary bg-opacity-10 text-white rounded-pill px-3 py-1 fw-bold small">
-                                {session}
-                            </div>
-                        </div>
+				{/* Sessions Skeletons */}
+				<div className="d-flex flex-column gap-3">
+					{[1, 2].map((i) => (
+						<div
+							key={i}
+							className="p-4 bg-white"
+							style={{
+								border: '1px solid #e2e8f0',
+								borderRadius: '12px',
+							}}
+						>
+							<div className="d-flex justify-content-between align-items-center">
+								<div className="d-flex align-items-center gap-3">
+									<Skeleton width="32px" height="32px" borderRadius="8px" />
+									<div>
+										<Skeleton width="200px" height="16px" className="mb-2" />
+										<Skeleton width="120px" height="12px" />
+									</div>
+								</div>
+								<Skeleton width="24px" height="24px" borderRadius="50%" />
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		);
+	}
 
-                        {/* Materials Cards under Session */}
-                        <Row className="g-3">
-                            {grouped[session].map((mat) => (
-                                <Col key={mat.id} xs={12} md={6}>
-                                    <Card className="border shadow-sm rounded-4 h-100 transition-all hover-shadow bg-white">
-                                        <Card.Body className="p-4 d-flex flex-column justify-content-between">
-                                            <div>
-                                                <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
-                                                    <div className="bg-light p-2 rounded-3 d-inline-flex border">
-                                                        {getTypeIcon(mat.type)}
-                                                    </div>
-                                                    <Badge bg="light" text="dark" className="border px-2.5 py-1.5 small font-normal text-muted" style={{ fontWeight: 'normal', fontSize: '10.5px' }}>
-                                                        {getTypeLabel(mat.type)}
-                                                    </Badge>
-                                                </div>
+	if (errorMsg) {
+		return (
+			<Alert variant="danger" className="border-0 shadow-sm rounded-4 p-4 d-flex align-items-center gap-3">
+				<div className="bg-danger bg-opacity-10 text-danger rounded-circle p-2.5 d-inline-flex">
+					<FileText size={24} />
+				</div>
+				<div>
+					<h6 className="fw-bold text-dark mb-1">Materi Privat Terkunci</h6>
+					<p className="mb-0 text-muted small">{errorMsg}</p>
+				</div>
+			</Alert>
+		);
+	}
 
-                                                <h6 className="fw-bold text-dark mb-1" style={{ fontSize: '14.5px', lineHeight: '1.4' }}>
-                                                    {mat.title}
-                                                </h6>
+	if (sessions.length === 0) {
+		return (
+			<div className="text-center py-5 bg-white rounded-4 border border-dashed shadow-sm">
+				<FileText size={48} className="opacity-25 mb-3 text-secondary mx-auto" />
+				<h5 className="fw-bold text-dark mb-1">Belum Ada Materi Diterbitkan</h5>
+				<p className="small text-muted mb-0 mx-auto" style={{ maxWidth: '350px' }}>
+					Penyelenggara belum merilis materi pasca-acara atau slide pembelajaran untuk event ini.
+				</p>
+			</div>
+		);
+	}
 
-                                                {mat.speaker_name && (
-                                                    <div className="text-secondary small mb-2 d-flex align-items-center gap-1" style={{ fontSize: '12px' }}>
-                                                        <span>🎤 {mat.speaker_name}</span>
-                                                    </div>
-                                                )}
+	return (
+		<div className="participant-materials-container fade-in">
+			<div className="mb-4">
+				<h5 className="fw-bold mb-1" style={{ color: 'var(--color-primary, #1A365D)' }}>
+					Materi Pasca-Acara & Video Replay
+				</h5>
+				<p className="text-muted small mb-0">
+					Akses rekaman video sesi, slide presentasi pemateri, dan dokumen pendukung seminar lainnya.
+				</p>
+			</div>
 
-                                                {mat.description && (
-                                                    <p className="text-muted small mb-0 mt-2" style={{ fontSize: '12px', lineHeight: '1.5' }}>
-                                                        {mat.description}
-                                                    </p>
-                                                )}
-                                            </div>
+			{/* --- Bagian Stat Cards --- */}
+			{/* <div className="row g-3 mb-4">
+				<div className="col-md-3 col-sm-6">
+					<StatCard
+						Icon={Video}
+						label="Sesi Tersedia"
+						value={`${totalPublished} Sesi`}
+						type="blue"
+						iconColor="#475569"
+						iconBg="#f1f5f9"
+						style={{
+							boxShadow: 'none',
+							border: '1px solid #e2e8f0',
+							backgroundColor: '#ffffff',
+						}}
+					/>
+				</div>
+				<div className="col-md-3 col-sm-6">
+					<StatCard
+						Icon={Users}
+						label="Total Akses"
+						value={totalAccess}
+						type="green"
+						iconColor="#475569"
+						iconBg="#f1f5f9"
+						style={{
+							boxShadow: 'none',
+							border: '1px solid #e2e8f0',
+							backgroundColor: '#ffffff',
+						}}
+					/>
+				</div>
+				<div className="col-md-3 col-sm-6">
+					<StatCard
+						Icon={BarChart2}
+						label="Rata-rata Selesai"
+						value={`${avgCompletion}%`}
+						type="yellow"
+						iconColor="#475569"
+						iconBg="#f1f5f9"
+						style={{
+							boxShadow: 'none',
+							border: '1px solid #e2e8f0',
+							backgroundColor: '#ffffff',
+						}}
+					/>
+				</div>
+				<div className="col-md-3 col-sm-6">
+					<StatCard
+						Icon={Download}
+						label="Total Unduhan"
+						value={totalDownloads}
+						type="red"
+						iconColor="#475569"
+						iconBg="#f1f5f9"
+						style={{
+							boxShadow: 'none',
+							border: '1px solid #e2e8f0',
+							backgroundColor: '#ffffff',
+						}}
+					/>
+				</div>
+			</div> */}
 
-                                            <div className="mt-4 pt-3 border-top border-light d-flex justify-content-end">
-                                                {mat.file_path ? (
-                                                    <Button
-                                                        variant="primary"
-                                                        size="sm"
-                                                        href={mat.file_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="rounded-pill px-3.5 py-2 small fw-semibold shadow-sm d-flex align-items-center gap-1.5"
-                                                        style={{
-                                                            backgroundColor: 'var(--color-primary, #1A365D)',
-                                                            borderColor: 'var(--color-primary, #1A365D)',
-                                                            fontSize: '12px'
-                                                        }}
-                                                    >
-                                                        <Download size={14} /> Unduh File
-                                                    </Button>
-                                                ) : mat.content_url ? (
-                                                    <Button
-                                                        variant="outline-primary"
-                                                        size="sm"
-                                                        href={mat.content_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="rounded-pill px-3.5 py-2 small fw-semibold d-flex align-items-center gap-1.5"
-                                                        style={{ fontSize: '12px' }}
-                                                    >
-                                                        <ExternalLink size={14} /> Kunjungi Tautan
-                                                    </Button>
-                                                ) : (
-                                                    <span className="text-muted small">Tidak ada tautan</span>
-                                                )}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            ))}
-                        </Row>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+			{/* --- List of Sessions --- */}
+			<div className="d-flex flex-column gap-3">
+				{sessions.map((session, index) => {
+					const isExpanded = expandedSessionId === session.id;
+					const hasMaterials = session.videoUrl || session.videoFileName || (session.materials && session.materials.length > 0);
+
+					return (
+						<div
+							key={session.id}
+							style={{
+								backgroundColor: '#ffffff',
+								border: '1px solid #e2e8f0',
+								borderRadius: '12px',
+								transition: 'all 0.2s ease-in-out',
+								overflow: 'hidden',
+							}}
+						>
+							{/* Session Card Header */}
+							<div
+								className="p-4 d-flex justify-content-between align-items-center"
+								style={{
+									cursor: hasMaterials ? 'pointer' : 'default',
+									backgroundColor: isExpanded ? '#f8fafc' : 'transparent',
+									transition: 'background-color 0.2s ease',
+								}}
+								onClick={() => hasMaterials && toggleSession(session.id)}
+							>
+								<div className="d-flex align-items-center gap-3 flex-grow-1 text-truncate">
+									{/* Number Indicator */}
+									<div
+										className="d-flex align-items-center justify-content-center flex-shrink-0"
+										style={{
+											width: '38px',
+											height: '38px',
+											backgroundColor: isExpanded ? '#e0f2fe' : '#f1f5f9',
+											color: isExpanded ? '#00699e' : '#475569',
+											borderRadius: '10px',
+											fontWeight: '600',
+											fontSize: '15px',
+											transition: 'all 0.2s ease',
+										}}
+									>
+										{index + 1}
+									</div>
+
+									<div className="flex-grow-1 text-truncate">
+										<div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+											<span
+												className="text-dark"
+												style={{
+													fontSize: '16px',
+													fontWeight: 500,
+													letterSpacing: '-0.3px',
+												}}
+											>
+												{session.title || 'Sesi Acara'}
+											</span>
+										</div>
+										<p
+											className="text-muted small mb-0 text-truncate"
+											style={{ fontSize: '13px' }}
+										>
+											{session.date} {session.speakers && <span className="mx-1">•</span>}{' '}
+											{session.speakers}
+										</p>
+									</div>
+								</div>
+
+								{/* Right indicator */}
+								<div className="d-flex align-items-center gap-3">
+									{!hasMaterials ? (
+										<Badge bg="secondary-subtle" text="secondary" className="px-2.5 py-1.5 rounded-pill border small" style={{ fontWeight: 'normal' }}>
+											Materi Belum Tersedia
+										</Badge>
+									) : (
+										<div
+											className="text-secondary"
+											style={{
+												transition: 'transform 0.3s ease',
+												transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
+											}}
+										>
+											<ChevronDown size={20} strokeWidth={1.5} />
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Session Card Expanded Panel */}
+							{hasMaterials && (
+								<Collapse in={isExpanded}>
+									<div>
+										<div
+											className="border-top p-4 d-flex flex-column gap-3 bg-white"
+											style={{ borderColor: '#e2e8f0' }}
+										>
+											{/* Video Replay URL Link */}
+											{session.videoUrl && (
+												<div
+													className="d-flex justify-content-between align-items-center p-3 rounded"
+													style={{
+														backgroundColor: '#f8fafc',
+														border: '1px solid #f1f5f9',
+													}}
+												>
+													<div className="d-flex align-items-center gap-2.5 text-dark small fw-medium text-truncate me-3">
+														<PlayCircle size={18} className="text-danger flex-shrink-0" />
+														<span className="text-truncate">Video Replay Sesi (Tautan Luar)</span>
+													</div>
+													<Button
+														variant="danger"
+														size="sm"
+														className="rounded-pill px-3.5 py-1.5 small fw-semibold shadow-sm d-flex align-items-center gap-1.5"
+														style={{ fontSize: '12px' }}
+														onClick={() => setVideoPreviewUrl(session.videoUrl)}
+													>
+														<PlayCircle size={14} /> Tonton Video
+													</Button>
+												</div>
+											)}
+
+											{/* Video Replay Upload File */}
+											{session.videoFileName && (
+												<div
+													className="d-flex justify-content-between align-items-center p-3 rounded"
+													style={{
+														backgroundColor: '#f8fafc',
+														border: '1px solid #f1f5f9',
+													}}
+												>
+													<div className="d-flex align-items-center gap-2.5 text-dark small fw-medium text-truncate me-3">
+														<Video size={18} className="text-primary flex-shrink-0" />
+														<span className="text-truncate">{session.videoFileName}</span>
+													</div>
+													<Button
+														variant="primary"
+														size="sm"
+														className="rounded-pill px-3.5 py-1.5 small fw-semibold shadow-sm d-flex align-items-center gap-1.5"
+														style={{ fontSize: '12px' }}
+														onClick={() => {
+															// Create mock material object for video file to preview using FilePreviewModal
+															const videoFileUrl = !filterVarUrl(session.videoFileName) && session.videoFileMaterialId
+																? `${STORAGE_URL}/materials/sessions/${session.id}/video_file/${session.videoFileName}`
+																: session.videoFileName;
+															setPreviewMaterial({
+																id: session.videoFileMaterialId,
+																name: session.videoFileName,
+																type: 'video',
+																url: `${STORAGE_URL}/materials/sessions/${session.id}/video_file/${session.videoFileName}`, // fallback absolute link
+																size: 'Video File'
+															});
+														}}
+													>
+														<PlayCircle size={14} /> Putar Video
+													</Button>
+												</div>
+											)}
+
+											{/* Document Materials List */}
+											{session.materials && session.materials.length > 0 && (
+												<div className="d-flex flex-column gap-2 mt-1">
+													<div className="fw-semibold text-secondary small mb-1">Dokumen & Slide Presentasi:</div>
+													{session.materials.map((material) => {
+														const { Icon, bg, color, label } = getFileIcon(material.name.split('.').pop() || 'file');
+														return (
+															<div
+																key={material.id}
+																className="d-flex align-items-center p-3 rounded"
+																style={{
+																	backgroundColor: '#f9fafb',
+																	border: '1px solid #f3f4f6',
+																	transition: 'background-color 0.2s',
+																}}
+															>
+																<div
+																	className="rounded d-flex align-items-center justify-content-center flex-shrink-0 me-3"
+																	style={{ width: '36px', height: '36px', backgroundColor: bg }}
+																>
+																	<Icon size={16} color={color} />
+																</div>
+																<div className="flex-grow-1 text-truncate pe-2">
+																	<p className="mb-0 text-dark small text-truncate fw-medium">
+																		{material.name}
+																	</p>
+																	<p className="mb-0 text-muted" style={{ fontSize: '11px' }}>
+																		{label} • {material.file_size || 'Unknown size'}
+																	</p>
+																</div>
+																<div className="d-flex gap-2 flex-shrink-0 align-items-center">
+																	<Button
+																		variant="link"
+																		className="text-secondary p-1 d-flex align-items-center justify-content-center"
+																		onClick={() => setPreviewMaterial({
+																			...material,
+																			size: material.file_size || 'Unknown size'
+																		})}
+																		onMouseEnter={(e) => (e.currentTarget.style.color = '#1e293b')}
+																		onMouseLeave={(e) => (e.currentTarget.style.color = '')}
+																		title="Pratinjau"
+																	>
+																		<Eye size={18} />
+																	</Button>
+																	{material.url && (
+																		<Button
+																			variant="link"
+																			className="text-secondary p-1 d-flex align-items-center justify-content-center"
+																			href={material.url}
+																			download={material.name}
+																			onMouseEnter={(e) => (e.currentTarget.style.color = '#1e293b')}
+																			onMouseLeave={(e) => (e.currentTarget.style.color = '')}
+																			title="Unduh"
+																		>
+																			<Download size={18} />
+																		</Button>
+																	)}
+																</div>
+															</div>
+														);
+													})}
+												</div>
+											)}
+										</div>
+
+										{/* Session card footer info */}
+										<div
+											className="px-4 py-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-secondary"
+											style={{
+												backgroundColor: '#f8fafc',
+												borderBottomLeftRadius: '12px',
+												borderBottomRightRadius: '12px',
+												borderColor: '#e2e8f0',
+												fontSize: '12px',
+											}}
+										>
+											<div className="d-flex align-items-center gap-1.5">
+												<CheckCircle size={14} className="text-success" />
+												<span>Materi ini eksklusif bagi peserta resmi yang telah terdaftar.</span>
+											</div>
+										</div>
+									</div>
+								</Collapse>
+							)}
+						</div>
+					);
+				})}
+			</div>
+
+			{/* Modals */}
+			{previewMaterial && (
+				<FilePreviewModal
+					material={previewMaterial}
+					onClose={() => setPreviewMaterial(null)}
+				/>
+			)}
+			{videoPreviewUrl && (
+				<VideoPreviewModal
+					url={videoPreviewUrl}
+					onClose={() => setVideoPreviewUrl(null)}
+				/>
+			)}
+		</div>
+	);
 };
+
+// Helper function to check if string is valid url
+function filterVarUrl(string) {
+	try {
+		new URL(string);
+		return true;
+	} catch (_) {
+		return false;
+	}
+}
 
 export default ParticipantMaterialsTab;
