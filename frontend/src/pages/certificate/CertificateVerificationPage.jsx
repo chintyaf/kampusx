@@ -147,7 +147,7 @@ const CertificateVerificationPage = () => {
 
                 <div className="cert-verify-actions">
                     {/* View E-Certificate Layout */}
-                    <Link to={`/test-chin/sertifikat/${verificationData.certificate_number}`} className="btn btn-premium-action btn-premium-primary text-decoration-none">
+                    <Link to={`/certificate/${verificationData.certificate_number}`} className="btn btn-premium-action btn-premium-primary text-decoration-none">
                         Lihat E-Sertifikat <ArrowRight size={16} />
                     </Link>
                     <Link to="/" className="btn btn-premium-action btn-premium-secondary text-decoration-none">

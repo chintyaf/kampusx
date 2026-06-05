@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Button } from 'react-bootstrap';
-import { Share2, Edit, Check, GraduationCap } from 'lucide-react';
+import { Card, Badge, Button, Spinner } from 'react-bootstrap';
+import { Share2, Edit, Check, GraduationCap, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import api from '../../../api/axios';
 
 const ProfileHeader = ({ profile = {}, interests = [], isOwnProfile = false }) => {
 	const navigate = useNavigate();
 	const [copied, setCopied] = useState(false);
 	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+	const [isGeneratingCV, setIsGeneratingCV] = useState(false);
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -18,6 +20,40 @@ const ProfileHeader = ({ profile = {}, interests = [], isOwnProfile = false }) =
 		navigator.clipboard.writeText(window.location.href);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
+	};
+
+	const handleGenerateCV = async () => {
+		if (!profile.id) return;
+		
+		setIsGeneratingCV(true);
+		try {
+			const response = await api.get(`/profile/${profile.id}/generate-cv`, {
+				responseType: 'blob',
+			});
+
+			// Create a Blob from the response
+			const blob = new Blob([response.data], { type: 'application/pdf' });
+			const downloadUrl = window.URL.createObjectURL(blob);
+			
+			// Create temporary anchor to trigger download
+			const link = document.createElement('a');
+			link.href = downloadUrl;
+			
+			const cleanName = (profile.name || 'user').toLowerCase().replace(/\s+/g, '_');
+			link.setAttribute('download', `cv_${cleanName}.pdf`);
+			
+			document.body.appendChild(link);
+			link.click();
+			
+			// Cleanup
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(downloadUrl);
+		} catch (error) {
+			console.error('Error generating Transkrip PDF:', error);
+			alert('Gagal mendownload Transkrip. Silakan coba kembali.');
+		} finally {
+			setIsGeneratingCV(false);
+		}
 	};
 
 	const buttonStyle = {
@@ -35,24 +71,6 @@ const ProfileHeader = ({ profile = {}, interests = [], isOwnProfile = false }) =
     // backdropFilter: 'blur(4px)',
 };
 
-	const actionButtons = (
-		<div 
-			className={isMobile ? "d-flex gap-2 justify-content-center flex-wrap mb-3" : "d-flex gap-2"}
-			style={isMobile ? {} : { position: 'absolute', top: 16, right: 24, zIndex: 10 }}
-		>
-			<Button variant="light" style={buttonStyle} onClick={handleShare}>
-				{copied ? <Check size={14} /> : <Share2 size={14} />}
-				<span>{copied ? 'Tersalin!' : 'Bagikan'}</span>
-			</Button>
-			{isOwnProfile && (
-				<Button variant="light" style={buttonStyle} onClick={() => navigate('/settings')}>
-					<Edit size={14} />
-					<span>Edit Profil</span>
-				</Button>
-			)}
-		</div>
-	);
-
 	return (
     <Card className="border-0 bg-white mb-4" style={{ borderRadius: 16, overflow: 'hidden' }}>
         
@@ -69,10 +87,24 @@ const ProfileHeader = ({ profile = {}, interests = [], isOwnProfile = false }) =
                     <span>{copied ? 'Tersalin!' : 'Bagikan'}</span>
                 </button>
                 {isOwnProfile && (
-                    <button onClick={() => navigate('/settings')} style={buttonStyle}>
-                        <Edit size={14} />
-                        <span>Edit Profil</span>
-                    </button>
+                    <>
+                        <button 
+                            onClick={handleGenerateCV} 
+                            disabled={isGeneratingCV} 
+                            style={{ ...buttonStyle, opacity: isGeneratingCV ? 0.7 : 1 }}
+                        >
+                            {isGeneratingCV ? (
+                                <Spinner animation="border" size="sm" style={{ width: '12px', height: '12px', borderWidth: '0.15em' }} />
+                            ) : (
+                                <FileText size={14} />
+                            )}
+                            <span>{isGeneratingCV ? 'Memproses...' : 'Generate Transkrip'}</span>
+                        </button>
+                        <button onClick={() => navigate('/settings')} style={buttonStyle}>
+                            <Edit size={14} />
+                            <span>Edit Profil</span>
+                        </button>
+                    </>
                 )}
             </div>
         </div>

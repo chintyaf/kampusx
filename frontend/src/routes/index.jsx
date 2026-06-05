@@ -44,6 +44,7 @@ import SurveyPage from '../pages/event/management/EventSurveyPage/SurveyPage';
 import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventPreviewPage';
 import EventVenueQrPage from '@/pages/event/management/EventVenueQrPage/index';
 import CertificateVerificationPage from '../pages/certificate/CertificateVerificationPage';
+import CertificatePublicView from '@/pages/certificate/CertificatePublicView';
 
 // Pages: Staff & Test/Misc
 import StaffLogin from '../pages/staff/StaffLogin';
@@ -81,6 +82,7 @@ const AppRoutes = () => {
 
 				{/* 2. VISITOR & TESTING GROUP (Menggunakan VisitorLayout) */}
 				<Route element={<VisitorLayout />}>
+					<Route path="/certificate/:ticketCode" element={<CertificatePublicView />} />
 					{/* Kondisi Halaman Utama ('/') berdasarkan status Auth */}
 					{!isAuthenticated ? <Route path="/" element={<LandingPage />} /> : <Route path="/" element={<MemberDashboard />} />}
 
@@ -92,8 +94,8 @@ const AppRoutes = () => {
 
 					{/* Test & Public Profile Pages */}
 					{/* ! HAPUSS */}
-					<Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
-					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} />
+					{/* <Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
+					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} /> */}
 
 					<Route path="/profile/:id" element={<PublicProfile />} />
 

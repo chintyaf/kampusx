@@ -118,6 +118,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Simpan personalisasi user (minat)
     Route::post('/user/personalization', [\App\Http\Controllers\Api\PersonalizationController::class, 'saveInterests']);
 
+    // Generate CV / Portofolio PDF
+    Route::get('/profile/{id}/generate-cv', [\App\Http\Controllers\Api\UserProfileController::class, 'generateCv']);
+
     // --- NOTIFICATIONS ---
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);

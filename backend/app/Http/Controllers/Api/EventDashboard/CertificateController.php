@@ -390,7 +390,8 @@ class CertificateController extends Controller
                     'ticket' => [
                         'ticket_code' => $ticket->ticket_code, // Lebih aman mengambil dari properti objek tiket aslinya
                         'attendee_name' => $ticket->attendee_name,
-                        'status' => $ticketStatus
+                        'status' => $ticketStatus,
+                        'participant_id' => $ticket->participant_id
                     ],
                     'event' => [
                         'id' => $event->id,
