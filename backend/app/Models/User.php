@@ -121,4 +121,19 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Category::class, 'category_user', 'user_id', 'category_id')->withTimestamps();
     }
+
+    public function localPoints(): HasMany
+    {
+        return $this->hasMany(LocalMemberPoint::class);
+    }
+
+    public function pointTransactions(): HasMany
+    {
+        return $this->hasMany(PointTransaction::class);
+    }
+
+    public function redemptions(): HasMany
+    {
+        return $this->hasMany(RedemptionHistory::class);
+    }
 }

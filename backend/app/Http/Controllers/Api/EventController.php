@@ -270,7 +270,18 @@ class EventController extends Controller
 
         // 3. Cek apakah user yang sedang login adalah pembuat event atau admin
         $user = Auth::user();
-        if ($event->organizer_id !== $user->id && $user->role !== 'admin') {
+
+        // Keamanan tambahan jika user belum login/token tidak valid
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Silakan login terlebih dahulu.',
+                'is_authorized' => false
+            ], 401);
+        }
+
+        // Menggunakan (int) agar tipe datanya pasti integer saat dibandingkan memakai !==
+        if ((int)$event->organizer_id !== (int)$user->id && $user->role !== 'admin') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak. Anda bukan organizer dari event ini.',
@@ -280,16 +291,15 @@ class EventController extends Controller
             ], 403);
         }
 
-        // 4. Jika lolos pengecekan (User adalah organizer)
+        // 4. Jika lolos pengecekan (User adalah organizer atau admin)
         return response()->json([
             'status' => 'success',
             'message' => 'Akses diizinkan.',
             'is_authorized' => true,
-                 'user' => $user,
-                'event' => $event->organizer_id
+            'user' => $user,
+            'event' => (int)$event->organizer_id // Dipaksa jadi (int) pada response JSON
         ], 200);
     }
-
 
     /**
      * Get personalized events based on logged-in user preferences (favorite categories).
