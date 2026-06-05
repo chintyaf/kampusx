@@ -10,6 +10,27 @@ use Illuminate\Validation\Rule;
 
 class EventStatusController extends Controller
 {
+    private $allowedTransitions = [
+        'draft'     => ['published'],
+        'published' => ['draft', 'ongoing', 'completed', 'cancelled'],
+        'ongoing'   => ['paused', 'completed', 'cancelled'],
+        'paused'    => ['ongoing', 'completed'],
+        'completed' => ['post_event'],
+        'post_event'=> [],
+        'cancelled' => [],
+    ];
+
+    private function validateTransition(Event $event, string $targetStatus)
+    {
+        $currentStatus = $event->status;
+        $allowed = $this->allowedTransitions[$currentStatus] ?? [];
+        
+        if (!in_array($targetStatus, $allowed)) {
+            return false;
+        }
+        return true;
+    }
+
     public function index(Event $event)
     {
         $calculatedStatus = $event->status;
@@ -39,6 +60,13 @@ class EventStatusController extends Controller
     {
         // Cek apakah status yang dikirim memang 'draft'
         if ($request->status === 'draft') {
+            if (!$this->validateTransition($event, 'draft')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Transisi status tidak valid.',
+                ], 400);
+            }
+
             $event->update([
                 'status' => 'draft'
             ]);
@@ -83,6 +111,13 @@ class EventStatusController extends Controller
      */
     public function updatePublish(Request $request, Event $event)
     {
+        if (!$this->validateTransition($event, 'published')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transisi status tidak valid.',
+            ], 400);
+        }
+
         // ... (Kode publish yang sudah kita buat sebelumnya tetap sama) ...
         $errors = $event->getPublishErrors();
 
@@ -125,7 +160,14 @@ class EventStatusController extends Controller
 
     public function updateDraft(Request $request, Event $event)
     {
-     // Cek apakah status yang dikirim memang 'draft'
+        if (!$this->validateTransition($event, 'draft')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transisi status tidak valid.',
+            ], 400);
+        }
+
+        // Cek apakah status yang dikirim memang 'draft'
         if ($request->status === 'draft') {
             $event->update([
                 'status' => 'draft'
@@ -146,7 +188,14 @@ class EventStatusController extends Controller
 
     public function updateArchive(Request $request, Event $event)
     {
-     // Cek apakah status yang dikirim memang 'draft'
+        if (!$this->validateTransition($event, 'draft')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transisi status tidak valid.',
+            ], 400);
+        }
+
+        // Cek apakah status yang dikirim memang 'draft'
         if ($request->status === 'draft') {
             $event->update([
                 'status' => 'draft'
@@ -167,6 +216,13 @@ class EventStatusController extends Controller
 
     public function updateCancel(Request $request, Event $event)
     {
+        if (!$this->validateTransition($event, 'cancelled')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Event hanya dapat dibatalkan saat status Published atau Ongoing.'
+            ], 400);
+        }
+
         $cancelThresholdDays = 1; // Variabel batas waktu (H-1)
 
         if ($event->start_date) {
@@ -194,6 +250,13 @@ class EventStatusController extends Controller
 
     public function updateOngoing(Request $request, Event $event)
     {
+        if (!$this->validateTransition($event, 'ongoing')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transisi status tidak valid.',
+            ], 400);
+        }
+
         $event->update([
             'status' => 'ongoing'
         ]);
@@ -206,6 +269,13 @@ class EventStatusController extends Controller
 
     public function updatePostEvent(Request $request, Event $event)
     {
+        if (!$this->validateTransition($event, 'post_event')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transisi status tidak valid.',
+            ], 400);
+        }
+
         $event->update([
             'status' => 'post_event'
         ]);
@@ -218,6 +288,13 @@ class EventStatusController extends Controller
 
     public function updateCompleted(Request $request, Event $event)
     {
+        if (!$this->validateTransition($event, 'completed')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transisi status tidak valid.',
+            ], 400);
+        }
+
         $event->update([
             'status' => 'completed'
         ]);

@@ -15,6 +15,38 @@ class EventTicketController extends Controller
         // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
 
+        if (in_array($event->status, ['cancelled', 'completed'])) {
+            $tickets = EventTicket::where('event_id', $eventId)->get();
+            $data = $tickets->map(function ($ticket) use ($eventId) {
+                $sold = DB::table('tickets')
+                    ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
+                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                    ->where('orders.event_id', $eventId)
+                    ->where('order_items.price', $ticket->price)
+                    ->count();
+
+                return [
+                    'id' => $ticket->id,
+                    'name' => $ticket->name,
+                    'isFree' => $ticket->is_free,
+                    'price' => $ticket->price,
+                    'capacity' => $ticket->capacity,
+                    'unlimited' => is_null($ticket->capacity),
+                    'sale_start' => $ticket->sale_start,
+                    'sale_end' => $ticket->sale_end,
+                    'description' => $ticket->description,
+                    'type' => $ticket->type,
+                    'sold' => $sold,
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $data,
+                'event_start_date' => $event->start_date
+            ]);
+        }
+
         // Ambil tipe lokasi (default ke offline jika null)
         // Note: Saya sesuaikan pemanggilan relasinya ke 'locationDetail' sesuai dengan query 'with' di atas
         $locationType = $event->locationDetail->type ?? 'offline';

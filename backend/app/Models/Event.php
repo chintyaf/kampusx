@@ -195,7 +195,7 @@ class Event extends Model
      */
     public function notifyParticipantsOfUpdate()
     {
-        if ($this->status !== 'published') {
+        if (!in_array($this->status, ['published', 'ongoing'])) {
             return false;
         }
 

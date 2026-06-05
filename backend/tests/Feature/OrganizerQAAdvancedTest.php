@@ -574,4 +574,45 @@ class OrganizerQAAdvancedTest extends TestCase
         $event->refresh();
         $this->assertNotEquals('cancelled', $event->status);
     }
+
+    public function test_cannot_transition_from_cancelled_to_draft()
+    {
+        $event = $this->createDraftEvent();
+        $event->update(['status' => 'cancelled']);
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/events/{$event->id}/status", [
+            'status' => 'draft'
+        ]);
+        $response->assertStatus(400);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Transisi status tidak valid.'
+        ]);
+    }
+
+    public function test_cannot_transition_from_cancelled_to_published()
+    {
+        $event = $this->createDraftEvent();
+        $event->update(['status' => 'cancelled']);
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/events/{$event->id}/publish");
+        $response->assertStatus(400);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Transisi status tidak valid.'
+        ]);
+    }
+
+    public function test_cannot_cancel_already_cancelled_event()
+    {
+        $event = $this->createDraftEvent();
+        $event->update(['status' => 'cancelled']);
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/events/{$event->id}/cancel");
+        $response->assertStatus(400);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Event hanya dapat dibatalkan saat status Published atau Ongoing.'
+        ]);
+    }
 }

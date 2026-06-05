@@ -64,5 +64,18 @@ export const DASHBOARD_CONFIG = {
             alertMissingInfo: false,
             collapseStaticInfo: false,
         }
+    },
+    cancelled: {
+        theme: 'red',
+        badgeText: 'Cancelled · Event Dibatalkan',
+        headerBorder: 'border-red-500',
+        primaryCTA: null,
+        secondaryCTA: null,
+        showStats: true,
+        uiFlags: {
+            showProgressBar: false,
+            alertMissingInfo: false,
+            collapseStaticInfo: false,
+        }
     }
 };

@@ -21,6 +21,7 @@ const statusConfig = {
 	published: { bg: colors.greenLight, text: colors.green, label: 'Published' },
 	ongoing: { bg: colors.ongoingBg, text: colors.ongoing, label: 'Ongoing' },
 	completed: { bg: colors.completedBg, text: colors.completed, label: 'Selesai' },
+	cancelled: { bg: colors.redLight, text: colors.red, label: 'Dibatalkan' },
 };
 
 export const StatusBadge = ({ status }) => {

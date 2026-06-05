@@ -5,6 +5,7 @@ export const EventTabs = ({ activeTab, setActiveTab }) => {
 		{ id: 'ongoing', label: 'Sedang Berjalan' },
 		{ id: 'completed', label: 'Selesai' },
 		{ id: 'draft', label: 'Draft' },
+		{ id: 'cancelled', label: 'Dibatalkan' },
 	];
 
 	return (
