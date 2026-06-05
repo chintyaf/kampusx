@@ -25,8 +25,46 @@ const ManageAnnouncements = () => {
         if (setIsPageLoading) setIsPageLoading(true);
         setErrorMsg(null);
         try {
+            // Fetch official announcements and system notifications
             const res = await api.get(`/organizer/events/${eventId}/announcements`);
-            setAnnouncements(res.data.data || []);
+            const fetchedAnnouncements = res.data.data || [];
+            const notificationsFromBackend = res.data.notifications || [];
+
+            // Filter relevant types of notifications
+            const relevantTypes = ['event_updated', 'H-24', 'H-1', 'M-15'];
+            const filteredNotifications = notificationsFromBackend.filter(notif =>
+                relevantTypes.includes(notif.type)
+            );
+
+            // Format and merge them
+            const mappedAnnouncements = fetchedAnnouncements.map(ann => ({
+                id: `ann-${ann.id}`,
+                title: ann.title,
+                content: ann.content,
+                created_at: ann.created_at,
+                type: 'announcement',
+                isPinned: true,
+                attachment_path: ann.attachment_path,
+                attachment_type: ann.attachment_type,
+                attachment_url: ann.attachment_url,
+                raw_id: ann.id
+            }));
+
+            const mappedNotifications = filteredNotifications.map(notif => ({
+                id: `notif-${notif.id}`,
+                title: notif.title || 'Update Acara',
+                content: notif.content,
+                created_at: notif.created_at,
+                type: notif.type,
+                isPinned: ['H-1', 'M-15'].includes(notif.type)
+            }));
+
+            // Sort chronologically (latest first)
+            const combined = [...mappedAnnouncements, ...mappedNotifications].sort((a, b) => {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+
+            setAnnouncements(combined);
         } catch (err) {
             console.error('Failed to load organizer announcements:', err);
             setErrorMsg('Gagal memuat daftar pengumuman. Harap muat ulang halaman.');
@@ -240,64 +278,117 @@ const ManageAnnouncements = () => {
                                 </div>
                             ) : (
                                 <div className="d-flex flex-column gap-3.5">
-                                    {announcements.map((ann) => (
-                                        <Card key={ann.id} className="border border-light rounded-4 shadow-sm p-3.5">
-                                            <div className="d-flex justify-content-between align-items-start mb-2">
-                                                <div className="text-muted small d-flex align-items-center gap-1.5" style={{ fontSize: '11px' }}>
-                                                    <Calendar size={13} className="text-primary" />
-                                                    <span>
-                                                        {new Date(ann.created_at).toLocaleDateString('id-ID', {
-                                                            day: '2-digit',
-                                                            month: 'long',
-                                                            year: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                                <Button
-                                                    variant="outline-danger"
-                                                    size="sm"
-                                                    className="border-0 p-1.5 rounded-circle d-flex"
-                                                    onClick={() => handleDelete(ann.id)}
-                                                    title="Hapus Pengumuman"
-                                                >
-                                                    <Trash2 size={15} />
-                                                </Button>
-                                            </div>
+                                    {announcements.map((ann) => {
+                                        const badgeConfig = {
+                                            announcement: {
+                                                label: '📌 PENGUMUMAN',
+                                                color: '#3b82f6',
+                                                bg: 'rgba(59, 130, 246, 0.08)',
+                                            },
+                                            event_updated: {
+                                                label: '🔄 UPDATE ACARA',
+                                                color: '#06b6d4',
+                                                bg: 'rgba(6, 182, 212, 0.08)',
+                                            },
+                                            'H-24': {
+                                                label: '📅 H-1 ACARA',
+                                                color: '#eab308',
+                                                bg: 'rgba(234, 179, 8, 0.08)',
+                                            },
+                                            'H-1': {
+                                                label: '⚠️ PENTING (1 JAM)',
+                                                color: '#f97316',
+                                                bg: 'rgba(249, 115, 22, 0.08)',
+                                            },
+                                            'M-15': {
+                                                label: '🚨 MENDESAK (15 MENIT)',
+                                                color: '#ef4444',
+                                                bg: 'rgba(239, 68, 68, 0.08)',
+                                            },
+                                        };
 
-                                            <h6 className="fw-extrabold text-dark mb-1.5">{ann.title}</h6>
-                                            <p className="text-muted small mb-3" style={{ fontSize: '12.5px', lineHeight: '1.6', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
-                                                {ann.content}
-                                            </p>
+                                        const config = badgeConfig[ann.type] || {
+                                            label: '📢 UPDATE',
+                                            color: '#6b7280',
+                                            bg: 'rgba(107, 114, 128, 0.08)',
+                                        };
 
-                                            {/* Attachment indicator if exists */}
-                                            {ann.attachment_path && (
-                                                <div className="p-2.5 rounded-3 bg-light border d-inline-flex align-items-center justify-content-between gap-3" style={{ maxWidth: '300px' }}>
-                                                    <div className="d-flex align-items-center gap-2 text-dark small" style={{ fontSize: '11.5px' }}>
-                                                        {ann.attachment_type === 'pdf' ? (
-                                                            <FileText size={16} className="text-danger flex-shrink-0" />
-                                                        ) : (
-                                                            <Image size={16} className="text-primary flex-shrink-0" />
-                                                        )}
-                                                        <span className="text-truncate fw-medium" style={{ maxWidth: '180px' }}>
-                                                            {ann.attachment_path.split('/').pop()}
+                                        return (
+                                            <Card 
+                                                key={ann.id} 
+                                                className="border rounded-4 shadow-sm p-3.5 transition-all hover-shadow"
+                                                style={{
+                                                    borderLeft: `4px solid ${config.color}`,
+                                                    backgroundColor: config.bg,
+                                                }}
+                                            >
+                                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                                    <div className="text-muted small d-flex align-items-center gap-1.5" style={{ fontSize: '11px' }}>
+                                                        <Calendar size={13} className="text-primary" />
+                                                        <span>
+                                                            {new Date(ann.created_at).toLocaleDateString('id-ID', {
+                                                                day: '2-digit',
+                                                                month: 'long',
+                                                                year: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
                                                         </span>
                                                     </div>
-                                                    <Button
-                                                        variant="link"
-                                                        href={ann.attachment_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="p-0 text-primary small d-flex align-items-center gap-1 text-decoration-none fw-bold"
-                                                        style={{ fontSize: '11px' }}
-                                                    >
-                                                        Lihat <ExternalLink size={12} />
-                                                    </Button>
+                                                    {ann.type === 'announcement' && (
+                                                        <Button
+                                                            variant="outline-danger"
+                                                            size="sm"
+                                                            className="border-0 p-1.5 rounded-circle d-flex"
+                                                            onClick={() => handleDelete(ann.raw_id)}
+                                                            title="Hapus Pengumuman"
+                                                            style={{ backgroundColor: 'transparent' }}
+                                                        >
+                                                            <Trash2 size={15} />
+                                                        </Button>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </Card>
-                                    ))}
+
+                                                <h6 className="fw-extrabold text-dark mb-1.5 d-flex align-items-center gap-2">
+                                                    {ann.title}
+                                                    {ann.type !== 'announcement' && (
+                                                        <span className="badge bg-info text-white fw-bold px-2 py-0.5 rounded text-xs" style={{ fontSize: '10px' }}>
+                                                            Notifikasi Sistem
+                                                        </span>
+                                                    )}
+                                                </h6>
+                                                <p className="text-muted small mb-3" style={{ fontSize: '12.5px', lineHeight: '1.6', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>
+                                                    {ann.content}
+                                                </p>
+
+                                                {/* Attachment indicator if exists */}
+                                                {ann.type === 'announcement' && ann.attachment_path && (
+                                                    <div className="p-2.5 rounded-3 bg-white border d-inline-flex align-items-center justify-content-between gap-3" style={{ maxWidth: '300px' }}>
+                                                        <div className="d-flex align-items-center gap-2 text-dark small" style={{ fontSize: '11.5px' }}>
+                                                            {ann.attachment_type === 'pdf' ? (
+                                                                <FileText size={16} className="text-danger flex-shrink-0" />
+                                                            ) : (
+                                                                <Image size={16} className="text-primary flex-shrink-0" />
+                                                            )}
+                                                            <span className="text-truncate fw-medium" style={{ maxWidth: '180px' }}>
+                                                                {ann.attachment_path.split('/').pop()}
+                                                            </span>
+                                                        </div>
+                                                        <Button
+                                                            variant="link"
+                                                            href={ann.attachment_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-0 text-primary small d-flex align-items-center gap-1 text-decoration-none fw-bold"
+                                                            style={{ fontSize: '11px' }}
+                                                        >
+                                                            Lihat <ExternalLink size={12} />
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </Card.Body>

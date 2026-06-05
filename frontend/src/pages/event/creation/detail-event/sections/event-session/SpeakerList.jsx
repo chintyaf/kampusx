@@ -21,11 +21,12 @@ export const getSpeakerAvatar = (speaker) => {
 	}
 	if (speaker.avatarUrl) return speaker.avatarUrl;
 	if (speaker.avatar) return speaker.avatar;
-	return `https://i.pravatar.cc/150?u=${speaker.id}`;
+	return '';
 };
 
 // --- KOMPONEN SPEAKER CARD ---
 const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) => {
+	const avatar = getSpeakerAvatar(speaker);
 	return (
 		<div
 			className="d-flex align-items-center mb-4 p-2 rounded-3 speaker-card-hover"
@@ -33,39 +34,48 @@ const SpeakerCard = ({ speaker, onAddSpeaker, onEditSpeaker, onDeleteSpeaker }) 
 			onClick={() => onEditSpeaker && onEditSpeaker(speaker)}
 		>
 			{/* Avatar with Status */}
-			<div
-				style={{
-					position: 'relative',
-					width: '50px',
-					height: '50px',
-					marginRight: '16px',
-				}}
-			>
-				<Image
-					src={getSpeakerAvatar(speaker)}
-					roundedCircle
+			{avatar ? (
+				<div
 					style={{
+						position: 'relative',
 						width: '50px',
 						height: '50px',
-						objectFit: 'cover',
-						opacity: speaker.added ? 0.4 : 1, // Dim avatar if added
+						marginRight: '16px',
+						flexShrink: 0,
 					}}
-				/>
-				{speaker.added && (
-					<div
+				>
+					<Image
+						src={avatar}
+						roundedCircle
 						style={{
-							position: 'absolute',
-							bottom: '-2px',
-							right: '-2px',
-							backgroundColor: 'white',
-							borderRadius: '50%',
-							padding: '2px',
+							width: '50px',
+							height: '50px',
+							objectFit: 'cover',
+							opacity: speaker.added ? 0.4 : 1, // Dim avatar if added
 						}}
-					>
+					/>
+					{speaker.added && (
+						<div
+							style={{
+								position: 'absolute',
+								bottom: '-2px',
+								right: '-2px',
+								backgroundColor: 'white',
+								borderRadius: '50%',
+								padding: '2px',
+							}}
+						>
+							<CheckCircle size={18} fill="#82a3d4" color="white" />
+						</div>
+					)}
+				</div>
+			) : (
+				speaker.added && (
+					<div className="me-2" style={{ flexShrink: 0 }}>
 						<CheckCircle size={18} fill="#82a3d4" color="white" />
 					</div>
-				)}
-			</div>
+				)
+			)}
 
 			{/* Speaker Info */}
 			<div className="flex-grow-1" style={{ minWidth: 0 }}>

@@ -103,6 +103,7 @@ class EventSessionController extends Controller
                             $sessionModel->update([
                                 'title'       => $sessionData['title'],
                                 'description' => $sessionData['description'] ?? null,
+                                'day_number'  => $sessionData['day'] ?? 1,
                                 'date'        => $sessionDate,
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
@@ -114,6 +115,7 @@ class EventSessionController extends Controller
                             $sessionModel = $event->sessions()->create([
                                 'title'       => $sessionData['title'],
                                 'description' => $sessionData['description'] ?? null,
+                                'day_number'  => $sessionData['day'] ?? 1,
                                 'date'        => $sessionDate,
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
@@ -132,6 +134,46 @@ class EventSessionController extends Controller
 
                     // 4. Recalculate event start_date & end_date from actual session times
                     $this->syncEventDatesFromSessions($event);
+
+                    // 5. Cek dan kosongkan tanggal tiket jika tidak valid (jika belum di-publish)
+                    if ($event->status !== 'published') {
+                        $now = now()->startOfMinute();
+                        $eventStart = $event->start_date ? Carbon::parse($event->start_date)->startOfMinute() : null;
+
+                        foreach ($event->eventTickets as $ticket) {
+                            $invalid = false;
+
+                            $saleStart = $ticket->sale_start ? Carbon::parse($ticket->sale_start)->startOfMinute() : null;
+                            $saleEnd = $ticket->sale_end ? Carbon::parse($ticket->sale_end)->startOfMinute() : null;
+
+                            if ($saleStart) {
+                                if ($saleStart->lt($now)) {
+                                    $invalid = true;
+                                } elseif ($eventStart && $saleStart->gte($eventStart)) {
+                                    $invalid = true;
+                                } elseif ($saleEnd && $saleStart->gte($saleEnd)) {
+                                    $invalid = true;
+                                }
+                            }
+
+                            if ($saleEnd) {
+                                if ($saleEnd->lt($now)) {
+                                    $invalid = true;
+                                } elseif ($eventStart && $saleEnd->gt($eventStart)) {
+                                    $invalid = true;
+                                } elseif ($saleStart && $saleEnd->lte($saleStart)) {
+                                    $invalid = true;
+                                }
+                            }
+
+                            if ($invalid) {
+                                $ticket->update([
+                                    'sale_start' => null,
+                                    'sale_end' => null,
+                                ]);
+                            }
+                        }
+                    }
                 }
 
                 $notified = $event->notifyParticipantsOfUpdate();

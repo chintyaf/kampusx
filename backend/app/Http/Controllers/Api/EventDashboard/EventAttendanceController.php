@@ -37,6 +37,8 @@ class EventAttendanceController extends Controller
                         'end_time' => $session->end_time,
                         'checkin_link' => $session->checkin_link,
                         'checkin_expires_at' => $session->checkin_expires_at,
+                        'checkout_link' => $session->checkout_link,
+                        'checkout_expires_at' => $session->checkout_expires_at,
                     ];
                 })
             ]
@@ -47,8 +49,8 @@ class EventAttendanceController extends Controller
     {
         // 1. Validasi input dari frontend
         $request->validate([
-            'type' => 'required|in:in,out,session_in',
-            'session_id' => 'required_if:type,session_in|exists:event_sessions,id',
+            'type' => 'required|in:in,out,session_in,session_out',
+            'session_id' => 'required_if:type,session_in,session_out|exists:event_sessions,id',
             'expires_at' => 'nullable|date'
         ]);
 
@@ -60,7 +62,7 @@ class EventAttendanceController extends Controller
         $sessionId = $request->session_id;
 
         // 3. Membuat payload unik.
-        if ($type === 'session_in') {
+        if ($type === 'session_in' || $type === 'session_out') {
             $session = $event->sessions()->findOrFail($sessionId);
             $payload = $event->id . '|' . $type . '|' . $sessionId . '|' . $expiresAt;
         } else {
@@ -70,19 +72,29 @@ class EventAttendanceController extends Controller
         // 4. Membuat signature HMAC SHA256 menggunakan APP_KEY bawaan Laravel
         $signature = hash_hmac('sha256', $payload, config('app.key'));
 
-        // 5. Merakit URL Final di Backend
+        // 5. Generate Short Code unik & Simpan ke tabel attendance_links
+        do {
+            $code = \Str::upper(\Str::random(8));
+        } while (\App\Models\AttendanceLink::where('code', $code)->exists());
+
+        \App\Models\AttendanceLink::updateOrCreate(
+            [
+                'event_id' => $event->id,
+                'type' => $type,
+                'session_id' => $sessionId ?? null
+            ],
+            [
+                'code' => $code,
+                'expires_at' => $expiresAt,
+                'signature' => $signature
+            ]
+        );
+
+        // 6. Merakit URL Pendek Final di Backend
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-        $finalUrl = "{$frontendUrl}/attend-venue?event_id={$event->id}&type={$type}&signature={$signature}";
+        $finalUrl = "{$frontendUrl}/a/{$code}";
 
-        if ($type === 'session_in') {
-            $finalUrl .= "&session_id={$sessionId}";
-        }
-
-        if ($expiresAt) {
-            $finalUrl .= "&expires_at={$expiresAt}";
-        }
-
-        // 6. Menyimpan URL dan Waktu Kedaluwarsa ke Database
+        // 7. Menyimpan URL Pendek dan Waktu Kedaluwarsa ke Database
         if ($type === 'in') {
             $event->checkin_link = $finalUrl;
             $event->checkin_expires_at = $expiresAt;
@@ -91,13 +103,17 @@ class EventAttendanceController extends Controller
             $event->checkout_link = $finalUrl;
             $event->checkout_expires_at = $expiresAt;
             $event->save();
-        } else {
+        } elseif ($type === 'session_in') {
             $session->checkin_link = $finalUrl;
             $session->checkin_expires_at = $expiresAt;
             $session->save();
+        } else { // session_out
+            $session->checkout_link = $finalUrl;
+            $session->checkout_expires_at = $expiresAt;
+            $session->save();
         }
 
-        // 7. Kembalikan response JSON yang menyertakan URL yang sudah jadi
+        // 8. Kembalikan response JSON yang menyertakan URL yang sudah jadi
         return response()->json([
             'success' => true,
             'message' => 'Link berhasil dibuat dan disimpan.',
@@ -112,12 +128,28 @@ class EventAttendanceController extends Controller
         ]);
     }
 
+    public function resolveLink($code)
+    {
+        $link = \App\Models\AttendanceLink::where('code', $code)->firstOrFail();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'event_id' => $link->event_id,
+                'session_id' => $link->session_id,
+                'type' => $link->type,
+                'expires_at' => $link->expires_at ? \Carbon\Carbon::parse($link->expires_at)->format('Y-m-d H:i:s') : null,
+                'signature' => $link->signature
+            ]
+        ]);
+    }
+
     public function processAttendance(Request $request){
         // 1. Validasi format input dari frontend React
         $request->validate([
             'event_id' => 'required|exists:events,id',
-            'type' => 'required|in:in,out,session_in',
-            'session_id' => 'required_if:type,session_in|exists:event_sessions,id',
+            'type' => 'required|in:in,out,session_in,session_out',
+            'session_id' => 'required_if:type,session_in,session_out|exists:event_sessions,id',
             'signature' => 'required|string',
             'device_token' => 'required|string', // Berasal dari localStorage peserta
             'expires_at' => 'nullable|date',
@@ -136,7 +168,7 @@ class EventAttendanceController extends Controller
         // ---------------------------------------------------------
         // LAYER 1: Verifikasi Integritas Link (Anti-Edit URL)
         // ---------------------------------------------------------
-        if ($type === 'session_in') {
+        if ($type === 'session_in' || $type === 'session_out') {
             $payload = $eventId . '|' . $type . '|' . $sessionId . '|' . $expiresAt;
         } else {
             $payload = $eventId . '|' . $type . '|' . $expiresAt;
@@ -215,17 +247,25 @@ class EventAttendanceController extends Controller
             ]);
 
         } elseif ($type === 'session_in') {
-            // Pastikan sudah melakukan check-in awal
+            // Pastikan sudah melakukan check-in awal (bisa check-in event global, atau check-in sesi pertama di hari yang sama)
+            $session = \App\Models\EventSession::findOrFail($sessionId);
+            $sessionIdsOnSameDay = \App\Models\EventSession::where('event_id', $eventId)
+                ->where('day_number', $session->day_number)
+                ->pluck('id');
+
             $initialAttendance = AttendanceLog::where('ticket_id', $ticket->id)
                 ->where('event_id', $eventId)
-                ->whereNull('session_id')
+                ->where(function ($query) use ($sessionIdsOnSameDay) {
+                    $query->whereNull('session_id')
+                          ->orWhereIn('session_id', $sessionIdsOnSameDay);
+                })
                 ->whereNotNull('scan_time')
                 ->first();
 
             if (!$initialAttendance) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda belum melakukan Check-in masuk pas awal. Silakan lakukan Check-in masuk terlebih dahulu.'
+                    'message' => 'Anda belum melakukan Check-in masuk. Silakan lakukan Check-in masuk terlebih dahulu.'
                 ], 400);
             }
 
@@ -262,7 +302,54 @@ class EventAttendanceController extends Controller
                 'message' => 'Check-in sesi berhasil dicatat!'
             ]);
 
-        } else { // type === 'out'
+        } elseif ($type === 'session_out') {
+            $session = \App\Models\EventSession::findOrFail($sessionId);
+
+            // Find all sessions on the same day
+            $sessionIdsOnSameDay = \App\Models\EventSession::where('event_id', $eventId)
+                ->where('day_number', $session->day_number)
+                ->pluck('id');
+
+            // Find checkin log on any of the sessions on the same day for this ticket/user
+            $initialAttendance = AttendanceLog::where('ticket_id', $ticket->id)
+                ->where('event_id', $eventId)
+                ->whereIn('session_id', $sessionIdsOnSameDay)
+                ->whereNotNull('scan_time')
+                ->first();
+
+            if (!$initialAttendance) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda belum melakukan Check-in masuk hari ini. Silakan lakukan Check-in masuk terlebih dahulu.'
+                ], 400);
+            }
+
+            // Pastikan device sesuai
+            if (is_null($initialAttendance->device_id)) {
+                $initialAttendance->device_id = $deviceToken;
+            } elseif ($initialAttendance->device_id !== $deviceToken) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'
+                ], 403);
+            }
+
+            if ($initialAttendance->checkout_time) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah melakukan Check-out hari ini sebelumnya.'
+                ], 400);
+            }
+
+            $initialAttendance->checkout_time = Carbon::now();
+            $initialAttendance->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Check-out hari ini berhasil dicatat!'
+            ]);
+
+        } else { // type === 'out' (global event checkout)
             // Pastikan sudah melakukan check-in awal
             $initialAttendance = AttendanceLog::where('ticket_id', $ticket->id)
                 ->where('event_id', $eventId)
@@ -278,7 +365,9 @@ class EventAttendanceController extends Controller
             }
 
             // Pastikan device sesuai
-            if ($initialAttendance->device_id !== $deviceToken) {
+            if (is_null($initialAttendance->device_id)) {
+                $initialAttendance->device_id = $deviceToken;
+            } elseif ($initialAttendance->device_id !== $deviceToken) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'

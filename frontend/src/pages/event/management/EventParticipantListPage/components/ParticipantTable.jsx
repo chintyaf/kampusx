@@ -183,14 +183,19 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 								</div>
 							</td>
 							<td className="text-center">
-								<div className="attendance-cell">
-									<span className="fw-semibold text-dark">
-										{Math.min(100, Math.round(((ticket.attendance_logs_count || 0) / (summary?.total_attendance || 1)) * 100))}%
-									</span>
-									<span className="text-muted" style={{ fontSize: '10px' }}>
-										({ticket.attendance_logs_count || 0}/{summary?.total_attendance || 1})
-									</span>
-								</div>
+								{(() => {
+									const completedAttendance = (ticket.attendance_logs_count || 0) + (ticket.checkouts_count || 0);
+									return (
+										<div className="attendance-cell">
+											<span className="fw-semibold text-dark">
+												{Math.min(100, Math.round((completedAttendance / (summary?.total_attendance || 1)) * 100))}%
+											</span>
+											<span className="text-muted" style={{ fontSize: '10px' }}>
+												({completedAttendance}/{summary?.total_attendance || 1})
+											</span>
+										</div>
+									);
+								})()}
 							</td>
 							<td>
 								<Dropdown align="end">

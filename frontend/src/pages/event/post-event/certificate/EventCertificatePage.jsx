@@ -81,6 +81,7 @@ const EventCertificatePage = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isSaving, setIsSaving] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
+	const [eventDetails, setEventDetails] = useState(null);
 
 	// Memuat Google Fonts premium ketika halaman dibuka
 	useEffect(() => {
@@ -128,6 +129,16 @@ const EventCertificatePage = () => {
 					);
 				} else {
 					setElements([]);
+				}
+
+				// Ambil detail event untuk data dummy preview
+				try {
+					const overviewRes = await api.get(`/event-dashboard/${eventId}/overview`);
+					if (overviewRes.data?.status === 'success' && overviewRes.data?.data) {
+						setEventDetails(overviewRes.data.data);
+					}
+				} catch (err) {
+					console.error('Gagal mengambil overview event:', err);
 				}
 			} catch (error) {
 				console.error('Gagal memuat template sertifikat:', error);
@@ -298,12 +309,12 @@ const EventCertificatePage = () => {
 				templateFile={templateFile}
 				elements={elements}
 				previewData={{
-					f1: 'Nama Peserta',
-					f2: 'ID Sertifikat',
-					f3: `${window.location.origin}/verify/ID-SERTIFIKAT`,
-					f4: 'Nama Event',
-					f5: 'Tanggal Acara',
-					f6: 'Instansi/Organisasi',
+					f1: eventDetails?.organizer || 'Nama Peserta',
+					f2: 'CERT-2026-XXXX',
+					f3: `${window.location.origin}/verify/CERT-2026-XXXX`,
+					f4: eventDetails?.name || 'Nama Event',
+					f5: eventDetails?.startDate ? eventDetails.startDate.split(',')[0] : 'Tanggal Acara',
+					f6: eventDetails?.institution || 'Instansi/Organisasi',
 					f7: 'Teks Kustom',
 				}}
 			/>

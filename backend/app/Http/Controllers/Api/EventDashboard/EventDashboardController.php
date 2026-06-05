@@ -83,6 +83,33 @@ class EventDashboardController extends Controller
     {
         $event = Event::with(['categories', 'institution', 'locationDetail', 'organizer'])->findOrFail($eventId);
 
+        $tzMap = [
+            'WIB' => 'Asia/Jakarta',
+            'WITA' => 'Asia/Makassar',
+            'WIT' => 'Asia/Jayapura',
+        ];
+        $tz = $tzMap[$event->timezone] ?? $event->timezone ?? 'UTC';
+
+        $now = now()->setTimezone($tz);
+        if ($event->status === 'published' && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date->format('Y-m-d H:i:s'), $tz);
+            $endDate = \Carbon\Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
+
+            if ($now->gt($endDate)) {
+                $event->update(['status' => 'completed']);
+                $event->status = 'completed';
+            } elseif ($now->gte($startDate) && $now->lte($endDate)) {
+                $event->update(['status' => 'ongoing']);
+                $event->status = 'ongoing';
+            }
+        } elseif ($event->status === 'ongoing' && $event->end_date) {
+            $endDate = \Carbon\Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
+            if ($now->gt($endDate)) {
+                $event->update(['status' => 'completed']);
+                $event->status = 'completed';
+            }
+        }
+
         $locationText = 'Belum diatur';
         if ($event->locationDetail) {
             if ($event->locationDetail->type === 'online') {
@@ -92,7 +119,6 @@ class EventDashboardController extends Controller
             }
         }
 
-        $now = now();
         $isPublished = in_array($event->status, ['published', 'ongoing', 'archived', 'completed']);
 
         $timeline = [
@@ -192,17 +218,15 @@ class EventDashboardController extends Controller
 
         // Determine event status logic for stats
         $calculatedStatus = $event->status;
-        $now = now();
+        $now = now()->setTimezone($tz);
 
         $sessions = \App\Models\EventSession::with(['speakers', 'materials'])
             ->where('event_id', $eventId)
-            ->orderBy('day_number', 'asc')
-            ->orderBy('start_time', 'asc')
             ->get();
 
-        if ($calculatedStatus === 'published' && $event->start_date && $event->end_date) {
-            $startDate = \Carbon\Carbon::parse($event->start_date);
-            $endDate = \Carbon\Carbon::parse($event->end_date);
+        if (in_array($calculatedStatus, ['published', 'ongoing']) && $event->start_date && $event->end_date) {
+            $startDate = \Carbon\Carbon::parse($event->start_date->format('Y-m-d H:i:s'), $tz);
+            $endDate = \Carbon\Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
 
             if ($now->gt($endDate)) {
                 $calculatedStatus = 'completed';
@@ -214,23 +238,8 @@ class EventDashboardController extends Controller
                     $hasFutureSessions = false;
 
                     foreach ($sessions as $session) {
-                        $sessionDate = $startDate->copy()->addDays($session->day_number - 1);
-
-                        $sessionStart = $sessionDate->copy();
-                        if ($session->start_time) {
-                            $timeParts = explode(':', $session->start_time);
-                            $sessionStart->setTime($timeParts[0], $timeParts[1]);
-                        } else {
-                            $sessionStart->setTime(0, 0);
-                        }
-
-                        $sessionEnd = $sessionDate->copy();
-                        if ($session->end_time) {
-                            $timeParts = explode(':', $session->end_time);
-                            $sessionEnd->setTime($timeParts[0], $timeParts[1]);
-                        } else {
-                            $sessionEnd->setTime(23, 59, 59);
-                        }
+                        $sessionStart = \Carbon\Carbon::parse($session->date . ' ' . ($session->start_time ?? '00:00:00'), $tz);
+                        $sessionEnd = \Carbon\Carbon::parse($session->date . ' ' . ($session->end_time ?? '23:59:59'), $tz);
 
                         if ($now->between($sessionStart, $sessionEnd)) {
                             $isAnySessionActive = true;
@@ -290,7 +299,7 @@ class EventDashboardController extends Controller
             $stats[] = [
                 'label' => 'Page Views',
                 'value' => number_format($visitorCount, 0, ',', '.'),
-                'sub' => $conversionRate . "% conversion rate",
+                'sub' => 'Total kunjungan halaman',
                 'iconBg' => '#f3e8ff',
                 'iconColor' => '#7c3aed',
             ];
@@ -323,14 +332,18 @@ class EventDashboardController extends Controller
             }
 
             return [
+                'id' => $s->id,
                 'title' => $s->title,
                 'day' => $s->day_number,
+                'date' => $s->date,
                 'time' => $s->start_time && $s->end_time
                     ? substr($s->start_time, 0, 5) . ' - ' . substr($s->end_time, 0, 5)
                     : 'Belum diatur',
                 'speaker' => $s->speakers->pluck('name')->implode(', ') ?: null,
                 'materialStatus' => $s->materials->count() > 0 ? 'uploaded' : 'pending',
                 'prerequisite' => implode(', ', $prereqs) ?: null,
+                'checkin_link' => $s->checkin_link,
+                'checkout_link' => $s->checkout_link,
             ];
         });
 
@@ -396,6 +409,9 @@ class EventDashboardController extends Controller
             $ticketsData[] = [
                 'label' => $et->name,
                 'count' => $count,
+                'capacity' => $et->capacity,
+                'price' => $et->price,
+                'is_free' => (bool)$et->is_free,
                 'color' => $colors[$idx % count($colors)],
             ];
             $idx++;
@@ -412,6 +428,9 @@ class EventDashboardController extends Controller
                 [
                     'label' => 'Tiket Reguler',
                     'count' => $generalCount,
+                    'capacity' => null,
+                    'price' => 0,
+                    'is_free' => true,
                     'color' => '#3c84a8'
                 ]
             ];
@@ -469,7 +488,7 @@ class EventDashboardController extends Controller
                 'label'     => 'Masukkan Link Zoom / Platform Meeting Online',
                 'completed' => $hasMeetingLink,
                 'required'  => $isOnlineOrHybrid,
-                'link'      => "/organizer/{$eventId}/event-dashboard/detail/tempat",
+                'link'      => "/organizer/{$eventId}/event-dashboard/tempat",
                 'hint'      => 'Diperlukan agar peserta online bisa bergabung ke sesi.'
             ],
 
@@ -544,11 +563,11 @@ class EventDashboardController extends Controller
     public function toggleAttendance($eventId)
     {
         $event = Event::findOrFail($eventId);
-        
+
         $event->update([
             'is_attendance_open' => !$event->is_attendance_open
         ]);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Status presensi berhasil diubah.',
@@ -570,7 +589,7 @@ class EventDashboardController extends Controller
     {
         // 1. Validasi input agar hanya menerima status yang diizinkan
         $request->validate([
-            'status' => 'required|string|in:draft,published,archived'
+            'status' => 'required|string|in:draft,published,archived,completed'
         ]);
 
         // 2. Cari event atau return 404 jika tidak ketemu

@@ -41,7 +41,8 @@ class EventStationController extends Controller
                 'title' => $event->title,
                 'start_date' => $event->start_date ? $event->start_date->format('Y-m-d H:i:s') : null,
                 'end_date' => $event->end_date ? $event->end_date->format('Y-m-d H:i:s') : null,
-                'timezone' => $event->timezone
+                'timezone' => $event->timezone,
+                'location_type' => $event->locationDetail->type ?? 'offline'
             ]
         ]);
     }

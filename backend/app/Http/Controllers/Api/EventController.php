@@ -190,6 +190,8 @@ class EventController extends Controller
             ->orWhere('slug', $idOrSlug)
             ->firstOrFail();
 
+        $event->increment('views');
+
         // Security check: only allow draft view if user is the creator
         if ($event->status === 'draft') {
             $authUser = auth('sanctum')->user();

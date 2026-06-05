@@ -219,14 +219,19 @@ class Event extends Model
         // Filter out recently notified participants
         $participantIds = $participantIds->diff($recentNotifications);
 
-        if ($participantIds->isEmpty()) {
+        $notifiableIds = $participantIds->toArray();
+        if ($this->organizer_id && !$recentNotifications->contains($this->organizer_id)) {
+            $notifiableIds[] = $this->organizer_id;
+        }
+
+        if (empty($notifiableIds)) {
             return false;
         }
 
-        $participants = \App\Models\User::whereIn('id', $participantIds)->get();
+        $users = \App\Models\User::whereIn('id', $notifiableIds)->get();
 
-        foreach ($participants as $participant) {
-            $participant->notify(new \App\Notifications\OperationalNotification(
+        foreach ($users as $user) {
+            $user->notify(new \App\Notifications\OperationalNotification(
                 "Perubahan Acara",
                 "Terdapat perubahan informasi pada acara '{$this->title}' yang Anda ikuti. Silakan periksa kembali detail acara.",
                 "event_updated",

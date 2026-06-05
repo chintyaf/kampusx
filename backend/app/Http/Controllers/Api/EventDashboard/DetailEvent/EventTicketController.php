@@ -64,7 +64,14 @@ class EventTicketController extends Controller
         }
 
         // 6. Mapping data untuk response
-        $data = $tickets->map(function ($ticket) {
+        $data = $tickets->map(function ($ticket) use ($eventId) {
+            $sold = DB::table('tickets')
+                ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->where('orders.event_id', $eventId)
+                ->where('order_items.price', $ticket->price)
+                ->count();
+
             return [
                 'id' => $ticket->id,
                 'name' => $ticket->name,
@@ -75,7 +82,8 @@ class EventTicketController extends Controller
                 'sale_start' => $ticket->sale_start,
                 'sale_end' => $ticket->sale_end,
                 'description' => $ticket->description,
-                'type' => $ticket->type, // Opsional: bagus untuk dikembalikan ke frontend
+                'type' => $ticket->type,
+                'sold' => $sold,
             ];
         });
 

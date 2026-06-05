@@ -471,16 +471,18 @@ const SessionForm = ({
 											Hapus
 										</Button>
 										<div className="d-flex align-items-center gap-3">
-											<img
-												src={getSpeakerAvatar(speaker)}
-												alt={speaker.name}
-												className="rounded-circle"
-												style={{
-													width: '48px',
-													height: '48px',
-													objectFit: 'cover',
-												}}
-											/>
+											{getSpeakerAvatar(speaker) && (
+												<img
+													src={getSpeakerAvatar(speaker)}
+													alt={speaker.name}
+													className="rounded-circle"
+													style={{
+														width: '48px',
+														height: '48px',
+														objectFit: 'cover',
+													}}
+												/>
+											)}
 											<div>
 												<h6 className="m-0 fw-bold text-dark">
 													{speaker.name}

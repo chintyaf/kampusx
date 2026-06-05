@@ -114,18 +114,19 @@ const TicketSummary = ({ tickets = [] }) => {
 												: '—'}
 									</span>
 								</div>
-								{/* {!t.unlimited && (
+								{!t.unlimited && (
 									<ProgressBar
 										now={pct}
 										style={{ height: '4px' }}
-										variant={i === 0 ? 'primary' : 'info'}
+										variant={i % 2 === 0 ? 'primary' : 'info'}
+										className="my-1"
 									/>
-								)} */}
-								{/* <p className="text-muted mt-1 mb-0" style={{ fontSize: '0.75rem' }}>
+								)}
+								<p className="text-muted mt-1 mb-0" style={{ fontSize: '0.75rem' }}>
 									{t.unlimited
-										? `${t.sold || 0} terjual · ∞`
-										: `${t.sold || 0} / ${cap > 0 ? cap.toLocaleString('id-ID') : '—'} terjual`}
-								</p> */}
+										? `${t.sold || 0} terjual · Sisa: ∞`
+										: `${t.sold || 0} / ${cap > 0 ? cap.toLocaleString('id-ID') : '—'} terjual (Sisa: ${Math.max(0, cap - (t.sold || 0))})`}
+								</p>
 							</div>
 						);
 					})}

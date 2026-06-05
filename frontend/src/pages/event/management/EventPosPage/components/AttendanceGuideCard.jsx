@@ -58,11 +58,17 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 			id: 'qr',
 			icon: <ScanLine size={20} color="#0369a1" />,
 			iconBg: '#e0f2fe',
-			title: 'Scanner QR (Offline)',
-			desc: 'Panitia men-scan QR tiket peserta menggunakan halaman Scanner. Peserta perlu menunjukkan tiket digital mereka.',
+			title: isOffline ? 'Scanner QR (Check-in / Masuk)' : 'Scanner QR (Offline)',
+			desc: isOffline 
+				? 'Panitia men-scan QR tiket peserta saat masuk menggunakan stasiun scanner di lokasi.'
+				: 'Panitia men-scan QR tiket peserta menggunakan halaman Scanner. Peserta perlu menunjukkan tiket digital mereka.',
 			cta: 'Buka Pos Scanner',
 			ctaPath: `/organizer/${eventId}/event-dashboard/check-in`,
-			steps: [
+			steps: isOffline ? [
+				'Buka halaman Event POS → atur Stasiun Scanner.',
+				'Panitia login ke halaman Scanner menggunakan PIN event.',
+				'Scan QR tiket peserta saat mereka masuk ke lokasi acara.',
+			] : [
 				'Buka halaman Event POS → atur Stasiun Scanner.',
 				'Panitia login ke halaman Scanner menggunakan PIN event.',
 				'Peserta menunjukkan QR tiket → panitia scan → kehadiran tercatat otomatis.',
@@ -72,11 +78,18 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 			id: 'link',
 			icon: <Link2 size={20} color="#7c3aed" />,
 			iconBg: '#ede9fe',
-			title: 'Magic Link (Online)',
-			desc: 'Bagikan link check-in/out kepada peserta. Peserta mengklik link untuk mengkonfirmasi kehadiran mereka sendiri.',
+			title: isOffline ? 'Link Checkout Online' : 'Magic Link (Online)',
+			desc: isOffline
+				? 'Bagikan link check-out online kepada peserta di akhir acara agar mereka bisa melakukan checkout mandiri.'
+				: 'Bagikan link check-in/out kepada peserta. Peserta mengklik link untuk mengkonfirmasi kehadiran mereka sendiri.',
 			cta: 'Buat Link Presensi',
 			ctaPath: `/organizer/${eventId}/event-dashboard/check-in`,
-			steps: [
+			steps: isOffline ? [
+				'Buka Event POS → bagian "Link Presensi Online".',
+				'Buat/generate link presensi khusus untuk Check-out.',
+				'Bagikan link check-out tersebut kepada peserta di akhir acara (misal via WhatsApp atau slide presentasi).',
+				'Peserta mengklik link checkout → login → checkout terkonfirmasi otomatis.',
+			] : [
 				'Buka Event POS → bagian "Link Presensi Online".',
 				'Atur batas waktu kedaluwarsa, lalu klik "Buat Link" untuk Check-in & Check-out.',
 				'Bagikan kedua link tersebut via WhatsApp, email, atau tampilkan di slide presentasi.',
@@ -88,9 +101,7 @@ export default function AttendanceGuideCard({ eventId, eventType = 'offline' }) 
 	// Tentukan metode mana yang ditampilkan
 	const activeMethods = [];
 	if (!isOnline) activeMethods.push(METHODS.qr_scanner);
-	if (!isOffline) activeMethods.push(METHODS.magic_link);
-	// Untuk pure offline, hanya QR. Untuk online: hanya link. Untuk hybrid: keduanya.
-	if (isOffline && activeMethods.length === 0) activeMethods.push(METHODS.qr_scanner);
+	activeMethods.push(METHODS.magic_link); // Selalu tampilkan magic link (diperlukan untuk checkout pada event offline)
 
 	return (
 		<div

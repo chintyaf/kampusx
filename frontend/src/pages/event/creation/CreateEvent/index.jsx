@@ -103,7 +103,7 @@ const CreateEvent = () => {
 			const newEventId = response.data.data.id;
 
 			notify('success', 'Draft Dibuat!', 'Silakan lengkapi detail event Anda.');
-			const link = `/organizer/${newEventId}/event-dashboard/detail/info#additional-info`;
+			const link = `/organizer/${newEventId}/event-dashboard/info`;
 			navigate(link);
 		} catch (error) {
 			console.error('Error submitting event:', error);

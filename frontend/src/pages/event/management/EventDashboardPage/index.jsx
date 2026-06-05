@@ -1,50 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Button } from 'react-bootstrap';
+import { Row, Col, Card, Badge, ProgressBar } from 'react-bootstrap';
 import { notify } from '@/utils/notify';
-import {
-	Ticket,
-	DollarSign,
-	UserCheck,
-	UserMinus,
-	Users,
-	Share2,
-	ScanLine,
-	FileText,
-	Send,
-	CheckSquare,
-	Eye,
-	Clock,
-} from 'lucide-react';
+import { Ticket, DollarSign, UserCheck, UserMinus, Eye, Clock, FileText, Award } from 'lucide-react';
 
 // API & CSS
 import api from '@/api/axios';
 import '@/assets/css/dashboard.css';
+import './EventDashboardPage.css';
 
 // Components
 import {
 	PageHeader,
 	DevToolsBar,
 	StatCard,
-	EventInfoCard,
-	EventTimeline,
 	MissingInformation,
 	EventChecklist,
 	SessionTable,
-	DemographicsCard,
-	TicketDistribution,
 	DashboardSkeleton,
 	PublishReadyCard,
 	OngoingDashboardCard,
 	AttendanceGuideCard,
 } from './components';
 
-import './EventDashboardPage.css';
-
 import { DASHBOARD_CONFIG } from './config/dashboardStates';
-import StatusConfirmationModal from '@/components/event/EventStatusDropdown/StatusConfirmationModal';
-
 import { useLoading } from '@/context/LoadingContext';
+
+import StatusConfirmationModal from '@/components/event/EventStatusDropdown/StatusConfirmationModal';
+import MultiSessionAttendanceTool from '@/pages/event/management/EventPosPage/components/MultiSessionAttendanceTool';
 
 const iconMap = {
 	'Tickets Sold': Ticket,
@@ -56,46 +39,6 @@ const iconMap = {
 	'Survey Responses': FileText,
 };
 
-// ==========================================
-// Helper Functions (Dipisah agar komponen utama bersih)
-// ==========================================
-
-const mapMissingDataToIssues = (missingData = []) => {
-	return missingData.map((msg) => {
-		const severity = 'HIGH';
-		let category = 'System';
-		const lowerMsg = msg.toLowerCase();
-
-		if (lowerMsg.match(/pembicara|sesi|jadwal/)) category = 'Sesi / Acara';
-		else if (lowerMsg.match(/lokasi|platform|meeting|tempat|alamat/)) category = 'Lokasi';
-		else if (lowerMsg.match(/kategori|tipe/)) category = 'Kategori';
-		else if (lowerMsg.match(/poster|gambar/)) {
-			category = 'Media';
-		} else if (lowerMsg.match(/deskripsi/)) {
-			category = 'Deskripsi';
-		}
-
-		return { severity, category, message: msg };
-	});
-};
-
-const handleIssueNavigation = (issue, eventId, navigate) => {
-	const msg = issue.message.toLowerCase();
-	if (msg.match(/judul|deskripsi|poster|kategori|tipe/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/info`);
-	} else if (msg.match(/lokasi|platform|meeting|kuota|tempat|provinsi|alamat|maps/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/tempat`);
-	} else if (msg.match(/jadwal|waktu|sesi|pembicara/)) {
-		navigate(`/organizer/${eventId}/event-dashboard/sesi`);
-	} else {
-		navigate(`/organizer/${eventId}/event-dashboard/info`);
-	}
-};
-
-// ==========================================
-// Main Component
-// ==========================================
-
 export default function EventDashboardPage() {
 	const { eventId } = useParams();
 	const navigate = useNavigate();
@@ -104,16 +47,15 @@ export default function EventDashboardPage() {
 	const [eventStatus, setEventStatus] = useState('draft');
 	const [eventData, setEventData] = useState(null);
 	const [issues, setIssues] = useState([]);
-	const [speakers, setSpeakers] = useState([]);
 	const [sessions, setSessions] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [showDraftModal, setShowDraftModal] = useState(false);
+
+	// Modal States
 	const [showPublishModal, setShowPublishModal] = useState(false);
 	const [showCancelModal, setShowCancelModal] = useState(false);
-	const [showOngoingModal, setShowOngoingModal] = useState(false);
-	const [showPostEventModal, setShowPostEventModal] = useState(false);
-	const [showCompletedModal, setShowCompletedModal] = useState(false);
 	const [showDevTools, setShowDevTools] = useState(false);
+
+	// Attendance States
 	const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
 	const [isTogglingAttendance, setIsTogglingAttendance] = useState(false);
 
@@ -130,110 +72,43 @@ export default function EventDashboardPage() {
 	}, []);
 
 	// Fetch Data
-	useEffect(() => {
+	const fetchOverview = useCallback(async () => {
 		if (!eventId) return;
+		try {
+			setLoading(true);
+			setIsPageLoading(true);
+			const [overviewRes, statusRes, sessionRes] = await Promise.all([
+				api.get(`/event-dashboard/${eventId}/overview`),
+				api.get(`/events/${eventId}/check-status`),
+				api
+					.get(`/event-dashboard/${eventId}/info-utama/session`)
+					.catch(() => ({ data: { success: false, data: [] } })),
+			]);
 
-		const fetchOverview = async () => {
-			try {
-				setLoading(true);
-				setIsPageLoading(true);
-				const [overviewRes, statusRes, speakersRes, sessionRes] = await Promise.all([
-					api.get(`/event-dashboard/${eventId}/overview`),
-					api.get(`/events/${eventId}/check-status`),
-					api
-						.get(`/event-dashboard/${eventId}/info-utama/speaker`)
-						.catch(() => ({ data: { success: false, data: [] } })),
-					api
-						.get(`/event-dashboard/${eventId}/info-utama/session`)
-						.catch(() => ({ data: { success: false, data: [] } })),
-				]);
-
-				if (overviewRes.data?.status === 'success') {
-					setEventData(overviewRes.data.data);
-					setEventStatus(overviewRes.data.data.status || 'draft');
-					setIsAttendanceOpen(!!overviewRes.data.data.is_attendance_open);
-				}
-				if (speakersRes.data?.success && speakersRes.data?.data) {
-					setSpeakers(speakersRes.data.data);
-				}
-				if (statusRes.data?.status === 'success') {
-					const missing = statusRes.data.data.missing_data || [];
-					setIssues(mapMissingDataToIssues(missing));
-				}
-
-				// Flatten and format sessions
-				let fetchedSessions = [];
-				if (sessionRes.data?.status === 'success' && sessionRes.data?.data) {
-					const groupedDaysArray = Object.values(sessionRes.data.data);
-					groupedDaysArray.forEach((day, index) => {
-						const dayNumber = day.day_number || index + 1;
-						if (day.sessions && Array.isArray(day.sessions)) {
-							day.sessions.forEach((s) => {
-								const speakerNames =
-									s.speakers && s.speakers.length > 0
-										? s.speakers.map((spk) => spk.name).join(', ')
-										: null;
-
-								const prerequisiteTitles = [];
-								if (
-									s.prerequisite_session_ids &&
-									Array.isArray(s.prerequisite_session_ids)
-								) {
-									s.prerequisite_session_ids.forEach((prereqId) => {
-										let found = null;
-										groupedDaysArray.forEach((d) => {
-											if (d.sessions) {
-												const f = d.sessions.find(
-													(x) => String(x.id) === String(prereqId),
-												);
-												if (f) found = f.title || f.name;
-											}
-										});
-										if (found) prerequisiteTitles.push(found);
-									});
-								}
-
-								fetchedSessions.push({
-									id: s.id,
-									title: s.title || s.name,
-									day: dayNumber,
-									time:
-										s.start_time && s.end_time
-											? `${s.start_time} - ${s.end_time}`
-											: s.startTime && s.endTime
-												? `${s.startTime} - ${s.endTime}`
-												: '',
-									speaker: speakerNames,
-									materialStatus:
-										s.material_status || s.materialStatus || 'not_required',
-									prerequisite:
-										prerequisiteTitles.length > 0
-											? prerequisiteTitles.join(', ')
-											: null,
-								});
-							});
-						}
-					});
-				}
-				setSessions(fetchedSessions);
-			} catch (error) {
-				console.error('Gagal mengambil event overview', error);
-			} finally {
-				setLoading(false);
-				setIsPageLoading(false);
+			if (overviewRes.data?.status === 'success') {
+				setEventData(overviewRes.data.data);
+				setEventStatus(overviewRes.data.data.status || 'draft');
+				setIsAttendanceOpen(!!overviewRes.data.data.is_attendance_open);
 			}
-		};
 
-		fetchOverview();
+			if (statusRes.data?.status === 'success') {
+				setIssues(statusRes.data.data.missing_data || []);
+			}
+
+			if (sessionRes.data?.status === 'success' && sessionRes.data?.data) {
+				setSessions(sessionRes.data.data);
+			}
+		} catch (error) {
+			console.error('Gagal mengambil event overview', error);
+		} finally {
+			setLoading(false);
+			setIsPageLoading(false);
+		}
 	}, [eventId, setIsPageLoading]);
 
-	const handleSendCertificates = () => {
-		notify(
-			'success',
-			'Berhasil',
-			"Sertifikat berhasil didistribusikan! Peserta dapat mengakses dan mengklaim sertifikat pada tab 'Pusat Sertifikat' di akun mereka.",
-		);
-	};
+	useEffect(() => {
+		fetchOverview();
+	}, [fetchOverview]);
 
 	const handleShare = () => {
 		const shareUrl = `${window.location.origin}/events/${eventData.slug}`;
@@ -284,90 +159,10 @@ export default function EventDashboardPage() {
 		totalCapacity: eventData.quota || 0,
 	}));
 
-	// ==========================================
-	// Context Banner — status-aware guide
-	// ==========================================
-
-	const CONTEXT_BANNERS = {
-		draft:
-			issues.length > 0
-				? {
-						bg: 'linear-gradient(135deg, #fffbeb 0%, #fefce8 100%)',
-						border: '#fde68a',
-						icon: '📋',
-						title: `${issues.length} item perlu dilengkapi sebelum publish`,
-						desc: 'Selesaikan semua item penting di bawah agar peserta dapat mendaftar ke event Anda.',
-						showPublishBtn: false,
-					}
-				: {
-						bg: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
-						border: '#86efac',
-						icon: '✅',
-						title: 'Semua data sudah lengkap!',
-						desc: 'Event siap dipublikasikan. Klik tombol di samping untuk mulai menerima peserta.',
-						showPublishBtn: true,
-					},
-		published: {
-			bg: 'linear-gradient(135deg, #eff8ff 0%, #dbeafe 100%)',
-			border: '#93c5fd',
-			icon: '🚀',
-			title: 'Event sedang aktif & terlihat publik',
-			desc: 'Bagikan link event untuk menjangkau lebih banyak peserta. Pantau penjualan tiket di bawah.',
-			showPublishBtn: false,
-		},
-		ongoing: {
-			bg: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-			border: '#6ee7b7',
-			icon: '⚡',
-			title: 'Event sedang berlangsung!',
-			desc: 'Gunakan scanner absensi untuk check-in peserta. Pantau data kehadiran secara real-time.',
-			showPublishBtn: false,
-		},
-		paused: {
-			bg: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)',
-			border: '#a5b4fc',
-			icon: '⏸️',
-			title: 'Sesi hari ini selesai (Paused)',
-			desc: 'Menunggu sesi di hari berikutnya. Anda dapat meninjau data kehadiran hari ini.',
-			showPublishBtn: false,
-		},
-		post_event: {
-			bg: 'linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)',
-			border: '#ddd6fe',
-			icon: '📝',
-			title: 'Event masuk tahap setelah acara',
-			desc: 'Kelola hal-hal pasca-event seperti materi tambahan atau sertifikat.',
-			showPublishBtn: false,
-		},
-		completed: {
-			bg: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-			border: '#cbd5e1',
-			icon: '🎉',
-			title: 'Event telah selesai',
-			desc: 'Terima kasih! Kirim sertifikat, buat survei kepuasan, atau download laporan lengkap event.',
-			showPublishBtn: false,
-		},
-	};
-
-	const banner = CONTEXT_BANNERS[eventStatus];
-
-	// ==========================================
-	// Main Render
-	// ==========================================
-
 	return (
 		<div>
 			{/* Action Bar (Dev Tools) */}
-			{showDevTools && (
-				<DevToolsBar
-					setShowDraftModal={setShowDraftModal}
-					setShowPublishModal={setShowPublishModal}
-					setShowOngoingModal={setShowOngoingModal}
-					setShowPostEventModal={setShowPostEventModal}
-					setShowCompletedModal={setShowCompletedModal}
-					setShowCancelModal={setShowCancelModal}
-				/>
-			)}
+			{showDevTools && <DevToolsBar eventId={eventId} setEventStatus={setEventStatus} />}
 
 			<PageHeader
 				title={eventData.name || 'Event Dashboard'}
@@ -377,6 +172,9 @@ export default function EventDashboardPage() {
 				location={eventData.location}
 				categories={eventData.categories || []}
 				isPublishDisabled={isDraft && issues.length > 0}
+				canCancel={eventData.canCancel}
+				cancelMessage={eventData.cancelMessage}
+				onCancel={() => setShowCancelModal(true)}
 				posPin={eventData.pos_pin}
 				isAttendanceOpen={isAttendanceOpen}
 				isTogglingAttendance={isTogglingAttendance}
@@ -386,16 +184,39 @@ export default function EventDashboardPage() {
 				}
 				onPublish={() => setShowPublishModal(true)}
 				onShare={handleShare}
-				onEdit={() => navigate(`/organizer/${eventId}/event-dashboard/detail/info`)}
-				onKelolaTiket={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
+				onEdit={() => navigate(`/organizer/${eventId}/event-dashboard/info`)}
+				onKelolaTiket={() => navigate(`/organizer/${eventId}/event-dashboard/tiket`)}
 				onScanner={() => navigate(`/organizer/${eventId}/event-dashboard/scanner`)}
-				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
+				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/tiket`)}
 			/>
 
-			{/* Ongoing Dashboard Card */}
-			{eventStatus === 'ongoing' && (
-				<OngoingDashboardCard eventData={eventData} sessions={sessions} />
+			{/* Warning Banner: Missing Certificate for Completed Event */}
+			{eventStatus === 'completed' && eventData.preparation_checklist?.find(item => item.id === 'certificate')?.completed === false && (
+				<div 
+					className="alert alert-warning border-warning border-opacity-25 rounded-4 p-4 mb-4 d-flex align-items-start gap-3 shadow-sm" 
+					style={{ borderLeft: '4px solid #d97706', backgroundColor: '#fffbeb', borderColor: '#fef3c7' }}
+				>
+					<div className="bg-warning bg-opacity-20 p-2 rounded-3 text-warning d-flex align-items-center justify-content-center flex-shrink-0" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
+						<Award size={24} />
+					</div>
+					<div className="flex-grow-1">
+						<h6 className="fw-bold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
+							Template Sertifikat Belum Diatur
+						</h6>
+						<p className="text-secondary mb-0" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
+							Acara ini telah selesai, namun Anda belum membuat/mengatur template sertifikat. Peserta yang hadir tidak dapat mengklaim atau menerima sertifikat kehadiran mereka secara otomatis sampai Anda menyiapkannya.
+						</p>
+					</div>
+					<button 
+						className="btn btn-warning btn-sm fw-semibold text-white px-3.5 py-2 align-self-center flex-shrink-0"
+						style={{ borderRadius: '8px', backgroundColor: '#d97706', borderColor: '#d97706', fontSize: '0.82rem' }}
+						onClick={() => navigate(`/organizer/${eventId}/event-dashboard/sertifikat`)}
+					>
+						Atur Sertifikat
+					</button>
+				</div>
 			)}
+
 
 			{/* Stat Cards */}
 			{currentConfig.showStats && (
@@ -420,50 +241,95 @@ export default function EventDashboardPage() {
 				</Row>
 			)}
 
-			{/* Event Info (Hidden in Draft Phase) */}
-			{/* {!isDraft && (
-				<EventInfoCard
-					event={eventData}
-					isOngoing={eventStatus === 'ongoing'}
-					onEdit={() => navigate(`/organizer/${eventId}/event-dashboard/detail/info`)}
-					onFormulir={() =>
-						navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)
-					}
-					onExport={() =>
-						navigate(`/organizer/${eventId}/event-dashboard/daftar-peserta`)
-					}
-					onTiket={() => navigate(`/organizer/${eventId}/event-dashboard/detail/tiket`)}
-				/>
-			)} */}
-
-			{/* Timeline (Hidden in Draft Phase) */}
-			{/* {!isDraft && <EventTimeline steps={eventData.timeline || []} />} */}
+			{/* Ongoing Dashboard Card */}
+			{['ongoing', 'paused'].includes(eventStatus) && (
+				<OngoingDashboardCard eventData={eventData} sessions={sessions} />
+			)}
 
 			{/* Event Checklist Widget */}
 			{isDraft ? (
 				issues.length > 0 ? (
 					<MissingInformation
 						issues={issues}
-						onFix={(issue) => handleIssueNavigation(issue, eventId, navigate)}
+						eventId={eventId}
 						highlight={highlightIssues}
 					/>
 				) : (
 					<PublishReadyCard />
 				)
 			) : (
-				<EventChecklist
-					checklist={eventData.preparation_checklist || []}
-					eventId={eventId}
-				/>
+				eventStatus === 'published' && (
+					<EventChecklist
+						checklist={eventData.preparation_checklist || []}
+						eventId={eventId}
+					/>
+				)
 			)}
 
-			{/* Panduan Konfirmasi Kehadiran — tampil saat event published/ongoing/post_event */}
-			{['published', 'ongoing', 'paused', 'post_event'].includes(eventStatus) && (
-				<AttendanceGuideCard
-					eventId={eventId}
-					eventType={eventData.location_type || 'offline'}
-				/>
+			{/* Sisa Tiket per Tipe (Jika lebih dari 1 tipe tiket) */}
+			{eventData.tickets && eventData.tickets.length > 1 && (
+				<Card className="border shadow-none rounded-4 mb-4">
+					<Card.Body className="p-4">
+						<div className="d-flex justify-content-between align-items-center mb-3">
+							<div>
+								<h5 className="mb-1 text-dark fw-bold" style={{ fontSize: '1.1rem' }}>
+									Status Penjualan & Sisa Tiket
+								</h5>
+								<p className="mb-0 text-muted" style={{ fontSize: '0.8rem' }}>
+									Pantau kuota dan sisa tiket aktif berdasarkan tipenya.
+								</p>
+							</div>
+							<Badge bg="light" className="text-dark border px-2.5 py-1 text-xs font-semibold rounded-pill">
+								{eventData.tickets.length} Tipe Tiket
+							</Badge>
+						</div>
+						<Row className="g-3">
+							{eventData.tickets.map((t, idx) => {
+								const cap = parseInt(t.capacity) || 0;
+								const sold = parseInt(t.count) || 0;
+								const sisa = t.capacity === null ? '∞ (Tak Terbatas)' : Math.max(0, cap - sold);
+								const pct = t.capacity === null || cap === 0 ? 0 : Math.round((sold / cap) * 100);
+
+								return (
+									<Col xs={12} md={6} key={idx}>
+										<div className="p-3 border rounded-3 bg-light">
+											<div className="d-flex justify-content-between align-items-center mb-1">
+												<span className="fw-bold text-dark" style={{ fontSize: '0.9rem' }}>
+													{t.label}
+												</span>
+												<Badge bg={t.is_free ? "success" : "primary"} className="px-2 py-1 rounded">
+													{t.is_free ? 'Gratis' : `Rp ${parseInt(t.price).toLocaleString('id-ID')}`}
+												</Badge>
+											</div>
+											<div className="mt-2">
+												<div className="d-flex justify-content-between text-muted mb-1" style={{ fontSize: '0.78rem' }}>
+													<span>Terjual: {sold} {t.capacity !== null && `/ ${cap}`}</span>
+													<span>Sisa: <strong>{sisa}</strong></span>
+												</div>
+												{t.capacity !== null && (
+													<ProgressBar
+														now={pct}
+														style={{ height: '5px' }}
+														variant={idx % 2 === 0 ? 'primary' : 'info'}
+													/>
+												)}
+											</div>
+										</div>
+									</Col>
+								);
+							})}
+						</Row>
+					</Card.Body>
+				</Card>
 			)}
+
+			{/* Kelola Link Presensi Online */}
+			{['published', 'ongoing', 'paused', 'post_event'].includes(eventStatus) &&
+				['online', 'hybrid'].includes(eventData.location_type || 'offline') && (
+					<div className="mb-4">
+						<MultiSessionAttendanceTool />
+					</div>
+				)}
 
 			{/* Sesi & Pembicara */}
 			<Row className="g-3 mb-4">
@@ -471,43 +337,10 @@ export default function EventDashboardPage() {
 					<SessionTable
 						sessions={sessions}
 						eventStatus={eventStatus}
-						onAddSession={() =>
-							navigate(`/organizer/${eventId}/event-dashboard/detail/sesi`)
-						}
+						onAddSession={() => navigate(`/organizer/${eventId}/event-dashboard/sesi`)}
 					/>
 				</Col>
-				<Col xs={12} lg={4}>
-					{/* Komponen Pembicara diletakkan di sini */}
-				</Col>
 			</Row>
-
-			{/* Demographics & Ticket Distribution */}
-			{/* {currentConfig.showStats && (
-				<Row className="g-3">
-					<Col xs={12} md={6}>
-						<DemographicsCard
-							data={eventData.demographics?.data || []}
-							totals={eventData.demographics?.totals || []}
-							eventStatus={eventStatus}
-						/>
-					</Col>
-					<Col xs={12} md={6}>
-						<TicketDistribution tickets={eventData.tickets || []} />
-					</Col>
-				</Row>
-			)} */}
-
-			{/* Draft Modal */}
-			<StatusConfirmationModal
-				eventId={eventId}
-				show={showDraftModal}
-				onHide={() => setShowDraftModal(false)}
-				pendingStatus="draft"
-				onConfirm={() => {
-					setEventStatus('draft');
-					setShowDraftModal(false);
-				}}
-			/>
 
 			{/* Publish Modal */}
 			<StatusConfirmationModal
@@ -528,41 +361,8 @@ export default function EventDashboardPage() {
 				onHide={() => setShowCancelModal(false)}
 				pendingStatus="cancelled"
 				onConfirm={() => {
-					setEventStatus('cancelled');
+					fetchOverview();
 					setShowCancelModal(false);
-				}}
-			/>
-
-			<StatusConfirmationModal
-				eventId={eventId}
-				show={showOngoingModal}
-				onHide={() => setShowOngoingModal(false)}
-				pendingStatus="ongoing"
-				onConfirm={() => {
-					setEventStatus('ongoing');
-					setShowOngoingModal(false);
-				}}
-			/>
-
-			<StatusConfirmationModal
-				eventId={eventId}
-				show={showPostEventModal}
-				onHide={() => setShowPostEventModal(false)}
-				pendingStatus="post_event"
-				onConfirm={() => {
-					setEventStatus('post_event');
-					setShowPostEventModal(false);
-				}}
-			/>
-
-			<StatusConfirmationModal
-				eventId={eventId}
-				show={showCompletedModal}
-				onHide={() => setShowCompletedModal(false)}
-				pendingStatus="completed"
-				onConfirm={() => {
-					setEventStatus('completed');
-					setShowCompletedModal(false);
 				}}
 			/>
 		</div>

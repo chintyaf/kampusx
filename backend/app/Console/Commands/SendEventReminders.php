@@ -78,11 +78,22 @@ class SendEventReminders extends Command
         }
 
         // 2. Acara Sedang Berjalan (Tepat saat start_date terlewati)
-        $ongoingEvents = Event::where('status', 'published')
+        $ongoingEventsCandidate = Event::where('status', 'published')
             ->where('is_ongoing_reminded', false)
             ->whereNotNull('start_date')
-            ->where('start_date', '<=', $now)
             ->get();
+
+        $ongoingEvents = $ongoingEventsCandidate->filter(function ($event) use ($now) {
+            $tzMap = [
+                'WIB' => 'Asia/Jakarta',
+                'WITA' => 'Asia/Makassar',
+                'WIT' => 'Asia/Jayapura',
+            ];
+            $tz = $tzMap[$event->timezone] ?? $event->timezone ?? 'UTC';
+            $eventNow = $now->copy()->setTimezone($tz);
+            $eventStart = Carbon::parse($event->start_date->format('Y-m-d H:i:s'), $tz);
+            return $eventNow->gte($eventStart);
+        });
 
         foreach ($ongoingEvents as $event) {
             // Notify Organizer
@@ -115,33 +126,71 @@ class SendEventReminders extends Command
                 'content' => "Kabar gembira! Acara '{$event->title}' telah resmi dimulai saat ini. Selamat datang dan silakan ikuti seluruh jalannya acara serta sesi yang tersedia di Event Space. Selamat belajar!",
             ]);
 
-            $event->update(['is_ongoing_reminded' => true]);
+            $event->update([
+                'status' => 'ongoing',
+                'is_ongoing_reminded' => true
+            ]);
         }
 
         // 3. Acara Telah Selesai (Tepat saat end_date terlewati)
-        $finishedEvents = Event::whereIn('status', ['published', 'ongoing', 'completed'])
+        $finishedEventsCandidate = Event::whereIn('status', ['published', 'ongoing', 'completed'])
             ->where('is_finished_reminded', false)
             ->whereNotNull('end_date')
-            ->where('end_date', '<=', $now)
             ->get();
+
+        $finishedEvents = $finishedEventsCandidate->filter(function ($event) use ($now) {
+            $tzMap = [
+                'WIB' => 'Asia/Jakarta',
+                'WITA' => 'Asia/Makassar',
+                'WIT' => 'Asia/Jayapura',
+            ];
+            $tz = $tzMap[$event->timezone] ?? $event->timezone ?? 'UTC';
+            $eventNow = $now->copy()->setTimezone($tz);
+            $eventEnd = Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
+            return $eventNow->gte($eventEnd);
+        });
 
         foreach ($finishedEvents as $event) {
             if ($event->organizer) {
-                $event->organizer->notify(new EventReminderNotification($event, 'FINISHED', 'organizer'));
+                $hasCertificate = DB::table('certificate_templates')->where('event_id', $event->id)->exists();
+                if (!$hasCertificate) {
+                    $event->organizer->notify(new EventReminderNotification($event, 'FINISHED_NO_CERTIFICATE', 'organizer'));
+                } else {
+                    $event->organizer->notify(new EventReminderNotification($event, 'FINISHED', 'organizer'));
+                }
             }
-            $event->update(['is_finished_reminded' => true]);
+            $event->update([
+                'status' => 'completed',
+                'is_finished_reminded' => true
+            ]);
         }
 
         // 4. Post-Event (Upload Materi & Sertifikat - H+1)
-        $postEvents = Event::whereIn('status', ['published', 'ongoing', 'completed'])
+        $postEventsCandidate = Event::whereIn('status', ['published', 'ongoing', 'completed'])
             ->where('is_post_event_reminded', false)
             ->whereNotNull('end_date')
-            ->where('end_date', '<=', $now->copy()->subHours(24))
             ->get();
+
+        $postEvents = $postEventsCandidate->filter(function ($event) use ($now) {
+            $tzMap = [
+                'WIB' => 'Asia/Jakarta',
+                'WITA' => 'Asia/Makassar',
+                'WIT' => 'Asia/Jayapura',
+            ];
+            $tz = $tzMap[$event->timezone] ?? $event->timezone ?? 'UTC';
+            $eventNow = $now->copy()->setTimezone($tz);
+            $eventEnd = Carbon::parse($event->end_date->format('Y-m-d H:i:s'), $tz);
+            return $eventNow->gte($eventEnd->copy()->addHours(24));
+        });
 
         foreach ($postEvents as $event) {
             if ($event->organizer) {
-                $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT', 'organizer'));
+                $hasCertificate = DB::table('certificate_templates')->where('event_id', $event->id)->exists();
+                if (!$hasCertificate) {
+                    $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT_NO_CERTIFICATE', 'organizer'));
+                } else {
+                    $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT', 'organizer'));
+                }
             }
             $event->update(['is_post_event_reminded' => true]);
         }

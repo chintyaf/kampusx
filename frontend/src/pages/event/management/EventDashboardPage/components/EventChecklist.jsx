@@ -40,9 +40,10 @@ export default function EventChecklist({ checklist = [], eventId }) {
 			className="bg-white"
 			style={{
 				borderRadius: '12px',
-				border: '1px solid #E2E8F0',
+				border: pendingCount > 0 ? '1px solid #f59e0b' : '1px solid #E2E8F0',
 				overflow: 'hidden',
 				marginBottom: '24px',
+				boxShadow: pendingCount > 0 ? '0 4px 6px -1px rgba(245, 158, 11, 0.05)' : 'none',
 			}}
 		>
 			{/* Header Style (Identik dengan MissingInformation) */}
@@ -51,6 +52,7 @@ export default function EventChecklist({ checklist = [], eventId }) {
 				style={{
 					padding: '16px 20px',
 					borderBottom: '1px solid #E2E8F0',
+					backgroundColor: pendingCount > 0 ? '#fffbeb' : 'transparent',
 				}}
 			>
 				<div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -88,7 +90,7 @@ export default function EventChecklist({ checklist = [], eventId }) {
 							}}
 						>
 							{pendingCount > 0
-								? `${pendingCount} item perlu dilengkapi`
+								? `${pendingCount} item wajib belum dilengkapi`
 								: 'Semua persiapan telah selesai'}
 						</div>
 					</div>
@@ -115,6 +117,24 @@ export default function EventChecklist({ checklist = [], eventId }) {
 					/>
 				</div>
 			</div>
+
+			{/* Warning Alert Banner inside card */}
+			{pendingCount > 0 && (
+				<div 
+					className="mx-3 mb-3 p-3 rounded-3 d-flex align-items-start gap-2.5"
+					style={{ backgroundColor: '#fffbeb', border: '1px solid #f59e0b', borderLeft: '4px solid #f59e0b' }}
+				>
+					<span style={{ fontSize: '16px', lineHeight: 1, marginTop: '2px' }}>⚠️</span>
+					<div>
+						<h6 className="mb-1 text-dark fw-bold" style={{ fontSize: '0.82rem' }}>
+							Peringatan: Persiapan Belum Lengkap!
+						</h6>
+						<p className="mb-0 text-muted" style={{ fontSize: '0.74rem', lineHeight: 1.45 }}>
+							Harap segera lengkapi item wajib bertanda kuning di bawah ini sebelum event dimulai agar tidak mengganggu jalannya acara.
+						</p>
+					</div>
+				</div>
+			)}
 
 			{/* Checklist Items */}
 			<div className="d-flex flex-column gap-3" style={{ padding: '0 20px 20px' }}>

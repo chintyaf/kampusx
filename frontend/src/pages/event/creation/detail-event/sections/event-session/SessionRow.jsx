@@ -58,17 +58,20 @@ const SessionRow = ({ session, selectedRow, onClick }) => {
 				<div className="d-flex align-items-center gap-1">
 					{session.speakers && session.speakers.length > 0 ? (
 						// Jika ada data pembicara, petakan (map) gambarnya
-						session.speakers.map((speaker, index) => (
-							<img
-								key={index}
-								src={getSpeakerAvatar(speaker)}
-								alt={speaker.name || 'Speaker'}
-								className="rounded-circle object-fit-cover bg-light"
-								width="25"
-								height="25"
-								title={speaker.name}
-							/>
-						))
+						session.speakers.map((speaker, index) => {
+							const avatar = getSpeakerAvatar(speaker);
+							return avatar ? (
+								<img
+									key={index}
+									src={avatar}
+									alt={speaker.name || 'Speaker'}
+									className="rounded-circle object-fit-cover bg-light"
+									width="25"
+									height="25"
+									title={speaker.name}
+								/>
+							) : null;
+						})
 					) : (
 						// Tampilan jika pembicara kosong
 						<div

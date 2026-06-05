@@ -1,56 +1,6 @@
 import React, { useState } from 'react';
+import { useMemo } from 'react';
 import { List } from 'lucide-react';
-
-/**
- * SessionTable
- * Props:
- *   sessions {Array<{
- *     title, day, time, speaker, materialStatus:'uploaded'|'pending'|'not_required', prerequisite
- *   }>}
- */
-
-const defaultSessions = [
-	{
-		title: 'Logic 101',
-		day: 1,
-		time: '09:00',
-		speaker: 'Budi Santoso',
-		materialStatus: 'uploaded',
-		prerequisite: null,
-	},
-	{
-		title: 'Introduction to Web Dev',
-		day: 1,
-		time: '11:00',
-		speaker: 'Dewi Lestari',
-		materialStatus: 'uploaded',
-		prerequisite: 'Logic 101',
-	},
-	{
-		title: 'Advanced OOP',
-		day: 1,
-		time: '13:00',
-		speaker: 'Siti Aminah',
-		materialStatus: 'pending',
-		prerequisite: 'Logic 101',
-	},
-	{
-		title: 'Database Design',
-		day: 2,
-		time: '15:00',
-		speaker: 'Ahmad Rizki',
-		materialStatus: 'uploaded',
-		prerequisite: null,
-	},
-	{
-		title: 'Q&A Session',
-		day: 2,
-		time: '17:00',
-		speaker: null,
-		materialStatus: 'not_required',
-		prerequisite: null,
-	},
-];
 
 const statusConfig = {
 	uploaded: { label: 'Uploaded', cls: 'tag-success' },
@@ -64,8 +14,55 @@ const dayColors = {
 	3: { bg: '#fce7f3', color: '#9d174d' },
 };
 
-export default function SessionTable({ sessions = defaultSessions, eventStatus, onAddSession }) {
+export default function SessionTable({ sessions: rawSessionsData, eventStatus, onAddSession }) {
 	const [activeDay, setActiveDay] = useState('all');
+
+	// Flatten and format rawSessionsData inside component
+	const sessions = useMemo(() => {
+		if (!rawSessionsData) return [];
+
+		// If it is already a flat list of sessions, return it directly
+		if (Array.isArray(rawSessionsData)) {
+			if (rawSessionsData.length === 0) return [];
+			// Check if the items are day objects (which contain a nested sessions array)
+			if (!rawSessionsData[0].hasOwnProperty('sessions')) {
+				return rawSessionsData;
+			}
+		}
+
+		const groupedDaysArray = Array.isArray(rawSessionsData)
+			? rawSessionsData
+			: Object.values(rawSessionsData);
+		const fetchedSessions = [];
+
+		groupedDaysArray.forEach((day, index) => {
+			const dayNumber = day.day_number || index + 1;
+			if (day.sessions && Array.isArray(day.sessions)) {
+				day.sessions.forEach((s) => {
+					const speakerNames =
+						s.speakers && s.speakers.length > 0
+							? s.speakers.map((spk) => spk.name).join(', ')
+							: null;
+
+					fetchedSessions.push({
+						id: s.id,
+						title: s.title || s.name,
+						day: dayNumber,
+						time:
+							s.start_time && s.end_time
+								? `${s.start_time.substring(0, 5)} - ${s.end_time.substring(0, 5)}`
+								: s.startTime && s.endTime
+									? `${s.startTime.substring(0, 5)} - ${s.endTime.substring(0, 5)}`
+									: '',
+						speaker: speakerNames,
+						materialStatus: s.material_status || s.materialStatus || 'not_required',
+					});
+				});
+			}
+		});
+
+		return fetchedSessions;
+	}, [rawSessionsData]);
 
 	const isEmpty = !sessions || sessions.length === 0;
 	const days = isEmpty ? [] : [...new Set(sessions.map((s) => s.day))].sort();
@@ -83,11 +80,12 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 				borderRadius: 'var(--radius)',
 				marginBottom: 24,
 				overflow: 'hidden',
+				minHeight: 60,
 			}}
 		>
 			{/* Header */}
 			<div
-			className='d-flex justify-content-between'
+				className="d-flex justify-content-between"
 				style={{
 					padding: '16px 20px 12px',
 					borderBottom: '0.5px solid var(--border)',
@@ -101,7 +99,7 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 				<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 					<List size={15} color="var(--text-muted)" />
 					<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
-						Struktur Sesi &amp; Prerequisite
+						Struktur Sesi Event
 					</span>
 				</div>
 				{!isEmpty && (
@@ -135,50 +133,55 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 
 			{isEmpty ? (
 				<div
+					className="d-flex flex-column align-items-center justify-content-center text-center p-5"
 					style={{
-						padding: '40px 20px',
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						justifyContent: 'center',
-						background: '#fafafa',
-						textAlign: 'center',
-						borderTop: 'none',
+						background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+						minHeight: '260px',
+						fontFamily: 'var(--font)',
 					}}
 				>
-					<List size={32} style={{ color: '#94a3b8', marginBottom: 12, opacity: 0.6 }} />
-					<span
-						style={{ fontSize: 14, fontWeight: 600, color: '#334155', marginBottom: 4 }}
+					<div
+						className="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3"
+						style={{ width: '64px', height: '64px' }}
 					>
-						Belum ada sesi yang terdaftar
-					</span>
-					<span style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>
-						Silakan tambah sesi baru untuk event ini.
-					</span>
+						<List size={30} className="text-white" />
+					</div>
+					<h5 className="fw-bold text-dark mb-1" style={{ fontSize: '15px' }}>
+						Belum Ada Jadwal Sesi
+					</h5>
+					<p
+						className="text-muted small mb-4"
+						style={{ maxWidth: '350px', fontSize: '12px', lineHeight: 1.5 }}
+					>
+						Buat struktur sesi acara Anda sekarang agar peserta dapat melihat agenda
+						kegiatan yang akan berlangsung.
+					</p>
 					{onAddSession && (
 						<button
 							onClick={onAddSession}
 							style={{
 								fontSize: 12,
-								fontWeight: 600,
-								padding: '8px 16px',
-								background: 'white',
-								border: '1.5px solid #00699e',
-								color: '#00699e',
-								borderRadius: '6px',
+								fontWeight: 700,
+								padding: '8px 20px',
+								background: 'var(--primary)',
+								color: 'white',
+								border: 'none',
+								borderRadius: '20px',
 								cursor: 'pointer',
-								transition: 'background 0.15s, color 0.15s',
+								boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+								transition: 'all 0.15s ease',
+								fontFamily: 'var(--font)',
 							}}
 							onMouseEnter={(e) => {
-								e.currentTarget.style.background = '#00699e';
-								e.currentTarget.style.color = 'white';
+								e.currentTarget.style.opacity = '0.9';
+								e.currentTarget.style.transform = 'translateY(-1px)';
 							}}
 							onMouseLeave={(e) => {
-								e.currentTarget.style.background = 'white';
-								e.currentTarget.style.color = '#00699e';
+								e.currentTarget.style.opacity = '1';
+								e.currentTarget.style.transform = 'translateY(0)';
 							}}
 						>
-							Tambah Sesi
+							+ Tambah Sesi Pertama Anda
 						</button>
 					)}
 				</div>
@@ -188,14 +191,7 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 					<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
 						<thead>
 							<tr>
-								{[
-									'Sesi',
-									'Day',
-									'Waktu',
-									'Speaker',
-									'Status Materi',
-									'Prerequisite',
-								].map((h) => (
+								{['Sesi', 'Day', 'Waktu', 'Speaker', 'Status Materi'].map((h) => (
 									<th
 										key={h}
 										style={{
@@ -217,7 +213,7 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 							{filtered.length === 0 ? (
 								<tr>
 									<td
-										colSpan={6}
+										colSpan={5}
 										style={{
 											padding: '32px 16px',
 											textAlign: 'center',
@@ -275,7 +271,7 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 												</span>
 											</td>
 											<td
-											className='fs-5 text-muted'
+												className="fs-5 text-muted"
 												style={{
 													padding: '10px 16px',
 													borderBottom: '0.5px solid var(--border)',
@@ -293,7 +289,12 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 												{s.speaker ? (
 													s.speaker
 												) : (
-													<span style={{ color: 'var(--text-muted)' }} className='fst-italic'>Tidak ada speaker</span>
+													<span
+														style={{ color: 'var(--text-muted)' }}
+														className="fst-italic"
+													>
+														Tidak ada speaker
+													</span>
 												)}
 											</td>
 											<td
@@ -303,22 +304,6 @@ export default function SessionTable({ sessions = defaultSessions, eventStatus, 
 												}}
 											>
 												<span className={`tag ${sc.cls}`}>{sc.label}</span>
-											</td>
-											<td
-												style={{
-													padding: '10px 16px',
-													borderBottom: '0.5px solid var(--border)',
-												}}
-											>
-												{s.prerequisite ? (
-													<span className="tag tag-primary">
-														{s.prerequisite}
-													</span>
-												) : (
-													<span style={{ color: 'var(--text-muted)' }}>
-														-
-													</span>
-												)}
 											</td>
 										</tr>
 									);

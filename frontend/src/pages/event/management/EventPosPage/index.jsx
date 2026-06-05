@@ -124,53 +124,59 @@ const EventPosPage = () => {
 			</div>
 
 			{/* ── 2. Dua Kolom Layout Responsive ── */}
-			<Row className="g-4">
-				{/* Kolom Kiri: Main Area (8 dari 12 bagian) */}
-				<Col lg={8} className="d-flex flex-column gap-4">
-					{/* Rongga Waktu Presensi (Rentang Waktu Presensi Aktif) */}
-					{/* <AttendanceWindowInfo event={event} /> */}
+			{(() => {
+				const isOffline = event?.location_type === 'offline';
+				const qrTabLabel = isOffline ? 'Scanner QR (Check-in / Masuk)' : 'Pos Scanner QR (Offline)';
+				const onlineTabLabel = isOffline ? 'Link Checkout (Online)' : 'Magic Link (Online)';
 
-					{/* Custom Method Toggle (Tab modern dengan garis bawah) */}
-					<div className="d-flex border-bottom" style={{ gap: '24px' }}>
-						<button
-							onClick={() => setActiveMethod('qr')}
-							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
-							style={{
-								fontSize: '0.9rem',
-								cursor: 'pointer',
-								color: activeMethod === 'qr' ? '#1E293B' : '#94A3B8',
-								padding: '8px 4px',
-								transition: 'color 0.2s',
-							}}
-						>
-							Pos Scanner QR (Offline)
-							{activeMethod === 'qr' && (
-								<div
-									className="position-absolute bottom-0 start-0 end-0 bg-primary"
-									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
-								/>
-							)}
-						</button>
-						<button
-							onClick={() => setActiveMethod('online')}
-							className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
-							style={{
-								fontSize: '0.9rem',
-								cursor: 'pointer',
-								color: activeMethod === 'online' ? '#1E293B' : '#94A3B8',
-								padding: '8px 4px',
-								transition: 'color 0.2s',
-							}}
-						>
-							Magic Link (Online)
-							{activeMethod === 'online' && (
-								<div
-									className="position-absolute bottom-0 start-0 end-0 bg-primary"
-									style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
-								/>
-							)}
-						</button>
-					</div>
+				return (
+					<Row className="g-4">
+						{/* Kolom Kiri: Main Area (8 dari 12 bagian) */}
+						<Col lg={8} className="d-flex flex-column gap-4">
+							{/* Rongga Waktu Presensi (Rentang Waktu Presensi Aktif) */}
+							{/* <AttendanceWindowInfo event={event} /> */}
+
+							{/* Custom Method Toggle (Tab modern dengan garis bawah) */}
+							<div className="d-flex border-bottom" style={{ gap: '24px' }}>
+								<button
+									onClick={() => setActiveMethod('qr')}
+									className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+									style={{
+										fontSize: '0.9rem',
+										cursor: 'pointer',
+										color: activeMethod === 'qr' ? '#1E293B' : '#94A3B8',
+										padding: '8px 4px',
+										transition: 'color 0.2s',
+									}}
+								>
+									{qrTabLabel}
+									{activeMethod === 'qr' && (
+										<div
+											className="position-absolute bottom-0 start-0 end-0 bg-primary"
+											style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+										/>
+									)}
+								</button>
+								<button
+									onClick={() => setActiveMethod('online')}
+									className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+									style={{
+										fontSize: '0.9rem',
+										cursor: 'pointer',
+										color: activeMethod === 'online' ? '#1E293B' : '#94A3B8',
+										padding: '8px 4px',
+										transition: 'color 0.2s',
+									}}
+								>
+									{onlineTabLabel}
+									{activeMethod === 'online' && (
+										<div
+											className="position-absolute bottom-0 start-0 end-0 bg-primary"
+											style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+										/>
+									)}
+								</button>
+							</div>
 
 					{/* Konten Berdasarkan Metode yang Dipilih */}
 					{activeMethod === 'qr' ? (
@@ -249,10 +255,12 @@ const EventPosPage = () => {
 				<Col lg={4}>
 					<div className="sticky-lg-top" style={{ top: '24px', zIndex: 10 }}>
 						{/* Panduan Cara Kerja Presensi */}
-						<PosGuideCard />
+						<PosGuideCard eventType={event?.location_type} />
 					</div>
 				</Col>
 			</Row>
+				);
+			})()}
 
 			{/* ── 3. Form Modal (Add/Edit POS Station) ── */}
 			<PosForm
