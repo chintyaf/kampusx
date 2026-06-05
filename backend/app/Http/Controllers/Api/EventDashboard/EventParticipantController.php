@@ -34,11 +34,13 @@ class EventParticipantController extends Controller
         $allTicketIds = (clone $baseQuery)->pluck('id');
 
         $checkedInCount  = AttendanceLog::whereIn('ticket_id', $allTicketIds)
+            ->whereNull('session_id')
             ->whereNotNull('scan_time')
             ->whereNull('checkout_time')
             ->count();
 
         $checkedOutCount = AttendanceLog::whereIn('ticket_id', $allTicketIds)
+            ->whereNull('session_id')
             ->whereNotNull('checkout_time')
             ->count();
 

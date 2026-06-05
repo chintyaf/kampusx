@@ -12,12 +12,13 @@ class EventStatusController extends Controller
 {
     private $allowedTransitions = [
         'draft'     => ['published'],
-        'published' => ['draft', 'ongoing', 'completed', 'cancelled'],
+        'published' => ['draft', 'ongoing', 'completed', 'cancelled', 'archived'],
         'ongoing'   => ['paused', 'completed', 'cancelled'],
         'paused'    => ['ongoing', 'completed'],
-        'completed' => ['post_event'],
-        'post_event'=> [],
+        'completed' => ['post_event', 'archived'],
+        'post_event'=> ['archived'],
         'cancelled' => [],
+        'archived'  => [],
     ];
 
     private function validateTransition(Event $event, string $targetStatus)
@@ -188,26 +189,26 @@ class EventStatusController extends Controller
 
     public function updateArchive(Request $request, Event $event)
     {
-        if (!$this->validateTransition($event, 'draft')) {
+        if (!$this->validateTransition($event, 'archived')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Transisi status tidak valid.',
             ], 400);
         }
 
-        // Cek apakah status yang dikirim memang 'draft'
-        if ($request->status === 'draft') {
+        // Cek apakah status yang dikirim memang 'archived'
+        if ($request->status === 'archived') {
             $event->update([
-                'status' => 'draft'
+                'status' => 'archived'
             ]);
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Event berhasil diubah menjadi draft!',
+                'message' => 'Event berhasil diarsipkan!',
             ], 200);
         }
 
-        // Tangani kondisi jika status bukan draft atau tidak ada perubahan
+        // Tangani kondisi jika status bukan archived atau tidak ada perubahan
         return response()->json([
             'status' => 'error',
             'message' => 'Tidak ada perubahan yang dilakukan.',

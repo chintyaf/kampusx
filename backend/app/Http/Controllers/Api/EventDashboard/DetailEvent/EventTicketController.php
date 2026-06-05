@@ -186,9 +186,25 @@ class EventTicketController extends Controller
 
             // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
             $ticketIdsFromRequest = collect($request->tickets)->pluck('id')->filter()->toArray();
-            EventTicket::where('event_id', $eventId)
+            $ticketsToDelete = EventTicket::where('event_id', $eventId)
                        ->whereNotIn('id', $ticketIdsFromRequest)
-                       ->delete();
+                       ->get();
+
+            foreach ($ticketsToDelete as $ticket) {
+                // Hitung tiket terjual
+                $sold = DB::table('tickets')
+                    ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
+                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                    ->where('orders.event_id', $eventId)
+                    ->where('order_items.price', $ticket->price)
+                    ->count();
+
+                if ($sold > 0) {
+                    throw new \Exception("Tiket '{$ticket->name}' tidak dapat dihapus karena sudah memiliki transaksi/peserta terdaftar.");
+                }
+
+                $ticket->delete();
+            }
 
             DB::commit();
 

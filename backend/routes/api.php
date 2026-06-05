@@ -29,11 +29,11 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\NotificationController;
 
 // Event Dashboard Controllers
-use App\Http\Controllers\Api\EventDashboard\EventDashboardController;
+use App\Http\Controllers\Api\EventDashboard\EventOverviewController;
 use App\Http\Controllers\Api\EventDashboard\EventParticipantController;
 use App\Http\Controllers\Api\EventDashboard\EventStationController;
 use App\Http\Controllers\Api\EventDashboard\EventStatusController;
-use App\Http\Controllers\Api\EventDashboard\CertificateController;
+use App\Http\Controllers\Api\EventDashboard\EventCertificateController;
 
 // Event Dashboard Detail Controllers
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionController;
@@ -41,7 +41,7 @@ use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSpeakerController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventGeneralInfoController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventLocationController;
 use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventTicketController;
-use App\Http\Controllers\Api\EventDashboard\DetailEvent\SessionMaterialController;
+use App\Http\Controllers\Api\EventDashboard\DetailEvent\EventSessionMaterialController;
 use App\Http\Controllers\Api\EventDashboard\EventAttendanceController;
 
 // use App\Http\Controllers\CommitteeController;
@@ -67,10 +67,10 @@ Route::get('/events/explore', [EventController::class, 'index']); // Diubah ke i
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 // Certificate Public Verification & Rendering
-// Route::get('/user/certificates/', [CertificateController::class, 'show']);
-Route::get('/certificate/verify/{ticket_code}', [CertificateController::class, 'verifyCertificate']);
-Route::get('/certificate/render/{ticket_code}', [CertificateController::class, 'getCertificateRenderData']);
-Route::get('/certificate/background/{eventId}', [CertificateController::class, 'getBackgroundPublic']);
+// Route::get('/user/certificates/', [EventCertificateController::class, 'show']);
+Route::get('/certificate/verify/{ticket_code}', [EventCertificateController::class, 'verifyCertificate']);
+Route::get('/certificate/render/{ticket_code}', [EventCertificateController::class, 'getCertificateRenderData']);
+Route::get('/certificate/background/{eventId}', [EventCertificateController::class, 'getBackgroundPublic']);
 
 Route::get('/test', function () {
     return response()->json('hallo', 200);
@@ -140,7 +140,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
     Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index'])->middleware('event.participant');
-    Route::get('/events/{id}/post-event/sessions', [SessionMaterialController::class, 'getSessionsWithMaterialsForParticipant'])->middleware('event.participant');
+    Route::get('/events/{id}/post-event/sessions', [EventSessionMaterialController::class, 'getSessionsWithMaterialsForParticipant'])->middleware('event.participant');
     Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'index']);
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
@@ -238,11 +238,11 @@ Route::middleware('auth:sanctum')->group(function () {
             });
 
             // 2. Dashboard Overview
-            Route::get('/overview', [EventDashboardController::class, 'getOverview']);
-            Route::patch('/toggle-attendance', [EventDashboardController::class, 'toggleAttendance']);
-            Route::get('/revenue-analytics', [EventDashboardController::class, 'getRevenueAnalytics']);
-            Route::get('/venue-qr', [EventDashboardController::class, 'getVenueQr']);
-            Route::get('/export-report', [EventDashboardController::class, 'exportReport']);
+            Route::get('/overview', [EventOverviewController::class, 'getOverview']);
+            Route::patch('/toggle-attendance', [EventOverviewController::class, 'toggleAttendance']);
+            Route::get('/revenue-analytics', [EventOverviewController::class, 'getRevenueAnalytics']);
+            Route::get('/venue-qr', [EventOverviewController::class, 'getVenueQr']);
+            Route::get('/export-report', [EventOverviewController::class, 'exportReport']);
 
             // 3. Participant / Ticket holders route
             Route::get('/daftar-peserta', [EventParticipantController::class, 'index']);
@@ -260,19 +260,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
             // 5. Certificate Design Template
-            Route::get('/certificate', [CertificateController::class, 'show']);
-            Route::get('/certificate/background-file', [CertificateController::class, 'getBackground']);
-            Route::post('/certificate', [CertificateController::class, 'storeTemplate']);
-            Route::post('/certificate/upload-background', [CertificateController::class, 'uploadBackground']);
-            Route::delete('/certificate', [CertificateController::class, 'destroy']);
+            Route::get('/certificate', [EventCertificateController::class, 'show']);
+            Route::get('/certificate/background-file', [EventCertificateController::class, 'getBackground']);
+            Route::post('/certificate', [EventCertificateController::class, 'storeTemplate']);
+            Route::post('/certificate/upload-background', [EventCertificateController::class, 'uploadBackground']);
+            Route::delete('/certificate', [EventCertificateController::class, 'destroy']);
 
             // 6. Post-Event Session Materials
             Route::prefix('post-event')->group(function () {
-                Route::get('/sessions', [SessionMaterialController::class, 'getSessionsWithMaterials']);
-                Route::put('/sessions/{sessionId}/status', [SessionMaterialController::class, 'updateSessionStatus']);
-                Route::post('/sessions/{sessionId}/materials', [SessionMaterialController::class, 'storeMaterial']);
-                Route::delete('/sessions/{sessionId}/materials/{materialId}', [SessionMaterialController::class, 'destroyMaterial']);
-                Route::post('/sessions/{sessionId}/materials/reorder', [SessionMaterialController::class, 'reorderMaterials']);
+                Route::get('/sessions', [EventSessionMaterialController::class, 'getSessionsWithMaterials']);
+                Route::put('/sessions/{sessionId}/status', [EventSessionMaterialController::class, 'updateSessionStatus']);
+                Route::post('/sessions/{sessionId}/materials', [EventSessionMaterialController::class, 'storeMaterial']);
+                Route::delete('/sessions/{sessionId}/materials/{materialId}', [EventSessionMaterialController::class, 'destroyMaterial']);
+                Route::post('/sessions/{sessionId}/materials/reorder', [EventSessionMaterialController::class, 'reorderMaterials']);
             });
 
             // 7. Survey Analytics (Organizer view of participant responses)

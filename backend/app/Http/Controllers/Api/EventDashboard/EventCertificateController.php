@@ -11,7 +11,7 @@ use App\Models\Ticket;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
-class CertificateController extends Controller
+class EventCertificateController extends Controller
 {
     /**
      * Helper privat untuk mencari tiket berdasarkan ticket_code atau custom prefix CERT-.
@@ -268,6 +268,14 @@ class CertificateController extends Controller
                 ], 404);
             }
 
+            if (!in_array($event->status, ['completed', 'post_event'])) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Sertifikat belum tersedia karena acara belum selesai.'
+                ], 403);
+            }
+
             $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
 
             return response()->json([
@@ -323,6 +331,14 @@ class CertificateController extends Controller
                     'status' => 'error',
                     'message' => 'Event terkait sertifikat ini tidak ditemukan.'
                 ], 404);
+            }
+
+            if (!in_array($event->status, ['completed', 'post_event'])) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Sertifikat belum tersedia karena acara belum selesai.'
+                ], 403);
             }
 
             $template = $event->certificateTemplate;

@@ -28,7 +28,7 @@ class EventLocationController extends Controller
         ]);
     }
 
-  public function update(Request $request, $eventId)
+    public function update(Request $request, $eventId)
     {
         $event = Event::findOrFail($eventId);
 
@@ -38,23 +38,23 @@ class EventLocationController extends Controller
 
             // Field Online
             'platform'            => 'nullable|string',
-            'meeting_link'        => 'nullable|url',
+            'meeting_link'        => 'required_if:type,online,hybrid|nullable|url',
             'online_instruction'  => 'nullable|string',
 
             // Field Offline (Perhatikan: di DB nama kolomnya 'location_name', bukan 'location')
-            'location_name'       => 'nullable|string',
+            'location_name'       => 'required_if:type,offline,hybrid|nullable|string',
             'location_detail'     => 'nullable|string',
             'maps_url'            => 'nullable|url',
             'offline_instruction' => 'nullable|string',
 
             // Field Koordinat & Hierarki Alamat Offline
-            'latitude'            => 'nullable|numeric',
-            'longitude'           => 'nullable|numeric',
+            'latitude'            => 'nullable|numeric|between:-90,90',
+            'longitude'           => 'nullable|numeric|between:-180,180',
             'country'             => 'nullable|string',
-            'province'            => 'nullable|string',
-            'city'                => 'nullable|string',
+            'province'            => 'required_if:type,offline,hybrid|nullable|string',
+            'city'                => 'required_if:type,offline,hybrid|nullable|string',
             'district'            => 'nullable|string',
-            'address_detail'      => 'nullable|string',
+            'address_detail'      => 'required_if:type,offline,hybrid|nullable|string',
         ]);
 
         // 2. Handle Empty State berdasarkan Tipe Event

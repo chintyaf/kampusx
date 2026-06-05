@@ -64,7 +64,6 @@ class EventSessionController extends Controller
             'sessions.*.day'         => 'nullable|integer|min:1',
             'sessions.*.startTime'   => 'nullable',
             'sessions.*.endTime'     => 'nullable',
-            'sessions.*.prerequisite_session_ids' => 'nullable|array',
             'sessions.*.no_speaker'  => 'nullable|boolean',
         ]);
 
@@ -107,7 +106,7 @@ class EventSessionController extends Controller
                                 'date'        => $sessionDate,
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
-                                'prerequisite_session_ids' => $sessionData['prerequisite_session_ids'] ?? [],
+                                'prerequisite_session_ids' => [],
                                 'no_speaker'  => $sessionData['no_speaker'] ?? false,
                             ]);
                         } else {
@@ -119,7 +118,7 @@ class EventSessionController extends Controller
                                 'date'        => $sessionDate,
                                 'start_time'  => $sessionData['startTime'],
                                 'end_time'    => $sessionData['endTime'],
-                                'prerequisite_session_ids' => $sessionData['prerequisite_session_ids'] ?? [],
+                                'prerequisite_session_ids' => [],
                                 'no_speaker'  => $sessionData['no_speaker'] ?? false,
                             ]);
                         }

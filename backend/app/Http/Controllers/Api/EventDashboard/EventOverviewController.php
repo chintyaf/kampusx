@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Event;
 use Maatwebsite\Excel\Facades\Excel;
 
-class EventDashboardController extends Controller
+class EventOverviewController extends Controller
 {
     public function getGeneralInfo($eventId)
     {

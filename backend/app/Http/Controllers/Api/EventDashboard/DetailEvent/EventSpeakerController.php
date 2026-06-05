@@ -105,8 +105,8 @@ class EventSpeakerController extends Controller
                     $imageKey = "speakers_image_{$index}";
                     if ($request->hasFile($imageKey)) {
                         // Hapus gambar lama jika ada
-                        if ($speaker->image_path && Storage::exists($speaker->image_path)) {
-                            Storage::delete($speaker->image_path);
+                        if ($speaker->image_path && Storage::disk('public')->exists($speaker->image_path)) {
+                            Storage::disk('public')->delete($speaker->image_path);
                         }
 
                         $file = $request->file($imageKey);
@@ -117,7 +117,13 @@ class EventSpeakerController extends Controller
                     // Update data di pivot table 'event_session_speakers'
                     // Penggunaan array kosong [] memastikan relasi dihapus jika user menghapus centang semua sesi
                     if (array_key_exists('sessions', $speakerData)) {
-                        $speaker->sessions()->sync($speakerData['sessions'] ?? []);
+                        $sessionIds = $speakerData['sessions'] ?? [];
+                        // Ambil hanya ID session yang valid untuk event ini
+                        $validSessionIds = \App\Models\EventSession::where('event_id', $eventId)
+                            ->whereIn('id', $sessionIds)
+                            ->pluck('id')
+                            ->toArray();
+                        $speaker->sessions()->sync($validSessionIds);
                     }
 
                     $speaker->load('sessions');
@@ -164,8 +170,8 @@ class EventSpeakerController extends Controller
                               ->firstOrFail();
 
             // Hapus gambar dari storage jika ada
-            if ($speaker->image_path && Storage::exists($speaker->image_path)) {
-                Storage::delete($speaker->image_path);
+            if ($speaker->image_path && Storage::disk('public')->exists($speaker->image_path)) {
+                Storage::disk('public')->delete($speaker->image_path);
             }
 
             // Hapus relasi pivot di event_session_speakers

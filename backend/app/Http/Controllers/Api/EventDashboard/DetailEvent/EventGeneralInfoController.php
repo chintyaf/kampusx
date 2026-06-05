@@ -76,13 +76,13 @@ class EventGeneralInfoController extends Controller
             'banner'             => $request->hasFile('banner')
                             ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
                             : 'nullable',
-            'timezone'           => 'required|string|max:50',
+            'timezone'           => 'required|timezone',
             'checkin_window_start' => 'nullable|integer|min:0',
             'checkin_window_end'   => 'nullable|integer|min:0',
         ]);
 
         try {
-            return DB::transaction(function () use ($event, $validated, $request) {
+            DB::transaction(function () use ($event, $validated, $request) {
 
                 // 1. Update Tabel Utama (Events)
                 $updateData = [
@@ -124,15 +124,21 @@ class EventGeneralInfoController extends Controller
                 $eventTypeIds = $validated['event_type_ids'] ?? [];
                 // Sesuaikan nama relasi dengan yang ada di Model Event
                 $event->eventTypes()->sync($eventTypeIds);
-
-                $notified = $event->notifyParticipantsOfUpdate();
-
-                return response()->json([
-                    'status'  => 'success',
-                    'message' => 'Informasi event berhasil diperbarui',
-                    'notified_participants' => $notified,
-                ]);
             });
+
+            // Kirim notifikasi setelah DB transaction selesai untuk mencegah long transaction lock
+            $notified = false;
+            try {
+                $notified = $event->notifyParticipantsOfUpdate();
+            } catch (\Exception $ne) {
+                Log::warning("Gagal mengirim notifikasi update event ID {$eventId}: " . $ne->getMessage());
+            }
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Informasi event berhasil diperbarui',
+                'notified_participants' => $notified,
+            ]);
 
         } catch (\Exception $e) {
             Log::error("Update Event Error ID {$eventId}: " . $e->getMessage());

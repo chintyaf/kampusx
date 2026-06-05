@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
-class SessionMaterialController extends Controller
+class EventSessionMaterialController extends Controller
 {
     /**
      * Tampilkan seluruh sesi dari suatu event beserta materinya.
@@ -239,10 +239,16 @@ class SessionMaterialController extends Controller
 
             } else {
                 $file = $request->file('file');
-                if (!$file) {
+                if (!$file || !$file->isValid()) {
+                    $errorMessage = 'Berkas file wajib diunggah untuk tipe ' . $type;
+                    if ($file && !$file->isValid()) {
+                        $errorMessage = 'Unggah berkas gagal: ' . $file->getErrorMessage();
+                    } elseif ($request->headers->get('content-length') > 52428800) { // 50MB
+                        $errorMessage = 'Berkas terlalu besar (Maksimum 50MB).';
+                    }
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'Berkas file wajib diunggah untuk tipe ' . $type
+                        'message' => $errorMessage
                     ], 422);
                 }
 
