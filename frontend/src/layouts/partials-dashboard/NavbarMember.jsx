@@ -109,7 +109,7 @@ const NavbarPublic = () => {
     });
 
 	return (
-        <Navbar expand="lg" className="bg-white border-bottom shadow-sm sticky-top py-2">
+        <Navbar expand="lg" className="bg-white border-bottom shadow-sm sticky-top py-2" style={{ zIndex: 1050 }}>
             <Container className="px-4 d-flex align-items-center justify-content-between">
                 {/* Brand Logo */}
                 <Navbar.Brand as={Link} to="/" className="d-flex align-items-center me-0">
