@@ -134,6 +134,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // ==========================================
     Route::post('/global-rewards/redeem', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'redeemGlobalReward']);
     Route::get('/global-rewards', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'globalRewardsList']);
+    
+    // Member Local Rewards Catalog & Redemption
+    Route::get('/events/{event_id}/local-rewards', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'getLocalRewards']);
+    Route::post('/events/{event_id}/local-rewards/redeem', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'redeemLocalReward']);
+
     Route::post('/checkout', [CheckoutController::class, 'store']);
     Route::get('/checkout/check/{eventId}', [CheckoutController::class, 'checkRegistration']);
     Route::post('/v1/payment/charge', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'charge']);

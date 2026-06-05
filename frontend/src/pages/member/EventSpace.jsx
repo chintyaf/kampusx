@@ -36,6 +36,7 @@ import {
 	Users,
 	Info,
 	Wifi,
+	Gift,
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -1040,6 +1041,13 @@ const EventSpace = () => {
 										onClick={() => setActiveTab('pengumuman')}
 									>
 										<Megaphone size={18} className="me-3" /> Pengumuman Event
+									</Nav.Link>
+									<Nav.Link
+										as={Link}
+										to={`/event-space/${id}/rewards`}
+										className="d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium text-dark hover-bg-light"
+									>
+										<Gift size={18} className="me-3 text-teal" style={{ color: '#0d9488' }} /> Tukar Local Reward
 									</Nav.Link>
 
 									<hr className="my-2.5 opacity-25" />
