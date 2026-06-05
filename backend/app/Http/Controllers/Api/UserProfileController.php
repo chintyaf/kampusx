@@ -10,6 +10,8 @@ use App\Models\Ticket;
 use App\Models\SurveyResponse;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+\Carbon\Carbon::setLocale('id');
+
 
 class UserProfileController extends Controller
 {
@@ -248,7 +250,10 @@ class UserProfileController extends Controller
             'interests' => $interests,
             'history' => $history,
             'certificates' => $certificates,
-            'generated_at' => Carbon::now()->format('d F Y H:i')
+            // 'generated_at' => Carbon::now()->format('d F Y H:i')
+            'generated_at' => Carbon::now('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB'
+
+            
         ]);
 
         $filename = 'cv_' . strtolower(str_replace(' ', '_', $user->name)) . '.pdf';
