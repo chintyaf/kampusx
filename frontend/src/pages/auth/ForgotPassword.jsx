@@ -39,7 +39,7 @@ const ForgotPassword = () => {
         setIsLoading(true); setErrorMsg(''); setMessage('');
 
         try {
-            const response = await api.post('/forgot-password', { identifier });
+            const response = await api.post('/forgot-password', { email: identifier });
             setMessage(response.data.message || 'OTP berhasil dikirim!');
             setResolvedEmail(response.data.email); // Save the resolved email for next steps
             setStep(2); // Pindah ke Step 2 (Input OTP)
