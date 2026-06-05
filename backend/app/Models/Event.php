@@ -271,4 +271,19 @@ class Event extends Model
         }
         return $this->bookmarks()->where('user_id', $user->id)->exists();
     }
+
+    public function localPoints(): HasMany
+    {
+        return $this->hasMany(LocalMemberPoint::class);
+    }
+
+    public function rewards(): HasMany
+    {
+        return $this->hasMany(Reward::class);
+    }
+
+    public function pointTransactions(): HasMany
+    {
+        return $this->hasMany(PointTransaction::class);
+    }
 }

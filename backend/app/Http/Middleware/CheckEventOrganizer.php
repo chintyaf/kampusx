@@ -24,24 +24,32 @@ class CheckEventOrganizer
         }
 
         // Jika event tidak ada
-        if(!$event){
+        if (!$event) {
             abort(404, 'Event tidak ditemukan');
         }
 
-        // Ganti parameter route dengan ID numerik agar controller berikutnya mendapatkan ID numerik yang valid
+        // Ganti parameter route dengan ID numerik (di-cast ke int) agar controller berikutnya mendapatkan integer yang valid
         if ($request->route('eventId')) {
-            $request->route()->setParameter('eventId', $event->id);
+            $request->route()->setParameter('eventId', (int)$event->id);
         }
         if ($request->route('id')) {
-            $request->route()->setParameter('id', $event->id);
+            $request->route()->setParameter('id', (int)$event->id);
         }
         if ($request->route('event')) {
+            // Jika rute awalnya meminta model binding murni, kita tetap teruskan object $event-nya
             $request->route()->setParameter('event', $event);
         }
 
         // Cek apakah user yang login adalah pemilik event atau admin
         $user = Auth::user();
-        if ($event->organizer_id !== $user->id && $user->role !== 'admin') {
+
+        // Proteksi jika middleware ini tidak sengaja terpanggil sebelum user terautentikasi
+        if (!$user) {
+            abort(401, 'Silakan login terlebih dahulu');
+        }
+
+        // Menggunakan (int) untuk memastikan perbandingan strict (!==) bekerja dengan tepat
+        if ((int)$event->organizer_id !== (int)$user->id && $user->role !== 'admin') {
             // Gunakan 403 (Forbidden) untuk masalah hak akses
             abort(403, 'Tidak boleh akses');
         }
