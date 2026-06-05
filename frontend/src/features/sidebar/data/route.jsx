@@ -72,6 +72,26 @@ export const MENU_ITEMS = {
 			icon: <CreditCard size={16} className="me-2" />,
 			path: 'admin/payment',
 		},
+		{
+			id: 'gamifikasi',
+			name: 'Gamifikasi Event',
+			icon: <Award size={16} className="me-2" />,
+			path: 'admin/gamifikasi',
+			submenu: [
+				{
+					name: 'Kelola Aktivitas',
+					path: 'aktivitas',
+				},
+				{
+					name: 'Reward Global',
+					path: 'reward',
+				},
+				{
+					name: 'Aturan Konversi',
+					path: 'konversi',
+				},
+			],
+		},
 
 		{
 			id: 'master-data',
