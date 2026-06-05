@@ -126,6 +126,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
+    // --- WEBPUSH SUBSCRIPTIONS ---
+    Route::post('/push-subscribe', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'subscribe']);
+    Route::get('/push-subscribe/vapid', [\App\Http\Controllers\Api\PushSubscriptionController::class, 'vapidKey']);
+
     // ==========================================
     // --- ROLE: PARTICIPANT / UMUM ---
     // ==========================================

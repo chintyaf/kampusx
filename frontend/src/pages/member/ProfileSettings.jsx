@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Nav, Form, Button, Alert, Spinner, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { User, Lock, Tag, Upload, Trash2, Camera } from 'lucide-react';
+import { User, Lock, Tag, Upload, Trash2, Camera, Bell } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 
 const ProfileSettings = () => {
     // const [authUser, setAuthUser] = useAuth();
     const { user: authUser, updateUser } = useAuth();
     // const { user: authUser, setUser: setAuthUser } = useAuth();
     const [activeTab, setActiveTab] = useState('personal');
+    const { isSubscribed, loading: pushLoading, error: pushError, subscribeDevice, unsubscribeDevice } = usePushNotifications();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -232,9 +234,16 @@ const ProfileSettings = () => {
                                 <Nav.Link 
                                     active={activeTab === 'security'} 
                                     onClick={() => setActiveTab('security')}
-                                    className="d-flex align-items-center py-3 px-4 rounded-bottom-12"
+                                    className="d-flex align-items-center py-3 px-4 border-bottom"
                                 >
                                     <Lock size={18} className="me-3" /> Keamanan Akun
+                                </Nav.Link>
+                                <Nav.Link 
+                                    active={activeTab === 'notifications'} 
+                                    onClick={() => setActiveTab('notifications')}
+                                    className="d-flex align-items-center py-3 px-4 rounded-bottom-12"
+                                >
+                                    <Bell size={18} className="me-3" /> Notifikasi Perangkat
                                 </Nav.Link>
                             </Nav>
                         </Card.Body>
@@ -448,6 +457,58 @@ const ProfileSettings = () => {
                                         </Button>
                                     </div>
                                 </Form>
+                            )}
+
+                            {/* TAB: NOTIFICATIONS */}
+                            {activeTab === 'notifications' && (
+                                <div>
+                                    <h5 className="fw-bold mb-4">Notifikasi Perangkat (Web Push)</h5>
+                                    <p className="text-muted mb-4">
+                                        Aktifkan notifikasi perangkat untuk menerima info penting seputar event, materi, dan pengumuman secara real-time langsung di browser atau perangkat Anda.
+                                    </p>
+
+                                    {pushError && (
+                                        <Alert variant="danger" className="rounded-3 mb-4">
+                                            {pushError}
+                                        </Alert>
+                                    )}
+
+                                    <div className="p-4 bg-light rounded-3 mb-4 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h6 className="fw-bold mb-1">Status Notifikasi Perangkat</h6>
+                                            <p className="text-muted small mb-0">
+                                                {isSubscribed 
+                                                    ? 'Notifikasi aktif untuk perangkat ini. Anda akan menerima update secara real-time.' 
+                                                    : 'Notifikasi saat ini belum diaktifkan pada perangkat ini.'}
+                                            </p>
+                                        </div>
+                                        <Badge bg={isSubscribed ? 'success' : 'secondary'} className="px-3 py-2 rounded-pill">
+                                            {isSubscribed ? 'Aktif' : 'Nonaktif'}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="d-flex justify-content-end pt-3 border-top">
+                                        {isSubscribed ? (
+                                            <Button 
+                                                variant="outline-danger" 
+                                                onClick={unsubscribeDevice} 
+                                                disabled={pushLoading}
+                                                className="rounded-pill px-4"
+                                            >
+                                                {pushLoading ? 'Memproses...' : 'Nonaktifkan Notifikasi'}
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                variant="success" 
+                                                onClick={subscribeDevice} 
+                                                disabled={pushLoading}
+                                                className="rounded-pill px-4 fw-semibold"
+                                            >
+                                                {pushLoading ? 'Memproses...' : 'Aktifkan Notifikasi Perangkat'}
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
                             )}
 
                         </Card.Body>
