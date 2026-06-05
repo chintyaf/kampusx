@@ -42,9 +42,15 @@ class EventReminderNotification extends Notification
             } elseif ($this->type === 'FINISHED') {
                 $title = 'Acara Selesai';
                 $msg = "Acara '{$this->event->title}' telah selesai. Terima kasih atas kerja keras Anda!";
+            } elseif ($this->type === 'FINISHED_NO_CERTIFICATE') {
+                $title = '⚠️ Acara Selesai: Sertifikat Belum Diatur';
+                $msg = "Acara '{$this->event->title}' telah selesai. PERINGATAN: Anda belum mengunggah template sertifikat! Peserta yang hadir tidak dapat menerima sertifikat otomatis.";
             } elseif ($this->type === 'POST_EVENT') {
                 $title = 'Tugas Pasca-Acara';
                 $msg = "Acara '{$this->event->title}' sudah berakhir. Jangan lupa untuk mengunggah materi presentasi atau membagikan sertifikat kepada peserta jika ada.";
+            } elseif ($this->type === 'POST_EVENT_NO_CERTIFICATE') {
+                $title = '⚠️ Pengingat Penting: Unggah Sertifikat';
+                $msg = "Sudah 24 jam sejak acara '{$this->event->title}' selesai, namun Anda belum mengatur template sertifikat. Harap segera konfigurasikan template sertifikat Anda.";
             } else {
                 $title = $this->type === 'H-24' ? 'Pengingat Acara (H-1)' : 'Notifikasi Acara';
                 $msg = "Siap-siap! Acara '{$this->event->title}' yang Anda kelola akan berlangsung dalam $timeStr.";

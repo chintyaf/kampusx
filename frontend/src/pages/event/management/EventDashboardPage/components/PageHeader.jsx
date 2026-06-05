@@ -1,6 +1,6 @@
 import React from 'react';
 import '../EventDashboardPage.css';
-import { Monitor, Share2, MapPin, Calendar, Tag } from 'lucide-react';
+import { Monitor, Share2, MapPin, Calendar, Tag, XCircle } from 'lucide-react';
 import { formatDateRange, checkIfDatePassed } from '@/utils/dateUtils';
 
 const STATUS_BADGES = {
@@ -20,6 +20,9 @@ export default function PageHeader({
 	location,
 	categories = [],
 	isPublishDisabled = false,
+	canCancel = false,
+	cancelMessage = '',
+	onCancel,
 	onPreview,
 	onPublish,
 	onShare,
@@ -116,6 +119,28 @@ export default function PageHeader({
 						<Share2 size={15} strokeWidth={2} />
 						Share Event
 					</button>
+				)}
+
+				{onCancel && ['published', 'ongoing'].includes(status) && (
+					!canCancel ? (
+						<span title={cancelMessage} style={{ cursor: 'not-allowed' }}>
+							<button
+								disabled
+								className="btn btn-minimal btn-minimal-danger d-inline-flex align-items-center gap-1.5 fw-semibold"
+							>
+								<XCircle size={15} strokeWidth={2} />
+								Batalkan Event
+							</button>
+						</span>
+					) : (
+						<button
+							onClick={onCancel}
+							className="btn btn-minimal btn-minimal-danger d-inline-flex align-items-center gap-1.5 fw-semibold"
+						>
+							<XCircle size={15} strokeWidth={2} />
+							Batalkan Event
+						</button>
+					)
 				)}
 			</div>
 		</div>

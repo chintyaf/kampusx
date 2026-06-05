@@ -222,6 +222,11 @@ class EventStatusController extends Controller
             'status' => 'completed'
         ]);
 
+        $hasCertificate = \DB::table('certificate_templates')->where('event_id', $event->id)->exists();
+        if (!$hasCertificate && $event->organizer) {
+            $event->organizer->notify(new \App\Notifications\EventReminderNotification($event, 'FINISHED_NO_CERTIFICATE', 'organizer'));
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Status event berhasil diubah menjadi Selesai!',

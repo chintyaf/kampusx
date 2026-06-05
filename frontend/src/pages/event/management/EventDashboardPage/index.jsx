@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Card, Badge, ProgressBar } from 'react-bootstrap';
 import { notify } from '@/utils/notify';
-import { Ticket, DollarSign, UserCheck, UserMinus, Eye, Clock, FileText } from 'lucide-react';
+import { Ticket, DollarSign, UserCheck, UserMinus, Eye, Clock, FileText, Award } from 'lucide-react';
 
 // API & CSS
 import api from '@/api/axios';
@@ -52,6 +52,7 @@ export default function EventDashboardPage() {
 
 	// Modal States
 	const [showPublishModal, setShowPublishModal] = useState(false);
+	const [showCancelModal, setShowCancelModal] = useState(false);
 	const [showDevTools, setShowDevTools] = useState(false);
 
 	// Attendance States
@@ -71,44 +72,43 @@ export default function EventDashboardPage() {
 	}, []);
 
 	// Fetch Data
-	useEffect(() => {
+	const fetchOverview = useCallback(async () => {
 		if (!eventId) return;
+		try {
+			setLoading(true);
+			setIsPageLoading(true);
+			const [overviewRes, statusRes, sessionRes] = await Promise.all([
+				api.get(`/event-dashboard/${eventId}/overview`),
+				api.get(`/events/${eventId}/check-status`),
+				api
+					.get(`/event-dashboard/${eventId}/info-utama/session`)
+					.catch(() => ({ data: { success: false, data: [] } })),
+			]);
 
-		const fetchOverview = async () => {
-			try {
-				setLoading(true);
-				setIsPageLoading(true);
-				const [overviewRes, statusRes, sessionRes] = await Promise.all([
-					api.get(`/event-dashboard/${eventId}/overview`),
-					api.get(`/events/${eventId}/check-status`),
-					api
-						.get(`/event-dashboard/${eventId}/info-utama/session`)
-						.catch(() => ({ data: { success: false, data: [] } })),
-				]);
-
-				if (overviewRes.data?.status === 'success') {
-					setEventData(overviewRes.data.data);
-					setEventStatus(overviewRes.data.data.status || 'draft');
-					setIsAttendanceOpen(!!overviewRes.data.data.is_attendance_open);
-				}
-
-				if (statusRes.data?.status === 'success') {
-					setIssues(statusRes.data.data.missing_data || []);
-				}
-
-				if (sessionRes.data?.status === 'success' && sessionRes.data?.data) {
-					setSessions(sessionRes.data.data);
-				}
-			} catch (error) {
-				console.error('Gagal mengambil event overview', error);
-			} finally {
-				setLoading(false);
-				setIsPageLoading(false);
+			if (overviewRes.data?.status === 'success') {
+				setEventData(overviewRes.data.data);
+				setEventStatus(overviewRes.data.data.status || 'draft');
+				setIsAttendanceOpen(!!overviewRes.data.data.is_attendance_open);
 			}
-		};
 
-		fetchOverview();
+			if (statusRes.data?.status === 'success') {
+				setIssues(statusRes.data.data.missing_data || []);
+			}
+
+			if (sessionRes.data?.status === 'success' && sessionRes.data?.data) {
+				setSessions(sessionRes.data.data);
+			}
+		} catch (error) {
+			console.error('Gagal mengambil event overview', error);
+		} finally {
+			setLoading(false);
+			setIsPageLoading(false);
+		}
 	}, [eventId, setIsPageLoading]);
+
+	useEffect(() => {
+		fetchOverview();
+	}, [fetchOverview]);
 
 	const handleShare = () => {
 		const shareUrl = `${window.location.origin}/events/${eventData.slug}`;
@@ -172,6 +172,9 @@ export default function EventDashboardPage() {
 				location={eventData.location}
 				categories={eventData.categories || []}
 				isPublishDisabled={isDraft && issues.length > 0}
+				canCancel={eventData.canCancel}
+				cancelMessage={eventData.cancelMessage}
+				onCancel={() => setShowCancelModal(true)}
 				posPin={eventData.pos_pin}
 				isAttendanceOpen={isAttendanceOpen}
 				isTogglingAttendance={isTogglingAttendance}
@@ -186,6 +189,33 @@ export default function EventDashboardPage() {
 				onScanner={() => navigate(`/organizer/${eventId}/event-dashboard/scanner`)}
 				onFormulir={() => navigate(`/organizer/${eventId}/event-dashboard/tiket`)}
 			/>
+
+			{/* Warning Banner: Missing Certificate for Completed Event */}
+			{eventStatus === 'completed' && eventData.preparation_checklist?.find(item => item.id === 'certificate')?.completed === false && (
+				<div 
+					className="alert alert-warning border-warning border-opacity-25 rounded-4 p-4 mb-4 d-flex align-items-start gap-3 shadow-sm" 
+					style={{ borderLeft: '4px solid #d97706', backgroundColor: '#fffbeb', borderColor: '#fef3c7' }}
+				>
+					<div className="bg-warning bg-opacity-20 p-2 rounded-3 text-warning d-flex align-items-center justify-content-center flex-shrink-0" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
+						<Award size={24} />
+					</div>
+					<div className="flex-grow-1">
+						<h6 className="fw-bold text-dark mb-1" style={{ fontSize: '0.95rem' }}>
+							Template Sertifikat Belum Diatur
+						</h6>
+						<p className="text-secondary mb-0" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>
+							Acara ini telah selesai, namun Anda belum membuat/mengatur template sertifikat. Peserta yang hadir tidak dapat mengklaim atau menerima sertifikat kehadiran mereka secara otomatis sampai Anda menyiapkannya.
+						</p>
+					</div>
+					<button 
+						className="btn btn-warning btn-sm fw-semibold text-white px-3.5 py-2 align-self-center flex-shrink-0"
+						style={{ borderRadius: '8px', backgroundColor: '#d97706', borderColor: '#d97706', fontSize: '0.82rem' }}
+						onClick={() => navigate(`/organizer/${eventId}/event-dashboard/sertifikat`)}
+					>
+						Atur Sertifikat
+					</button>
+				</div>
+			)}
 
 
 			{/* Stat Cards */}
@@ -321,6 +351,18 @@ export default function EventDashboardPage() {
 				onConfirm={() => {
 					setEventStatus('published');
 					setShowPublishModal(false);
+				}}
+			/>
+
+			{/* Cancel Modal */}
+			<StatusConfirmationModal
+				eventId={eventId}
+				show={showCancelModal}
+				onHide={() => setShowCancelModal(false)}
+				pendingStatus="cancelled"
+				onConfirm={() => {
+					fetchOverview();
+					setShowCancelModal(false);
 				}}
 			/>
 		</div>

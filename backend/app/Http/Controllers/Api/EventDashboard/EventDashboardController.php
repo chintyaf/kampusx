@@ -589,7 +589,7 @@ class EventDashboardController extends Controller
     {
         // 1. Validasi input agar hanya menerima status yang diizinkan
         $request->validate([
-            'status' => 'required|string|in:draft,published,archived'
+            'status' => 'required|string|in:draft,published,archived,completed'
         ]);
 
         // 2. Cari event atau return 404 jika tidak ketemu

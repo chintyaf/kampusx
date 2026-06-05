@@ -17,10 +17,12 @@ import {
  * Panduan step-by-step cara kerja sistem presensi di halaman Check-in / Event POS.
  * Menampilkan dua jalur: Scanner QR (offline) dan Magic Link (online).
  */
-const PosGuideCard = () => {
+const PosGuideCard = ({ eventType = 'offline' }) => {
 	const [openSection, setOpenSection] = useState(null);
 
 	const toggle = (id) => setOpenSection((prev) => (prev === id ? null : id));
+
+	const isOffline = eventType === 'offline';
 
 	const GUIDES = [
 		{
@@ -29,9 +31,26 @@ const PosGuideCard = () => {
 			iconBg: '#e0f2fe',
 			accentColor: '#0369a1',
 			accentBg: '#dbeafe',
-			title: 'Presensi via Scanner QR',
-			subtitle: 'Cocok untuk event tatap muka / offline',
-			steps: [
+			title: isOffline ? 'Presensi Masuk via Scanner QR' : 'Presensi via Scanner QR',
+			subtitle: isOffline ? 'Digunakan untuk check-in / masuk peserta di lokasi' : 'Cocok untuk event tatap muka / offline',
+			steps: isOffline ? [
+				{
+					icon: <QrCode size={14} />,
+					text: 'Buat minimal 1 Pos Scanner di bagian bawah.',
+				},
+				{
+					icon: <Smartphone size={14} />,
+					text: 'Panitia buka halaman Scanner di HP/browser & masukkan PIN event.',
+				},
+				{
+					icon: <Users size={14} />,
+					text: 'Scan QR tiket digital peserta saat mereka masuk ke lokasi.',
+				},
+				{
+					icon: <CheckCircle size={14} />,
+					text: 'Status Check-in peserta otomatis tercatat.',
+				},
+			] : [
 				{
 					icon: <QrCode size={14} />,
 					text: 'Buat minimal 1 Pos Scanner di bagian bawah.',
@@ -56,9 +75,26 @@ const PosGuideCard = () => {
 			iconBg: '#ede9fe',
 			accentColor: '#7c3aed',
 			accentBg: '#f5f3ff',
-			title: 'Presensi via Magic Link',
-			subtitle: 'Cocok untuk event online atau peserta jarak jauh',
-			steps: [
+			title: isOffline ? 'Presensi Keluar via Link Checkout' : 'Presensi via Magic Link',
+			subtitle: isOffline ? 'Peserta melakukan checkout mandiri di akhir acara' : 'Cocok untuk event online atau peserta jarak jauh',
+			steps: isOffline ? [
+				{
+					icon: <Link2 size={14} />,
+					text: 'Buat/generate link presensi khusus untuk Check-out.',
+				},
+				{
+					icon: <Smartphone size={14} />,
+					text: 'Bagikan link checkout kepada peserta di akhir acara (WhatsApp atau slide).',
+				},
+				{
+					icon: <Users size={14} />,
+					text: 'Peserta klik link checkout & login untuk konfirmasi kepulangan.',
+				},
+				{
+					icon: <CheckCircle size={14} />,
+					text: 'Status Check-out peserta otomatis tercatat di database.',
+				},
+			] : [
 				{
 					icon: <Link2 size={14} />,
 					text: 'Atur batas waktu & buat link Check-in/Check-out online.',

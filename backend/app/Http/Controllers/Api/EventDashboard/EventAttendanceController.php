@@ -325,7 +325,9 @@ class EventAttendanceController extends Controller
             }
 
             // Pastikan device sesuai
-            if ($initialAttendance->device_id !== $deviceToken) {
+            if (is_null($initialAttendance->device_id)) {
+                $initialAttendance->device_id = $deviceToken;
+            } elseif ($initialAttendance->device_id !== $deviceToken) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'
@@ -363,7 +365,9 @@ class EventAttendanceController extends Controller
             }
 
             // Pastikan device sesuai
-            if ($initialAttendance->device_id !== $deviceToken) {
+            if (is_null($initialAttendance->device_id)) {
+                $initialAttendance->device_id = $deviceToken;
+            } elseif ($initialAttendance->device_id !== $deviceToken) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'

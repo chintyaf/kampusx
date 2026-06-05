@@ -273,4 +273,305 @@ class OrganizerQAAdvancedTest extends TestCase
         ]);
         $this->assertContains($uploadResp->status(), [200, 201]);
     }
+
+    public function test_event_session_update_resets_invalid_ticket_dates()
+    {
+        $event = $this->createDraftEvent();
+        $event->update([
+            'start_date' => now()->addDays(5)->format('Y-m-d H:i:s'),
+            'end_date' => now()->addDays(6)->format('Y-m-d H:i:s'),
+        ]);
+
+        // Create an invalid ticket (sale_start in the past)
+        $ticket1 = EventTicket::create([
+            'event_id' => $event->id,
+            'name' => 'Ticket Past',
+            'is_free' => true,
+            'price' => 0,
+            'capacity' => 10,
+            'sale_start' => now()->subDays(1)->format('Y-m-d H:i:s'),
+            'sale_end' => now()->addDays(4)->format('Y-m-d H:i:s'),
+        ]);
+
+        // Create an invalid ticket (sale_start >= event start_date)
+        $ticket2 = EventTicket::create([
+            'event_id' => $event->id,
+            'name' => 'Ticket Late',
+            'is_free' => true,
+            'price' => 0,
+            'capacity' => 10,
+            'sale_start' => now()->addDays(6)->format('Y-m-d H:i:s'),
+            'sale_end' => now()->addDays(7)->format('Y-m-d H:i:s'),
+        ]);
+
+        // Create a valid ticket
+        $ticket3 = EventTicket::create([
+            'event_id' => $event->id,
+            'name' => 'Ticket Valid',
+            'is_free' => true,
+            'price' => 0,
+            'capacity' => 10,
+            'sale_start' => now()->addDays(1)->format('Y-m-d H:i:s'),
+            'sale_end' => now()->addDays(4)->format('Y-m-d H:i:s'),
+        ]);
+
+        $payload = [
+            'timezone' => 'Asia/Jakarta',
+            'startDate' => now()->addDays(5)->format('Y-m-d'),
+            'endDate' => now()->addDays(6)->format('Y-m-d'),
+            'sessions' => [
+                [
+                    'id' => 'new-session-uuid',
+                    'title' => 'Sesi Test Baru',
+                    'description' => 'Test',
+                    'day' => 1,
+                    'startTime' => '09:00',
+                    'endTime' => '17:00',
+                    'prerequisite_session_ids' => [],
+                    'no_speaker' => true,
+                ]
+            ]
+        ];
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/event-dashboard/{$event->id}/info-utama/session", $payload);
+        $response->assertStatus(200);
+
+        // Refresh and assert
+        $ticket1->refresh();
+        $ticket2->refresh();
+        $ticket3->refresh();
+
+        $this->assertNull($ticket1->sale_start);
+        $this->assertNull($ticket1->sale_end);
+
+        $this->assertNull($ticket2->sale_start);
+        $this->assertNull($ticket2->sale_end);
+
+        $this->assertNotNull($ticket3->sale_start);
+        $this->assertNotNull($ticket3->sale_end);
+    }
+
+    public function test_event_session_update_ignores_published_event_tickets()
+    {
+        $event = $this->createDraftEvent();
+        $event->update([
+            'status' => 'published',
+            'start_date' => now()->addDays(5)->format('Y-m-d H:i:s'),
+            'end_date' => now()->addDays(6)->format('Y-m-d H:i:s'),
+        ]);
+
+        // Create an invalid ticket (sale_start in the past)
+        $ticket = EventTicket::create([
+            'event_id' => $event->id,
+            'name' => 'Ticket Past Published',
+            'is_free' => true,
+            'price' => 0,
+            'capacity' => 10,
+            'sale_start' => now()->subDays(1)->format('Y-m-d H:i:s'),
+            'sale_end' => now()->addDays(4)->format('Y-m-d H:i:s'),
+        ]);
+
+        $payload = [
+            'timezone' => 'Asia/Jakarta',
+            'startDate' => now()->addDays(5)->format('Y-m-d'),
+            'endDate' => now()->addDays(6)->format('Y-m-d'),
+            'sessions' => [
+                [
+                    'id' => 'new-session-uuid',
+                    'title' => 'Sesi Test Baru',
+                    'description' => 'Test',
+                    'day' => 1,
+                    'startTime' => '09:00',
+                    'endTime' => '17:00',
+                    'prerequisite_session_ids' => [],
+                    'no_speaker' => true,
+                ]
+            ]
+        ];
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/event-dashboard/{$event->id}/info-utama/session", $payload);
+        $response->assertStatus(200);
+
+        // Refresh and assert (should NOT be null because the event is published)
+        $ticket->refresh();
+        $this->assertNotNull($ticket->sale_start);
+        $this->assertNotNull($ticket->sale_end);
+    }
+
+    public function test_completed_event_triggers_missing_certificate_notification()
+    {
+        $event = $this->createDraftEvent();
+        $event->update([
+            'status' => 'published',
+            'start_date' => now()->subDays(2)->format('Y-m-d H:i:s'),
+            'end_date' => now()->subDays(1)->format('Y-m-d H:i:s'),
+        ]);
+
+        // Manually complete the event
+        $response = $this->actingAs($this->organizer)->postJson("/api/events/{$event->id}/completed");
+        $response->assertStatus(200);
+
+        // Assert notification was created
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $this->organizer->id,
+            'type' => 'App\Notifications\EventReminderNotification'
+        ]);
+
+        $notification = \DB::table('notifications')
+            ->where('notifiable_id', $this->organizer->id)
+            ->where('type', 'App\Notifications\EventReminderNotification')
+            ->first();
+            
+        $data = json_decode($notification->data, true);
+        $this->assertEquals('FINISHED_NO_CERTIFICATE', $data['type']);
+    }
+
+    public function test_offline_checkin_allows_online_checkout_and_maps_device()
+    {
+        $event = $this->createDraftEvent();
+        $participant = User::factory()->create();
+        
+        $order = \App\Models\Order::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => 'completed',
+            'amount' => 0,
+            'total_price' => 0,
+            'order_id' => 'ORD-999'
+        ]);
+
+        $orderItem = \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'quantity' => 1,
+            'price' => 0,
+        ]);
+
+        $ticket = \App\Models\Ticket::create([
+            'participant_id' => $participant->id,
+            'order_item_id' => $orderItem->id,
+            'status' => 'active',
+            'ticket_code' => 'TICKET-999',
+            'qr_token' => 'QR-999',
+            'attendee_name' => 'Jane Doe',
+            'attendee_email' => 'jane@doe.com'
+        ]);
+
+        // 1. Simulate offline check-in (inserts row to attendance_logs with device_id = null)
+        $attendanceLog = \App\Models\AttendanceLog::create([
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'session_id' => null,
+            'scan_time' => now(),
+            'scanned_by' => $this->organizer->id,
+            'method' => 'qr',
+            'device_id' => null,
+        ]);
+
+        // 2. Generate online checkout link signature
+        $expiresAt = now()->addHour()->format('Y-m-d H:i:s');
+        $payload = $event->id . '|out|' . $expiresAt;
+        $signature = hash_hmac('sha256', $payload, config('app.key'));
+
+        // 3. Process online checkout (type = 'out')
+        $response = $this->actingAs($participant)->postJson("/api/attendance/process", [
+            'event_id' => $event->id,
+            'type' => 'out',
+            'expires_at' => $expiresAt,
+            'signature' => $signature,
+            'device_token' => 'participant-device-token'
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'message' => 'Check-out berhasil dicatat!'
+        ]);
+
+        // 4. Assert device_id is mapped in database
+        $attendanceLog->refresh();
+        $this->assertEquals('participant-device-token', $attendanceLog->device_id);
+        $this->assertNotNull($attendanceLog->checkout_time);
+    }
+
+    public function test_cancel_event_successfully_before_threshold()
+    {
+        $event = $this->createDraftEvent();
+        $event->update([
+            'status' => 'published',
+            'start_date' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            'end_date' => now()->addDays(3)->format('Y-m-d H:i:s'),
+        ]);
+
+        $participant = User::factory()->create();
+
+        $order = \App\Models\Order::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => 'paid',
+            'amount' => 100000,
+            'total_price' => 100000,
+            'order_id' => 'ORD-CANCEL-1'
+        ]);
+
+        $orderItem = \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'quantity' => 1,
+            'price' => 100000,
+        ]);
+
+        $ticket = \App\Models\Ticket::create([
+            'participant_id' => $participant->id,
+            'order_item_id' => $orderItem->id,
+            'status' => 'active',
+            'ticket_code' => 'TICKET-CANCEL-1',
+            'qr_token' => 'QR-CANCEL-1',
+            'attendee_name' => 'Jane Cancel',
+            'attendee_email' => 'jane@cancel.com'
+        ]);
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/events/{$event->id}/cancel");
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status' => 'success',
+            'message' => 'Event berhasil dibatalkan dan notifikasi telah dikirim.'
+        ]);
+
+        $event->refresh();
+        $this->assertEquals('cancelled', $event->status);
+
+        // Assert notification was created for participant
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $participant->id,
+            'type' => 'App\Notifications\OperationalNotification'
+        ]);
+
+        $notification = \DB::table('notifications')
+            ->where('notifiable_id', $participant->id)
+            ->where('type', 'App\Notifications\OperationalNotification')
+            ->first();
+
+        $data = json_decode($notification->data, true);
+        $this->assertEquals('event_cancelled', $data['type']);
+        $this->assertEquals($event->id, $data['event_id']);
+    }
+
+    public function test_cancel_event_fails_after_threshold()
+    {
+        $event = $this->createDraftEvent();
+        $event->update([
+            'status' => 'published',
+            'start_date' => now()->addHours(12)->format('Y-m-d H:i:s'), // Less than 24 hours (H-1)
+            'end_date' => now()->addDays(1)->format('Y-m-d H:i:s'),
+        ]);
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/events/{$event->id}/cancel");
+        $response->assertStatus(400);
+        $response->assertJson([
+            'status' => 'error',
+            'message' => 'Event hanya dapat dibatalkan maksimal H-1 sebelum acara dimulai.'
+        ]);
+
+        $event->refresh();
+        $this->assertNotEquals('cancelled', $event->status);
+    }
 }

@@ -152,7 +152,12 @@ class SendEventReminders extends Command
 
         foreach ($finishedEvents as $event) {
             if ($event->organizer) {
-                $event->organizer->notify(new EventReminderNotification($event, 'FINISHED', 'organizer'));
+                $hasCertificate = DB::table('certificate_templates')->where('event_id', $event->id)->exists();
+                if (!$hasCertificate) {
+                    $event->organizer->notify(new EventReminderNotification($event, 'FINISHED_NO_CERTIFICATE', 'organizer'));
+                } else {
+                    $event->organizer->notify(new EventReminderNotification($event, 'FINISHED', 'organizer'));
+                }
             }
             $event->update([
                 'status' => 'completed',
@@ -180,7 +185,12 @@ class SendEventReminders extends Command
 
         foreach ($postEvents as $event) {
             if ($event->organizer) {
-                $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT', 'organizer'));
+                $hasCertificate = DB::table('certificate_templates')->where('event_id', $event->id)->exists();
+                if (!$hasCertificate) {
+                    $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT_NO_CERTIFICATE', 'organizer'));
+                } else {
+                    $event->organizer->notify(new EventReminderNotification($event, 'POST_EVENT', 'organizer'));
+                }
             }
             $event->update(['is_post_event_reminded' => true]);
         }
