@@ -40,6 +40,7 @@ import {
 	AlertTriangle,
 	ShieldAlert,
 	Paperclip,
+	Video,
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -386,6 +387,10 @@ const EventSpace = () => {
 	const title = event?.title || 'Workshop & Kelas Pembelajaran Unggulan';
 	const organizer = event?.organizer?.name || event?.institution?.name || 'Penyelenggara KampusX';
 	const progress = alreadySubmitted ? 100 : 75; // Completing survey gives 100% completion
+
+	const locationDetail = event?.location_detail || event?.locationDetail || {};
+	const locationType = locationDetail?.type || event?.location_type || 'offline';
+	const meetingLink = locationDetail?.meeting_link || event?.meeting_link;
 
 	// --- RENDER AREA KONTEN BERDASARKAN TAB ---
 	const renderContent = () => {
@@ -1474,14 +1479,27 @@ const EventSpace = () => {
 							</div>
 						</div>
 
-						{/* TOMBOL CEPAT QR CODE DI HEADER */}
-						<Button
-							variant="dark"
-							className="rounded-pill px-4 py-2 d-flex align-items-center shadow-sm fw-medium"
-							onClick={() => setShowTicketModal(true)}
-						>
-							<QrCode size={18} className="me-2" /> E-Tiket QR
-						</Button>
+						{/* TOMBOL CEPAT QR CODE DI HEADER & JOIN MEETING */}
+						<div className="d-flex gap-2">
+							{(locationType === 'online' || locationType === 'hybrid') && meetingLink && (
+								<Button 
+									variant="success" 
+									className="rounded-pill px-4 py-2 d-flex align-items-center shadow-sm fw-medium gap-1.5"
+									href={meetingLink}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Video size={18} /> Join Meeting
+								</Button>
+							)}
+							<Button
+								variant="dark"
+								className="rounded-pill px-4 py-2 d-flex align-items-center shadow-sm fw-medium"
+								onClick={() => setShowTicketModal(true)}
+							>
+								<QrCode size={18} className="me-2" /> E-Tiket QR
+							</Button>
+						</div>
 					</div>
 				</Container>
 			</div>
