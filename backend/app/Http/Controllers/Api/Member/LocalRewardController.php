@@ -141,6 +141,19 @@ class LocalRewardController extends Controller
                     $reward->decrement('stock');
                 }
 
+                // 1.5. Kurangi saldo poin lokal di local_member_points (untuk konsistensi data)
+                $localPoint = \App\Models\LocalMemberPoint::firstOrCreate(
+                    ['user_id' => $user->id, 'event_id' => $eventId],
+                    ['points_balance' => $balance]
+                );
+
+                $lockedPoint = \App\Models\LocalMemberPoint::where('id', $localPoint->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $lockedPoint->points_balance -= $reward->points_cost;
+                $lockedPoint->save();
+
                 // 2. Catat pengurangan poin di point_transactions dengan nilai negatif (-) sebesar harga reward
                 $transaction = PointTransaction::create([
                     'user_id' => $user->id,

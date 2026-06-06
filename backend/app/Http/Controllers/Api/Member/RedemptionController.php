@@ -178,8 +178,15 @@ class RedemptionController extends Controller
             ->sum('points_balance');
 
         // Get transaction history
-        $transactions = PointTransaction::where('user_id', $user->id)
+        $transactions = PointTransaction::with(['event', 'activity'])
+            ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get local points breakdown per event
+        $localPointsBreakdown = \App\Models\LocalMemberPoint::with('event')
+            ->where('user_id', $user->id)
+            ->where('points_balance', '>', 0)
             ->get();
 
         return response()->json([
@@ -187,6 +194,7 @@ class RedemptionController extends Controller
             'data' => [
                 'global_balance' => (int) $globalBalance,
                 'local_balance' => (int) $localBalance,
+                'local_points_breakdown' => $localPointsBreakdown,
                 'transactions' => $transactions
             ]
         ], 200);

@@ -310,6 +310,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('/rewards', \App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class);
             Route::get('/redemptions', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'listRedemptions']);
             Route::patch('/redemptions/{redemptionId}/status', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'updateRedemptionStatus']);
+            Route::post('/points/reset', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'resetLocalPoints']);
         });
     });
 
