@@ -1294,6 +1294,7 @@ const EventSpace = () => {
 										<Megaphone size={18} className="me-3" /> Pengumuman Event
 									</Nav.Link>
 									<Nav.Link
+										as={Link}
 										to={`/event-space/${id}/rewards`}
                                         className="d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium text-dark text-decoration-none"
                                         style={{ transition: 'background-color 0.2s' }}
