@@ -36,8 +36,11 @@ import {
 	Users,
 	Info,
 	Wifi,
+	Gift,
+	AlertTriangle,
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import api from '../../api/axios';
 import ParticipantMaterialsTab from '../../components/event/ParticipantMaterialsTab';
 import EventAnnouncementsTab from '../../components/event/EventAnnouncementsTab';
@@ -58,6 +61,106 @@ const EventSpace = () => {
 	const [participantName, setParticipantName] = useState('');
 
 	const [announcements, setAnnouncements] = useState([]);
+
+	// Poin & Reward States
+	const [memberPoints, setMemberPoints] = useState(120);
+	const [localRewardsCatalog, setLocalRewardsCatalog] = useState([
+		{
+			id: 1,
+			title: 'Kaos Eksklusif KampusX',
+			description: 'Bahan cotton combed 30s premium, sablon discharge rapi, tersedia ukuran S-XXL.',
+			points_cost: 100,
+			stock: 50,
+			limit_per_user: 1,
+			reward_type: 'physical',
+			image_path: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300',
+			is_active: true
+		},
+		{
+			id: 2,
+			title: 'E-Voucher Gopay Rp50.000',
+			description: 'Saldo Gopay senilai Rp50.000. Kode voucher dikirim otomatis via log penukaran.',
+			points_cost: 80,
+			stock: 20,
+			limit_per_user: 2,
+			reward_type: 'digital',
+			image_path: 'https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?w=300',
+			is_active: true
+		},
+		{
+			id: 3,
+			title: 'Stiker Pack Hologram',
+			description: 'Satu pack berisi 5 stiker hologram desain maskot dan ikon KampusX.',
+			points_cost: 15,
+			stock: 200,
+			limit_per_user: 5,
+			reward_type: 'physical',
+			image_path: 'https://images.unsplash.com/photo-1572375995301-3b9894856aef?w=300',
+			is_active: true
+		}
+	]);
+	const [myRedemptions, setMyRedemptions] = useState([
+		{
+			id: 1,
+			reward_title: 'Stiker Pack Hologram',
+			points_spent: 15,
+			reward_type: 'physical',
+			redeemed_at: new Date(Date.now() - 86400000).toISOString(),
+			status: 'claimed',
+			notes: 'Diambil langsung di Booth Utama.'
+		}
+	]);
+	const [showRedeemWarningModal, setShowRedeemWarningModal] = useState(false);
+	const [pendingRedeemReward, setPendingRedeemReward] = useState(null);
+
+	const handleRedeemReward = (reward) => {
+		if (memberPoints < reward.points_cost) {
+			toast.error('Saldo poin lokal Anda tidak mencukupi!');
+			return;
+		}
+
+		if (reward.stock !== null && reward.stock <= 0) {
+			toast.error('Stok reward ini telah habis!');
+			return;
+		}
+
+		const claimCount = myRedemptions.filter(r => r.reward_title === reward.title && r.status !== 'cancelled').length;
+		if (reward.limit_per_user !== null && claimCount >= reward.limit_per_user) {
+			toast.error(`Anda telah mencapai batas maksimum penukaran (${reward.limit_per_user}x) untuk reward ini.`);
+			return;
+		}
+
+		// Jika event diselenggarakan online (is_online) dan reward fisik
+		if (event?.is_online && reward.reward_type === 'physical') {
+			setPendingRedeemReward(reward);
+			setShowRedeemWarningModal(true);
+		} else {
+			executeRedemption(reward);
+		}
+	};
+
+	const executeRedemption = (reward) => {
+		setMemberPoints(prev => prev - reward.points_cost);
+		setLocalRewardsCatalog(prev => prev.map(r =>
+			r.id === reward.id ? { ...r, stock: r.stock !== null ? r.stock - 1 : null } : r
+		));
+
+		const newRedemption = {
+			id: Date.now(),
+			reward_title: reward.title,
+			points_spent: reward.points_cost,
+			reward_type: reward.reward_type,
+			redeemed_at: new Date().toISOString(),
+			status: 'pending',
+			notes: reward.reward_type === 'physical'
+				? 'Menunggu pengambilan di lokasi event.'
+				: 'Kode e-voucher akan segera dikirim oleh panitia.'
+		};
+
+		setMyRedemptions([newRedemption, ...myRedemptions]);
+		toast.success(`Berhasil menukar ${reward.title}!`);
+		setShowRedeemWarningModal(false);
+	};
 
 	const formatTimeAgo = (dateString) => {
 		if (!dateString) return '';
@@ -561,16 +664,16 @@ const EventSpace = () => {
 																			>
 																				{session.start_time
 																					? session.start_time.substring(
-																							0,
-																							5,
-																						)
+																						0,
+																						5,
+																					)
 																					: '09:00'}{' '}
 																				-{' '}
 																				{session.end_time
 																					? session.end_time.substring(
-																							0,
-																							5,
-																						)
+																						0,
+																						5,
+																					)
 																					: '10:00'}
 																			</div>
 																			<div className="flex-grow-1">
@@ -599,7 +702,7 @@ const EventSpace = () => {
 																				{session.speakers &&
 																					session.speakers
 																						.length >
-																						0 && (
+																					0 && (
 																						<div className="d-flex flex-wrap gap-2 mt-1">
 																							{session.speakers.map(
 																								(
@@ -956,6 +1059,155 @@ const EventSpace = () => {
 						)}
 					</div>
 				);
+			case 'rewards':
+				return (
+					<div className="fade-in">
+						{/* Point balance widget */}
+						<div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center p-4 rounded-4 mb-4 border bg-gradient text-dark" style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%)', borderColor: '#ffe4e6' }}>
+							<div>
+								<span className="text-secondary small fw-semibold">Saldo Poin Lokal Anda</span>
+								<h2 className="fw-extrabold text-primary mb-1 d-flex align-items-center gap-2">
+									<Gift className="text-warning animate-bounce" />
+									<span>{memberPoints} Poin</span>
+								</h2>
+								<p className="text-muted mb-0 small" style={{ fontSize: '0.75rem' }}>
+									Dapatkan lebih banyak poin dengan melakukan check-in, mengisi survey, bertanya di sesi, atau mengunjungi booth sponsor.
+								</p>
+							</div>
+							<Badge bg="light" className="text-dark border px-3 py-2 rounded-pill mt-3 mt-md-0 font-semibold text-xs shadow-sm">
+								Event: {event?.title || 'Workshop & Kelas'}
+							</Badge>
+						</div>
+
+						{/* Rewards Catalog */}
+						<h5 className="fw-bold text-dark mb-3">Katalog Hadiah Lokal</h5>
+						<Row className="g-4 mb-5">
+							{localRewardsCatalog.filter(r => r.is_active).map((reward) => {
+								const claimCount = myRedemptions.filter(r => r.reward_title === reward.title && r.status !== 'cancelled').length;
+								const isReachedLimit = reward.limit_per_user !== null && claimCount >= reward.limit_per_user;
+								const isOutOfStock = reward.stock !== null && reward.stock <= 0;
+								const isPointsInsufficient = memberPoints < reward.points_cost;
+
+								return (
+									<Col xs={12} md={6} key={reward.id}>
+										<Card className="border shadow-none rounded-4 overflow-hidden h-100 transition-all hover-shadow">
+											<div className="position-relative" style={{ height: '180px' }}>
+												<img
+													src={reward.image_url || reward.image_path}
+													alt={reward.title}
+													className="w-100 h-100 object-fit-cover"
+												/>
+												<div className="position-absolute top-0 start-0 p-2.5">
+													<Badge bg={reward.reward_type === 'physical' ? 'info' : 'success'} className="px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white border border-opacity-10">
+														{reward.reward_type === 'physical' ? '🎁 Fisik' : '💻 Digital'}
+													</Badge>
+												</div>
+												<div className="position-absolute top-0 end-0 p-2.5">
+													<Badge bg="dark" className="bg-opacity-75 px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white">
+														{reward.points_cost} Pts
+													</Badge>
+												</div>
+											</div>
+											<Card.Body className="p-3.5 d-flex flex-column justify-content-between">
+												<div>
+													<h6 className="fw-bold text-dark mb-1.5">{reward.title}</h6>
+													<p className="text-muted small mb-3" style={{ fontSize: '0.78rem', lineHeight: '1.4' }}>
+														{reward.description}
+													</p>
+												</div>
+												<div>
+													<div className="d-flex justify-content-between text-secondary mb-3 small" style={{ fontSize: '0.75rem' }}>
+														<span>
+															Stok: {reward.stock !== null ? <strong>{reward.stock} Pcs</strong> : <strong className="text-muted">Tak terbatas</strong>}
+														</span>
+														{reward.limit_per_user && (
+															<span>
+																Batas: <strong>{claimCount}/{reward.limit_per_user}x</strong>
+															</span>
+														)}
+													</div>
+													<Button
+														variant={isOutOfStock ? "secondary" : isReachedLimit ? "light" : "primary"}
+														disabled={isOutOfStock || isReachedLimit || isPointsInsufficient}
+														className="w-100 rounded-pill py-2 text-xs fw-bold shadow-sm"
+														onClick={() => handleRedeemReward(reward)}
+													>
+														{isOutOfStock
+															? 'Stok Habis'
+															: isReachedLimit
+																? 'Mencapai Batas'
+																: isPointsInsufficient
+																	? `Butuh ${reward.points_cost} Poin`
+																	: 'Tukar Poin Sekarang'}
+													</Button>
+												</div>
+											</Card.Body>
+										</Card>
+									</Col>
+								);
+							})}
+						</Row>
+
+						{/* Redemption History */}
+						<h5 className="fw-bold text-dark mb-3">Riwayat Penukaran Saya</h5>
+						<Card className="border shadow-none rounded-4 overflow-hidden">
+							<div className="table-responsive">
+								<Table hover className="align-middle mb-0 custom-table" style={{ fontSize: '0.85rem' }}>
+									<thead className="bg-light">
+										<tr className="text-secondary" style={{ fontSize: '0.8rem' }}>
+											<th className="px-4 py-2.5">Tanggal</th>
+											<th className="py-2.5">Hadiah</th>
+											<th className="py-2.5 text-center">Poin spent</th>
+											<th className="py-2.5">Status</th>
+											<th className="px-4 py-2.5">Catatan Penukaran</th>
+										</tr>
+									</thead>
+									<tbody>
+										{myRedemptions.length === 0 ? (
+											<tr>
+												<td colSpan="5" className="text-center py-4 text-muted small">
+													Belum ada penukaran reward yang tercatat.
+												</td>
+											</tr>
+										) : (
+											myRedemptions.map((item) => (
+												<tr key={item.id}>
+													<td className="px-4 py-3 text-secondary">
+														{new Date(item.redeemed_at).toLocaleDateString('id-ID', {
+															day: 'numeric',
+															month: 'short',
+															year: 'numeric'
+														})}
+													</td>
+													<td className="py-3">
+														<span className="fw-bold text-dark">{item.reward_title}</span>
+														<div className="text-xxs text-muted">{item.reward_type === 'physical' ? '🎁 Fisik' : '💻 Digital'}</div>
+													</td>
+													<td className="py-3 text-center fw-bold text-secondary">{item.points_spent}</td>
+													<td className="py-3">
+														{item.status === 'pending' && <Badge bg="warning" className="text-dark">🕒 Menunggu</Badge>}
+														{item.status === 'claimed' && <Badge bg="success" className="text-white">🤝 Diambil</Badge>}
+														{item.status === 'delivered' && <Badge bg="success" className="text-white">📩 Terkirim</Badge>}
+														{item.status === 'cancelled' && <Badge bg="danger" className="text-white">❌ Dibatalkan</Badge>}
+													</td>
+													<td className="px-4 py-3">
+														<div className="small text-secondary" style={{ fontSize: '0.75rem', maxWidth: '250px' }}>
+															{item.status === 'cancelled' ? (
+																<span className="text-danger fw-semibold">Ditolak: {item.cancellation_reason || 'Dibatalkan oleh panitia'}</span>
+															) : (
+																item.notes
+															)}
+														</div>
+													</td>
+												</tr>
+											))
+										)}
+									</tbody>
+								</Table>
+							</div>
+						</Card>
+					</div>
+				);
 			default:
 				return null;
 		}
@@ -1041,6 +1293,15 @@ const EventSpace = () => {
 									>
 										<Megaphone size={18} className="me-3" /> Pengumuman Event
 									</Nav.Link>
+									<Nav.Link
+										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'rewards' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
+										onClick={() => setActiveTab('rewards')}
+									>
+										<Gift size={18} className="me-3" /> Tukar Reward & Poin
+										<Badge bg="primary-subtle" className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1">
+											{memberPoints} Pts
+										</Badge>
+									</Nav.Link>
 
 									<hr className="my-2.5 opacity-25" />
 
@@ -1112,6 +1373,49 @@ const EventSpace = () => {
 					>
 						VALID UNTUK EVENT INI
 					</Badge>
+				</Modal.Body>
+			</Modal>
+
+			{/* WARNING MODAL: ONLINE EVENT + PHYSICAL REWARD */}
+			<Modal
+				show={showRedeemWarningModal}
+				onHide={() => setShowRedeemWarningModal(false)}
+				centered
+				backdrop="static"
+				contentClassName="border-0 rounded-4 shadow-lg"
+			>
+				<Modal.Header closeButton className="border-0 pb-0"></Modal.Header>
+				<Modal.Body className="text-center px-4 pb-5 pt-0">
+					<div className="mb-4">
+						<div className="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex p-3.5 mb-2 border border-warning border-opacity-25">
+							<AlertTriangle size={48} className="text-warning animate-bounce" />
+						</div>
+					</div>
+					<h4 className="fw-bold text-dark mb-2">Peringatan: Event Online + Reward Fisik</h4>
+					<p className="text-muted small mb-4 px-2" style={{ lineHeight: '1.6', fontSize: '0.86rem' }}>
+						Anda saat ini mengikuti event ini secara <strong>Online</strong>, namun Anda menukar reward fisik <strong>({pendingRedeemReward?.title})</strong>.
+						<br /><br />
+						Harap diperhatikan bahwa reward fisik hanya dapat diambil secara langsung di lokasi fisik acara atau harus diatur pengirimannya dengan panitia. Apakah Anda yakin ingin melanjutkan penukaran?
+					</p>
+
+					<div className="d-flex flex-column gap-2">
+						<Button
+							variant="warning"
+							size="lg"
+							className="rounded-pill fw-bold text-white shadow-sm"
+							onClick={() => pendingRedeemReward && executeRedemption(pendingRedeemReward)}
+						>
+							Ya, Tukar Sekarang
+						</Button>
+						<Button
+							variant="outline-secondary"
+							size="lg"
+							className="rounded-pill"
+							onClick={() => setShowRedeemWarningModal(false)}
+						>
+							Batal
+						</Button>
+					</div>
 				</Modal.Body>
 			</Modal>
 		</div>

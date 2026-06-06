@@ -145,6 +145,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'getSurveyDetails']);
     Route::post('/events/{id}/survey', [\App\Http\Controllers\Api\SurveyController::class, 'submitSurvey']);
 
+    // Member Local Reward routes
+    Route::get('/events/{id}/rewards', [\App\Http\Controllers\Api\PointSystem\MemberRewardController::class, 'listAvailableRewards']);
+    Route::get('/events/{id}/my-points', [\App\Http\Controllers\Api\PointSystem\MemberRewardController::class, 'getMemberPointDetails']);
+    Route::post('/events/{id}/rewards/{rewardId}/redeem', [\App\Http\Controllers\Api\PointSystem\MemberRewardController::class, 'redeemReward']);
+
     // Peserta scan QR venue
 
     Route::post('/attendance/process', [EventAttendanceController::class, 'processAttendance']);
@@ -286,6 +291,16 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::put('/{surveyId}/questions', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'syncQuestions']);
                 Route::delete('/{surveyId}', [\App\Http\Controllers\Api\EventDashboard\SurveyFormController::class, 'destroy']);
             });
+
+            // 9. Kiosk Mode Point Scanner & Activities
+            Route::prefix('kiosk')->group(function () {
+                Route::post('/scan', [\App\Http\Controllers\Api\PointSystem\ActivityScannerController::class, 'scanTicket']);
+            });
+
+            // 10. Local Rewards Catalog CRUD & Redemption Management (Organizer)
+            Route::apiResource('/rewards', \App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class);
+            Route::get('/redemptions', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'listRedemptions']);
+            Route::patch('/redemptions/{redemptionId}/status', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'updateRedemptionStatus']);
         });
     });
 

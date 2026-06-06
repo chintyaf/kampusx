@@ -17,11 +17,11 @@ class EventParticipantController extends Controller
         // Nilai: '' (semua), 'not_attended', 'checked_in', 'checked_out'
         $attendanceFilter = $request->query('attendance');
 
-        // ── Base query: tiket yang valid untuk event ini ──────────────────────
         $baseQuery = Ticket::with([
                 'participant.university',
                 'orderItem.order',
                 'attendanceLog',
+                'participant.localPoints' => fn($q) => $q->where('event_id', $eventId),
             ])
             ->withCount('attendanceLogs')
             ->withCount(['attendanceLogs as checkouts_count' => function($q) {

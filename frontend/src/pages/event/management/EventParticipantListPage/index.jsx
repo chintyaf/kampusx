@@ -133,6 +133,7 @@ const EventParticipantListPage = () => {
 						revealed={revealed}
 						toggleReveal={toggleReveal}
 						summary={summary}
+						eventId={eventId}
 					/>
 				</div>
 

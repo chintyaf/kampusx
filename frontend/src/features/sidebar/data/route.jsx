@@ -23,6 +23,8 @@ import {
 	Info,
 	Ticket,
 	ScanLine,
+	Gift,
+	Tv,
 } from 'lucide-react';
 
 // --- Configuration Data ---
@@ -183,6 +185,24 @@ export const MENU_ITEMS = {
 			name: 'Pengumuman',
 			icon: <Megaphone size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/pengumuman',
+		},
+		{
+			id: 'rewards-event',
+			name: 'Reward Lokal',
+			icon: <Gift size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/rewards',
+		},
+		{
+			id: 'redemptions-event',
+			name: 'Log Penukaran',
+			icon: <ClipboardList size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/redemptions',
+		},
+		{
+			id: 'kiosk-event',
+			name: 'Kiosk Mode',
+			icon: <Tv size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/kiosk',
 		},
 	],
 };

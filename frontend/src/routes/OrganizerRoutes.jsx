@@ -22,6 +22,9 @@ import EventParticipantList from '@/pages/event/management/EventParticipantListP
 import EventPostMaterial from '@/pages/event/post-event/EventPostMaterialPage/index';
 import EventSurveyPage from '@/pages/event/management/EventSurveyPage/index';
 import EventCertificatePage from '@/pages/event/post-event/certificate/EventCertificatePage.jsx';
+import ManageRewardsPage from '../pages/organizer/ManageRewardsPage';
+import ManageRedemptionsPage from '../pages/organizer/ManageRedemptionsPage';
+import KioskModePage from '../pages/organizer/KioskModePage';
 
 // ==========================================
 // 🔴 KOMPONEN TIDAK DIPAKAI / DISIMPAN SEMENTARA
@@ -85,6 +88,9 @@ export const OrganizerRoutes = (
 			<Route path="survey-form" element={<EventSurveyPage />} />
 			<Route path="sertifikat" element={<EventCertificatePage />} />
 			<Route path="pengumuman" element={<ManageAnnouncements />} />
+			<Route path="rewards" element={<ManageRewardsPage />} />
+			<Route path="redemptions" element={<ManageRedemptionsPage />} />
+			<Route path="kiosk" element={<KioskModePage />} />
 
 			{/* ========================================== */}
 			{/* ROUTE TIDAK DIPAKAI / HIDDEN DARI MENU     */}

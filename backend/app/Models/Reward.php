@@ -25,6 +25,21 @@ class Reward extends Model
         'is_active',       // Apakah reward aktif dipajang
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        if (empty($this->image_path)) {
+            return null;
+        }
+
+        if (filter_var($this->image_path, FILTER_VALIDATE_URL)) {
+            return $this->image_path;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path);
+    }
+
     /**
      * Mendapatkan Event tempat reward lokal ini berada.
      */

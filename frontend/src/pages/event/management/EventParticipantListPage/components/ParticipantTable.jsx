@@ -20,7 +20,7 @@ import {
 	getAvatarColor,
 } from './ParticipantHelpers';
 
-const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, toggleReveal, summary }) => {
+const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, toggleReveal, summary, eventId }) => {
 	if (loading) {
 		return (
 			<div className="participant-empty">
@@ -48,6 +48,7 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 					<th>Institusi</th>
 					<th>Email</th>
 					<th>Telepon</th>
+					<th className="text-center">Poin Lokal</th>
 					<th className="text-center">Kehadiran</th>
 					<th className="text-center">Persentase</th>
 					<th style={{ width: 48 }}></th>
@@ -64,6 +65,10 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 					const isEmailRevealed = revealed[ticket.id]?.email;
 					const isPhoneRevealed = revealed[ticket.id]?.phone;
 					const rowNum = showAll ? idx + 1 : (pageInfo.current_page - 1) * 15 + idx + 1;
+
+					const localPointsList = ticket.participant?.local_points || ticket.participant?.localPoints || [];
+					const localPointsRecord = localPointsList.find(lp => lp.event_id === parseInt(eventId));
+					const pointsBalance = localPointsRecord ? localPointsRecord.points_balance : 0;
 
 					const attendanceStatus = getAttendanceStatus(ticket);
 					const log = ticket.attendance_log;
@@ -151,6 +156,11 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 										</button>
 									)}
 								</div>
+							</td>
+							<td className="text-center">
+								<span className="fw-bold text-primary" style={{ fontSize: '14px' }}>
+									{pointsBalance} Pts
+								</span>
 							</td>
 							<td className="text-center">
 								<div className="attendance-cell">
