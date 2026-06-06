@@ -32,7 +32,7 @@ import MyTickets from '../pages/member/MyTickets';
 import BookmarkPage from '../pages/member/BookmarkPage';
 import ProfileSettings from '../pages/member/ProfileSettings';
 import NotificationsPage from '../pages/member/NotificationsPage';
-import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage';
+import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage/ApplyOrganizerPage.jsx';
 import EventSpace from '../pages/member/EventSpace';
 import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
 import MemberCertificatePage from '@/pages/member/MemberCertificatePage';

@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\Admin\AdminController;
+use App\Http\Controllers\Api\Admin\AdminOrganizerVerificationController;
 use App\Http\Controllers\Api\Admin\AdminInstitutionController;
 use App\Http\Controllers\Api\Organizer\OrganizerRequestController;
 use App\Http\Controllers\Api\Organizer\InstitutionMemberController;
@@ -345,8 +346,8 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin/payment', [\App\Http\Controllers\PaymentController::class, 'apiDashboard']);
 
     // 1. Organizer Management
-    Route::get('/admin/organizer-requests', [AdminController::class, 'getOrganizerRequests']);
-    Route::post('/admin/organizer-requests/{id}/approve', [AdminController::class, 'approveOrganizer']);
+    Route::get('/admin/organizer-requests', [AdminOrganizerVerificationController::class, 'getOrganizerRequests']);
+    Route::post('/admin/organizer-requests/{id}/approve', [AdminOrganizerVerificationController::class, 'approveOrganizer']);
 
 
     // 2. User Status Management

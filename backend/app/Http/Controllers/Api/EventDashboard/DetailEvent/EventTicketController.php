@@ -185,9 +185,8 @@ class EventTicketController extends Controller
             }
 
             // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
-            $ticketIdsFromRequest = collect($request->tickets)->pluck('id')->filter()->toArray();
             $ticketsToDelete = EventTicket::where('event_id', $eventId)
-                       ->whereNotIn('id', $ticketIdsFromRequest)
+                       ->whereNotIn('id', $ticketIdsToKeep)
                        ->get();
 
             foreach ($ticketsToDelete as $ticket) {
