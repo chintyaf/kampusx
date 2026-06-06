@@ -106,19 +106,24 @@ const RequestRow = ({ request, onAction }) => {
 				<tr style={{ backgroundColor: 'var(--bg-light-subtle, #f8f9fa)' }}>
 					<td colSpan={5}>
 						<div
-							className="border bg-white d-flex flex-column gap-4 p-4 rounded"
+							className="border bg-white d-flex flex-column gap-4 p-4 rounded-3 shadow-sm"
 							onClick={(e) => e.stopPropagation()}
+							style={{ margin: '8px 16px 16px 16px' }}
 						>
-							<div className="d-flex flex-column gap-4 flex-lg-row">
+							<div className="row g-4">
 								{/* Kolom Kiri: Informasi Afiliasi */}
-								<AffiliationInfo request={request} />
+								<div className="col-12 col-lg-7 d-flex">
+									<AffiliationInfo request={request} />
+								</div>
 
 								{/* Kolom Kanan: Berkas Bukti Keanggotaan */}
-								<ProofDocument request={request} />
+								<div className="col-12 col-lg-5 d-flex">
+									<ProofDocument request={request} />
+								</div>
 							</div>
 
 							{/* Action Buttons Footer */}
-							<div>
+							<div className="d-flex justify-content-end gap-2 mt-2 pt-3 border-top w-100">
 								{request.status === 'pending' ? (
 									<>
 										<Button

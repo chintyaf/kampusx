@@ -138,7 +138,7 @@ function TicketCard({
 				</div>
 
 				<div className="d-flex align-items-center gap-3">
-					{canDelete && (
+					{/* {canDelete && (
 						<Button
 							variant="link"
 							className="p-0 text-danger"
@@ -151,7 +151,7 @@ function TicketCard({
 						>
 							<Trash2 size={18} strokeWidth={1.5} />
 						</Button>
-					)}
+					)} */}
 					{open ? (
 						<ChevronUp size={20} className="text-muted" strokeWidth={1.5} />
 					) : (
