@@ -38,6 +38,8 @@ import {
 	Wifi,
 	Gift,
 	AlertTriangle,
+	ShieldAlert,
+	Paperclip,
 } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -53,6 +55,7 @@ const EventSpace = () => {
 	const [showTicketModal, setShowTicketModal] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [apiError, setApiError] = useState(null);
+	const [isAccessDenied, setIsAccessDenied] = useState(false);
 
 	// Dynamic states from backend
 	const [event, setEvent] = useState(null);
@@ -68,24 +71,26 @@ const EventSpace = () => {
 		{
 			id: 1,
 			title: 'Kaos Eksklusif KampusX',
-			description: 'Bahan cotton combed 30s premium, sablon discharge rapi, tersedia ukuran S-XXL.',
+			description:
+				'Bahan cotton combed 30s premium, sablon discharge rapi, tersedia ukuran S-XXL.',
 			points_cost: 100,
 			stock: 50,
 			limit_per_user: 1,
 			reward_type: 'physical',
 			image_path: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300',
-			is_active: true
+			is_active: true,
 		},
 		{
 			id: 2,
 			title: 'E-Voucher Gopay Rp50.000',
-			description: 'Saldo Gopay senilai Rp50.000. Kode voucher dikirim otomatis via log penukaran.',
+			description:
+				'Saldo Gopay senilai Rp50.000. Kode voucher dikirim otomatis via log penukaran.',
 			points_cost: 80,
 			stock: 20,
 			limit_per_user: 2,
 			reward_type: 'digital',
 			image_path: 'https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?w=300',
-			is_active: true
+			is_active: true,
 		},
 		{
 			id: 3,
@@ -96,8 +101,8 @@ const EventSpace = () => {
 			limit_per_user: 5,
 			reward_type: 'physical',
 			image_path: 'https://images.unsplash.com/photo-1572375995301-3b9894856aef?w=300',
-			is_active: true
-		}
+			is_active: true,
+		},
 	]);
 	const [myRedemptions, setMyRedemptions] = useState([
 		{
@@ -107,8 +112,8 @@ const EventSpace = () => {
 			reward_type: 'physical',
 			redeemed_at: new Date(Date.now() - 86400000).toISOString(),
 			status: 'claimed',
-			notes: 'Diambil langsung di Booth Utama.'
-		}
+			notes: 'Diambil langsung di Booth Utama.',
+		},
 	]);
 	const [showRedeemWarningModal, setShowRedeemWarningModal] = useState(false);
 	const [pendingRedeemReward, setPendingRedeemReward] = useState(null);
@@ -124,9 +129,13 @@ const EventSpace = () => {
 			return;
 		}
 
-		const claimCount = myRedemptions.filter(r => r.reward_title === reward.title && r.status !== 'cancelled').length;
+		const claimCount = myRedemptions.filter(
+			(r) => r.reward_title === reward.title && r.status !== 'cancelled',
+		).length;
 		if (reward.limit_per_user !== null && claimCount >= reward.limit_per_user) {
-			toast.error(`Anda telah mencapai batas maksimum penukaran (${reward.limit_per_user}x) untuk reward ini.`);
+			toast.error(
+				`Anda telah mencapai batas maksimum penukaran (${reward.limit_per_user}x) untuk reward ini.`,
+			);
 			return;
 		}
 
@@ -140,10 +149,12 @@ const EventSpace = () => {
 	};
 
 	const executeRedemption = (reward) => {
-		setMemberPoints(prev => prev - reward.points_cost);
-		setLocalRewardsCatalog(prev => prev.map(r =>
-			r.id === reward.id ? { ...r, stock: r.stock !== null ? r.stock - 1 : null } : r
-		));
+		setMemberPoints((prev) => prev - reward.points_cost);
+		setLocalRewardsCatalog((prev) =>
+			prev.map((r) =>
+				r.id === reward.id ? { ...r, stock: r.stock !== null ? r.stock - 1 : null } : r,
+			),
+		);
 
 		const newRedemption = {
 			id: Date.now(),
@@ -152,14 +163,30 @@ const EventSpace = () => {
 			reward_type: reward.reward_type,
 			redeemed_at: new Date().toISOString(),
 			status: 'pending',
-			notes: reward.reward_type === 'physical'
-				? 'Menunggu pengambilan di lokasi event.'
-				: 'Kode e-voucher akan segera dikirim oleh panitia.'
+			notes:
+				reward.reward_type === 'physical'
+					? 'Menunggu pengambilan di lokasi event.'
+					: 'Kode e-voucher akan segera dikirim oleh panitia.',
 		};
 
 		setMyRedemptions([newRedemption, ...myRedemptions]);
 		toast.success(`Berhasil menukar ${reward.title}!`);
 		setShowRedeemWarningModal(false);
+	};
+
+	const getFullAttachmentUrl = (url, path) => {
+		if (url) {
+			if (url.startsWith('http')) return url;
+			if (url.startsWith('/storage')) {
+				return url.replace('/storage', STORAGE_URL);
+			}
+			return `${STORAGE_URL}/${url}`;
+		}
+		if (path) {
+			if (path.startsWith('http')) return path;
+			return `${STORAGE_URL}/${path}`;
+		}
+		return '#';
 	};
 
 	const formatTimeAgo = (dateString) => {
@@ -169,19 +196,18 @@ const EventSpace = () => {
 			const now = new Date();
 			const diffMs = now - date;
 			const diffMins = Math.floor(diffMs / 60000);
-			const diffHours = Math.floor(diffMins / 60000);
-			const diffDays = Math.floor(diffHours / 24);
 
 			if (diffMins < 1) return 'Baru saja';
 			if (diffMins < 60) return `${diffMins} menit yang lalu`;
-			if (diffHours < 24) return `${diffHours} jam yang lalu`;
-			if (diffDays < 7) return `${diffDays} hari yang lalu`;
 
-			return date.toLocaleDateString('id-ID', {
-				day: 'numeric',
-				month: 'long',
-				year: 'numeric',
-			});
+			const day = date.getDate();
+			const monthsIndo = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+			const month = monthsIndo[date.getMonth()];
+			const year = date.getFullYear();
+			const hours = String(date.getHours()).padStart(2, '0');
+			const minutes = String(date.getMinutes()).padStart(2, '0');
+
+			return `${day} ${month} ${year}, ${hours}:${minutes} WIB`;
 		} catch (e) {
 			return 'Baru saja';
 		}
@@ -191,14 +217,23 @@ const EventSpace = () => {
 		const fetchEventDetails = async () => {
 			setIsLoading(true);
 			setApiError(null);
+			setIsAccessDenied(false);
 			try {
 				// Fetch basic event space survey status
 				const resSurvey = await api.get(`/events/${id}/survey`);
-				// Fetch full details of the event including sessions, speakers, and image
-				const resDetail = await api.get(`/events/${id}`);
 
 				if (resSurvey.data.success) {
 					const data = resSurvey.data.data;
+
+					// Logic pengecekan pendaftaran peserta
+					if (data.has_ticket === false && !data.is_preview_only) {
+						setIsAccessDenied(true);
+						setIsLoading(false);
+						return;
+					}
+
+					// Fetch full details of the event including sessions, speakers, and image
+					const resDetail = await api.get(`/events/${id}`);
 					const eventData = resDetail.data.data || resDetail.data;
 
 					setEvent({
@@ -253,6 +288,10 @@ const EventSpace = () => {
 						date: ann.created_at,
 						type: 'announcement',
 						isPinned: true,
+						attachment_path: ann.attachment_path,
+						attachment_type: ann.attachment_type,
+						attachment_url: ann.attachment_url,
+						raw: ann,
 					}));
 
 					const mappedNotifications = filteredNotifications.map((notif) => {
@@ -279,10 +318,16 @@ const EventSpace = () => {
 					);
 
 					setAnnouncements(combined);
+				} else {
+					setIsAccessDenied(true);
 				}
 			} catch (err) {
 				console.error('Gagal mengambil info event:', err);
-				setApiError(err.response?.data?.message || 'Gagal memuat beberapa data event.');
+				if (err.response?.status === 403 || err.response?.data?.has_ticket === false) {
+					setIsAccessDenied(true);
+				} else {
+					setApiError(err.response?.data?.message || 'Gagal memuat beberapa data event.');
+				}
 			} finally {
 				setIsLoading(false);
 			}
@@ -302,6 +347,37 @@ const EventSpace = () => {
 					style={{ width: '3rem', height: '3rem' }}
 				/>
 				<p className="text-muted mt-3 fw-medium">Memuat Dashboard Event Space...</p>
+			</div>
+		);
+	}
+
+	if (isAccessDenied) {
+		return (
+			<div className="d-flex flex-column align-items-center justify-content-center min-vh-100 bg-light p-4">
+				<Card
+					className="border-0 shadow-lg rounded-4 text-center p-5 bg-white"
+					style={{ maxWidth: '480px' }}
+				>
+					<Card.Body className="d-flex flex-column align-items-center">
+						<div className="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex p-4 mb-4 border border-danger border-opacity-25 shadow-sm">
+							<ShieldAlert size={48} className="animate-pulse" />
+						</div>
+						<h4 className="fw-bold text-dark mb-2">Akses Ditolak</h4>
+						<p
+							className="text-secondary small mb-4 px-2"
+							style={{ fontSize: '14px', lineHeight: '1.6' }}
+						>
+							Akses Ditolak: Anda belum terdaftar di event ini
+						</p>
+						<Button
+							variant="primary"
+							onClick={() => navigate('/explore-events')}
+							className="w-100 rounded-pill py-2.5 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+						>
+							Kembali ke Eksplor Event
+						</Button>
+					</Card.Body>
+				</Card>
 			</div>
 		);
 	}
@@ -459,38 +535,31 @@ const EventSpace = () => {
 						{/* <Row className="g-4"> */}
 						{/* LEFT DETAIL COLUMN */}
 						{/* <Col lg={8} md={12}> */}
-						{/* PAPAN PENGUMUMAN PANITIA */}
+						{/* PENGUMUMAN TERBARU */}
 						<Card className="border-0 shadow-sm rounded-4 mb-4">
-							<Card.Header className="bg-white border-0 pt-4 px-4 pb-2">
-								<h6 className="fw-extrabold text-dark mb-0 d-flex align-items-center gap-2">
-									<Megaphone size={18} className="text-danger animate-pulse" />
-									<span>Papan Pengumuman Panitia</span>
-								</h6>
-								<small className="text-secondary">
-									Informasi terhangat dari panitia penyelenggara
-								</small>
+							<Card.Header className="bg-white border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+								<div className="d-flex align-items-center gap-2">
+									<Bell size={18} className="text-primary animate-bounce" />
+									<h6 className="fw-extrabold text-dark mb-0">
+										Pengumuman Terbaru
+									</h6>
+								</div>
+								{announcements.length > 0 && (
+									<Button
+										variant="link"
+										size="sm"
+										className="p-0 text-primary text-decoration-none fw-bold"
+										onClick={() => setActiveTab('pengumuman')}
+										style={{ fontSize: '12px' }}
+									>
+										Lihat Semua
+									</Button>
+								)}
 							</Card.Header>
 							<Card.Body className="px-4 pb-4 pt-2">
-								<div className="d-flex flex-column gap-3">
-									{announcements.length === 0 ? (
-										<div className="text-center py-4 text-muted bg-light rounded-4 border border-dashed">
-											<Megaphone
-												size={30}
-												className="opacity-25 mb-2 mx-auto text-secondary"
-											/>
-											<h6
-												className="fw-bold text-dark mb-1"
-												style={{ fontSize: '13px' }}
-											>
-												Belum Ada Pengumuman
-											</h6>
-											<p className="small mb-0" style={{ fontSize: '11px' }}>
-												Penyelenggara belum menerbitkan pengumuman atau
-												perubahan baru.
-											</p>
-										</div>
-									) : (
-										announcements.map((ann) => {
+								{announcements && announcements.length > 0 ? (
+									<div className="d-flex flex-column gap-3">
+										{announcements.slice(0, 3).map((ann) => {
 											const badgeConfig = {
 												announcement: {
 													label: '📌 PENGUMUMAN',
@@ -521,18 +590,24 @@ const EventSpace = () => {
 
 											const config = badgeConfig[ann.type] || {
 												label: '📢 UPDATE',
-												color: '#6b7280',
-												bg: 'rgba(107, 114, 128, 0.08)',
+												color: '#3b82f6',
+												bg: 'rgba(59, 130, 246, 0.05)',
 											};
+
+											const rawAnn = ann.raw || {};
+											const hasAttachment = ann.file_url || ann.attachment || ann.attachment_path || ann.attachment_url || rawAnn.attachment_path || rawAnn.attachment_url;
+											const attachmentUrl = getFullAttachmentUrl(
+												ann.attachment_url || rawAnn.attachment_url || ann.file_url || ann.attachment,
+												ann.attachment_path || rawAnn.attachment_path
+											);
 
 											return (
 												<div
 													key={ann.id}
-													className="p-3.5 rounded-4 border position-relative transition-all hover-shadow"
+													className="border-start border-4 rounded-3 p-3 mb-3"
 													style={{
-														borderLeft: `4px solid ${config.color}`,
-														backgroundColor: config.bg,
-														transition: 'all 0.2s ease-in-out',
+														borderColor: config.color,
+														backgroundColor: config.bg || 'rgba(59, 130, 246, 0.05)',
 													}}
 												>
 													<div className="d-flex justify-content-between align-items-center mb-2">
@@ -549,7 +624,7 @@ const EventSpace = () => {
 														</span>
 														<span
 															className="text-muted small"
-															style={{ fontSize: '10px' }}
+															style={{ fontSize: '11px' }}
 														>
 															{formatTimeAgo(ann.date)}
 														</span>
@@ -565,15 +640,40 @@ const EventSpace = () => {
 														style={{
 															fontSize: '12px',
 															lineHeight: '1.5',
+															display: '-webkit-box',
+															WebkitLineClamp: 2,
+															WebkitBoxOrient: 'vertical',
+															overflow: 'hidden',
 														}}
 													>
 														{ann.content}
 													</p>
+													
+													{hasAttachment && (
+														<div className="d-block mt-2">
+															<Button
+																variant="outline-primary" 
+																size="sm"
+																className="rounded-pill mt-2 d-inline-flex align-items-center gap-1"
+																href={attachmentUrl}
+																target="_blank"
+																rel="noopener noreferrer"
+																style={{ fontSize: '11px', padding: '0.25rem 0.75rem' }}
+															>
+																<Paperclip size={12} />
+																<span>Buka Lampiran</span>
+															</Button>
+														</div>
+													)}
 												</div>
 											);
-										})
-									)}
-								</div>
+										})}
+									</div>
+								) : (
+									<div className="text-center py-4 bg-light rounded-4 border border-dashed">
+										<p className="text-muted small m-0">Belum ada pengumuman</p>
+									</div>
+								)}
 							</Card.Body>
 						</Card>
 
@@ -664,16 +764,16 @@ const EventSpace = () => {
 																			>
 																				{session.start_time
 																					? session.start_time.substring(
-																						0,
-																						5,
-																					)
+																							0,
+																							5,
+																						)
 																					: '09:00'}{' '}
 																				-{' '}
 																				{session.end_time
 																					? session.end_time.substring(
-																						0,
-																						5,
-																					)
+																							0,
+																							5,
+																						)
 																					: '10:00'}
 																			</div>
 																			<div className="flex-grow-1">
@@ -702,7 +802,7 @@ const EventSpace = () => {
 																				{session.speakers &&
 																					session.speakers
 																						.length >
-																					0 && (
+																						0 && (
 																						<div className="d-flex flex-wrap gap-2 mt-1">
 																							{session.speakers.map(
 																								(
@@ -729,6 +829,7 @@ const EventSpace = () => {
 																										(
 																										{speaker.role ||
 																											'Pembicara'}
+
 																										)
 																									</span>
 																								),
@@ -1063,18 +1164,33 @@ const EventSpace = () => {
 				return (
 					<div className="fade-in">
 						{/* Point balance widget */}
-						<div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center p-4 rounded-4 mb-4 border bg-gradient text-dark" style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%)', borderColor: '#ffe4e6' }}>
+						<div
+							className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center p-4 rounded-4 mb-4 border bg-gradient text-dark"
+							style={{
+								background: 'linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%)',
+								borderColor: '#ffe4e6',
+							}}
+						>
 							<div>
-								<span className="text-secondary small fw-semibold">Saldo Poin Lokal Anda</span>
+								<span className="text-secondary small fw-semibold">
+									Saldo Poin Lokal Anda
+								</span>
 								<h2 className="fw-extrabold text-primary mb-1 d-flex align-items-center gap-2">
 									<Gift className="text-warning animate-bounce" />
 									<span>{memberPoints} Poin</span>
 								</h2>
-								<p className="text-muted mb-0 small" style={{ fontSize: '0.75rem' }}>
-									Dapatkan lebih banyak poin dengan melakukan check-in, mengisi survey, bertanya di sesi, atau mengunjungi booth sponsor.
+								<p
+									className="text-muted mb-0 small"
+									style={{ fontSize: '0.75rem' }}
+								>
+									Dapatkan lebih banyak poin dengan melakukan check-in, mengisi
+									survey, bertanya di sesi, atau mengunjungi booth sponsor.
 								</p>
 							</div>
-							<Badge bg="light" className="text-dark border px-3 py-2 rounded-pill mt-3 mt-md-0 font-semibold text-xs shadow-sm">
+							<Badge
+								bg="light"
+								className="text-dark border px-3 py-2 rounded-pill mt-3 mt-md-0 font-semibold text-xs shadow-sm"
+							>
 								Event: {event?.title || 'Workshop & Kelas'}
 							</Badge>
 						</div>
@@ -1082,79 +1198,145 @@ const EventSpace = () => {
 						{/* Rewards Catalog */}
 						<h5 className="fw-bold text-dark mb-3">Katalog Hadiah Lokal</h5>
 						<Row className="g-4 mb-5">
-							{localRewardsCatalog.filter(r => r.is_active).map((reward) => {
-								const claimCount = myRedemptions.filter(r => r.reward_title === reward.title && r.status !== 'cancelled').length;
-								const isReachedLimit = reward.limit_per_user !== null && claimCount >= reward.limit_per_user;
-								const isOutOfStock = reward.stock !== null && reward.stock <= 0;
-								const isPointsInsufficient = memberPoints < reward.points_cost;
+							{localRewardsCatalog
+								.filter((r) => r.is_active)
+								.map((reward) => {
+									const claimCount = myRedemptions.filter(
+										(r) =>
+											r.reward_title === reward.title &&
+											r.status !== 'cancelled',
+									).length;
+									const isReachedLimit =
+										reward.limit_per_user !== null &&
+										claimCount >= reward.limit_per_user;
+									const isOutOfStock = reward.stock !== null && reward.stock <= 0;
+									const isPointsInsufficient = memberPoints < reward.points_cost;
 
-								return (
-									<Col xs={12} md={6} key={reward.id}>
-										<Card className="border shadow-none rounded-4 overflow-hidden h-100 transition-all hover-shadow">
-											<div className="position-relative" style={{ height: '180px' }}>
-												<img
-													src={reward.image_url || reward.image_path}
-													alt={reward.title}
-													className="w-100 h-100 object-fit-cover"
-												/>
-												<div className="position-absolute top-0 start-0 p-2.5">
-													<Badge bg={reward.reward_type === 'physical' ? 'info' : 'success'} className="px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white border border-opacity-10">
-														{reward.reward_type === 'physical' ? '🎁 Fisik' : '💻 Digital'}
-													</Badge>
-												</div>
-												<div className="position-absolute top-0 end-0 p-2.5">
-													<Badge bg="dark" className="bg-opacity-75 px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white">
-														{reward.points_cost} Pts
-													</Badge>
-												</div>
-											</div>
-											<Card.Body className="p-3.5 d-flex flex-column justify-content-between">
-												<div>
-													<h6 className="fw-bold text-dark mb-1.5">{reward.title}</h6>
-													<p className="text-muted small mb-3" style={{ fontSize: '0.78rem', lineHeight: '1.4' }}>
-														{reward.description}
-													</p>
-												</div>
-												<div>
-													<div className="d-flex justify-content-between text-secondary mb-3 small" style={{ fontSize: '0.75rem' }}>
-														<span>
-															Stok: {reward.stock !== null ? <strong>{reward.stock} Pcs</strong> : <strong className="text-muted">Tak terbatas</strong>}
-														</span>
-														{reward.limit_per_user && (
-															<span>
-																Batas: <strong>{claimCount}/{reward.limit_per_user}x</strong>
-															</span>
-														)}
+									return (
+										<Col xs={12} md={6} key={reward.id}>
+											<Card className="border shadow-none rounded-4 overflow-hidden h-100 transition-all hover-shadow">
+												<div
+													className="position-relative"
+													style={{ height: '180px' }}
+												>
+													<img
+														src={reward.image_url || reward.image_path}
+														alt={reward.title}
+														className="w-100 h-100 object-fit-cover"
+													/>
+													<div className="position-absolute top-0 start-0 p-2.5">
+														<Badge
+															bg={
+																reward.reward_type === 'physical'
+																	? 'info'
+																	: 'success'
+															}
+															className="px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white border border-opacity-10"
+														>
+															{reward.reward_type === 'physical'
+																? '🎁 Fisik'
+																: '💻 Digital'}
+														</Badge>
 													</div>
-													<Button
-														variant={isOutOfStock ? "secondary" : isReachedLimit ? "light" : "primary"}
-														disabled={isOutOfStock || isReachedLimit || isPointsInsufficient}
-														className="w-100 rounded-pill py-2 text-xs fw-bold shadow-sm"
-														onClick={() => handleRedeemReward(reward)}
-													>
-														{isOutOfStock
-															? 'Stok Habis'
-															: isReachedLimit
-																? 'Mencapai Batas'
-																: isPointsInsufficient
-																	? `Butuh ${reward.points_cost} Poin`
-																	: 'Tukar Poin Sekarang'}
-													</Button>
+													<div className="position-absolute top-0 end-0 p-2.5">
+														<Badge
+															bg="dark"
+															className="bg-opacity-75 px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white"
+														>
+															{reward.points_cost} Pts
+														</Badge>
+													</div>
 												</div>
-											</Card.Body>
-										</Card>
-									</Col>
-								);
-							})}
+												<Card.Body className="p-3.5 d-flex flex-column justify-content-between">
+													<div>
+														<h6 className="fw-bold text-dark mb-1.5">
+															{reward.title}
+														</h6>
+														<p
+															className="text-muted small mb-3"
+															style={{
+																fontSize: '0.78rem',
+																lineHeight: '1.4',
+															}}
+														>
+															{reward.description}
+														</p>
+													</div>
+													<div>
+														<div
+															className="d-flex justify-content-between text-secondary mb-3 small"
+															style={{ fontSize: '0.75rem' }}
+														>
+															<span>
+																Stok:{' '}
+																{reward.stock !== null ? (
+																	<strong>
+																		{reward.stock} Pcs
+																	</strong>
+																) : (
+																	<strong className="text-muted">
+																		Tak terbatas
+																	</strong>
+																)}
+															</span>
+															{reward.limit_per_user && (
+																<span>
+																	Batas:{' '}
+																	<strong>
+																		{claimCount}/
+																		{reward.limit_per_user}x
+																	</strong>
+																</span>
+															)}
+														</div>
+														<Button
+															variant={
+																isOutOfStock
+																	? 'secondary'
+																	: isReachedLimit
+																		? 'light'
+																		: 'primary'
+															}
+															disabled={
+																isOutOfStock ||
+																isReachedLimit ||
+																isPointsInsufficient
+															}
+															className="w-100 rounded-pill py-2 text-xs fw-bold shadow-sm"
+															onClick={() =>
+																handleRedeemReward(reward)
+															}
+														>
+															{isOutOfStock
+																? 'Stok Habis'
+																: isReachedLimit
+																	? 'Mencapai Batas'
+																	: isPointsInsufficient
+																		? `Butuh ${reward.points_cost} Poin`
+																		: 'Tukar Poin Sekarang'}
+														</Button>
+													</div>
+												</Card.Body>
+											</Card>
+										</Col>
+									);
+								})}
 						</Row>
 
 						{/* Redemption History */}
 						<h5 className="fw-bold text-dark mb-3">Riwayat Penukaran Saya</h5>
 						<Card className="border shadow-none rounded-4 overflow-hidden">
 							<div className="table-responsive">
-								<Table hover className="align-middle mb-0 custom-table" style={{ fontSize: '0.85rem' }}>
+								<Table
+									hover
+									className="align-middle mb-0 custom-table"
+									style={{ fontSize: '0.85rem' }}
+								>
 									<thead className="bg-light">
-										<tr className="text-secondary" style={{ fontSize: '0.8rem' }}>
+										<tr
+											className="text-secondary"
+											style={{ fontSize: '0.8rem' }}
+										>
 											<th className="px-4 py-2.5">Tanggal</th>
 											<th className="py-2.5">Hadiah</th>
 											<th className="py-2.5 text-center">Poin spent</th>
@@ -1165,7 +1347,10 @@ const EventSpace = () => {
 									<tbody>
 										{myRedemptions.length === 0 ? (
 											<tr>
-												<td colSpan="5" className="text-center py-4 text-muted small">
+												<td
+													colSpan="5"
+													className="text-center py-4 text-muted small"
+												>
 													Belum ada penukaran reward yang tercatat.
 												</td>
 											</tr>
@@ -1173,27 +1358,75 @@ const EventSpace = () => {
 											myRedemptions.map((item) => (
 												<tr key={item.id}>
 													<td className="px-4 py-3 text-secondary">
-														{new Date(item.redeemed_at).toLocaleDateString('id-ID', {
+														{new Date(
+															item.redeemed_at,
+														).toLocaleDateString('id-ID', {
 															day: 'numeric',
 															month: 'short',
-															year: 'numeric'
+															year: 'numeric',
 														})}
 													</td>
 													<td className="py-3">
-														<span className="fw-bold text-dark">{item.reward_title}</span>
-														<div className="text-xxs text-muted">{item.reward_type === 'physical' ? '🎁 Fisik' : '💻 Digital'}</div>
+														<span className="fw-bold text-dark">
+															{item.reward_title}
+														</span>
+														<div className="text-xxs text-muted">
+															{item.reward_type === 'physical'
+																? '🎁 Fisik'
+																: '💻 Digital'}
+														</div>
 													</td>
-													<td className="py-3 text-center fw-bold text-secondary">{item.points_spent}</td>
+													<td className="py-3 text-center fw-bold text-secondary">
+														{item.points_spent}
+													</td>
 													<td className="py-3">
-														{item.status === 'pending' && <Badge bg="warning" className="text-dark">🕒 Menunggu</Badge>}
-														{item.status === 'claimed' && <Badge bg="success" className="text-white">🤝 Diambil</Badge>}
-														{item.status === 'delivered' && <Badge bg="success" className="text-white">📩 Terkirim</Badge>}
-														{item.status === 'cancelled' && <Badge bg="danger" className="text-white">❌ Dibatalkan</Badge>}
+														{item.status === 'pending' && (
+															<Badge
+																bg="warning"
+																className="text-dark"
+															>
+																🕒 Menunggu
+															</Badge>
+														)}
+														{item.status === 'claimed' && (
+															<Badge
+																bg="success"
+																className="text-white"
+															>
+																🤝 Diambil
+															</Badge>
+														)}
+														{item.status === 'delivered' && (
+															<Badge
+																bg="success"
+																className="text-white"
+															>
+																📩 Terkirim
+															</Badge>
+														)}
+														{item.status === 'cancelled' && (
+															<Badge
+																bg="danger"
+																className="text-white"
+															>
+																❌ Dibatalkan
+															</Badge>
+														)}
 													</td>
 													<td className="px-4 py-3">
-														<div className="small text-secondary" style={{ fontSize: '0.75rem', maxWidth: '250px' }}>
+														<div
+															className="small text-secondary"
+															style={{
+																fontSize: '0.75rem',
+																maxWidth: '250px',
+															}}
+														>
 															{item.status === 'cancelled' ? (
-																<span className="text-danger fw-semibold">Ditolak: {item.cancellation_reason || 'Dibatalkan oleh panitia'}</span>
+																<span className="text-danger fw-semibold">
+																	Ditolak:{' '}
+																	{item.cancellation_reason ||
+																		'Dibatalkan oleh panitia'}
+																</span>
 															) : (
 																item.notes
 															)}
@@ -1298,7 +1531,10 @@ const EventSpace = () => {
 										onClick={() => setActiveTab('rewards')}
 									>
 										<Gift size={18} className="me-3" /> Tukar Reward & Poin
-										<Badge bg="primary-subtle" className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1">
+										<Badge
+											bg="primary-subtle"
+											className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1"
+										>
 											{memberPoints} Pts
 										</Badge>
 									</Nav.Link>
@@ -1391,11 +1627,20 @@ const EventSpace = () => {
 							<AlertTriangle size={48} className="text-warning animate-bounce" />
 						</div>
 					</div>
-					<h4 className="fw-bold text-dark mb-2">Peringatan: Event Online + Reward Fisik</h4>
-					<p className="text-muted small mb-4 px-2" style={{ lineHeight: '1.6', fontSize: '0.86rem' }}>
-						Anda saat ini mengikuti event ini secara <strong>Online</strong>, namun Anda menukar reward fisik <strong>({pendingRedeemReward?.title})</strong>.
-						<br /><br />
-						Harap diperhatikan bahwa reward fisik hanya dapat diambil secara langsung di lokasi fisik acara atau harus diatur pengirimannya dengan panitia. Apakah Anda yakin ingin melanjutkan penukaran?
+					<h4 className="fw-bold text-dark mb-2">
+						Peringatan: Event Online + Reward Fisik
+					</h4>
+					<p
+						className="text-muted small mb-4 px-2"
+						style={{ lineHeight: '1.6', fontSize: '0.86rem' }}
+					>
+						Anda saat ini mengikuti event ini secara <strong>Online</strong>, namun Anda
+						menukar reward fisik <strong>({pendingRedeemReward?.title})</strong>.
+						<br />
+						<br />
+						Harap diperhatikan bahwa reward fisik hanya dapat diambil secara langsung di
+						lokasi fisik acara atau harus diatur pengirimannya dengan panitia. Apakah
+						Anda yakin ingin melanjutkan penukaran?
 					</p>
 
 					<div className="d-flex flex-column gap-2">
@@ -1403,7 +1648,9 @@ const EventSpace = () => {
 							variant="warning"
 							size="lg"
 							className="rounded-pill fw-bold text-white shadow-sm"
-							onClick={() => pendingRedeemReward && executeRedemption(pendingRedeemReward)}
+							onClick={() =>
+								pendingRedeemReward && executeRedemption(pendingRedeemReward)
+							}
 						>
 							Ya, Tukar Sekarang
 						</Button>
