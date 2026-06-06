@@ -133,7 +133,7 @@ const NavbarPublic = () => {
 								Tiket Saya
 							</NavLink>
 							<NavLink to="/rewards" style={linkStyle}>
-								Reward Global
+								Reward
 							</NavLink>
 						</>
 					)}

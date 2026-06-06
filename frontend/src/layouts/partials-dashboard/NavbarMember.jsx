@@ -22,7 +22,6 @@ import {
 	ShieldCheck,
 	LogOut,
 	Gift,
-	Coins,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import NotificationDropdown from "../../components/NotificationDropdown";
@@ -134,10 +133,7 @@ const NavbarPublic = () => {
 								Tiket Saya
 							</NavLink>
 							<NavLink to="/rewards" style={linkStyle}>
-								Reward Global
-							</NavLink>
-							<NavLink to="/points" style={linkStyle}>
-								Riwayat Poin
+								Reward
 							</NavLink>
 						</>
 					)}
@@ -238,10 +234,6 @@ const NavbarPublic = () => {
                                     <NavLink to="/rewards" style={mobileLinkStyle} onClick={handleClose}>
                                         <Gift size={18} />
                                         <span>Reward Global</span>
-                                    </NavLink>
-                                    <NavLink to="/points" style={mobileLinkStyle} onClick={handleClose}>
-                                        <Coins size={18} />
-                                        <span>Riwayat Poin</span>
                                     </NavLink>
                                 </>
                             )}

@@ -159,6 +159,7 @@ class LocalRewardController extends Controller
                     'user_id' => $user->id,
                     'event_id' => $eventId,
                     'activity_id' => null,
+                    'reward_id' => $reward->id,
                     'amount' => -$reward->points_cost,
                     'type' => 'local',
                     'description' => 'Penukaran Reward Lokal Event: ' . $reward->title,

@@ -16,6 +16,7 @@ class PointTransaction extends Model
         'user_id',      // ID User penerima/pengguna poin
         'event_id',     // ID Event jika bertipe 'local', atau null jika global
         'activity_id',  // ID Activity jika dipicu oleh aktivitas berpoin, atau null jika redemption/manual adjustment
+        'reward_id',    // ID Reward jika merupakan penukaran reward, atau null jika tidak
         'amount',       // Jumlah mutasi poin (positif = penambahan, negatif = pengurangan)
         'type',         // Tipe transaksi: 'global' atau 'local'
         'description',  // Keterangan transaksi
@@ -43,5 +44,13 @@ class PointTransaction extends Model
     public function activity()
     {
         return $this->belongsTo(Activity::class);
+    }
+
+    /**
+     * Relasi ke Reward terkait (nullable).
+     */
+    public function reward()
+    {
+        return $this->belongsTo(Reward::class);
     }
 }

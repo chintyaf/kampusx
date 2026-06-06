@@ -48,7 +48,7 @@ const RewardCard = ({ reward, onEdit, onDelete }) => {
 			
 			<div className="card-body d-flex flex-column">
 				<div className="d-flex justify-content-between align-items-start mb-2">
-					<h5 className="card-title fw-bold text-dark text-truncate mb-0" title={reward.title} style={{ fontSize: '15px' }}>
+					<h5 className="card-title fw-bold text-dark text-truncate mb-0" title={reward.title} style={{ fontSize: '10px' }}>
 						{reward.title}
 					</h5>
 					<span className="badge bg-primary-subtle text-primary fw-semibold fs-7" style={{ padding: '4px 8px', borderRadius: '6px' }}>

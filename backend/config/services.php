@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'gamification' => [
+        'local_to_global_ratio' => env('LOCAL_TO_GLOBAL_RATIO', 10.0),
+    ],
+
 ];
