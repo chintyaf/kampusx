@@ -87,6 +87,7 @@ Route::post('/v1/staff/verify-pin', [\App\Http\Controllers\Api\StaffController::
 Route::post('/v1/staff/scan', [\App\Http\Controllers\Api\StaffController::class, 'scan']);
 Route::post('/v1/staff/manual-checkin', [\App\Http\Controllers\Api\StaffController::class, 'manualCheckin']);
 Route::get('/v1/staff/search-tickets', [\App\Http\Controllers\Api\StaffController::class, 'searchTickets']);
+Route::post('/v1/staff/kiosk-scan', [\App\Http\Controllers\Api\StaffController::class, 'kioskScan']);
 // Route::middleware('attendance.window')->group(function () {
 
 // });

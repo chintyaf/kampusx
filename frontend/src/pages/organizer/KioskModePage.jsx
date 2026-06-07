@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, Form, Row, Col, Badge, Table, Modal } from 'react-bootstrap';
 import { Tv, KeyRound, ArrowRight, ShieldCheck, MapPin, Scan, CheckCircle, HelpCircle, XCircle, RefreshCw, UserCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '@/api/axios';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const STATIONS = [
 	{ id: 1, name: 'Booth Sponsor A' },
@@ -19,11 +20,13 @@ const ACTIVITIES = [
 	{ slug: 'booth_visit', name: 'Kunjungan Booth (Booth Visit)', points: 15 }
 ];
 
-export default function KioskModePage() {
-	const { eventId } = useParams();
+export default function KioskModePage({ isStaff = false }) {
+	const params = useParams();
+	const navigate = useNavigate();
+	const eventId = isStaff ? JSON.parse(localStorage.getItem('staff_event') || 'null')?.id : params.eventId;
 
 	// Authentication states
-	const [isLocked, setIsLocked] = useState(true);
+	const [isLocked, setIsLocked] = useState(!isStaff);
 	const [pinInput, setPinInput] = useState('');
 	const [pinError, setPinError] = useState(false);
 
@@ -43,6 +46,11 @@ export default function KioskModePage() {
 	const [showResultModal, setShowResultModal] = useState(false);
 	const [resultData, setResultData] = useState(null);
 
+	// Real QR Scanner states
+	const [useCamera, setUseCamera] = useState(false);
+	const html5QrCodeRef = useRef(null);
+	const scanLockRef = useRef(isSubmittingScan);
+
 	// Fetch participants on mount/change
 	useEffect(() => {
 		if (eventId) {
@@ -50,10 +58,59 @@ export default function KioskModePage() {
 		}
 	}, [eventId]);
 
+	useEffect(() => {
+		scanLockRef.current = isSubmittingScan;
+	}, [isSubmittingScan]);
+
+	useEffect(() => {
+		if (useCamera) {
+			const timer = setTimeout(() => {
+				try {
+					const scanner = new Html5Qrcode("kiosk-reader");
+					html5QrCodeRef.current = scanner;
+					scanner.start(
+						{ facingMode: "environment" },
+						{ 
+							fps: 10, 
+							qrbox: (width, height) => ({ 
+								width: Math.min(width, height) * 0.7, 
+								height: Math.min(width, height) * 0.7 
+							}) 
+						},
+						(decodedText) => {
+							if (scanLockRef.current) return;
+							processActivityClaim(decodedText);
+						},
+						() => {}
+					).catch(err => {
+						console.error("Camera access error:", err);
+						toast.error("Gagal mengakses kamera.");
+						setUseCamera(false);
+					});
+				} catch (e) {
+					console.error(e);
+					setUseCamera(false);
+				}
+			}, 200);
+
+			return () => {
+				clearTimeout(timer);
+				if (html5QrCodeRef.current?.isScanning) {
+					html5QrCodeRef.current.stop().catch(() => {});
+				}
+			};
+		}
+	}, [useCamera]);
+
 	const loadParticipants = () => {
 		if (!eventId) return;
 		setLoadingParticipants(true);
-		api.get(`/event-dashboard/${eventId}/daftar-peserta?all=true`)
+		const pin = localStorage.getItem('staff_pin');
+		const endpoint = isStaff
+			? `/v1/staff/search-tickets?event_id=${eventId}&pos_pin=${pin}`
+			: `/event-dashboard/${eventId}/daftar-peserta?all=true`;
+
+		api.get(endpoint)
 			.then(res => {
 				if (res.data.success) {
 					const mapped = res.data.data.map(ticket => {
@@ -130,7 +187,16 @@ export default function KioskModePage() {
 			payload.description = stationName;
 		}
 
-		api.post(`/event-dashboard/${eventId}/kiosk/scan`, payload)
+		const pin = localStorage.getItem('staff_pin');
+		if (isStaff) {
+			payload.pos_pin = pin || '';
+		}
+
+		const endpoint = isStaff
+			? '/v1/staff/kiosk-scan'
+			: `/event-dashboard/${eventId}/kiosk/scan`;
+
+		api.post(endpoint, payload)
 			.then(res => {
 				if (res.data.status === 'success') {
 					const responseData = res.data.data;
@@ -314,8 +380,13 @@ export default function KioskModePage() {
 								Pilih stasiun operasional dan jenis aktivitas untuk device Kios ini.
 							</p>
 						</div>
-						<Button variant="outline-danger" size="sm" className="rounded-pill" onClick={handleResetKiosk}>
-							Kunci
+						<Button 
+							variant={isStaff ? "outline-secondary" : "outline-danger"} 
+							size="sm" 
+							className="rounded-pill" 
+							onClick={() => isStaff ? navigate('/staff/dashboard') : handleResetKiosk()}
+						>
+							{isStaff ? 'Kembali' : 'Kunci'}
 						</Button>
 					</div>
 
@@ -395,8 +466,8 @@ export default function KioskModePage() {
 					<Button variant="outline-light" size="sm" className="rounded-pill px-3" onClick={() => setIsConfigured(false)}>
 						<RefreshCw size={12} className="me-1 mb-0.5" /> Ganti Tugas
 					</Button>
-					<Button variant="danger" size="sm" className="rounded-pill px-3 text-white border-0" onClick={handleResetKiosk}>
-						Kunci Kiosk
+					<Button variant={isStaff ? "secondary" : "danger"} size="sm" className="rounded-pill px-3 text-white border-0" onClick={() => isStaff ? navigate('/staff/dashboard') : handleResetKiosk()}>
+						{isStaff ? "Kembali" : "Kunci Kiosk"}
 					</Button>
 				</div>
 			</div>
@@ -405,38 +476,55 @@ export default function KioskModePage() {
 				{/* Kiri: Scanner Simulasi */}
 				<Col xs={12} lg={6}>
 					<Card className="border shadow-none rounded-4 overflow-hidden mb-4">
-						<Card.Header className="bg-light border-bottom py-3 px-4">
+						<Card.Header className="bg-light border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
 							<h6 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
 								<Scan size={18} className="text-primary" />
 								<span>Pemindai QR Kode Tiket</span>
 							</h6>
+							<Button 
+								variant={useCamera ? "danger" : "primary"} 
+								size="sm" 
+								className="rounded-pill px-3 py-1 shadow-none font-semibold"
+								onClick={() => setUseCamera(!useCamera)}
+							>
+								{useCamera ? "Matikan Kamera" : "Aktifkan Kamera"}
+							</Button>
 						</Card.Header>
 						<Card.Body className="p-4 bg-light bg-opacity-40 text-center">
-							{/* Mock Camera View */}
-							<div 
-								className="mx-auto border-3 border-dashed border-primary rounded-4 bg-dark position-relative overflow-hidden shadow-inner d-flex align-items-center justify-content-center"
-								style={{ width: '100%', maxWidth: '300px', height: '220px' }}
-							>
-								{/* Scan Animation Line */}
+							{useCamera ? (
 								<div 
-									className="position-absolute w-100 bg-success shadow-success" 
-									style={{ 
-										height: '4px', 
-										opacity: 0.8,
-										boxShadow: '0 0 12px #22c55e',
-										animation: 'scanline-anim 2.5s infinite linear',
-										top: 0
-									}}
-								/>
-								<div className="text-center text-white-50 px-3 z-1">
-									<Scan size={44} className="text-primary opacity-50 mb-2 mx-auto" />
-									<p className="small mb-0">Pemindai Kiosk Siap</p>
-									<p className="text-secondary" style={{ fontSize: '0.7rem' }}>Kamera mendeteksi otomatis...</p>
+									className="mx-auto border rounded-4 bg-dark overflow-hidden position-relative"
+									style={{ width: '100%', maxWidth: '300px', height: '220px' }}
+								>
+									<div id="kiosk-reader" className="w-100 h-100"></div>
 								</div>
-							</div>
+							) : (
+								/* Mock Camera View */
+								<div 
+									className="mx-auto border-3 border-dashed border-primary rounded-4 bg-dark position-relative overflow-hidden shadow-inner d-flex align-items-center justify-content-center"
+									style={{ width: '100%', maxWidth: '300px', height: '220px' }}
+								>
+									{/* Scan Animation Line */}
+									<div 
+										className="position-absolute w-100 bg-success shadow-success" 
+										style={{ 
+											height: '4px', 
+											opacity: 0.8,
+											boxShadow: '0 0 12px #22c55e',
+											animation: 'scanline-anim 2.5s infinite linear',
+											top: 0
+										}}
+									/>
+									<div className="text-center text-white-50 px-3 z-1">
+										<Scan size={44} className="text-primary opacity-50 mb-2 mx-auto" />
+										<p className="small mb-0">Pemindai Kiosk Siap</p>
+										<p className="text-secondary" style={{ fontSize: '0.7rem' }}>Kamera mendeteksi otomatis...</p>
+									</div>
+								</div>
+							)}
 
 							<p className="text-muted small mt-3.5 mb-4">
-								Arahkan kamera QR tiket peserta, atau gunakan simulasi / input manual di bawah ini.
+								{useCamera ? "Dekatkan QR Code tiket peserta ke arah kamera." : "Aktifkan kamera untuk memindai QR tiket peserta, atau gunakan simulasi / input manual di bawah ini."}
 							</p>
 
 							{/* Manual Entry Form */}

@@ -141,59 +141,51 @@ export const MENU_ITEMS = {
 		{
 			id: 'detil-event',
 			name: 'Detail Event',
-			icon: <CalendarDays size={16} className="me-2" />, // Icon kalender lebih merepresentasikan acara
+			icon: <CalendarDays size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
-				{
-					name: 'Informasi Umum',
-					path: 'info',
-					// isCompleted: true
-				},
-				{
-					name: 'Tempat Pelaksanaan',
-					path: 'tempat',
-					// isCompleted: true
-				},
-				{
-					name: 'Jadwal',
-					path: 'sesi',
-					// isCompleted: true
-				},
-				{
-					name: 'Kategori Tiket',
-					path: 'tiket',
-					// isCompleted: false
-				},
+				{ name: 'Informasi Umum', path: 'info' },
+				{ name: 'Lokasi', path: 'tempat' },
+				{ name: 'Jadwal Sesi', path: 'sesi' },
+				{ name: 'Kategori Tiket', path: 'tiket' },
 			],
 		},
 
-		// --- PEMECAHAN "OPERASIONAL/PESERTA" ---
+		// --- PESERTA & LOYALITAS ---
 		{
-			id: 'daftar-peserta',
-			name: 'Daftar Peserta',
+			id: 'manajemen-peserta',
+			name: 'Peserta & Poin',
 			icon: <UsersRound size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/daftar-peserta',
+			path: '/organizer/:eventId/event-dashboard',
+			submenu: [
+				{
+					name: 'Daftar & Poin',
+					path: 'daftar-peserta',
+				},
+				{ name: 'Katalog Reward', path: 'rewards' },
+				{ name: 'Log Redeem', path: 'redemptions' },
+			],
 		},
 		{
 			id: 'check-in',
-			name: 'Check-in & Scanner',
+			name: 'Scan Check-in',
 			icon: <ScanLine size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/check-in',
 		},
 
-		// --- PEMECAHAN "MODUL BELAJAR" & LAINNYA ---
+		// --- FITUR PENDUKUNG ---
 		{
 			id: 'materi-belajar',
 			name: 'Materi Acara',
 			icon: <BookOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/materi-after', // Langsung arahkan ke materinya
+			path: '/organizer/:eventId/event-dashboard/materi-after',
 		},
-		// {
-		// 	id: 'survey-form',
-		// 	name: 'Kelola Survei',
-		// 	icon: <ClipboardList size={16} className="me-2" />,
-		// 	path: '/organizer/:eventId/event-dashboard/survey-form',
-		// },
+		{
+			id: 'survey-form',
+			name: 'Survei & Feedback',
+			icon: <ClipboardList size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/survey-form',
+		},
 		{
 			id: 'sertifikat-event',
 			name: 'Sertifikat',
@@ -205,18 +197,6 @@ export const MENU_ITEMS = {
 			name: 'Pengumuman',
 			icon: <Megaphone size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/pengumuman',
-		},
-		{
-			id: 'rewards-event',
-			name: 'Reward Lokal',
-			icon: <Gift size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/rewards',
-		},
-		{
-			id: 'redemptions-event',
-			name: 'Log Penukaran',
-			icon: <ClipboardList size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/redemptions',
 		},
 		{
 			id: 'kiosk-event',

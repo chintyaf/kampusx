@@ -19,9 +19,13 @@ const StatCard = ({ Icon, label, value, type, className, style: customStyle, ico
 			<div style={iconStyle} className="stat-card__icon">
 				{Icon ? <Icon size={17} /> : <div className="placeholder-icon" />}
 			</div>
-			<div>
-				<p className="stat-card__label">{label}</p>
-				<p className="stat-card__value">{value}</p>
+			<div className="d-flex flex-column justify-content-center">
+				<p className="stat-card__value" style={{ color: iconStyle.color, fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: 1.1 }}>
+					{value}
+				</p>
+				<p className="stat-card__label" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, margin: '2px 0 0', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+					{label}
+				</p>
 			</div>
 		</div>
 	);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
 import EventLayout from '@/layouts/EventLayout';
 import TicketCard from '@/pages/event/creation/detail-event/sections/event-ticket/TicketCard';
@@ -6,6 +6,7 @@ import TicketSummary from '@/pages/event/creation/detail-event/sections/event-ti
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
 import useEventMeta from '@/hooks/useEventMeta';
+import TicketPrerequisitesWarning from './sections/event-location/TicketPrerequisitesWarning';
 
 // Helper: Ekstrak logika parsing harga
 const parsePriceNum = (val) => {
@@ -28,6 +29,8 @@ export default function EventTicket() {
 	const [eventStartDate, setEventStartDate] = useState('');
 	const [locationType, setLocationType] = useState('offline');
 	const [saved, setSaved] = useState(true);
+	const [error, setError] = useState(null);
+	const hasFetched = useRef(false);
 
 	const update = useCallback((id, patch) => {
 		setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -40,6 +43,8 @@ export default function EventTicket() {
 	}, []);
 
 	useEffect(() => {
+		if (hasFetched.current || !eventId) return;
+
 		const fetchData = async () => {
 			if (setIsPageLoading) setIsPageLoading(true);
 			try {
@@ -55,15 +60,18 @@ export default function EventTicket() {
 				setTickets(formattedFromApi);
 				setEventStartDate(event_start_date || '');
 				setLocationType(location_type || 'offline');
+				setError(null);
+				hasFetched.current = true;
 			} catch (err) {
 				console.error('Error fetching tickets:', err);
+				setError(err.response?.data || { message: 'Terjadi kesalahan saat memuat data tiket.' });
 			} finally {
 				if (setIsPageLoading) setIsPageLoading(false);
 			}
 		};
 
-		if (tickets.length === 0) fetchData();
-	}, [tickets.length, eventId, setIsPageLoading]);
+		fetchData();
+	}, [eventId, setIsPageLoading]);
 
 	const handleUpdate = async (shouldNotify = false) => {
 		const todayStr = getLocalIsoString();
@@ -172,6 +180,8 @@ export default function EventTicket() {
 			}
 		} catch (error) {
 			console.error('Gagal update data:', error.response?.data?.errors || error.message);
+			const errMsg = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan tiket.';
+			notify('error', 'Gagal!', errMsg);
 		}
 	};
 
@@ -197,6 +207,16 @@ export default function EventTicket() {
 			return true;
 		});
 	}, [tickets, eventStartDate]);
+
+	if (error) {
+		return (
+			<TicketPrerequisitesWarning
+				error={error}
+				eventStatus={eventStatus}
+				hasParticipants={hasParticipants}
+			/>
+		);
+	}
 
 	return (
 		<EventLayout

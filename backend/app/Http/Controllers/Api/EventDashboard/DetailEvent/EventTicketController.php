@@ -15,6 +15,25 @@ class EventTicketController extends Controller
         // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
 
+        $missingSteps = [];
+        if ($event->eventTypes()->count() === 0) {
+            $missingSteps[] = 'tipe_event';
+        }
+        if (!$event->locationDetail || empty($event->locationDetail->type)) {
+            $missingSteps[] = 'lokasi';
+        }
+        if ($event->sessions()->count() === 0) {
+            $missingSteps[] = 'sesi';
+        }
+
+        if (!empty($missingSteps)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Tiket hanya bisa diisi jika sudah mengisi tipe event, lokasi, dan sesi.',
+                'missing_steps' => $missingSteps
+            ], 400);
+        }
+
         if (in_array($event->status, ['cancelled', 'completed'])) {
             $tickets = EventTicket::where('event_id', $eventId)->get();
             $data = $tickets->map(function ($ticket) use ($eventId) {
@@ -132,6 +151,28 @@ class EventTicketController extends Controller
      */
     public function update(Request $request, int $eventId)
     {
+        $event = Event::findOrFail($eventId);
+
+        $missingSteps = [];
+        if ($event->eventTypes()->count() === 0) {
+            $missingSteps[] = 'tipe_event';
+        }
+        if (!$event->locationDetail || empty($event->locationDetail->type)) {
+            $missingSteps[] = 'lokasi';
+        }
+        if ($event->sessions()->count() === 0) {
+            $missingSteps[] = 'sesi';
+        }
+
+        if (!empty($missingSteps)) {
+            return response()->json([
+                'success' => false,
+                'status'  => 'error',
+                'message' => 'Tiket hanya bisa diisi jika sudah mengisi tipe event, lokasi, dan sesi.',
+                'missing_steps' => $missingSteps
+            ], 400);
+        }
+
         // Validasi struktur data array tiket
         $request->validate([
             'tickets'                => 'required|array',
