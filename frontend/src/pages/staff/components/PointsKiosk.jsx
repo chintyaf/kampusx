@@ -30,6 +30,9 @@ const PointsKiosk = ({
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [tempActivitySlug, setTempActivitySlug] = useState('booth_visit');
     const [isConfigured, setIsConfigured] = useState(false);
+    
+    // Hidden simulation state toggled by Ctrl + Alt + D
+    const [showSimulation, setShowSimulation] = useState(false);
 
     useEffect(() => {
         const handleResize = () => {
@@ -39,8 +42,18 @@ const PointsKiosk = ({
                 setActiveTab('scan');
             }
         };
+        const handleKeyDown = (e) => {
+            if (e.ctrlKey && e.altKey && (e.key === 'd' || e.key === 'D')) {
+                e.preventDefault();
+                setShowSimulation(prev => !prev);
+            }
+        };
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('keydown', handleKeyDown);
+        };
     }, []);
 
     // Wrapper to pass the selected activity slug when scanning
@@ -249,45 +262,47 @@ const PointsKiosk = ({
                         />
 
                         {/* Simulasi Satu-Klik untuk Testing */}
-                        <Card className="border-0 shadow-sm" style={{ borderRadius: '20px', border: '1px solid var(--color-border, #cbd5e1)' }}>
-                            <Card.Header className="bg-white border-bottom py-3 px-4" style={{ borderColor: 'var(--color-border, #cbd5e1)' }}>
-                                <h6 className="fw-bold text-dark mb-0 align-items-center d-flex gap-2" style={{ fontSize: '0.95rem' }}>
-                                    <Sparkles size={16} className="text-primary" style={{ color: brandColor }} />
-                                    <span>Simulasi Satu-Klik (Testing)</span>
-                                </h6>
-                            </Card.Header>
-                            <Card.Body className="p-3">
-                                <p className="text-muted small mb-3">Klik tombol "Simulasikan Scan" untuk memicu scan secara instan.</p>
-                                <div className="d-flex flex-column gap-2" style={{ maxHeight: '220px', overflowY: 'auto' }}>
-                                    {loadingParticipants ? (
-                                        <div className="text-center py-4 text-muted small">Memuat daftar peserta...</div>
-                                    ) : participantsDb.length === 0 ? (
-                                        <div className="text-center py-4 text-muted small">Belum ada peserta terdaftar.</div>
-                                    ) : (
-                                        participantsDb.map(p => (
-                                            <div key={p.ticket_code} className="d-flex justify-content-between align-items-center p-2.5 border rounded-3 hover-bg-light bg-light bg-opacity-20" style={{ borderColor: 'var(--color-border, #cbd5e1)', padding: '10px' }}>
-                                                <div className="overflow-hidden" style={{ maxWidth: '140px' }}>
-                                                    <span className="fw-bold text-dark small d-block text-truncate" style={{ fontSize: '12px' }}>{p.name}</span>
-                                                    <span className="text-secondary small" style={{ fontSize: '10px' }}>
-                                                        Saldo: <strong>{p.balance} Pts</strong>
-                                                    </span>
+                        {showSimulation && (
+                            <Card className="border-0 shadow-sm mt-3" style={{ borderRadius: '20px', border: '1px solid var(--color-border, #cbd5e1)' }}>
+                                <Card.Header className="bg-white border-bottom py-3 px-4" style={{ borderColor: 'var(--color-border, #cbd5e1)' }}>
+                                    <h6 className="fw-bold text-dark mb-0 align-items-center d-flex gap-2" style={{ fontSize: '0.95rem' }}>
+                                        <Sparkles size={16} className="text-primary" style={{ color: brandColor }} />
+                                        <span>Simulasi Satu-Klik (Testing)</span>
+                                    </h6>
+                                </Card.Header>
+                                <Card.Body className="p-3">
+                                    <p className="text-muted small mb-3">Klik tombol "Simulasikan Scan" untuk memicu scan secara instan.</p>
+                                    <div className="d-flex flex-column gap-2" style={{ maxHeight: '220px', overflowY: 'auto' }}>
+                                        {loadingParticipants ? (
+                                            <div className="text-center py-4 text-muted small">Memuat daftar peserta...</div>
+                                        ) : participantsDb.length === 0 ? (
+                                            <div className="text-center py-4 text-muted small">Belum ada peserta terdaftar.</div>
+                                        ) : (
+                                            participantsDb.map(p => (
+                                                <div key={p.ticket_code} className="d-flex justify-content-between align-items-center p-2.5 border rounded-3 hover-bg-light bg-light bg-opacity-20" style={{ borderColor: 'var(--color-border, #cbd5e1)', padding: '10px' }}>
+                                                    <div className="overflow-hidden" style={{ maxWidth: '140px' }}>
+                                                        <span className="fw-bold text-dark small d-block text-truncate" style={{ fontSize: '12px' }}>{p.name}</span>
+                                                        <span className="text-secondary small" style={{ fontSize: '10px' }}>
+                                                            Saldo: <strong>{p.balance} Pts</strong>
+                                                        </span>
+                                                    </div>
+                                                    <Button 
+                                                        variant="outline-primary" 
+                                                        size="sm" 
+                                                        className="rounded-pill px-3 py-1 font-semibold border"
+                                                        style={{ fontSize: '10px', borderColor: 'var(--color-border, #cbd5e1)', color: 'var(--color-primary, #00699e)' }}
+                                                        onClick={() => handleScanWithActivity(p.ticket_code)}
+                                                        disabled={isScanning || scanLock}
+                                                    >
+                                                        Simulasikan
+                                                    </Button>
                                                 </div>
-                                                <Button 
-                                                    variant="outline-primary" 
-                                                    size="sm" 
-                                                    className="rounded-pill px-3 py-1 font-semibold border"
-                                                    style={{ fontSize: '10px', borderColor: 'var(--color-border, #cbd5e1)', color: 'var(--color-primary, #00699e)' }}
-                                                    onClick={() => handleScanWithActivity(p.ticket_code)}
-                                                    disabled={isScanning || scanLock}
-                                                >
-                                                    Simulasikan
-                                                </Button>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </Card.Body>
-                        </Card>
+                                            ))
+                                        )}
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        )}
                     </Col>
                 )}
 

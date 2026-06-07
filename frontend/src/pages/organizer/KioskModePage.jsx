@@ -42,6 +42,9 @@ export default function KioskModePage({ isStaff = false }) {
 	const [loadingParticipants, setLoadingParticipants] = useState(false);
 	const [isSubmittingScan, setIsSubmittingScan] = useState(false);
 
+	// Toggle simulation state using Ctrl + Alt + D
+	const [showSimulation, setShowSimulation] = useState(false);
+
 	// Success / Error Modals
 	const [showResultModal, setShowResultModal] = useState(false);
 	const [resultData, setResultData] = useState(null);
@@ -61,6 +64,17 @@ export default function KioskModePage({ isStaff = false }) {
 	useEffect(() => {
 		scanLockRef.current = isSubmittingScan;
 	}, [isSubmittingScan]);
+
+	useEffect(() => {
+		const handleKeyDown = (e) => {
+			if (e.ctrlKey && e.altKey && (e.key === 'd' || e.key === 'D')) {
+				e.preventDefault();
+				setShowSimulation(prev => !prev);
+			}
+		};
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
+	}, []);
 
 	useEffect(() => {
 		if (useCamera) {
@@ -548,45 +562,47 @@ export default function KioskModePage({ isStaff = false }) {
 					</Card>
 
 					{/* Simulasi Click Section */}
-					<Card className="border shadow-none rounded-4">
-						<Card.Header className="bg-white border-bottom py-3 px-4">
-							<h6 className="fw-bold text-dark mb-0">Simulasi Satu-Klik (Untuk Testing)</h6>
-						</Card.Header>
-						<Card.Body className="p-3">
-							<p className="text-muted small mb-3">Klik tombol "Simulasikan Scan" di samping nama untuk memicu scan secara instan.</p>
-							<div className="d-flex flex-column gap-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
-								{loadingParticipants ? (
-									<div className="text-center py-4 text-muted small">
-										Memuat daftar peserta event...
-									</div>
-								) : participantsDb.length === 0 ? (
-									<div className="text-center py-4 text-muted small">
-										Belum ada peserta terdaftar untuk event ini.
-									</div>
-								) : (
-									participantsDb.map(p => (
-										<div key={p.ticket_code} className="d-flex justify-content-between align-items-center p-2.5 border rounded-3 hover-bg-light bg-light bg-opacity-20">
-											<div>
-												<span className="fw-bold text-dark small d-block">{p.name}</span>
-												<span className="text-secondary small" style={{ fontSize: '0.72rem' }}>
-													{p.ticket_code} | Saldo: <strong>{p.balance} Pts</strong>
-												</span>
-											</div>
-											<Button 
-												variant="outline-primary" 
-												size="sm" 
-												className="rounded-pill px-3"
-												onClick={() => processActivityClaim(p.ticket_code)}
-												disabled={isSubmittingScan}
-											>
-												{isSubmittingScan ? 'Loading...' : 'Simulasikan Scan'}
-											</Button>
+					{showSimulation && (
+						<Card className="border shadow-none rounded-4 mt-3">
+							<Card.Header className="bg-white border-bottom py-3 px-4">
+								<h6 className="fw-bold text-dark mb-0">Simulasi Satu-Klik (Untuk Testing)</h6>
+							</Card.Header>
+							<Card.Body className="p-3">
+								<p className="text-muted small mb-3">Klik tombol "Simulasikan Scan" di samping nama untuk memicu scan secara instan.</p>
+								<div className="d-flex flex-column gap-2" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+									{loadingParticipants ? (
+										<div className="text-center py-4 text-muted small">
+											Memuat daftar peserta event...
 										</div>
-									))
-								)}
-							</div>
-						</Card.Body>
-					</Card>
+									) : participantsDb.length === 0 ? (
+										<div className="text-center py-4 text-muted small">
+											Belum ada peserta terdaftar untuk event ini.
+										</div>
+									) : (
+										participantsDb.map(p => (
+											<div key={p.ticket_code} className="d-flex justify-content-between align-items-center p-2.5 border rounded-3 hover-bg-light bg-light bg-opacity-20">
+												<div>
+													<span className="fw-bold text-dark small d-block">{p.name}</span>
+													<span className="text-secondary small" style={{ fontSize: '0.72rem' }}>
+														{p.ticket_code} | Saldo: <strong>{p.balance} Pts</strong>
+													</span>
+												</div>
+												<Button 
+													variant="outline-primary" 
+													size="sm" 
+													className="rounded-pill px-3"
+													onClick={() => processActivityClaim(p.ticket_code)}
+													disabled={isSubmittingScan}
+												>
+													{isSubmittingScan ? 'Loading...' : 'Simulasikan Scan'}
+												</Button>
+											</div>
+										))
+									)}
+								</div>
+							</Card.Body>
+						</Card>
+					)}
 				</Col>
 
 				{/* Kanan: Recent Session logs */}
