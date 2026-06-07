@@ -56,6 +56,8 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
 
+Route::get('/profile/ledger', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'pointsLedger'])->middleware('auth:sanctum');
+
 // User Public Profile
 Route::get('/profile/{id}', [\App\Http\Controllers\Api\UserProfileController::class, 'show']);
 
@@ -130,6 +132,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // ==========================================
     // --- ROLE: PARTICIPANT / UMUM ---
     // ==========================================
+    Route::get('/member/points/balance', [\App\Http\Controllers\Api\Member\MemberDashboardController::class, 'getBalance']);
+    Route::get('/member/points/history', [\App\Http\Controllers\Api\Member\PointTransactionController::class, 'history']);
+    Route::post('/global-rewards/redeem', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'redeemGlobalReward']);
+    Route::get('/global-rewards', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'globalRewardsList']);
+    
+    // Member Local Rewards Catalog & Redemption
+    Route::get('/events/{event_id}/local-rewards', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'getLocalRewards']);
+    Route::post('/events/{event_id}/local-rewards/redeem', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'redeemLocalReward']);
+
     Route::post('/checkout', [CheckoutController::class, 'store']);
     Route::get('/checkout/check/{eventId}', [CheckoutController::class, 'checkRegistration']);
     Route::post('/v1/payment/charge', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'charge']);
@@ -301,6 +312,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('/rewards', \App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class);
             Route::get('/redemptions', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'listRedemptions']);
             Route::patch('/redemptions/{redemptionId}/status', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'updateRedemptionStatus']);
+            Route::post('/points/reset', [\App\Http\Controllers\Api\EventDashboard\OrganizerRewardController::class, 'resetLocalPoints']);
         });
     });
 
@@ -374,6 +386,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::resource('event-types', EventTypeController::class);
     Route::resource('institutions', InstitutionController::class);
 
+    // 9. Gamifikasi Event (Admin Sisi)
+    Route::apiResource('admin/activities', \App\Http\Controllers\Api\Admin\ActivityController::class);
+    Route::apiResource('admin/global-rewards', \App\Http\Controllers\Api\Admin\GlobalRewardController::class);
+    Route::get('admin/conversion-rules', [\App\Http\Controllers\Api\Admin\ConversionRuleController::class, 'index']);
+    Route::post('admin/conversion-rules', [\App\Http\Controllers\Api\Admin\ConversionRuleController::class, 'update']);
 
 });
 

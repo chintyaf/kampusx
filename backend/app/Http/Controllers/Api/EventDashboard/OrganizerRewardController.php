@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Reward;
 use App\Models\RedemptionHistory;
 use App\Models\LocalMemberPoint;
+use App\Models\Event;
+use App\Models\PointTransaction;
+use App\Models\Setting;
 
 class OrganizerRewardController extends Controller
 {
@@ -262,5 +265,91 @@ class OrganizerRewardController extends Controller
             'message' => "Status penukaran berhasil diperbarui menjadi {$newStatus}.",
             'data' => $redemption->load(['user', 'reward'])
         ]);
+    }
+
+    /**
+     * Reset sisa poin lokal member menjadi 0 dan konversi ke poin global (inject ke global balance).
+     */
+    public function resetLocalPoints($eventId)
+    {
+        $event = Event::findOrFail($eventId);
+
+        // 1. Validasi status event (harus sudah ended/completed)
+        if ($event->status !== 'completed') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validasi gagal: Event belum selesai (status harus completed).'
+            ], 422);
+        }
+
+        // 2. Ambil rasio konversi dari Admin settings (key: local_to_global_ratio)
+        $setting = Setting::where('key', 'local_to_global_ratio')->first();
+        $ratio = $setting ? (int) $setting->value : config('gamification.local_to_global_ratio', 10);
+
+        // 3. Eksekusi reset & konversi dalam transaksi database
+        $result = DB::transaction(function () use ($eventId, $ratio, $event) {
+            // Ambil semua record local member points yang memiliki poin > 0 untuk event ini
+            $localPoints = LocalMemberPoint::with('user')
+                ->where('event_id', $eventId)
+                ->where('points_balance', '>', 0)
+                ->lockForUpdate()
+                ->get();
+
+            $convertedList = [];
+
+            foreach ($localPoints as $localPoint) {
+                $originalBalance = $localPoint->points_balance;
+
+                // Set local point balance ke 0
+                $localPoint->points_balance = 0;
+                $localPoint->save();
+
+                // Catat log transaksi negatif di ledger poin lokal event
+                PointTransaction::create([
+                    'type' => 'local',
+                    'user_id' => $localPoint->user_id,
+                    'event_id' => $eventId,
+                    'activity_id' => null,
+                    'amount' => -$originalBalance,
+                    'description' => "Reset Poin Lokal Event Selesai: {$event->title}",
+                ]);
+
+                // Hitung konversi ke global point
+                $globalPoints = (int) floor($originalBalance / $ratio);
+
+                // Jika hasil konversi > 0, injeksi ke global point
+                if ($globalPoints > 0) {
+                    PointTransaction::create([
+                        'type' => 'global',
+                        'user_id' => $localPoint->user_id,
+                        'event_id' => null,
+                        'activity_id' => null,
+                        'amount' => $globalPoints,
+                        'description' => "Konversi Poin Lokal Event {$event->title} (Rasio 1:{$ratio})",
+                    ]);
+                }
+
+                $convertedList[] = [
+                    'user_id' => $localPoint->user_id,
+                    'name' => $localPoint->user->name ?? null,
+                    'email' => $localPoint->user->email ?? null,
+                    'local_points_before' => $originalBalance,
+                    'global_points_added' => $globalPoints,
+                ];
+            }
+
+            return $convertedList;
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Reset poin lokal dan konversi ke poin global berhasil diselesaikan.',
+            'data' => [
+                'event_id' => (int) $eventId,
+                'event_title' => $event->title,
+                'conversion_ratio' => $ratio,
+                'resets' => $result
+            ]
+        ], 200);
     }
 }

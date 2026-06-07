@@ -16,6 +16,10 @@ import Kategori from '@/pages/admin/master-data/Kategori';
 import TipeEvent from '@/pages/admin/master-data/TipeEvent';
 import Institusi from '@/pages/admin/master-data/Institusi';
 
+import ManageActivities from '@/pages/admin/gamifikasi/ManageActivities';
+import ManageGlobalRewards from '@/pages/admin/gamifikasi/ManageGlobalRewards';
+import ConversionSettings from '@/pages/admin/gamifikasi/ConversionSettings';
+
 export const AdminRoutes = [
 	// ADMIN ROUTES
 	<Route path="admin" key="admin-routes">
@@ -31,6 +35,12 @@ export const AdminRoutes = [
 			<Route path="kategori" element={<Kategori />} />
 			<Route path="tipe-event" element={<TipeEvent />} />
 			<Route path="institusi" element={<Institusi />} />
+		</Route>
+
+		<Route path="gamifikasi">
+			<Route path="aktivitas" element={<ManageActivities />} />
+			<Route path="reward" element={<ManageGlobalRewards />} />
+			<Route path="konversi" element={<ConversionSettings />} />
 		</Route>
 	</Route>,
 ];

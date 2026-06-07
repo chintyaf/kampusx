@@ -1545,16 +1545,30 @@ const EventSpace = () => {
 										<Megaphone size={18} className="me-3" /> Pengumuman Event
 									</Nav.Link>
 									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'rewards' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
-										onClick={() => setActiveTab('rewards')}
-									>
-										<Gift size={18} className="me-3" /> Tukar Reward & Poin
-										<Badge
-											bg="primary-subtle"
-											className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1"
-										>
-											{memberPoints} Pts
-										</Badge>
+										as={Link}
+										to={`/event-space/${id}/rewards`}
+                                        className="d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium text-dark text-decoration-none"
+                                        style={{ transition: 'background-color 0.2s' }}
+                                        onMouseEnter={(e) => e.currentTarget.classList.add('bg-light')}
+                                        onMouseLeave={(e) => e.currentTarget.classList.remove('bg-light')}
+                                    >
+                                        <Gift size={18} className="me-3" style={{ color: '#0d9488' }} /> 
+                                        Tukar Local Reward
+                                        <Badge bg="primary-subtle" className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1">
+                                            {memberPoints || 0} Pts
+                                        </Badge>
+									{/* // 	className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'rewards' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
+									// 	onClick={() => setActiveTab('rewards')}
+									// >
+									// 	<Gift size={18} className="me-3" /> Tukar Reward & Poin
+									// 	<Badge bg="primary-subtle" className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1">
+									// 		{memberPoints} Pts
+									// 	</Badge>
+									// 	as={Link}
+									// 	to={`/event-space/${id}/rewards`}
+									// 	className="d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium text-dark hover-bg-light"
+									// >
+									// 	<Gift size={18} className="me-3 text-teal" style={{ color: '#0d9488' }} /> Tukar Local Reward */}
 									</Nav.Link>
 
 									<hr className="my-2.5 opacity-25" />
