@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Card, Row, Col, Spinner, Button } from "react-bootstrap";
-import { CheckCircle, Calendar, MapPin, Download, ArrowLeft, Share2, Clock, MonitorPlay } from "lucide-react";
+import { CheckCircle, Calendar, MapPin, Download, ArrowLeft, Share2, Clock, MonitorPlay, Video } from "lucide-react";
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import QRCode from "react-qr-code";
@@ -81,6 +81,9 @@ const TicketDetail = () => {
   );
 
   const event = ticket?.order_item?.order?.event ?? {};
+  const locationDetail = event?.location_detail || event?.locationDetail || {};
+  const locationType = locationDetail?.type || event?.location_type || 'offline';
+  const meetingLink = locationDetail?.meeting_link || event?.meeting_link;
 
   const statusMap = {
     active:    { label: "E-TICKET AKTIF",  bg: "#10B981" },
@@ -164,6 +167,27 @@ const TicketDetail = () => {
                       <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)" }}>
                         Selesai: {fmtDate(event.end_date)}
                       </span>
+                    </div>
+                  )}
+                  {(locationType === 'online' || locationType === 'hybrid') && meetingLink && (
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 12 }}>
+                      <Button
+                        href={meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="primary"
+                        style={{
+                          borderRadius: 8,
+                          fontWeight: 700,
+                          fontSize: "var(--font-sm)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "8px 16px"
+                        }}
+                      >
+                        <Video size={16} /> Join Meeting
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -286,20 +310,23 @@ const TicketDetail = () => {
                   Kembali ke Event
                 </Button>
               ) : (
-                <Button
-                  onClick={() => navigate(`/event-space/${event.id}`)}
-                  className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
-                  style={{
-                    background: "var(--color-primary)",
-                    border: "none",
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    fontSize: "var(--font-sm)",
-                    padding: "10px 24px"
-                  }}
-                >
-                  <MonitorPlay size={16} /> Masuk Event Space
-                </Button>
+                <>
+                  
+                  <Button
+                    onClick={() => navigate(`/event-space/${event.id}`)}
+                    className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
+                    style={{
+                      background: "var(--color-primary)",
+                      border: "none",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                      fontSize: "var(--font-sm)",
+                      padding: "10px 24px"
+                    }}
+                  >
+                    <MonitorPlay size={16} /> Masuk Event Space
+                  </Button>
+                </>
               )}
             </div>
 

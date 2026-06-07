@@ -133,13 +133,13 @@ const NavbarPublic = () => {
 								Tiket Saya
 							</NavLink>
 							<NavLink to="/rewards" style={linkStyle}>
-								Reward Global
+								Reward
 							</NavLink>
 						</>
 					)}
-					<NavLink to="/about" style={linkStyle}>
+					{/* <NavLink to="/about" style={linkStyle}>
 						Tentang Kami
-					</NavLink>
+					</NavLink> */}
 				</Nav>
 
 				{/* Desktop Actions */}
@@ -237,10 +237,10 @@ const NavbarPublic = () => {
                                     </NavLink>
                                 </>
                             )}
-                            <NavLink to="/about" style={mobileLinkStyle} onClick={handleClose}>
+                            {/* <NavLink to="/about" style={mobileLinkStyle} onClick={handleClose}>
                                 <Info size={18} />
                                 <span>Tentang Kami</span>
-                            </NavLink>
+                            </NavLink> */}
                         </Nav>
 
                         {/* Unified User Profile & Account Menu in Mobile Sidebar */}

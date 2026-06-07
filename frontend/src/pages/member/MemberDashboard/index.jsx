@@ -26,7 +26,7 @@ const MemberDashboard = () => {
 	const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
 	const [isLoading, setIsLoading] = useState(true);
 	const [loadingPersonalized, setLoadingPersonalized] = useState(true);
-	const [pointsData, setPointsData] = useState({ global_balance: 0, local_balance: 0, local_points_breakdown: [] });
+	const [pointsData, setPointsData] = useState({ current_local_points: 0, current_global_points: 0 });
 
 	const banners = [
 		{ id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
@@ -196,17 +196,17 @@ const MemberDashboard = () => {
 		})();
 	}, [token]);
 
-	// Fetch points ledger
+	// Fetch points balance
 	useEffect(() => {
 		(async () => {
 			try {
 				if (!token) return;
-				const res = await api.get('/profile/ledger');
-				if (res.data?.success) {
+				const res = await api.get('/member/points/balance');
+				if (res.data && res.data.data) {
 					setPointsData(res.data.data);
 				}
 			} catch (err) {
-				console.error('Gagal fetch points ledger:', err);
+				console.error('Gagal fetch points balance:', err);
 			}
 		})();
 	}, [token]);
@@ -311,7 +311,7 @@ const MemberDashboard = () => {
 					totalTicketsCount={totalPaidTicketsCount}
 				/>
 
-				<PointSummarySection pointsData={pointsData} />
+				<PointSummarySection pointsData={pointsData} isLoading={isLoading} />
 
 				<ActiveTicketsSection activeTickets={activeTickets} />
 

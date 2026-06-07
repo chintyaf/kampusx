@@ -134,6 +134,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // ==========================================
     // --- ROLE: PARTICIPANT / UMUM ---
     // ==========================================
+    Route::get('/member/points/balance', [\App\Http\Controllers\Api\Member\MemberDashboardController::class, 'getBalance']);
+    Route::get('/member/points/history', [\App\Http\Controllers\Api\Member\PointTransactionController::class, 'history']);
     Route::post('/global-rewards/redeem', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'redeemGlobalReward']);
     Route::get('/global-rewards', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'globalRewardsList']);
     

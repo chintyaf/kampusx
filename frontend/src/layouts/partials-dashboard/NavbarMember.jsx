@@ -22,7 +22,6 @@ import {
 	ShieldCheck,
 	LogOut,
 	Gift,
-	Coins,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import NotificationDropdown from "../../components/NotificationDropdown";
@@ -134,16 +133,13 @@ const NavbarPublic = () => {
 								Tiket Saya
 							</NavLink>
 							<NavLink to="/rewards" style={linkStyle}>
-								Reward Global
-							</NavLink>
-							<NavLink to="/points" style={linkStyle}>
-								Riwayat Poin
+								Reward
 							</NavLink>
 						</>
 					)}
-					<NavLink to="/about" style={linkStyle}>
+					{/* <NavLink to="/about" style={linkStyle}>
 						Tentang Kami
-					</NavLink>
+					</NavLink> */}
 				</Nav>
 
 				{/* Desktop Actions */}
@@ -239,16 +235,12 @@ const NavbarPublic = () => {
                                         <Gift size={18} />
                                         <span>Reward Global</span>
                                     </NavLink>
-                                    <NavLink to="/points" style={mobileLinkStyle} onClick={handleClose}>
-                                        <Coins size={18} />
-                                        <span>Riwayat Poin</span>
-                                    </NavLink>
                                 </>
                             )}
-                            <NavLink to="/about" style={mobileLinkStyle} onClick={handleClose}>
+                            {/* <NavLink to="/about" style={mobileLinkStyle} onClick={handleClose}>
                                 <Info size={18} />
                                 <span>Tentang Kami</span>
-                            </NavLink>
+                            </NavLink> */}
                         </Nav>
 
                         {/* Unified User Profile & Account Menu in Mobile Sidebar */}

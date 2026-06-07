@@ -58,8 +58,8 @@ const Personalization = () => {
     };
 
     return (
-        <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh', padding: '20px' }}>
-            <Card className="border-0 shadow-lg p-4 p-md-5 w-100" style={{ maxWidth: '600px', borderRadius: '20px' }}>
+        <Container className="d-flex align-items-start align-items-md-center justify-content-center pt-2 pt-md-0" style={{ padding: '20px' }}>
+            <Card className="border-0 shadow-lg p-4 p-md-5 w-100" style={{ maxWidth: '600px', borderRadius: '20px', marginTop: '20px', marginBottom: '20px' }}>
                 <div className="text-center mb-4">
                     <h3 className="fw-bold" style={{ color: 'var(--bs-primary)' }}>Pilih Minat Anda</h3>
                     <p className="text-muted">Bantu kami menyesuaikan rekomendasi event dengan memilih minimal 3 topik yang Anda sukai.</p>

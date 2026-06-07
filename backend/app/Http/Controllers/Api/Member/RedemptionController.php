@@ -106,6 +106,7 @@ class RedemptionController extends Controller
                     'user_id' => $user->id,
                     'event_id' => null,
                     'activity_id' => null,
+                    'reward_id' => $reward->id,
                     'amount' => -$reward->points_cost,
                     'type' => 'global',
                     'description' => 'Penukaran Reward Global: ' . $reward->title,
