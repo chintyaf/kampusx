@@ -4,10 +4,11 @@ import Sidebar from './partials-dashboard/Sidebar.jsx'; // Komponen sidebar Anda
 import Navbar from './partials-dashboard/Navbar';
 
 import NavbarPublic from './partials-dashboard/NavbarPublic.jsx'; // Komponen header public
+import Footer from './partials-dashboard/Footer';
 
 const VisitorLayout = () => {
 	return (
-		<div style={{ minHeight: '100vh' }}>
+		<div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 			{/* 1. Sidebar yang nempel terus di kiri */}
 			{/* <Sidebar /> */}
 			<div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -26,6 +27,8 @@ const VisitorLayout = () => {
 					<Outlet />
 				</main>
 			</div>
+			{/* Footer di bagian bawah */}
+			<Footer />
 		</div>
 	);
 };
