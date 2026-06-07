@@ -67,7 +67,7 @@ class PaymentSimulatorApiController extends Controller
                 $expiredAt = now()->addMinutes(15);
                 
                 // Build payment URL using environment or request host
-                $baseUrl = env('PAYMENT_BASE_URL', url('/'));
+                $baseUrl = config('app.payment_base_url') ?: url('/');
                 $baseUrl = rtrim($baseUrl, '/');
                 $paymentUrl = $baseUrl . '/payment/' . $token;
 
@@ -80,7 +80,7 @@ class PaymentSimulatorApiController extends Controller
                     'item_name'      => $event ? $event->title : 'Tiket Event',
                     'status'         => 'pending',
                     'callback_url'   => url('/api/v1/payment/callback'),
-                    'redirect_url'   => env('FRONTEND_URL', 'http://localhost:5173') . '/ticket/' . $ticket->ticket_code,
+                    'redirect_url'   => config('app.frontend_url') . '/ticket/' . $ticket->ticket_code,
                     'expired_at'     => $expiredAt,
                 ]);
 
@@ -121,7 +121,7 @@ class PaymentSimulatorApiController extends Controller
 
                 DB::commit();
 
-                $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+                $frontendUrl = config('app.frontend_url');
                 $redirectUrl = $frontendUrl . '/ticket/' . $ticket->ticket_code;
 
                 return response()->json([

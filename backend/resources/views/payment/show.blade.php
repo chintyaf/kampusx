@@ -122,7 +122,7 @@
                             @endif
                         </div>
                         @php
-                            $fallbackUrl = env('FRONTEND_URL', 'http://localhost:5173');
+                            $fallbackUrl = config('app.frontend_url');
                             $targetUrl = $fallbackUrl;
                             
                             // Find the event slug from the order to go back to the source event page
@@ -206,7 +206,7 @@
                         if (isRedirecting) return;
                         
                         const status = data.status;
-                        const redirectBase = '{{ $transaction->redirect_url ?: env("FRONTEND_URL", "http://localhost:5173") . "/ticket/" }}';
+                        const redirectBase = '{{ $transaction->redirect_url ?: config("app.frontend_url") . "/ticket/" }}';
                         
                         if (status === 'success' || status === 'failed' || status === 'expired') {
                             isRedirecting = true;
