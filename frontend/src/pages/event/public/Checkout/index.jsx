@@ -15,12 +15,13 @@ import {
 	QrCode,
 	Download,
 } from 'lucide-react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 // import api from "../../api/axios";
 // import { useAuth } from "../../context/AuthContext";
 import axios from 'axios';
 import api from '../../../../api/axios';
 import { useAuth } from '../../../../context/AuthContext'; // Sesuaikan path-nya
+import { STORAGE_URL } from '@/api/storage';
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 const Steps = ({ current }) => {
@@ -128,6 +129,8 @@ const Checkout = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const { user, token } = useAuth();
+	const [searchParams] = useSearchParams();
+	const ticketId = searchParams.get('ticketId');
 
 	const [step, setStep] = useState(1); // 1=form, 2=processing, 3=done
 	const [eventDetails, setEventDetails] = useState(null);
@@ -250,7 +253,17 @@ const Checkout = () => {
 		);
 
 	// ── Kalkulasi harga ───────────────────────────────────────────────────────
-	const eventPrice = parseFloat(eventDetails.price) || 0;
+	const tickets = eventDetails?.event_tickets || eventDetails?.eventTickets || [];
+	const displayTickets = tickets.length > 0 ? tickets : [
+		{
+			id: 'day1',
+			name: 'Tiket Peserta',
+			price: eventDetails?.price || 195000,
+		}
+	];
+	const selectedTicket = displayTickets.find(t => String(t.id) === String(ticketId));
+	const ticketName = selectedTicket ? selectedTicket.name : 'Tiket';
+	const eventPrice = selectedTicket ? (parseFloat(selectedTicket.price) || 0) : (parseFloat(eventDetails.price) || 0);
 	const adminFee = eventPrice > 0 ? 1 : 0;
 	const total = eventPrice + adminFee;
 	const isFree = total === 0;
@@ -344,8 +357,9 @@ const Checkout = () => {
 								}}>
 								<img
 									src={
-										eventDetails.image ||
-										`https://placehold.co/120x80/dff3ff/00699e?text=Event`
+										eventDetails.image_path
+											? `${STORAGE_URL}/${eventDetails.image_path}`
+											: `${STORAGE_URL}/event-banners/${eventDetails.id}.jpg`
 									}
 									alt={eventDetails.title}
 									style={{
@@ -629,7 +643,7 @@ const Checkout = () => {
 													fontSize: 'var(--font-sm)',
 													color: 'var(--color-secondary)',
 												}}>
-												<span>1× Tiket</span>
+												<span>1× {ticketName}</span>
 												<span
 													style={{
 														fontWeight: 600,

@@ -33,11 +33,16 @@ const EventTicketCard = ({
 					},
 				];
 
+	const selectedTicketObj = displayTickets.find((t) => t.id === selectedTicket);
+	const ticketPrice = selectedTicketObj
+		? (selectedTicketObj.price !== undefined ? selectedTicketObj.price : eventDetails?.price)
+		: eventDetails?.price;
+
 	let btnStyle = { backgroundColor: '#2b6cb0', color: '#fff' };
 	let btnText = 'Beli Tiket';
 	const isSoldOut = eventDetails?.quota <= 0;
-	const isFree = Number(eventDetails?.price) === 0;
-	const isBtnDisabled = !registration?.registered && isSoldOut;
+	const isFree = Number(ticketPrice) === 0;
+	const isBtnDisabled = !registration?.registered && (isSoldOut || !selectedTicket);
 
 	if (registration?.registered) {
 		if (registration.status === 'paid') {
@@ -49,6 +54,9 @@ const EventTicketCard = ({
 		}
 	} else if (isSoldOut) {
 		btnText = 'Habis Terjual';
+	} else if (!selectedTicket) {
+		btnText = 'Pilih Tiket';
+		btnStyle = { backgroundColor: '#cbd5e0', color: '#718096', cursor: 'not-allowed' };
 	} else if (isFree) {
 		btnText = 'Daftar Gratis';
 	}
