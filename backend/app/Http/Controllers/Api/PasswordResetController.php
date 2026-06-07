@@ -13,22 +13,21 @@ use Carbon\Carbon;
 
 class PasswordResetController extends Controller
 {
-    // Tahap 1: Mengirim OTP ke Email atau Nomor HP
+    // Tahap 1: Mengirim OTP ke Email
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'identifier' => 'required|string',
+            'identifier' => 'required|email|exists:users,email', // Validasi hanya untuk email, karena OTP dikirim via email
         ]);
 
-        // Cari user berdasarkan email atau nomor HP
+        // Cari user berdasarkan email
         $user = User::where('email', $request->identifier)
-                    ->orWhere('phone', $request->identifier)
                     ->first();
 
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'Email atau Nomor HP tidak terdaftar di sistem kami.'
+                'message' => 'Email tidak terdaftar di sistem kami.'
             ], 404);
         }
 
@@ -44,7 +43,7 @@ class PasswordResetController extends Controller
             ]
         );
 
-        // Kirim email (kalau mau SMS di kemudian hari, bisa tambah kondisional di sini)
+        // Kirim email
         Mail::to($user->email)->send(new ResetPasswordOtpMail($otp));
 
         $isEmail = filter_var($request->identifier, FILTER_VALIDATE_EMAIL);
