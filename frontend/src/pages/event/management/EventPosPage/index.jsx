@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Spinner, Row, Col } from 'react-bootstrap';
+import { Button, Spinner, Row, Col, Modal } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { MapPin, Plus, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Trash2, BookOpen } from 'lucide-react';
 
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 import api from '@/api/axios';
@@ -33,6 +33,7 @@ const EventPosPage = () => {
 	const [posPin, setPosPin] = useState('-');
 	const [event, setEvent] = useState(null);
 	const [activeMethod, setActiveMethod] = useState('qr'); // 'qr' | 'online'
+	const [showGuideModal, setShowGuideModal] = useState(false);
 
 	// States for deleting POS station
 	const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -121,6 +122,15 @@ const EventPosPage = () => {
 						presensi mandiri.
 					</p>
 				</div>
+				<Button
+					variant="outline-secondary"
+					size="sm"
+					className="d-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-none fw-semibold border"
+					onClick={() => setShowGuideModal(true)}
+				>
+					<BookOpen size={15} />
+					<span>Panduan Presensi</span>
+				</Button>
 			</div>
 
 			{/* ── 2. Dua Kolom Layout Responsive ── */}
@@ -131,8 +141,8 @@ const EventPosPage = () => {
 
 				return (
 					<Row className="g-4">
-						{/* Kolom Kiri: Main Area (8 dari 12 bagian) */}
-						<Col lg={8} className="d-flex flex-column gap-4">
+						{/* Kolom Utama: Full Width (12 bagian) */}
+						<Col lg={12} className="d-flex flex-column gap-4">
 							{/* Rongga Waktu Presensi (Rentang Waktu Presensi Aktif) */}
 							{/* <AttendanceWindowInfo event={event} /> */}
 
@@ -250,14 +260,6 @@ const EventPosPage = () => {
 						</div>
 					)}
 				</Col>
-
-				{/* Kolom Kanan: Sidebar Panduan (4 dari 12 bagian) */}
-				<Col lg={4}>
-					<div className="sticky-lg-top" style={{ top: '24px', zIndex: 10 }}>
-						{/* Panduan Cara Kerja Presensi */}
-						<PosGuideCard eventType={event?.location_type} />
-					</div>
-				</Col>
 			</Row>
 				);
 			})()}
@@ -291,6 +293,11 @@ const EventPosPage = () => {
 					btnVariant: 'danger',
 				}}
 			/>
+
+			{/* ── 5. Panduan Modal ── */}
+			<Modal show={showGuideModal} onHide={() => setShowGuideModal(false)} centered>
+				<PosGuideCard eventType={event?.location_type} onClose={() => setShowGuideModal(false)} />
+			</Modal>
 		</div>
 	);
 };

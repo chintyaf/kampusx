@@ -34,14 +34,29 @@ const OfflineLocationInput = ({ data, onLocationChange }) => {
 				longitude: data.longitude || null,
 			});
 		}
-	}, [data.latitude, data.longitude, data.address_detail]); // Sync if coordinate or details changes from outside
+	}, [data?.latitude, data?.longitude, data?.address_detail]); // Sync if coordinate or details changes from outside
+
+	// Safe post-render callback to parent to avoid setState-in-render warning
+	useEffect(() => {
+		if (onLocationChange && data) {
+			const hasChanged =
+				locationData.latitude !== (data.latitude ?? null) ||
+				locationData.longitude !== (data.longitude ?? null) ||
+				locationData.address_detail !== (data.address_detail ?? '') ||
+				locationData.country !== (data.country ?? '') ||
+				locationData.province !== (data.province ?? '') ||
+				locationData.city !== (data.city ?? '') ||
+				locationData.district !== (data.district ?? '');
+
+			if (hasChanged) {
+				onLocationChange(locationData);
+			}
+		}
+	}, [locationData, onLocationChange, data]);
 
 	const updateLocationData = (newData) => {
 		setLocationData((prev) => {
 			const nextState = typeof newData === 'function' ? newData(prev) : newData;
-			if (onLocationChange) {
-				onLocationChange(nextState);
-			}
 			return nextState;
 		});
 	};

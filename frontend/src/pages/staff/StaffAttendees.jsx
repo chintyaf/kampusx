@@ -33,19 +33,19 @@ const StaffAttendees = () => {
     });
 
     return (
-        <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            <div className="bg-white border-bottom py-3 sticky-top shadow-sm">
+        <div style={{ backgroundColor: 'var(--color-bg, #f4f5f7)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="border-bottom py-3 sticky-top shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: 'var(--color-border, #cbd5e1)' }}>
                 <Container className="d-flex align-items-center gap-3">
                     <Button variant="light" className="p-2 border-0 bg-transparent text-dark" onClick={() => navigate('/staff/dashboard')}>
                         <ArrowLeft size={24} />
                     </Button>
-                    <h5 className="fw-bold mb-0">Daftar Peserta</h5>
+                    <h5 className="fw-bold mb-0 text-dark">Daftar Peserta</h5>
                 </Container>
             </div>
 
             <Container className="flex-grow-1 py-4">
-                <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div className="bg-white border-bottom p-2">
+                <Card className="border-0 shadow-sm rounded-4 overflow-hidden" style={{ border: '1px solid var(--color-border, #cbd5e1)' }}>
+                    <div className="bg-white border-bottom p-2" style={{ borderColor: 'var(--color-border, #cbd5e1)' }}>
                         <Nav variant="pills" className="d-flex flex-nowrap overflow-x-auto" style={{ gap: 8, WebkitOverflowScrolling: 'touch' }}>
                             {[
                                 { id: 'all', label: `Semua (${allTickets.length})`, bg: 'bg-primary text-white' },
@@ -72,9 +72,9 @@ const StaffAttendees = () => {
                                 <p>Tidak ada data di kategori ini.</p>
                             </div>
                         ) : (
-                            <div style={{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }}>
+                            <div style={{ maxHeight: 'calc(100vh - 180px)', overflowY: 'auto' }} className="d-flex flex-column">
                                 {displayedTickets.map((t, i) => (
-                                    <div key={t.id} className={`d-flex justify-content-between align-items-center p-3 ${i !== displayedTickets.length - 1 ? 'border-bottom' : ''}`}>
+                                    <div key={t.id} className={`d-flex justify-content-between align-items-center p-3 ${i !== displayedTickets.length - 1 ? 'border-bottom' : ''}`} style={{ borderColor: 'var(--color-border, #cbd5e1)' }}>
                                         <div className="overflow-hidden pe-2">
                                             <h6 className="fw-bold mb-1 text-truncate" style={{ fontSize: 14 }}>{t.attendee_name}</h6>
                                             <span className="text-muted small text-truncate d-block" style={{ fontSize: 12 }}>{t.ticket_code} · {t.attendee_email}</span>

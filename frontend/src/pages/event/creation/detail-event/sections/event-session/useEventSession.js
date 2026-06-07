@@ -105,12 +105,12 @@ export const useEventSession = (eventId) => {
 						setDays(formattedDays);
 						setActiveSessions(formattedDays[0].sessions || []);
 					} else {
-						// Jika tidak ada data hari, set ke state kosong
+						// Jika tidak ada data hari, set ke state kosong tapi buatkan 1 hari default
 						setFormData((prev) => ({
 							...prev,
 							timezone: dbTimezone,
 						}));
-						setDays([]);
+						setDays([{ date: '', sessions: [], day_number: 1 }]);
 						setActiveSessions([]);
 					}
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
-import { Container, Button } from 'react-bootstrap';
-import { Plus, Users, BarChart2, Download, Video } from 'lucide-react';
+import { Container, Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Plus, Users, BarChart2, Download, Video, HelpCircle } from 'lucide-react';
 import SessionContentCard from './components/SessionContentCard';
 import FormHeading from '@/components/dashboard/FormHeading';
 import StatCard from '@/components/dashboard/StatCard';
@@ -82,7 +82,7 @@ const EventPostMaterialPage = () => {
 				<SkeletonStyles />
 				<FormHeading
 					title="Manajemen Konten Pasca-Acara"
-					description="Atur materi, video replay, dan syarat akses untuk setiap sesi"
+					description="Atur materi, video replay, dan syarat akses untuk setiap sesi. Klik salah satu sesi di bawah untuk mulai mengunggah dan mengelola konten seperti video replay dan dokumen."
 					className="mb-4"
 				/>
 
@@ -135,77 +135,33 @@ const EventPostMaterialPage = () => {
 		);
 	}
 
+	const completionTooltip = (
+		<Tooltip id="completion-tooltip">
+			Persentase peserta yang menyelesaikan aktivitas pembelajaran (menonton video replay atau
+			mengunduh materi) di sesi yang telah dipublikasikan.
+		</Tooltip>
+	);
+
+	const avgCompletionLabel = (
+		<span className="d-flex align-items-center gap-1">
+			Rata-rata Selesai
+			<OverlayTrigger placement="top" overlay={completionTooltip}>
+				<HelpCircle
+					size={13}
+					className="text-muted cursor-pointer"
+					style={{ verticalAlign: 'middle' }}
+				/>
+			</OverlayTrigger>
+		</span>
+	);
+
 	return (
 		<div>
 			<FormHeading
 				title="Manajemen Konten Pasca-Acara"
-				description="Atur materi, video replay, dan syarat akses untuk setiap sesi"
+				description="Atur materi, video replay, dan syarat akses untuk setiap sesi. Klik salah satu sesi di bawah untuk mulai mengunggah dan mengelola konten seperti video replay dan dokumen."
 				className="mb-4"
 			/>
-
-			{/* --- Bagian Stat Cards --- */}
-			<div className="row g-3 mb-4">
-				<div className="col-md-3 col-sm-6">
-					<StatCard
-						Icon={Video}
-						label="Sesi Dipublikasikan"
-						value={`${totalPublished} / ${sessions.length}`}
-						type="blue"
-						iconColor="#475569"
-						iconBg="#f1f5f9"
-						style={{
-							boxShadow: 'none',
-							border: '1px solid #e2e8f0',
-							backgroundColor: '#ffffff',
-						}}
-					/>
-				</div>
-				<div className="col-md-3 col-sm-6">
-					<StatCard
-						Icon={Users}
-						label="Total Akses"
-						value={totalAccess}
-						type="green"
-						iconColor="#475569"
-						iconBg="#f1f5f9"
-						style={{
-							boxShadow: 'none',
-							border: '1px solid #e2e8f0',
-							backgroundColor: '#ffffff',
-						}}
-					/>
-				</div>
-				<div className="col-md-3 col-sm-6">
-					<StatCard
-						Icon={BarChart2}
-						label="Rata-rata Selesai"
-						value={`${avgCompletion}%`}
-						type="yellow"
-						iconColor="#475569"
-						iconBg="#f1f5f9"
-						style={{
-							boxShadow: 'none',
-							border: '1px solid #e2e8f0',
-							backgroundColor: '#ffffff',
-						}}
-					/>
-				</div>
-				<div className="col-md-3 col-sm-6">
-					<StatCard
-						Icon={Download}
-						label="Total Unduhan"
-						value={totalDownloads}
-						type="red"
-						iconColor="#475569"
-						iconBg="#f1f5f9"
-						style={{
-							boxShadow: 'none',
-							border: '1px solid #e2e8f0',
-							backgroundColor: '#ffffff',
-						}}
-					/>
-				</div>
-			</div>
 
 			<div className="d-flex flex-column gap-3">
 				{sessions.map((session, index) => (

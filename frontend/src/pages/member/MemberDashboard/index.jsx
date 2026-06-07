@@ -12,6 +12,7 @@ import QuickStatsSection from './sections/QuickStatsSection';
 import ActiveTicketsSection from './sections/ActiveTicketsSection';
 import NearbyEventsSection from './sections/NearbyEventsSection';
 import EventListSection from './sections/EventListSection';
+import PointSummarySection from './sections/PointSummarySection';
 import { STORAGE_URL } from '@/api/storage';
 
 const MemberDashboard = () => {
@@ -25,6 +26,7 @@ const MemberDashboard = () => {
 	const [locationStatus, setLocationStatus] = useState('idle'); // idle | loading | granted | denied
 	const [isLoading, setIsLoading] = useState(true);
 	const [loadingPersonalized, setLoadingPersonalized] = useState(true);
+	const [pointsData, setPointsData] = useState({ global_balance: 0, local_balance: 0, local_points_breakdown: [] });
 
 	const banners = [
 		{ id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
@@ -194,6 +196,21 @@ const MemberDashboard = () => {
 		})();
 	}, [token]);
 
+	// Fetch points ledger
+	useEffect(() => {
+		(async () => {
+			try {
+				if (!token) return;
+				const res = await api.get('/profile/ledger');
+				if (res.data?.success) {
+					setPointsData(res.data.data);
+				}
+			} catch (err) {
+				console.error('Gagal fetch points ledger:', err);
+			}
+		})();
+	}, [token]);
+
 	// Request geolocation
 	const requestLocation = () => {
 		setLocationStatus('loading');
@@ -293,6 +310,8 @@ const MemberDashboard = () => {
 					activeTicketsCount={activeTickets.length}
 					totalTicketsCount={totalPaidTicketsCount}
 				/>
+
+				<PointSummarySection pointsData={pointsData} />
 
 				<ActiveTicketsSection activeTickets={activeTickets} />
 

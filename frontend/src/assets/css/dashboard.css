@@ -93,13 +93,17 @@ main {
 	color: #333;
 }
 
-/* State: ACTIVE (Kembali menggunakan CSS variables asli) */
+.custom-menu-item.active {
+	background-color: #f1f5f9 !important;
+	border-left: 4px solid var(--bahama-blue-600) !important;
+	border-radius: 0 12px 12px 0 !important;
+}
+
 .custom-menu-item.active,
 .custom-menu-item.active .menu-text,
 .custom-menu-item.active .menu-icon {
-	background-color: var(--bahama-blue-50) !important;
 	color: var(--bahama-blue-700) !important;
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .menu-text,

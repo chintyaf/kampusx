@@ -32,10 +32,13 @@ import MyTickets from '../pages/member/MyTickets';
 import BookmarkPage from '../pages/member/BookmarkPage';
 import ProfileSettings from '../pages/member/ProfileSettings';
 import NotificationsPage from '../pages/member/NotificationsPage';
-import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage';
+import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage/ApplyOrganizerPage.jsx';
 import EventSpace from '../pages/member/EventSpace';
 import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
 import MemberCertificatePage from '@/pages/member/MemberCertificatePage';
+import GlobalRewardCatalog from '@/pages/member/GlobalRewardCatalog';
+import LocalRewardCatalog from '@/pages/member/LocalRewardCatalog';
+import PointHistory from '../pages/member/PointHistory';
 
 // Pages: Event Management & Checkout
 import Checkout from '../pages/event/public/Checkout/index';
@@ -53,6 +56,7 @@ import StaffDashboard from '../pages/staff/StaffDashboard';
 import StaffScanner from '../pages/staff/StaffScanner';
 import StaffScanResult from '../pages/staff/StaffScanResult';
 import StaffAttendees from '../pages/staff/StaffAttendees';
+import KioskModePage from '../pages/organizer/KioskModePage';
 
 import CertificateVaultPage from '../pages/test-chin/CertificateVaultPage';
 import CertificateDetailPage from '../pages/test-chin/CertificateDetailPage';
@@ -112,6 +116,9 @@ const AppRoutes = () => {
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 						<Route path="/event-space/:id/survey" element={<SurveyPage />} />
 						<Route path="/notifications" element={<NotificationsPage />} />
+						<Route path="/rewards" element={<GlobalRewardCatalog />} />
+						<Route path="/event-space/:id/rewards" element={<LocalRewardCatalog />} />
+						<Route path="/points" element={<PointHistory />} />
 					</Route>
 				</Route>
 
@@ -151,6 +158,7 @@ const AppRoutes = () => {
 				<Route path="/staff/scanner" element={<StaffScanner />} />
 				<Route path="/staff/scan-result" element={<StaffScanResult />} />
 				<Route path="/staff/attendees" element={<StaffAttendees />} />
+				<Route path="/staff/kiosk" element={<KioskModePage isStaff={true} />} />
 
 				{/* 8. 404 NOT FOUND */}
 				<Route path="*" element={<NotFound />} />
