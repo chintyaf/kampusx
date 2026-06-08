@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Row, Col, Card, Form, InputGroup, Button, Table, Badge, Spinner } from 'react-bootstrap';
 import { Search, CreditCard, TrendingUp, Clock, Activity, RefreshCw, CheckCircle2, XCircle, AlertTriangle, ExternalLink } from 'lucide-react';
 import api from '@/api/axios';
+import { getPaymentUrl } from '@/api/config';
 import FormHeading from '@/components/dashboard/FormHeading';
 import StatCard from '@/features/users/components/StatCard';
 import Pagination from '@/features/users/components/Pagination';
@@ -259,7 +260,7 @@ const AdminPaymentPage = () => {
                                                 <Button
                                                     variant="outline-primary"
                                                     size="sm"
-                                                    href={`http://localhost:8000/payment/${t.token}`}
+                                                    href={getPaymentUrl(t.token)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="rounded-pill px-3 fw-medium d-inline-flex align-items-center gap-1"

@@ -47,6 +47,7 @@ main {
 	text-align: left;
 	white-space: nowrap; /* Mencegah tulisan turun ke bawah saat transisi mengecil */
 	color: var(--color-text);
+	font-size: var(--font-xs);
 }
 
 /* Ganti .collapse-menu-class dengan class yang membungkus sub-menu Anda */
@@ -108,7 +109,7 @@ main {
 
 .menu-text,
 .sidebar-parent-menu {
-	font-size: var(--font-sm);
+	font-size: var(--font-xs);
 	text-decoration: none;
 	color: var(--color-text); /* Kembali menggunakan var text aslinya */
 }
@@ -220,9 +221,6 @@ main {
 		0 4px 6px -2px rgba(0, 0, 0, 0.05);
 	border: 1px solid rgba(0, 0, 0, 0.05);
 }
-
-
-
 
 /* =========================================
    PROFILE DROPDOWN STYLES

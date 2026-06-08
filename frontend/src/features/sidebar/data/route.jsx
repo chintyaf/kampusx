@@ -138,6 +138,8 @@ export const MENU_ITEMS = {
 			icon: <LayoutDashboard size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard',
 		},
+
+		// --- SETUP EVENT ---
 		{
 			id: 'detil-event',
 			name: 'Detail Event',
@@ -145,23 +147,20 @@ export const MENU_ITEMS = {
 			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
 				{ name: 'Informasi Umum', path: 'info' },
-				{ name: 'Lokasi', path: 'tempat' },
-				{ name: 'Jadwal Sesi', path: 'sesi' },
-				{ name: 'Kategori Tiket', path: 'tiket' },
+				{ name: 'Lokasi & Jadwal', path: 'tempat' },
+				{ name: 'Sesi', path: 'sesi' },
+				{ name: 'Tiket', path: 'tiket' },
 			],
 		},
 
-		// --- PESERTA & LOYALITAS ---
+		// --- OPERASIONAL ---
 		{
 			id: 'manajemen-peserta',
 			name: 'Peserta & Poin',
 			icon: <UsersRound size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
-				{
-					name: 'Daftar & Poin',
-					path: 'daftar-peserta',
-				},
+				{ name: 'Daftar & Poin', path: 'daftar-peserta' },
 				{ name: 'Katalog Reward', path: 'rewards' },
 				{ name: 'Log Redeem', path: 'redemptions' },
 			],
@@ -171,26 +170,6 @@ export const MENU_ITEMS = {
 			name: 'Scan Check-in',
 			icon: <ScanLine size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/check-in',
-		},
-
-		// --- FITUR PENDUKUNG ---
-		{
-			id: 'materi-belajar',
-			name: 'Materi Acara',
-			icon: <BookOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/materi-after',
-		},
-		{
-			id: 'survey-form',
-			name: 'Survei & Feedback',
-			icon: <ClipboardList size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/survey-form',
-		},
-		{
-			id: 'sertifikat-event',
-			name: 'Sertifikat',
-			icon: <Award size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/sertifikat',
 		},
 		{
 			id: 'pengumuman-event',
@@ -203,6 +182,26 @@ export const MENU_ITEMS = {
 			name: 'Kiosk Mode',
 			icon: <Tv size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/kiosk',
+		},
+
+		// --- PASCA-ACARA ---
+		{
+			id: 'materi-acara',
+			name: 'Materi Acara',
+			icon: <BookOpen size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/materi-acara',
+		},
+		{
+			id: 'survey-form',
+			name: 'Survei & Feedback',
+			icon: <ClipboardList size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/survey-form',
+		},
+		{
+			id: 'sertifikat-event',
+			name: 'Sertifikat',
+			icon: <Award size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/sertifikat',
 		},
 	],
 };

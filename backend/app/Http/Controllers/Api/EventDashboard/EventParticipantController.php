@@ -59,8 +59,21 @@ class EventParticipantController extends Controller
         }
         $totalAttendance = $totalSessions + $uniqueDays;
 
-        // ── Terapkan filter kehadiran ─────────────────────────────────────────
+        // ── Terapkan filter kehadiran & pencarian ─────────────────────────────
         $query = clone $baseQuery;
+
+        if ($search = $request->query('search')) {
+            $query->where(function($q) use ($search) {
+                $q->where('attendee_name', 'like', "%{$search}%")
+                  ->orWhere('attendee_email', 'like', "%{$search}%")
+                  ->orWhere('ticket_code', 'like', "%{$search}%")
+                  ->orWhereHas('participant', function($qp) use ($search) {
+                      $qp->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  });
+            });
+        }
 
         if ($attendanceFilter === 'checked_in') {
             // Sudah scan masuk, belum checkout

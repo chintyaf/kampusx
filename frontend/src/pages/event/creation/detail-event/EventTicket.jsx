@@ -111,7 +111,7 @@ export default function EventTicket() {
 					`Waktu Akhir Pendaftaran "${label}" wajib ditentukan.`,
 				);
 
-			if (startVal < todayStr)
+			if (eventStatus === 'draft' && startVal < todayStr)
 				return notify(
 					'error',
 					'Gagal!',
@@ -123,7 +123,7 @@ export default function EventTicket() {
 					'Gagal!',
 					`Mulai Pendaftaran "${label}" tidak bisa melebihi atau sama dengan hari H.`,
 				);
-			if (endVal < todayStr)
+			if (eventStatus === 'draft' && endVal < todayStr)
 				return notify(
 					'error',
 					'Gagal!',
@@ -200,13 +200,18 @@ export default function EventTicket() {
 
 			if (!hasName || !hasPrice || !hasCapacity || !startVal || !endVal) return false;
 
-			if (startVal < todayStr || (maxStr && startVal >= maxStr)) return false;
-			if (endVal < todayStr || (maxStr && endVal > maxStr)) return false;
+			if (eventStatus === 'draft') {
+				if (startVal < todayStr || (maxStr && startVal >= maxStr)) return false;
+				if (endVal < todayStr || (maxStr && endVal > maxStr)) return false;
+			} else {
+				if (maxStr && startVal >= maxStr) return false;
+				if (maxStr && endVal > maxStr) return false;
+			}
 			if (endVal <= startVal) return false;
 
 			return true;
 		});
-	}, [tickets, eventStartDate]);
+	}, [tickets, eventStartDate, eventStatus]);
 
 	if (error) {
 		return (
@@ -280,6 +285,7 @@ export default function EventTicket() {
 							priceLocked={hasParticipants}
 							eventStartDate={eventStartDate}
 							locationType={locationType}
+							eventStatus={eventStatus}
 						/>
 					))}
 				</div>

@@ -5,6 +5,8 @@ import { Gift, Plus, Edit2, Trash2, Shield, Eye, EyeOff, Search, Loader } from '
 import toast from 'react-hot-toast';
 import api from '@/api/axios';
 import { useLoading } from '@/context/LoadingContext';
+import FormHeading from '@/components/dashboard/FormHeading';
+import '@/assets/css/participant-list.css';
 
 export default function ManageRewardsPage() {
 	const { eventId } = useParams();
@@ -199,21 +201,17 @@ export default function ManageRewardsPage() {
 	);
 
 	return (
-		<div className="fade-in">
+		<div className="container-fluid p-0 fade-in">
 			{/* Header */}
-			<div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4">
-				<div>
-					<h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-						<Gift className="text-primary" size={26} />
-						<span>Manajemen Reward Lokal</span>
-					</h4>
-					<p className="text-muted mb-0 small">
-						Atur dan kelola inventaris hadiah/reward yang dapat ditukarkan menggunakan poin lokal oleh peserta event ini.
-					</p>
-				</div>
+			<div className="d-flex justify-content-between align-items-center mb-4 gap-3 flex-wrap">
+				<FormHeading
+					title="Manajemen Reward Lokal"
+					description="Atur dan kelola inventaris hadiah/reward yang dapat ditukarkan menggunakan poin lokal oleh peserta event ini."
+				/>
 				<Button 
 					variant="primary" 
-					className="rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm"
+					className="rounded-3 px-4 py-2 fw-semibold d-flex align-items-center gap-2 shadow-sm border-0 text-white"
+					style={{ backgroundColor: 'var(--primary)' }}
 					onClick={handleOpenCreateModal}
 				>
 					<Plus size={18} /> Tambah Reward
@@ -221,15 +219,23 @@ export default function ManageRewardsPage() {
 			</div>
 
 			{/* Filter & Search */}
-			<Card className="border shadow-none rounded-4 mb-4">
+			<Card className="border shadow-sm rounded-4 mb-4 bg-white">
 				<Card.Body className="p-3.5">
-					<div className="d-flex align-items-center gap-2 bg-light border rounded-3 px-3 py-2" style={{ maxWidth: '400px' }}>
-						<Search size={18} className="text-muted" />
-						<input 
+					<div className="position-relative d-flex align-items-center" style={{ maxWidth: '400px' }}>
+						<Search size={16} className="position-absolute start-0 ms-3 text-muted" style={{ pointerEvents: 'none' }} />
+						<Form.Control 
 							type="text" 
 							placeholder="Cari nama atau deskripsi..." 
-							className="bg-transparent border-0 w-100 outline-none"
-							style={{ fontSize: '0.88rem' }}
+							style={{
+								paddingLeft: '2.5rem',
+								fontSize: '0.85rem',
+								borderRadius: '10px',
+								border: '1.5px solid var(--border)',
+								backgroundColor: '#fafbfc',
+								outline: 'none',
+								boxShadow: 'none',
+							}}
+							className="py-2 text-dark"
 							value={searchTerm}
 							onChange={e => setSearchTerm(e.target.value)}
 						/>
@@ -238,7 +244,7 @@ export default function ManageRewardsPage() {
 			</Card>
 
 			{/* List Reward */}
-			<Card className="border shadow-none rounded-4 overflow-hidden">
+			<Card className="border shadow-sm rounded-4 overflow-hidden bg-white mb-4">
 				{loading ? (
 					<div className="d-flex align-items-center justify-content-center py-5 text-muted" style={{ minHeight: '200px' }}>
 						<Spinner animation="border" variant="primary" style={{ width: 28, height: 28 }} />
@@ -247,15 +253,15 @@ export default function ManageRewardsPage() {
 				) : (
 					<div className="table-responsive">
 						<Table hover className="align-middle mb-0 custom-table">
-							<thead className="bg-light">
-								<tr className="text-secondary" style={{ fontSize: '0.82rem' }}>
-									<th className="px-4 py-3" style={{ width: '80px' }}>Foto</th>
-									<th className="py-3">Nama & Deskripsi</th>
-									<th className="py-3" style={{ width: '120px' }}>Tipe</th>
-									<th className="py-3 text-center" style={{ width: '120px' }}>Biaya Poin</th>
-									<th className="py-3 text-center" style={{ width: '120px' }}>Stok</th>
-									<th className="py-3 text-center" style={{ width: '120px' }}>Status</th>
-									<th className="px-4 py-3 text-end" style={{ width: '150px' }}>Aksi</th>
+							<thead>
+								<tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+									<th className="px-4 py-3 text-muted fw-bold text-uppercase" style={{ width: '80px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Foto</th>
+									<th className="py-3 text-muted fw-bold text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.04em' }}>Nama & Deskripsi</th>
+									<th className="py-3 text-muted fw-bold text-uppercase" style={{ width: '120px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Tipe</th>
+									<th className="py-3 text-center text-muted fw-bold text-uppercase" style={{ width: '120px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Biaya Poin</th>
+									<th className="py-3 text-center text-muted fw-bold text-uppercase" style={{ width: '120px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Stok</th>
+									<th className="py-3 text-center text-muted fw-bold text-uppercase" style={{ width: '120px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Status</th>
+									<th className="px-4 py-3 text-end text-muted fw-bold text-uppercase" style={{ width: '150px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Aksi</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -271,7 +277,7 @@ export default function ManageRewardsPage() {
 									filteredRewards.map((reward) => (
 										<tr key={reward.id}>
 											<td className="px-4 py-3.5">
-												<div className="rounded-3 overflow-hidden border bg-light" style={{ width: '56px', height: '56px' }}>
+												<div className="rounded-3 overflow-hidden border bg-light animate-pulse" style={{ width: '56px', height: '56px' }}>
 													<img src={getRewardImage(reward)} alt={reward.title} className="w-100 h-100 object-fit-cover" />
 												</div>
 											</td>
@@ -287,9 +293,23 @@ export default function ManageRewardsPage() {
 												)}
 											</td>
 											<td className="py-3.5">
-												<Badge bg={reward.reward_type === 'physical' ? 'info' : 'success'} className="px-2 py-1">
-													{reward.reward_type === 'physical' ? '🎁 Fisik' : '💻 Digital'}
-												</Badge>
+												{reward.reward_type === 'physical' ? (
+													<span 
+														className="px-2.5 py-1 rounded-3 fw-semibold d-inline-flex align-items-center gap-1.5"
+														style={{ backgroundColor: 'var(--info-bg)', color: 'var(--info-text)', border: '1px solid var(--info-border-color)', fontSize: '0.75rem' }}
+													>
+														<span>🎁</span>
+														<span>Fisik</span>
+													</span>
+												) : (
+													<span 
+														className="px-2.5 py-1 rounded-3 fw-semibold d-inline-flex align-items-center gap-1.5"
+														style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success-text)', border: '1px solid var(--success-border-color)', fontSize: '0.75rem' }}
+													>
+														<span>💻</span>
+														<span>Digital</span>
+													</span>
+												)}
 											</td>
 											<td className="py-3.5 text-center fw-bold text-primary" style={{ fontSize: '0.95rem' }}>
 												{reward.points_cost} Pts
@@ -304,33 +324,39 @@ export default function ManageRewardsPage() {
 												)}
 											</td>
 											<td className="py-3.5 text-center">
-												<div className="form-check form-switch d-inline-block">
-													<input 
-														className="form-check-input cursor-pointer" 
-														type="checkbox" 
-														role="switch" 
-														checked={reward.is_active === 1 || reward.is_active === true}
-														onChange={() => toggleActiveStatus(reward)}
-													/>
+												<div className="d-flex flex-column align-items-center gap-1.5">
+													<label className="show-all-toggle mb-0">
+														<div
+															className={`toggle-track${(reward.is_active === 1 || reward.is_active === true) ? ' toggle-track--on' : ''}`}
+															onClick={() => toggleActiveStatus(reward)}
+														>
+															<div className="toggle-thumb" />
+														</div>
+													</label>
+													<span style={{ fontSize: '0.68rem', fontWeight: '700' }} className={(reward.is_active === 1 || reward.is_active === true) ? 'text-success' : 'text-muted'}>
+														{(reward.is_active === 1 || reward.is_active === true) ? 'Aktif' : 'Non-aktif'}
+													</span>
 												</div>
 											</td>
 											<td className="px-4 py-3.5 text-end">
-												<div className="d-flex justify-content-end gap-1.5">
+												<div className="d-flex justify-content-end gap-2">
 													<Button 
-														variant="outline-secondary" 
+														variant="light" 
 														size="sm" 
-														className="btn-icon rounded-circle p-1.5 d-inline-flex border"
+														className="border d-flex align-items-center justify-content-center p-2 bg-white shadow-sm rounded-3"
 														onClick={() => handleOpenEditModal(reward)}
+														title="Edit"
 													>
-														<Edit2 size={14} />
+														<Edit2 size={13} className="text-secondary" />
 													</Button>
 													<Button 
-														variant="outline-danger" 
+														variant="light" 
 														size="sm" 
-														className="btn-icon rounded-circle p-1.5 d-inline-flex border"
+														className="border d-flex align-items-center justify-content-center p-2 bg-white shadow-sm rounded-3"
 														onClick={() => handleDelete(reward.id)}
+														title="Hapus"
 													>
-														<Trash2 size={14} />
+														<Trash2 size={13} className="text-danger" />
 													</Button>
 												</div>
 											</td>
@@ -360,6 +386,14 @@ export default function ManageRewardsPage() {
 										type="text" 
 										placeholder="e.g. Kaos Eksklusif KampusX"
 										required 
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-dark"
 										value={title}
 										onChange={e => setTitle(e.target.value)}
 									/>
@@ -373,6 +407,14 @@ export default function ManageRewardsPage() {
 										as="textarea" 
 										rows={3} 
 										placeholder="Deskripsikan detail fisik, ukuran, cara klaim, atau kode voucher..."
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-dark"
 										value={description}
 										onChange={e => setDescription(e.target.value)}
 									/>
@@ -386,6 +428,14 @@ export default function ManageRewardsPage() {
 										type="number" 
 										required 
 										min="1"
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-dark"
 										value={pointsCost}
 										onChange={e => setPointsCost(e.target.value)}
 									/>
@@ -397,6 +447,14 @@ export default function ManageRewardsPage() {
 									<Form.Label className="fw-bold small text-secondary">Tipe Reward</Form.Label>
 									<Form.Select 
 										value={rewardType}
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-secondary fw-semibold"
 										onChange={e => setRewardType(e.target.value)}
 									>
 										<option value="physical">Physical (Fisik)</option>
@@ -411,6 +469,14 @@ export default function ManageRewardsPage() {
 									<Form.Control 
 										type="number" 
 										min="0"
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-dark"
 										placeholder="e.g. 50"
 										value={stock}
 										onChange={e => setStock(e.target.value)}
@@ -424,6 +490,14 @@ export default function ManageRewardsPage() {
 									<Form.Control 
 										type="number" 
 										min="1"
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-dark"
 										placeholder="e.g. 1"
 										value={limitPerUser}
 										onChange={e => setLimitPerUser(e.target.value)}
@@ -443,8 +517,8 @@ export default function ManageRewardsPage() {
 											/>
 											<button
 												type="button"
-												className="btn btn-danger btn-sm rounded-circle position-absolute top-0 end-0 m-1.5 p-0 d-flex align-items-center justify-content-center shadow-sm"
-												style={{ width: '22px', height: '22px', border: 'none' }}
+												className="rounded-circle position-absolute top-0 end-0 m-1.5 d-flex align-items-center justify-content-center shadow-sm border-0 text-white"
+												style={{ width: '22px', height: '22px', backgroundColor: 'var(--error-text)', cursor: 'pointer' }}
 												onClick={() => {
 													setImageUrl('');
 													setImagePath('');
@@ -458,6 +532,14 @@ export default function ManageRewardsPage() {
 									<Form.Control 
 										type="file" 
 										accept="image/*"
+										style={{
+											borderRadius: '10px',
+											border: '1.5px solid var(--border)',
+											fontSize: '0.88rem',
+											outline: 'none',
+											boxShadow: 'none'
+										}}
+										className="p-2.5 text-dark"
 										onChange={e => {
 											const file = e.target.files[0];
 											if (file) {
@@ -473,22 +555,27 @@ export default function ManageRewardsPage() {
 							</Col>
 
 							<Col xs={12}>
-								<Form.Check 
-									type="switch"
-									id="active-switch"
-									label="Tampilkan reward ini langsung di katalog halaman peserta"
-									checked={isActive}
-									onChange={e => setIsActive(e.target.checked)}
-									className="fw-semibold small mt-2"
-								/>
+								<div className="d-flex align-items-center gap-2 mt-2">
+									<label className="show-all-toggle mb-0">
+										<div
+											className={`toggle-track${isActive ? ' toggle-track--on' : ''}`}
+											onClick={() => setIsActive(v => !v)}
+										>
+											<div className="toggle-thumb" />
+										</div>
+									</label>
+									<span className="fw-semibold text-secondary" style={{ fontSize: '0.88rem' }}>
+										Tampilkan reward ini langsung di katalog halaman peserta
+									</span>
+								</div>
 							</Col>
 						</Row>
 					</Modal.Body>
 					<Modal.Footer className="border-top px-4 py-3">
-						<Button variant="outline-secondary" className="rounded-pill px-4" onClick={() => setShowModal(false)}>
+						<Button variant="outline-secondary" className="rounded-3 px-4 py-2 fw-semibold" onClick={() => setShowModal(false)}>
 							Batal
 						</Button>
-						<Button variant="primary" type="submit" className="rounded-pill px-4">
+						<Button variant="primary" type="submit" className="rounded-3 px-4 py-2 fw-semibold border-0 text-white" style={{ backgroundColor: 'var(--primary)' }}>
 							{editingReward ? 'Simpan Perubahan' : 'Buat Reward'}
 						</Button>
 					</Modal.Footer>

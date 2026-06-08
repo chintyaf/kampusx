@@ -34,7 +34,11 @@ class EventLocationController extends Controller
 
         // 1. Validasi HANYA untuk field Lokasi (Urusan Kuota sudah pindah ke menu Tiket)
         $validated = $request->validate([
-            'type'                => 'required|in:online,offline,hybrid',
+            'type'                        => 'required|in:online,offline,hybrid',
+
+            // Flag unlimited quota
+            'is_online_quota_unlimited'   => 'boolean',
+            'is_offline_quota_unlimited'  => 'boolean',
 
             // Field Online
             'platform'            => 'nullable|string',
@@ -84,9 +88,6 @@ class EventLocationController extends Controller
                     ['event_id' => $event->id],
                     $validated
                 );
-
-                // 4. Trigger pembuatan Tiket otomatis (MVP Concept)
-                // $this->autoGenerateTickets($event->id, $validated['type']);
 
                 $notified = $event->notifyParticipantsOfUpdate();
 

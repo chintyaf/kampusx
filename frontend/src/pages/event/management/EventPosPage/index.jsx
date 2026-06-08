@@ -3,6 +3,7 @@ import { Button, Spinner, Row, Col, Modal } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MapPin, Plus, Trash2, BookOpen } from 'lucide-react';
+import FormHeading from '@/components/dashboard/FormHeading';
 
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 import api from '@/api/axios';
@@ -110,22 +111,17 @@ const EventPosPage = () => {
 	};
 
 	return (
-		<div className="d-flex flex-column gap-4">
+		<div className="container-fluid p-0 d-flex flex-column gap-4 fade-in">
 			{/* ── 1. Page Header ── */}
 			<div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-				<div>
-					<h4 className="fw-bold text-dark mb-1" style={{ fontSize: '1.35rem' }}>
-						Manajemen Kehadiran
-					</h4>
-					<p className="text-muted mb-0" style={{ fontSize: '0.9rem' }}>
-						Kelola metode absensi peserta, buat stasiun scanner QR, atau bagikan link
-						presensi mandiri.
-					</p>
-				</div>
+				<FormHeading
+					title="Manajemen Kehadiran"
+					description="Kelola metode absensi peserta, buat stasiun scanner QR, atau bagikan link presensi mandiri."
+				/>
 				<Button
 					variant="outline-secondary"
 					size="sm"
-					className="d-flex align-items-center gap-2 px-3 py-2 rounded-pill shadow-none fw-semibold border"
+					className="d-flex align-items-center gap-2 px-3 py-2 rounded-3 shadow-none fw-semibold border"
 					onClick={() => setShowGuideModal(true)}
 				>
 					<BookOpen size={15} />
@@ -150,39 +146,55 @@ const EventPosPage = () => {
 							<div className="d-flex border-bottom" style={{ gap: '24px' }}>
 								<button
 									onClick={() => setActiveMethod('qr')}
-									className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+									className="pb-2 fw-bold bg-transparent border-0 transition-all position-relative"
 									style={{
 										fontSize: '0.9rem',
 										cursor: 'pointer',
-										color: activeMethod === 'qr' ? '#1E293B' : '#94A3B8',
+										color: activeMethod === 'qr' ? 'var(--primary)' : 'var(--text-muted)',
 										padding: '8px 4px',
-										transition: 'color 0.2s',
+										transition: 'all 0.2s ease',
+										outline: 'none',
+										boxShadow: 'none',
+									}}
+									onMouseEnter={(e) => {
+										if (activeMethod !== 'qr') e.target.style.color = 'var(--primary-mid)';
+									}}
+									onMouseLeave={(e) => {
+										if (activeMethod !== 'qr') e.target.style.color = 'var(--text-muted)';
 									}}
 								>
 									{qrTabLabel}
 									{activeMethod === 'qr' && (
 										<div
-											className="position-absolute bottom-0 start-0 end-0 bg-primary"
-											style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+											className="position-absolute bottom-0 start-0 end-0"
+											style={{ height: '3px', borderRadius: '3px 3px 0 0', backgroundColor: 'var(--primary)' }}
 										/>
 									)}
 								</button>
 								<button
 									onClick={() => setActiveMethod('online')}
-									className="pb-2 fw-semibold bg-transparent border-0 transition-all position-relative"
+									className="pb-2 fw-bold bg-transparent border-0 transition-all position-relative"
 									style={{
 										fontSize: '0.9rem',
 										cursor: 'pointer',
-										color: activeMethod === 'online' ? '#1E293B' : '#94A3B8',
+										color: activeMethod === 'online' ? 'var(--primary)' : 'var(--text-muted)',
 										padding: '8px 4px',
-										transition: 'color 0.2s',
+										transition: 'all 0.2s ease',
+										outline: 'none',
+										boxShadow: 'none',
+									}}
+									onMouseEnter={(e) => {
+										if (activeMethod !== 'online') e.target.style.color = 'var(--primary-mid)';
+									}}
+									onMouseLeave={(e) => {
+										if (activeMethod !== 'online') e.target.style.color = 'var(--text-muted)';
 									}}
 								>
 									{onlineTabLabel}
 									{activeMethod === 'online' && (
 										<div
-											className="position-absolute bottom-0 start-0 end-0 bg-primary"
-											style={{ height: '3px', borderRadius: '3px 3px 0 0' }}
+											className="position-absolute bottom-0 start-0 end-0"
+											style={{ height: '3px', borderRadius: '3px 3px 0 0', backgroundColor: 'var(--primary)' }}
 										/>
 									)}
 								</button>

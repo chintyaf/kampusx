@@ -94,7 +94,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 			<div
 				className={`sidebar-container flex-shrink-0 border-end d-flex flex-column justify-content-between ${isSidebarCollapsed ? 'collapsed' : ''}`}
 				style={{
-					width: isSidebarCollapsed ? '80px' : '240px',
+					width: isSidebarCollapsed ? '80px' : '200px',
 					transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
 					height: '100%',
 					overflowY: 'auto',
