@@ -99,7 +99,7 @@ class ActivityScannerController extends Controller
             if ($exists) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => "Peserta sudah memindai kunjungan di stasiun \"{$boothName}\" sebelumnya."
+                    'message' => "Peserta sudah memindai kunjungan \"{$boothName}\" sebelumnya."
                 ], 422);
             }
         }
@@ -146,6 +146,23 @@ class ActivityScannerController extends Controller
                 'new_balance' => $lockedPoint->points_balance
             ];
         });
+
+        // NOTIFICATION: Kirim notifikasi ke peserta
+        $participantUser = \App\Models\User::find($userId);
+        if ($participantUser) {
+            $stasiunName = $description ?: $activity->name;
+            $participantUser->notify(new \App\Notifications\OperationalNotification(
+                "Poin Aktivitas Ditambahkan!",
+                "Selamat! Kamu mendapatkan +{$points} poin dari aktivitas \"{$activity->name}\".",
+                "points_earned",
+                [
+                    'event_id' => $eventId,
+                    'points' => $points,
+                    'activity_name' => $activity->name,
+                    'description' => $stasiunName
+                ]
+            ));
+        }
 
         return response()->json([
             'status' => 'success',

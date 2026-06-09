@@ -1,5 +1,5 @@
 // index.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 import { MapPin, Edit3, Search, Info } from 'lucide-react';
 
@@ -22,29 +22,47 @@ const OfflineLocationInput = ({ data, onLocationChange }) => {
 		longitude: null,
 	});
 
-	useEffect(() => {
-		if (data) {
-			setLocationData({
-				address_detail: data.address_detail || '',
-				country: data.country || '',
-				province: data.province || '',
-				city: data.city || '',
-				district: data.district || '',
-				latitude: data.latitude || null,
-				longitude: data.longitude || null,
-			});
-		}
-	}, [data.latitude, data.longitude, data.address_detail]); // Sync if coordinate or details changes from outside
+	// true  = perubahan dari user → perlu dikirim ke parent
+	// false = perubahan dari sync prop → JANGAN kirim balik ke parent (cegah infinite loop)
+	const isInternalUpdate = useRef(false);
 
-	const updateLocationData = (newData) => {
-		setLocationData((prev) => {
-			const nextState = typeof newData === 'function' ? newData(prev) : newData;
-			if (onLocationChange) {
-				onLocationChange(nextState);
-			}
-			return nextState;
+	// Sync dari parent prop → local state
+	useEffect(() => {
+		if (!data) return;
+		// Tandai bahwa update ini berasal dari luar, bukan user
+		isInternalUpdate.current = false;
+		setLocationData({
+			address_detail: data.address_detail || '',
+			country: data.country || '',
+			province: data.province || '',
+			city: data.city || '',
+			district: data.district || '',
+			latitude: data.latitude ?? null,
+			longitude: data.longitude ?? null,
 		});
-	};
+	}, [
+		data?.latitude,
+		data?.longitude,
+		data?.address_detail,
+		data?.country,
+		data?.province,
+		data?.city,
+		data?.district,
+	]); // eslint-disable-line react-hooks/exhaustive-deps
+
+	// Kirim ke parent HANYA jika update berasal dari user
+	useEffect(() => {
+		if (!isInternalUpdate.current || !onLocationChange) return;
+		onLocationChange(locationData);
+	}, [locationData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+	// Wrapper untuk update dari user — menandai isInternalUpdate = true
+	const updateLocationData = useCallback((newData) => {
+		isInternalUpdate.current = true;
+		setLocationData((prev) => {
+			return typeof newData === 'function' ? newData(prev) : newData;
+		});
+	}, []);
 
 	const isLocationSelected = locationData.latitude !== null && locationData.longitude !== null;
 
@@ -99,7 +117,7 @@ const OfflineLocationInput = ({ data, onLocationChange }) => {
 				isLocationSelected={isLocationSelected}
 			/>
 
-			{/* Result Display Section */}
+			{/* Result Display Section
 			{!isLocationSelected ? (
 				<Alert
 					className="mb-3 d-flex align-items-center gap-3 bg-transparent"
@@ -132,7 +150,7 @@ const OfflineLocationInput = ({ data, onLocationChange }) => {
 						isLocationSelected={isLocationSelected}
 					/>
 				</>
-			)}
+			)} */}
 		</div>
 	);
 };

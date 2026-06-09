@@ -1,683 +1,857 @@
-// import React, { useState, useEffect, useRef } from 'react';
-// import { useParams } from 'react-router-dom';
-// import { Card, Form, Button, Table, Badge, Spinner, Modal, Row, Col, InputGroup } from 'react-bootstrap';
-// import { 
-//     Plus, Trash2, Edit2, Eye, EyeOff, FileText, Code, Palette, LinkIcon, 
-//     FileQuestion, Inbox, Upload, X, Search, AlertCircle, Sparkles, Check 
-// } from 'lucide-react';
-// import api from '../../api/axios';
-// import toast, { Toaster } from 'react-hot-toast';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useOutletContext } from 'react-router-dom';
+import { Form, Button, Table, Badge, Spinner, Modal, Row, Col, InputGroup, Collapse } from 'react-bootstrap';
+import {
+	Plus, Trash2, Edit2, Eye, EyeOff, FileText, Code, Palette,
+	FileQuestion, Inbox, Upload, X, Search, Check,
+	Link as LinkIcon, FolderOpen, BookOpen, Users, Download, ChevronDown
+} from 'lucide-react';
+import api from '../../api/axios';
+import { notify } from '../../utils/notify';
+import FormHeading from '../dashboard/FormHeading';
+import StatCard from '../dashboard/StatCard';
+import ConfirmationModal from '../dashboard/ConfirmationModal';
+import { Skeleton, SkeletonStyles } from '../Skeleton';
+import '../dashboard/StatCard.css';
 
-// const MateriAcara = () => {
-//     const { eventId } = useParams(); // Ambil eventId dari parameter URL
 
-//     // State Management
-//     const [materials, setMaterials] = useState([]);
-//     const [isLoading, setIsLoading] = useState(true);
-//     const [submitLoading, setSubmitLoading] = useState(false);
-//     const [searchQuery, setSearchQuery] = useState('');
-    
-//     // Modal & Form State
-//     const [showModal, setShowModal] = useState(false);
-//     const [editingId, setEditingId] = useState(null); // null if adding, id if editing
-    
-//     const [formData, setFormData] = useState({
-//         title: '',
-//         session_name: '',
-//         speaker_name: '',
-//         type: 'document', // document, code_repo, design_interactive, media_form
-//         description: '',
-//         status: 'published', // draft, published
-//         content_url: '',
-//     });
-    
-//     const [selectedFiles, setSelectedFiles] = useState(null);
-//     const fileInputRef = useRef(null);
 
-//     // Fetch Materials from API Backend
-//     const fetchMaterials = async () => {
-//         setIsLoading(true);
-//         try {
-//             const res = await api.get(`/organizer/events/${eventId}/materials`);
-//             if (res.data?.success) {
-//                 setMaterials(res.data.data || []);
-//             }
-//         } catch (error) {
-//             console.error('Fetch materials error:', error);
-//             toast.error('Gagal memuat daftar materi acara.');
-//         } finally {
-//             setIsLoading(false);
-//         }
-//     };
+const MateriAcara = ({ phase = 'before' }) => {
+	const { eventId } = useParams();
+	const { setIsPageLoading } = useOutletContext() || {};
 
-//     useEffect(() => {
-//         if (eventId) {
-//             fetchMaterials();
-//         }
-//     }, [eventId]);
+	const [materials, setMaterials] = useState([]);
+	const [eventSessions, setEventSessions] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [submitLoading, setSubmitLoading] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
 
-//     // Handle Form Input Change
-//     const handleInputChange = (e) => {
-//         const { name, value } = e.target;
-//         setFormData(prev => ({
-//             ...prev,
-//             [name]: value
-//         }));
-//     };
+	// Modal state
+	const [showModal, setShowModal] = useState(false);
+	const [editingId, setEditingId] = useState(null);
+	const [deleteModal, setDeleteModal] = useState({ show: false, id: null, title: '' });
 
-//     const handleFileChange = (e) => {
-//         const files = Array.from(e.target.files);
-//         const MAX_SIZE = 50 * 1024 * 1024; // Limit 50MB
+	const [formData, setFormData] = useState({
+		title: '',
+		session_name: '',
+		speaker_name: '',
+		type: 'document',
+		description: '',
+		status: 'published',
+		content_url: '',
+		phase: 'before',
+	});
 
-//         let validFiles = [];
-//         let hasError = false;
+	const [selectedFiles, setSelectedFiles] = useState([]);
+	const fileInputRef = useRef(null);
+	const [showOptional, setShowOptional] = useState(false);
 
-//         files.forEach(file => {
-//             if (file.size > MAX_SIZE) {
-//                 toast.error(`Berkas ${file.name} terlalu besar! Maksimal 50MB.`);
-//                 hasError = true;
-//             } else {
-//                 validFiles.push(file);
-//             }
-//         });
+	// --- Data Fetching ---
+	const fetchMaterialsAndSessions = async (silent = false) => {
+		try {
+			if (!silent) {
+				setIsLoading(true);
+				if (setIsPageLoading) setIsPageLoading(true);
+			}
+			const [matRes, sesRes] = await Promise.all([
+				api.get(`/organizer/events/${eventId}/materials?phase=${phase}`),
+				api.get(`event-dashboard/${eventId}/post-event/sessions`)
+			]);
+			if (matRes.data?.success) {
+				setMaterials(matRes.data.data || []);
+			}
+			if (sesRes.data?.status === 'success') {
+				setEventSessions(sesRes.data.data || []);
+			}
+		} catch (error) {
+			console.error('Fetch error:', error);
+			notify('error', 'Gagal', 'Gagal memuat data.');
+		} finally {
+			if (!silent) {
+				setIsLoading(false);
+				if (setIsPageLoading) setIsPageLoading(false);
+			}
+		}
+	};
 
-//         if (validFiles.length > 0) {
-//             setSelectedFiles(validFiles);
-//         } else if (hasError) {
-//             if (fileInputRef.current) fileInputRef.current.value = null;
-//             setSelectedFiles([]);
-//         }
-//     };
+	useEffect(() => {
+		if (eventId) {
+			setMaterials([]);
+			setEventSessions([]);
+			fetchMaterialsAndSessions();
+		}
+	}, [eventId, phase]);
 
-//     // Open Modal for Add
-//     const openAddModal = () => {
-//         setEditingId(null);
-//         setFormData({
-//             title: '',
-//             session_name: '',
-//             speaker_name: '',
-//             type: 'document',
-//             description: '',
-//             status: 'published',
-//             content_url: '',
-//         });
-//         setSelectedFiles([]);
-//         if (fileInputRef.current) fileInputRef.current.value = null;
-//         setShowModal(true);
-//     };
+	// --- Form Handlers ---
+	const handleInputChange = (e) => {
+		const { name, value } = e.target;
+		if (name === 'session_name') {
+			const selectedSession = eventSessions.find(s => s.title === value);
+			setFormData(prev => ({
+				...prev,
+				session_name: value,
+				speaker_name: selectedSession ? selectedSession.speakers : ''
+			}));
+		} else {
+			setFormData(prev => ({ ...prev, [name]: value }));
+		}
+	};
 
-//     // Open Modal for Edit (Loads existing material)
-//     const openEditModal = (material) => {
-//         setEditingId(material.id);
-//         setFormData({
-//             title: material.title || '',
-//             session_name: material.session_name || '',
-//             speaker_name: material.speaker_name || '',
-//             type: material.type || 'document',
-//             description: material.description || '',
-//             status: material.status || 'published',
-//             content_url: material.content_url || '',
-//         });
-//         setSelectedFiles([]);
-//         setShowModal(true);
-//     };
+	const handleRefresh = () => {
+		fetchMaterialsAndSessions();
+	};
 
-//     // Handle Create Materi
-//     const handleCreate = async (submitData) => {
-//         setSubmitLoading(true);
-//         try {
-//             await api.post(`/organizer/events/${eventId}/materials`, submitData, {
-//                 headers: { 'Content-Type': 'multipart/form-data' }
-//             });
-//             toast.success('Materi baru berhasil diterbitkan!');
-//             setShowModal(false);
-//             fetchMaterials();
-//         } catch (error) {
-//             console.error('Create material error:', error);
-//             const msg = error.response?.data?.message || 'Gagal menambahkan materi baru.';
-//             toast.error(msg);
-//         } finally {
-//             setSubmitLoading(false);
-//         }
-//     };
+	const handleFileChange = (e) => {
+		const files = Array.from(e.target.files);
+		const MAX_SIZE = 50 * 1024 * 1024;
+		const valid = files.filter(f => {
+			if (f.size > MAX_SIZE) {
+				notify('error', 'File Terlalu Besar', `${f.name} melebihi batas 50MB.`);
+				return false;
+			}
+			return true;
+		});
+		setSelectedFiles(valid);
+	};
 
-//     // Handle Update Materi
-//     const handleUpdate = async (id, submitData) => {
-//         setSubmitLoading(true);
-//         try {
-//             // Laravel PUT request workaround for multipart/form-data
-//             submitData.append('_method', 'PUT');
-//             await api.post(`/organizer/events/${eventId}/materials/${id}`, submitData, {
-//                 headers: { 'Content-Type': 'multipart/form-data' }
-//             });
-//             toast.success('Materi berhasil diperbarui!');
-//             setShowModal(false);
-//             fetchMaterials();
-//         } catch (error) {
-//             console.error('Update material error:', error);
-//             const msg = error.response?.data?.message || 'Gagal memperbarui materi.';
-//             toast.error(msg);
-//         } finally {
-//             setSubmitLoading(false);
-//         }
-//     };
+	const resetForm = () => {
+		setFormData({ title: '', session_name: '', speaker_name: '', type: 'document', description: '', status: 'published', content_url: '', phase: phase });
+		setSelectedFiles([]);
+		if (fileInputRef.current) fileInputRef.current.value = null;
+	};
 
-//     // Submit Handler (Validates & Prepares FormData)
-//     const handleSubmit = (e) => {
-//         e.preventDefault();
+	const openAddModal = () => {
+		setEditingId(null);
+		resetForm();
+		setShowOptional(false);
+		setShowModal(true);
+	};
 
-//         if (!formData.title.trim()) {
-//             toast.error('Judul materi wajib diisi!');
-//             return;
-//         }
+	const openEditModal = (material) => {
+		setEditingId(material.id);
+		setFormData({
+			title: material.title || '',
+			session_name: material.session_name || '',
+			speaker_name: material.speaker_name || '',
+			type: material.type || 'document',
+			description: material.description || '',
+			status: material.status || 'published',
+			content_url: material.content_url || '',
+			phase: material.phase || 'before',
+		});
+		setSelectedFiles([]);
+		setShowModal(true);
+	};
 
-//         if (formData.type !== 'document' && !formData.content_url.trim()) {
-//             toast.error('Tautan URL sumber wajib diisi untuk tipe ini!');
-//             return;
-//         }
+	// --- CRUD ---
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		if (!formData.title.trim()) { notify('error', 'Validasi', 'Judul materi wajib diisi!'); return; }
+		if (formData.type !== 'document' && !formData.content_url.trim()) {
+			notify('error', 'Validasi', 'Tautan URL wajib diisi untuk tipe ini!'); return;
+		}
 
-//         const submitData = new FormData();
-//         submitData.append('title', formData.title.trim());
-//         submitData.append('session_name', formData.session_name.trim());
-//         submitData.append('speaker_name', formData.speaker_name.trim());
-//         submitData.append('type', formData.type);
-//         submitData.append('description', formData.description.trim());
-//         submitData.append('status', formData.status);
+		const fd = new FormData();
+		fd.append('title', formData.title.trim());
+		if (formData.session_name) fd.append('session_name', formData.session_name);
+		if (formData.speaker_name) fd.append('speaker_name', formData.speaker_name);
+		fd.append('type', formData.type);
+		fd.append('description', formData.description.trim());
+		fd.append('status', formData.status);
+		fd.append('phase', formData.phase);
 
-//        if (formData.type === 'document') {
-//             if (selectedFiles.length > 0) {
-//                 // Append multiple files menggunakan bracket array
-//                 selectedFiles.forEach((file) => {
-//                     submitData.append('files[]', file); 
-//                 });
-//             } else if (formData.content_url.trim()) {
-//                 submitData.append('content_url', formData.content_url.trim());
-//             }
-//         } else {
-//             submitData.append('content_url', formData.content_url.trim());
-//         }
+		if (formData.type === 'document') {
+			if (selectedFiles.length > 0) {
+				selectedFiles.forEach(f => fd.append('files[]', f));
+			} else if (formData.content_url.trim()) {
+				fd.append('content_url', formData.content_url.trim());
+			}
+		} else {
+			fd.append('content_url', formData.content_url.trim());
+		}
 
-//         if (editingId) {
-//             handleUpdate(editingId, submitData);
-//         } else {
-//             handleCreate(submitData);
-//         }
-//     };
+		setSubmitLoading(true);
+		try {
+			let res;
+			if (editingId) {
+				fd.append('_method', 'PUT');
+				res = await api.post(`/organizer/events/${eventId}/materials/${editingId}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+			} else {
+				res = await api.post(`/organizer/events/${eventId}/materials`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+			}
 
-//     // Handle Delete Materi
-//     const handleDelete = async (id) => {
-//         if (!window.confirm('Apakah Anda yakin ingin menghapus materi ini secara permanen?')) return;
-        
-//         try {
-//             await api.delete(`/organizer/events/${eventId}/materials/${id}`);
-//             toast.success('Materi berhasil dihapus!');
-//             fetchMaterials();
-//         } catch (error) {
-//             console.error('Delete material error:', error);
-//             toast.error('Gagal menghapus materi.');
-//         }
-//     };
+			if (res.data?.success) {
+				notify('success', 'Berhasil', editingId ? 'Materi berhasil diperbarui!' : 'Materi berhasil ditambahkan!');
+				setShowModal(false);
+				fetchMaterialsAndSessions(true);
+			}
+		} catch (error) {
+			console.error('Submit materi error:', error);
+			notify('error', 'Gagal', 'Gagal menyimpan materi.');
+		} finally {
+			setSubmitLoading(false);
+		}
+	};
 
-//     // Toggle Status (Publish / Unpublish)
-//     const toggleStatus = async (material) => {
-//         const newStatus = material.status === 'published' ? 'draft' : 'published';
-        
-//         try {
-//             const submitData = new FormData();
-//             submitData.append('title', material.title);
-//             submitData.append('type', material.type);
-//             submitData.append('status', newStatus);
-//             submitData.append('_method', 'PUT');
+	const handleDeleteConfirm = async () => {
+		try {
+			await api.delete(`/organizer/events/${eventId}/materials/${deleteModal.id}`);
+			notify('success', 'Dihapus', 'Materi berhasil dihapus.');
+			setDeleteModal({ show: false, id: null, title: '' });
+			fetchMaterialsAndSessions(true);
+		} catch (error) {
+			notify('error', 'Gagal', 'Gagal menghapus materi.');
+		}
+	};
 
-//             await api.post(`/organizer/events/${eventId}/materials/${material.id}`, submitData, {
-//                 headers: { 'Content-Type': 'multipart/form-data' }
-//             });
-            
-//             toast.success(newStatus === 'published' ? 'Materi berhasil diterbitkan!' : 'Materi ditarik menjadi draft!');
-//             fetchMaterials();
-//         } catch (error) {
-//             console.error('Toggle status error:', error);
-//             toast.error('Gagal mengubah status materi.');
-//         }
-//     };
+	const toggleStatus = async (material) => {
+		const newStatus = material.status === 'published' ? 'draft' : 'published';
+		try {
+			const fd = new FormData();
+			fd.append('title', material.title);
+			fd.append('type', material.type);
+			fd.append('status', newStatus);
+			fd.append('_method', 'PUT');
+			await api.post(`/organizer/events/${eventId}/materials/${material.id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+			notify('success', 'Status Diubah', newStatus === 'published' ? 'Materi berhasil diterbitkan!' : 'Materi ditarik ke draft.');
+			fetchMaterials(true);
+		} catch (error) {
+			notify('error', 'Gagal', 'Gagal mengubah status materi.');
+		}
+	};
 
-//     // Get Badge & Icon configurations for rendering types
-//     const getTypeConfig = (t) => {
-//         switch (t) {
-//             case 'document':
-//                 return { label: 'Dokumen', bg: 'primary', icon: <FileText size={14} className="me-1" /> };
-//             case 'code_repo':
-//                 return { label: 'Repo Kode', bg: 'dark', icon: <Code size={14} className="me-1" /> };
-//             case 'design_interactive':
-//                 return { label: 'Desain Berkas', bg: 'danger', icon: <Palette size={14} className="me-1" /> };
-//             case 'media_form':
-//                 return { label: 'Media Form', bg: 'info', icon: <LinkIcon size={14} className="me-1" /> };
-//             default:
-//                 return { label: 'Tautan', bg: 'secondary', icon: <FileQuestion size={14} className="me-1" /> };
-//         }
-//     };
+	// --- Helpers ---
+	const getTypeConfig = (t) => {
+		switch (t) {
+			case 'document': return { label: 'Dokumen', bg: '#dff3ff', color: '#00699e', Icon: FileText };
+			case 'code_repo': return { label: 'Repo Kode', bg: '#1e293b', color: '#94a3b8', Icon: Code };
+			case 'design_interactive': return { label: 'Desain', bg: '#fce7f3', color: '#9d174d', Icon: Palette };
+			case 'media_form': return { label: 'Media Form', bg: '#ede9fe', color: '#5b21b6', Icon: LinkIcon };
+			default: return { label: 'Tautan', bg: '#f1f5f9', color: '#64748b', Icon: FileQuestion };
+		}
+	};
 
-//     // Mengumpulkan opsi unik dari data saat ini untuk datalist autocomplete (Creatable Select)
-//     const existingSessions = [...new Set(materials.map(m => m.session_name).filter(Boolean))];
-//     const existingSpeakers = [...new Set(materials.map(m => m.speaker_name).filter(Boolean))];
+	const existingSessions = [...new Set(materials.map(m => m.session_name).filter(Boolean))];
+	const existingSpeakers = [...new Set(materials.map(m => m.speaker_name).filter(Boolean))];
+	const publishedCount = materials.filter(m => m.status === 'published').length;
+	const draftCount = materials.filter(m => m.status === 'draft').length;
+	const totalTypes = [...new Set(materials.map(m => m.type))].length;
 
-//     // Filter materials based on search query
-//     const filteredMaterials = materials.filter(mat => {
-//         const query = searchQuery.toLowerCase();
-//         return (
-//             (mat.title || '').toLowerCase().includes(query) ||
-//             (mat.description || '').toLowerCase().includes(query) ||
-//             (mat.session_name || '').toLowerCase().includes(query) ||
-//             (mat.speaker_name || '').toLowerCase().includes(query)
-//         );
-//     });
+	const filteredMaterials = materials.filter(mat => {
+		const q = searchQuery.toLowerCase();
+		return (
+			(mat.title || '').toLowerCase().includes(q) ||
+			(mat.session_name || '').toLowerCase().includes(q) ||
+			(mat.speaker_name || '').toLowerCase().includes(q)
+		);
+	});
 
-//     return (
-//         <div className="container-fluid p-4" style={{ minHeight: '80vh' }}>
-//             <Toaster position="top-right" />
+	// --- Loading Skeleton ---
+	if (isLoading) {
+		return (
+			<div>
+				<SkeletonStyles />
+				<FormHeading
+					title="Manajemen Materi Acara"
+					description="Kelola slide presentasi, dokumen, dan repositori untuk peserta."
+					className="mb-4"
+				/>
+				<div className="row g-3 mb-4">
+					{[1, 2, 3].map(i => (
+						<div key={i} className="col-md-4 col-sm-6">
+							<div className="p-3 d-flex align-items-center gap-3 bg-white" style={{ border: '1px solid #e2e8f0', borderRadius: '12px' }}>
+								<Skeleton width="44px" height="44px" borderRadius="12px" />
+								<div className="flex-grow-1">
+									<Skeleton width="50%" height="12px" className="mb-2" />
+									<Skeleton width="35%" height="22px" />
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+				<div className="d-flex flex-column gap-2">
+					{[1, 2, 3].map(i => (
+						<div key={i} className="p-3 bg-white d-flex align-items-center gap-3" style={{ border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+							<Skeleton width="36px" height="36px" borderRadius="8px" />
+							<div className="flex-grow-1">
+								<Skeleton width="40%" height="14px" className="mb-2" />
+								<Skeleton width="25%" height="11px" />
+							</div>
+							<Skeleton width="70px" height="24px" borderRadius="20px" />
+						</div>
+					))}
+				</div>
+			</div>
+		);
+	}
 
-//             {/* HEADER SECTION */}
-//             <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
-//                 <div>
-//                     <h3 className="fw-bold mb-1 text-dark" style={{ letterSpacing: '-0.5px' }}>Manajemen Materi Acara</h3>
-//                     <p className="text-secondary small mb-0">Kelola slide presentasi, dokumen, berkas UI/UX, dan repositori latihan bagi para peserta.</p>
-//                 </div>
-//                 <Button 
-//                     variant="primary" 
-//                     onClick={openAddModal}
-//                     className="rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2 transition-all hover-scale"
-//                 >
-//                     <Plus size={18} />
-//                     <span>Tambah Materi</span>
-//                 </Button>
-//             </div>
+	return (
+		<div>
 
-//             {isLoading ? (
-//                 <div className="d-flex flex-column align-items-center justify-content-center py-5">
-//                     <Spinner animation="border" variant="primary" style={{ width: '3rem', height: '3rem' }} />
-//                     <p className="text-muted mt-3 small fw-semibold">Memuat data Resource Center...</p>
-//                 </div>
-//             ) : materials.length === 0 ? (
-//                 /* EMPTY STATE */
-//                 <Card className="border-0 shadow-sm rounded-4 py-5 text-center bg-white transition-all">
-//                     <Card.Body className="p-5 d-flex flex-column align-items-center">
-//                         <div className="bg-light p-4 rounded-circle mb-4 border border-dashed d-inline-flex text-muted">
-//                             <Inbox size={48} className="opacity-75" />
-//                         </div>
-//                         <h4 className="fw-bold text-dark mb-2">Belum Ada Materi untuk Acara Ini</h4>
-//                         <p className="text-muted small mx-auto mb-4" style={{ maxWidth: '400px' }}>
-//                             Organizer belum menerbitkan berkas atau link pembelajaran. Materi yang ditambahkan akan tampil privat di EventSpace peserta yang valid.
-//                         </p>
-//                         <Button 
-//                             variant="primary" 
-//                             onClick={openAddModal}
-//                             className="rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2"
-//                         >
-//                             <Plus size={18} />
-//                             <span>Mulai Tambah Materi</span>
-//                         </Button>
-//                     </Card.Body>
-//                 </Card>
-//             ) : (
-//                 /* TABLE / LIST DATA */
-//                 <Card className="border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-//                     <Card.Header className="bg-white border-0 pt-4 px-4 pb-2">
-//                         <Row className="g-3 align-items-center justify-content-between">
-//                             <Col xs={12} md={4}>
-//                                 <InputGroup className="border rounded-pill overflow-hidden bg-light">
-//                                     <InputGroup.Text className="bg-transparent border-0 text-muted ps-3 py-2">
-//                                         <Search size={18} />
-//                                     </InputGroup.Text>
-//                                     <Form.Control
-//                                         type="text"
-//                                         placeholder="Cari judul, pembicara, atau sesi..."
-//                                         value={searchQuery}
-//                                         onChange={(e) => setSearchQuery(e.target.value)}
-//                                         className="bg-transparent border-0 py-2 shadow-none small"
-//                                         style={{ fontSize: '13px' }}
-//                                     />
-//                                 </InputGroup>
-//                             </Col>
-//                             <Col xs="auto">
-//                                 <Badge bg="light" text="dark" className="border px-3 py-2 rounded-pill font-medium small">
-//                                     Total: {materials.length} berkas
-//                                 </Badge>
-//                             </Col>
-//                         </Row>
-//                     </Card.Header>
-//                     <Card.Body className="p-0">
-//                         {filteredMaterials.length === 0 ? (
-//                             <div className="text-center py-5 text-muted small">
-//                                 Tidak ada materi yang cocok dengan pencarian Anda.
-//                             </div>
-//                         ) : (
-//                             <Table responsive hover className="align-middle mb-0 text-dark border-light">
-//                                 <thead className="bg-light table-light small text-secondary fw-semibold">
-//                                     <tr style={{ borderBottomWidth: '2px' }}>
-//                                         <th className="ps-4 py-3">Detail Materi</th>
-//                                         <th className="py-3">Hari / Sesi</th>
-//                                         <th className="py-3">Pembicara</th>
-//                                         <th className="py-3">Tipe</th>
-//                                         <th className="py-3">Status</th>
-//                                         <th className="pe-4 py-3 text-end">Aksi</th>
-//                                     </tr>
-//                                 </thead>
-//                                 <tbody>
-//                                     {filteredMaterials.map((mat) => {
-//                                         const typeConfig = getTypeConfig(mat.type);
-//                                         return (
-//                                             <tr key={mat.id} className="transition-all">
-//                                                 <td className="ps-4 py-3.5">
-//                                                     <div className="fw-bold text-dark mb-0.5" style={{ fontSize: '13.5px' }}>{mat.title}</div>
-//                                                     {mat.description ? (
-//                                                         <div className="text-muted small text-truncate" style={{ maxWidth: '280px', fontSize: '11.5px' }}>
-//                                                             {mat.description}
-//                                                         </div>
-//                                                     ) : (
-//                                                         <div className="text-secondary opacity-50 italic small" style={{ fontSize: '11px' }}>Tidak ada deskripsi.</div>
-//                                                     )}
-//                                                 </td>
-//                                                 <td className="py-3.5 fw-medium text-secondary" style={{ fontSize: '12.5px' }}>
-//                                                     {mat.session_name ? mat.session_name : <span className="text-muted italic opacity-50 small">-</span>}
-//                                                 </td>
-//                                                 <td className="py-3.5 text-dark fw-medium" style={{ fontSize: '12.5px' }}>
-//                                                     {mat.speaker_name ? `🎤 ${mat.speaker_name}` : <span className="text-muted opacity-50">-</span>}
-//                                                 </td>
-//                                                 <td className="py-3.5">
-//                                                     <Badge bg={`${typeConfig.bg}-subtle`} className={`text-${typeConfig.bg} border border-${typeConfig.bg} border-opacity-10 rounded-pill px-2.5 py-1.5 small fw-semibold d-inline-flex align-items-center`}>
-//                                                         {typeConfig.icon}
-//                                                         <span>{typeConfig.label}</span>
-//                                                     </Badge>
-//                                                 </td>
-//                                                 <td className="py-3.5">
-//                                                     {mat.status === 'published' ? (
-//                                                         <Badge bg="success-subtle" className="text-success border border-success border-opacity-10 rounded px-2.5 py-1.5 small fw-semibold">
-//                                                             Published
-//                                                         </Badge>
-//                                                     ) : (
-//                                                         <Badge bg="secondary-subtle" className="text-secondary border border-secondary border-opacity-10 rounded px-2.5 py-1.5 small fw-semibold">
-//                                                             Draft
-//                                                         </Badge>
-//                                                     )}
-//                                                 </td>
-//                                                 <td className="pe-4 py-3.5 text-end">
-//                                                     <div className="d-inline-flex gap-1.5">
-//                                                         {/* Toggle Publish / Unpublish */}
-//                                                         <Button
-//                                                             variant="outline-secondary"
-//                                                             size="sm"
-//                                                             onClick={() => toggleStatus(mat)}
-//                                                             title={mat.status === 'published' ? 'Tarik jadi Draft' : 'Terbitkan Sekarang'}
-//                                                             className="rounded-circle p-1.5 d-flex border"
-//                                                         >
-//                                                             {mat.status === 'published' ? <EyeOff size={14} /> : <Eye size={14} />}
-//                                                         </Button>
-//                                                         {/* Edit button */}
-//                                                         <Button
-//                                                             variant="outline-primary"
-//                                                             size="sm"
-//                                                             onClick={() => openEditModal(mat)}
-//                                                             title="Edit Materi"
-//                                                             className="rounded-circle p-1.5 d-flex border"
-//                                                         >
-//                                                             <Edit2 size={14} />
-//                                                         </Button>
-//                                                         {/* Delete button */}
-//                                                         <Button
-//                                                             variant="outline-danger"
-//                                                             size="sm"
-//                                                             onClick={() => handleDelete(mat.id)}
-//                                                             title="Hapus Permanen"
-//                                                             className="rounded-circle p-1.5 d-flex border"
-//                                                         >
-//                                                             <Trash2 size={14} />
-//                                                         </Button>
-//                                                     </div>
-//                                                 </td>
-//                                             </tr>
-//                                         );
-//                                     })}
-//                                 </tbody>
-//                             </Table>
-//                         )}
-//                     </Card.Body>
-//                 </Card>
-//             )}
+			{/* Stat Cards */}
+			{materials.length > 0 && (
+				<div className="row g-3 mb-4">
+					<div className="col-md-4 col-sm-6">
+						<div className="stat-card-modern p-3 d-flex align-items-center gap-3" style={{ border: '1px solid #e2e8f0' }}>
+							<div className="icon-wrapper d-flex align-items-center justify-content-center" style={{ backgroundColor: '#dff3ff', color: '#00699e' }}>
+								<BookOpen size={20} />
+							</div>
+							<div>
+								<p className="stat-value fw-bold text-dark mb-0">{materials.length}</p>
+								<p className="stat-label text-uppercase text-muted mb-0">Total Materi</p>
+							</div>
+						</div>
+					</div>
+					<div className="col-md-4 col-sm-6">
+						<div className="stat-card-modern p-3 d-flex align-items-center gap-3" style={{ border: '1px solid #e2e8f0' }}>
+							<div className="icon-wrapper d-flex align-items-center justify-content-center" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>
+								<Eye size={20} />
+							</div>
+							<div>
+								<p className="stat-value fw-bold text-dark mb-0">{publishedCount}</p>
+								<p className="stat-label text-uppercase text-muted mb-0">Dipublikasikan</p>
+							</div>
+						</div>
+					</div>
+					<div className="col-md-4 col-sm-6">
+						<div className="stat-card-modern p-3 d-flex align-items-center gap-3" style={{ border: '1px solid #e2e8f0' }}>
+							<div className="icon-wrapper d-flex align-items-center justify-content-center" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+								<EyeOff size={20} />
+							</div>
+							<div>
+								<p className="stat-value fw-bold text-dark mb-0">{draftCount}</p>
+								<p className="stat-label text-uppercase text-muted mb-0">Draft</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 
-//             {/* FORM MODAL (ADD / EDIT) */}
-//             <Modal 
-//                 show={showModal} 
-//                 onHide={() => !submitLoading && setShowModal(false)}
-//                 centered
-//                 size="lg"
-//                 className="custom-modal"
-//             >
-//                 <Modal.Header closeButton={!submitLoading} className="border-0 pt-4 px-4 pb-0">
-//                     <Modal.Title className="fw-bold d-flex align-items-center gap-2">
-//                         {/* <Sparkles size={20} className="text-warning animate-pulse" /> */}
-//                         <span>{editingId ? 'Edit Materi Acara' : 'Terbitkan Materi Baru'}</span>
-//                     </Modal.Title>
-//                 </Modal.Header>
-//                 <Modal.Body className="px-4 py-3">
-//                     <Form onSubmit={handleSubmit}>
-//                         <Row className="g-3">
-//                             <Col md={12}>
-//                                 <Form.Group className="mb-2">
-//                                     <Form.Label className="fw-semibold small">Judul Materi <span className="text-danger">*</span></Form.Label>
-//                                     <Form.Control
-//                                         required
-//                                         type="text"
-//                                         name="title"
-//                                         value={formData.title}
-//                                         onChange={handleInputChange}
-//                                         placeholder="Misal: Slide Pemrograman Lanjut Hari ke-1"
-//                                         className="rounded-3"
-//                                     />
-//                                 </Form.Group>
-//                             </Col>
+			{/* Empty State */}
+			{materials.length === 0 ? (
+				<div
+					className="d-flex flex-column align-items-center justify-content-center text-center py-5"
+					style={{ border: '1px dashed #cbd5e1', borderRadius: '16px', backgroundColor: '#f8fafc', minHeight: '300px' }}
+				>
+					<div
+						className="d-flex align-items-center justify-content-center mb-3"
+						style={{ width: 64, height: 64, borderRadius: 18, backgroundColor: '#dff3ff', color: '#00699e' }}
+					>
+						<FolderOpen size={28} />
+					</div>
+					<h6 className="fw-bold text-dark mb-1">Belum Ada Materi</h6>
+					<p className="text-muted small mb-4" style={{ maxWidth: 320 }}>
+						Tambahkan slide presentasi, dokumen, atau tautan referensi yang akan dibagikan kepada peserta.
+					</p>
+					<Button
+						onClick={openAddModal}
+						className="d-flex align-items-center gap-2 fw-semibold"
+						style={{ backgroundColor: '#00699e', border: 'none', borderRadius: '10px', padding: '8px 20px', fontSize: '13px' }}
+					>
+						<Plus size={15} strokeWidth={2.5} />
+						Mulai Tambah Materi
+					</Button>
+				</div>
+			) : (
+				/* Content Area */
+				<div
+					className="bg-white overflow-hidden"
+					style={{ border: '1px solid #e2e8f0', borderRadius: '14px' }}
+				>
+					{/* Table Header / Search + Tambah */}
+					<div className="px-4 pt-4 pb-3 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+						{/* Search bar */}
+						<div
+							className="d-flex align-items-center gap-2 bg-light rounded-pill px-3 py-2 flex-grow-1"
+							style={{ border: '1px solid #e2e8f0', maxWidth: 340 }}
+						>
+							<Search size={14} className="text-secondary flex-shrink-0" />
+							<input
+								type="text"
+								className="border-0 bg-transparent w-100 shadow-none"
+								placeholder="Cari judul, sesi, atau pembicara..."
+								value={searchQuery}
+								onChange={e => setSearchQuery(e.target.value)}
+								style={{ outline: 'none', fontSize: '13px', color: '#1e293b' }}
+							/>
+							{searchQuery && (
+								<button className="border-0 bg-transparent p-0 text-secondary" onClick={() => setSearchQuery('')}>
+									<X size={13} />
+								</button>
+							)}
+						</div>
 
-//                             <Col md={6}>
-//                                 <Form.Group className="mb-2">
-//                                     <Form.Label className="fw-semibold small">Sesi / Hari (Contoh: Day 1 - Sesi Pagi)</Form.Label>
-//                                     <Form.Control
-//                                         type="text"
-//                                         name="session_name"
-//                                         value={formData.session_name}
-//                                         onChange={handleInputChange}
-//                                         placeholder="Misal: Day 1 - Sesi Pagi"
-//                                         className="rounded-3"
-//                                         list="session-options"
-//                                         autoComplete="off"
-//                                     />
-//                                     <datalist id="session-options">
-//                                         {existingSessions.map((session, idx) => (
-//                                             <option key={idx} value={session} />
-//                                         ))}
-//                                     </datalist>
-//                                 </Form.Group>
-//                             </Col>
+						{/* Right side: count + button */}
+						<div className="d-flex align-items-center gap-3 flex-shrink-0">
+							<span className="fw-medium text-secondary" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+								{filteredMaterials.length} dari {materials.length} materi
+							</span>
+							<Button
+								onClick={openAddModal}
+								className="d-flex align-items-center gap-2 fw-semibold flex-shrink-0"
+								style={{
+									backgroundColor: '#00699e',
+									border: 'none',
+									borderRadius: '9px',
+									padding: '7px 16px',
+									fontSize: '13px',
+								}}
+							>
+								<Plus size={16} strokeWidth={2.5} />
+								Tambah Materi
+							</Button>
+						</div>
+					</div>
 
-//                             <Col md={6}>
-//                                 <Form.Group className="mb-2">
-//                                     <Form.Label className="fw-semibold small">Nama Pembicara (Speaker)</Form.Label>
-//                                     <Form.Control
-//                                         type="text"
-//                                         name="speaker_name"
-//                                         value={formData.speaker_name}
-//                                         onChange={handleInputChange}
-//                                         placeholder="Misal: Jane Doe, M.Sc."
-//                                         className="rounded-3"
-//                                         list="speaker-options"
-//                                         autoComplete="off"
-//                                     />
-//                                     <datalist id="speaker-options">
-//                                         {existingSpeakers.map((speaker, idx) => (
-//                                             <option key={idx} value={speaker} />
-//                                         ))}
-//                                     </datalist>
-//                                 </Form.Group>
-//                             </Col>
+					{/* List Grouped by Session */}
+					{filteredMaterials.length === 0 ? (
+						<div className="text-center py-5 text-muted small">Tidak ada materi yang sesuai pencarian.</div>
+					) : (
+						<div className="d-flex flex-column gap-3 p-4 bg-light" style={{ borderRadius: '0 0 14px 14px' }}>
+							{Object.entries(
+								filteredMaterials.reduce((acc, mat) => {
+									const s = mat.session_name || 'Materi Umum';
+									if (!acc[s]) acc[s] = [];
+									acc[s].push(mat);
+									return acc;
+								}, {})
+							).map(([sessionName, mats], index) => {
+								const publishedCount = mats.filter(m => m.status === 'published').length;
+								const isAllPublished = publishedCount === mats.length && mats.length > 0;
+								return (
+									<div
+										key={sessionName}
+										className="bg-white overflow-hidden shadow-sm"
+										style={{
+											border: '1px solid #e2e8f0',
+											borderLeft: '4px solid #cbd5e1',
+											borderRadius: '14px',
+										}}
+									>
+										<div
+											className="px-4 py-3 d-flex align-items-center justify-content-between gap-3"
+											style={{ backgroundColor: '#ffffff' }}
+										>
+											<div className="d-flex align-items-center gap-3 flex-grow-1 text-truncate">
+												<div
+													className="d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+													style={{
+														width: 40, height: 40, borderRadius: 12,
+														backgroundColor: '#f1f5f9', color: '#64748b', fontSize: '15px'
+													}}
+												>
+													{index + 1}
+												</div>
+												<div className="text-truncate">
+													<p className="mb-0 fw-semibold text-dark" style={{ fontSize: '14px', letterSpacing: '-0.2px' }}>
+														{sessionName}
+													</p>
+													<p className="mb-0 text-secondary text-truncate" style={{ fontSize: '12px' }}>
+														{mats.length} Materi Tersedia
+													</p>
+												</div>
+											</div>
 
-//                             <Col md={6}>
-//                                 <Form.Group className="mb-2">
-//                                     <Form.Label className="fw-semibold small">Tipe Materi</Form.Label>
-//                                     <Form.Select
-//                                         name="type"
-//                                         value={formData.type}
-//                                         onChange={(e) => {
-//                                             handleInputChange(e);
-//                                             setSelectedFiles([]);
-//                                             if (fileInputRef.current) fileInputRef.current.value = null;
-//                                         }}
-//                                         className="rounded-3"
-//                                     >
-//                                         <option value="document">Dokumen / PDF / Slide (document)</option>
-//                                         <option value="code_repo">Repository Code GitHub (code_repo)</option>
-//                                         <option value="design_interactive">Desain Figma / Prototype (design_interactive)</option>
-//                                         <option value="media_form">Media Form Google Form (media_form)</option>
-//                                     </Form.Select>
-//                                 </Form.Group>
-//                             </Col>
+											<div className="d-flex align-items-center gap-3 flex-shrink-0">
+												<span
+													className="d-inline-flex align-items-center gap-1 fw-semibold rounded-pill"
+													style={{
+														fontSize: '11.5px', padding: '4px 12px',
+														backgroundColor: isAllPublished ? '#dcfce7' : '#f1f5f9',
+														color: isAllPublished ? '#15803d' : '#64748b',
+													}}
+												>
+													{isAllPublished ? <Eye size={11} /> : <EyeOff size={11} />}
+													{publishedCount} / {mats.length} Published
+												</span>
+											</div>
+										</div>
 
-//                             <Col md={6}>
-//                                 <Form.Group className="mb-2">
-//                                     <Form.Label className="fw-semibold small">Status Publikasi</Form.Label>
-//                                     <div className="d-flex align-items-center gap-4 mt-2">
-//                                         <Form.Check
-//                                             type="radio"
-//                                             id="status-published"
-//                                             label="Published"
-//                                             name="status"
-//                                             value="published"
-//                                             checked={formData.status === 'published'}
-//                                             onChange={handleInputChange}
-//                                             className="fw-medium text-success"
-//                                         />
-//                                         <Form.Check
-//                                             type="radio"
-//                                             id="status-draft"
-//                                             label="Draft"
-//                                             name="status"
-//                                             value="draft"
-//                                             checked={formData.status === 'draft'}
-//                                             onChange={handleInputChange}
-//                                             className="fw-medium text-secondary"
-//                                         />
-//                                     </div>
-//                                 </Form.Group>
-//                             </Col>
+										<div className="p-0 border-top" style={{ borderColor: '#e2e8f0' }}>
+											<div className="table-responsive">
+												<table className="table align-middle mb-0" style={{ fontSize: '13px' }}>
+													<thead style={{ backgroundColor: '#f8fafc' }}>
+														<tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+															<th className="ps-4 py-2 fw-semibold text-secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Materi</th>
+															<th className="py-2 fw-semibold text-secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pembicara</th>
+															<th className="py-2 fw-semibold text-secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tipe</th>
+															<th className="py-2 fw-semibold text-secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+															<th className="pe-4 py-2 text-end fw-semibold text-secondary" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Aksi</th>
+														</tr>
+													</thead>
+													<tbody>
+														{mats.map((mat) => {
+															const { label, bg, color, Icon: TypeIcon } = getTypeConfig(mat.type);
+															return (
+																<tr
+																	key={mat.id}
+																	style={{ borderTop: '1px solid #f1f5f9', transition: 'background-color 0.15s ease' }}
+																	onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fafafa'}
+																	onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
+																>
+																	<td className="ps-4 py-3" style={{ width: '35%' }}>
+																		<p className="fw-semibold text-dark mb-1 text-truncate" style={{ maxWidth: 260 }}>{mat.title}</p>
+																		<div className="d-flex align-items-center gap-2">
+																			<span className="badge bg-light text-secondary border px-2 py-1 fw-medium" style={{ fontSize: '10px' }}>
+																				{mat.phase === 'before' ? 'Sebelum Acara' : mat.phase === 'during' ? 'Saat Acara' : 'Setelah Acara'}
+																			</span>
+																			{mat.description && (
+																				<span className="text-muted text-truncate" style={{ fontSize: '11.5px', maxWidth: 150 }}>
+																					{mat.description}
+																				</span>
+																			)}
+																		</div>
+																	</td>
+																	<td className="py-3" style={{ width: '20%' }}>
+																		{mat.speaker_name ? (
+																			<span className="d-inline-flex align-items-center gap-1 text-secondary" style={{ fontSize: '12px' }}>
+																				🎤 {mat.speaker_name}
+																			</span>
+																		) : (
+																			<span className="text-muted" style={{ fontSize: '12px' }}>—</span>
+																		)}
+																	</td>
+																	<td className="py-3" style={{ width: '15%' }}>
+																		<span
+																			className="d-inline-flex align-items-center gap-1 fw-semibold rounded-pill px-2"
+																			style={{ backgroundColor: bg, color, fontSize: '11.5px', padding: '4px 10px' }}
+																		>
+																			<TypeIcon size={12} />
+																			{label}
+																		</span>
+																	</td>
+																	<td className="py-3" style={{ width: '15%' }}>
+																		<span
+																			className="d-inline-flex align-items-center gap-1 fw-semibold rounded-pill"
+																			style={{
+																				fontSize: '11px',
+																				padding: '4px 10px',
+																				backgroundColor: mat.status === 'published' ? '#dcfce7' : '#f1f5f9',
+																				color: mat.status === 'published' ? '#15803d' : '#64748b',
+																			}}
+																		>
+																			{mat.status === 'published' ? <Eye size={10} /> : <EyeOff size={10} />}
+																			{mat.status === 'published' ? 'Published' : 'Draft'}
+																		</span>
+																	</td>
+																	<td className="pe-4 py-3 text-end" style={{ width: '15%' }}>
+																		<div className="d-inline-flex gap-2 align-items-center justify-content-end w-100">
+																			<button
+																				className="btn d-flex align-items-center justify-content-center"
+																				style={{ width: 34, height: 34, borderRadius: 10, border: '1px solid #e2e8f0', backgroundColor: 'transparent', color: '#64748b', transition: 'all 0.15s', padding: 0 }}
+																				title={mat.status === 'published' ? 'Tarik ke Draft' : 'Terbitkan'}
+																				onClick={() => toggleStatus(mat)}
+																				onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#f1f5f9'; e.currentTarget.style.color = '#1e293b'; }}
+																				onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748b'; }}
+																			>
+																				{mat.status === 'published' ? <EyeOff size={15} /> : <Eye size={15} />}
+																			</button>
+																			<button
+																				className="btn d-flex align-items-center justify-content-center"
+																				style={{ width: 34, height: 34, borderRadius: 10, border: '1px solid #e2e8f0', backgroundColor: 'transparent', color: '#64748b', transition: 'all 0.15s', padding: 0 }}
+																				title="Edit"
+																				onClick={() => openEditModal(mat)}
+																				onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#dff3ff'; e.currentTarget.style.color = '#00699e'; e.currentTarget.style.borderColor = '#bae6fd'; }}
+																				onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+																			>
+																				<Edit2 size={15} />
+																			</button>
+																			<button
+																				className="btn d-flex align-items-center justify-content-center"
+																				style={{ width: 34, height: 34, borderRadius: 10, border: '1px solid #e2e8f0', backgroundColor: 'transparent', color: '#64748b', transition: 'all 0.15s', padding: 0 }}
+																				title="Hapus"
+																				onClick={() => setDeleteModal({ show: true, id: mat.id, title: mat.title })}
+																				onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#fee2e2'; e.currentTarget.style.color = '#b91c1c'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+																				onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+																			>
+																				<Trash2 size={15} />
+																			</button>
+																		</div>
+																	</td>
+																</tr>
+															);
+														})}
+													</tbody>
+												</table>
+											</div>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
+				</div>
+			)}
 
-//                             {/* DYNAMIC CONDITIONAL RENDERING INPUTS */}
-//                             <Col md={12}>
-//                                 {formData.type === 'document' ? (
-//                                     <Form.Group className="mb-2 bg-light p-3 rounded-4 border border-dashed">
-//                                         <Form.Label className="fw-bold small d-flex justify-content-between">
-//                                             <span>Unggah Dokumen (PDF, PPT, DOCX, ZIP)</span>
-//                                             <span className="text-secondary fw-normal">Ukuran Maksimal: 5MB</span>
-//                                         </Form.Label>
-//                                         <Form.Control
-//                                             type="file"
-//                                             multiple
-//                                             ref={fileInputRef}
-//                                             onChange={handleFileChange}
-//                                             accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
-//                                             className="rounded-3"
-//                                         />
-//                                         {selectedFiles?.length > 0 && (
-//                                             <div className="mt-2 p-2 bg-white rounded border small">
-//                                                 <span className="fw-bold text-dark d-block mb-1">File Terpilih:</span>
-//                                                 <ul className="mb-0 ps-3 text-primary">
-//                                                     {selectedFiles.map((file, idx) => (
-//                                                         <li key={idx}>
-//                                                             {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-//                                                         </li>
-//                                                     ))}
-//                                                 </ul>
-//                                             </div>
-//                                         )}
-//                                         <Form.Text className="text-muted mt-1 small d-block" style={{ fontSize: '11px' }}>
-//                                             Unggah file langsung ke server aman kami. File akan terproteksi dan hanya bisa diunduh oleh peserta valid.
-//                                         </Form.Text>
-                                        
-//                                         <div className="text-center my-2 text-secondary small fw-bold">ATAU</div>
+			{/* ===== FORM MODAL ===== */}
+			<Modal
+				show={showModal}
+				onHide={() => !submitLoading && setShowModal(false)}
+				centered
+				size="lg"
+				contentClassName="border-0 shadow-lg overflow-hidden"
+				style={{ borderRadius: '16px' }}
+			>
+				<Modal.Header
+					closeButton={!submitLoading}
+					className="border-0 px-4 pt-4 pb-3"
+					style={{ backgroundColor: '#f8fafc' }}
+				>
+					<div>
+						<h5 className="fw-bold text-dark mb-0" style={{ fontSize: '16px', letterSpacing: '-0.3px' }}>
+							{editingId ? 'Edit Materi' : 'Tambah Materi Baru'}
+						</h5>
+						<p className="text-secondary mb-0 mt-1" style={{ fontSize: '12.5px' }}>
+							{editingId ? 'Perbarui informasi materi yang sudah ada.' : 'Isi formulir berikut untuk menambahkan materi baru.'}
+						</p>
+					</div>
+				</Modal.Header>
+				<Modal.Body className="p-0">
+					<Form onSubmit={handleSubmit}>
+						{/* --- SECTION 1: Informasi Dasar --- */}
+						<div className="p-4 pb-4">
+							<h6 className="fw-bold text-dark mb-3" style={{ fontSize: '13.5px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
+								1. Informasi Utama
+							</h6>
+							<Row className="g-3">
+								<Col md={12}>
+									<Form.Label className="fw-semibold text-secondary mb-1" style={{ fontSize: '12.5px' }}>Judul Materi <span className="text-danger">*</span></Form.Label>
+									<Form.Control
+										required
+										type="text"
+										name="title"
+										value={formData.title}
+										onChange={handleInputChange}
+										placeholder="Misal: Slide Pemrograman Lanjut Hari ke-1"
+										className="shadow-none bg-light"
+										style={{ borderRadius: '8px', fontSize: '13px', border: '1px solid #e2e8f0', padding: '10px 14px' }}
+									/>
+								</Col>
+								<Col md={6}>
+									<Form.Label className="fw-semibold text-secondary mb-1" style={{ fontSize: '12.5px' }}>Tipe Materi <span className="text-danger">*</span></Form.Label>
+									<Form.Select 
+										name="type" 
+										value={formData.type} 
+										onChange={e => { handleInputChange(e); setSelectedFiles([]); if (fileInputRef.current) fileInputRef.current.value = null; }} 
+										className="shadow-none bg-light"
+										style={{ borderRadius: '8px', fontSize: '13px', border: '1px solid #e2e8f0', padding: '10px 14px' }}
+									>
+										<option value="document">📄 Dokumen / PDF / Slide</option>
+										<option value="code_repo">💻 Repository GitHub</option>
+										<option value="design_interactive">🎨 Desain Figma / Prototype</option>
+										<option value="media_form">🔗 Media / Google Form</option>
+									</Form.Select>
+								</Col>
+								<Col md={6}>
+									<Form.Label className="fw-semibold text-secondary mb-1" style={{ fontSize: '12.5px' }}>Fase Publikasi <span className="text-danger">*</span></Form.Label>
+									<Form.Select 
+										name="phase" 
+										value={formData.phase} 
+										onChange={handleInputChange} 
+										className="shadow-none bg-light"
+										style={{ borderRadius: '8px', fontSize: '13px', border: '1px solid #e2e8f0', padding: '10px 14px' }}
+									>
+										<option value="before">Sebelum Acara</option>
+										<option value="during">Saat Acara</option>
+										<option value="after">Setelah Acara</option>
+									</Form.Select>
+								</Col>
+							</Row>
+						</div>
 
-//                                         <Form.Label className="fw-semibold small mt-1">Gunakan Tautan Berkas Eksternal (GDrive / Dropbox / OneDrive)</Form.Label>
-//                                         <Form.Control
-//                                             type="url"
-//                                             name="content_url"
-//                                             value={formData.content_url}
-//                                             onChange={handleInputChange}
-//                                             placeholder="https://drive.google.com/..."
-//                                             disabled={selectedFiles?.length > 0}
-//                                             className="rounded-3"
-//                                         />
-//                                     </Form.Group>
-//                                 ) : (
-//                                     <Form.Group className="mb-2">
-//                                         <Form.Label className="fw-semibold small">Tautan / URL Berkas Eksternal <span className="text-danger">*</span></Form.Label>
-//                                         <Form.Control
-//                                             required
-//                                             type="url"
-//                                             name="content_url"
-//                                             value={formData.content_url}
-//                                             onChange={handleInputChange}
-//                                             placeholder="https://..."
-//                                             className="rounded-3"
-//                                         />
-//                                         <Form.Text className="text-muted small mt-1 d-block" style={{ fontSize: '11px' }}>
-//                                             Masukkan tautan eksternal yang sah (misal link GitHub, proto Figma, atau link GForm).
-//                                         </Form.Text>
-//                                     </Form.Group>
-//                                 )}
-//                             </Col>
+						{/* --- SECTION 2: Konten / File --- */}
+						<div className="p-4 border-top" style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0' }}>
+							<h6 className="fw-bold text-dark mb-3" style={{ fontSize: '13.5px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
+								2. Berkas / Tautan Materi
+							</h6>
+							{formData.type === 'document' ? (
+								<div>
+									{selectedFiles.length === 0 ? (
+										<label
+											className="d-flex flex-column align-items-center justify-content-center w-100 rounded text-center bg-white"
+											style={{ border: '1.5px dashed #cbd5e1', cursor: 'pointer', transition: 'all 0.2s', padding: '2rem 1rem' }}
+											onMouseEnter={e => { e.currentTarget.style.borderColor = '#0ea5e9'; e.currentTarget.style.backgroundColor = '#f0f9ff'; }}
+											onMouseLeave={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.backgroundColor = '#ffffff'; }}
+										>
+											<div className="mb-2 p-2 rounded-circle" style={{ backgroundColor: '#e0f2fe' }}>
+												<Upload size={20} color="#0284c7" />
+											</div>
+											<span className="fw-semibold text-dark mb-1" style={{ fontSize: '13.5px' }}>Klik atau seret dokumen ke sini</span>
+											<span className="text-secondary" style={{ fontSize: '11.5px' }}>Format: PDF, PPTX, DOCX (Maks 50MB)</span>
+											<input
+												type="file"
+												multiple
+												ref={fileInputRef}
+												onChange={handleFileChange}
+												accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar"
+												className="d-none"
+											/>
+										</label>
+									) : (
+										<div className="d-flex align-items-center justify-content-between p-3 rounded bg-white shadow-sm" style={{ border: '1px solid #e2e8f0' }}>
+											<div className="d-flex align-items-center gap-3">
+												<div className="p-2 rounded bg-light">
+													<FileText size={18} color="#0284c7" />
+												</div>
+												<div>
+													<span className="fw-semibold text-dark d-block" style={{ fontSize: '13px' }}>
+														{selectedFiles.length === 1 ? selectedFiles[0].name : `${selectedFiles.length} berkas siap diunggah`}
+													</span>
+													<span className="text-secondary d-block" style={{ fontSize: '11.5px' }}>Tinjau sebelum menyimpan</span>
+												</div>
+											</div>
+											<button className="btn btn-sm text-danger d-flex align-items-center justify-content-center" style={{ width: 32, height: 32, backgroundColor: '#fee2e2', borderRadius: '8px' }} onClick={(e) => { e.preventDefault(); setSelectedFiles([]); if (fileInputRef.current) fileInputRef.current.value = null; }}>
+												<X size={16} />
+											</button>
+										</div>
+									)}
+								</div>
+							) : (
+								<div>
+									<InputGroup className="shadow-none">
+										<InputGroup.Text className="bg-white text-secondary border-end-0" style={{ border: '1px solid #e2e8f0', borderRadius: '8px 0 0 8px' }}>
+											<LinkIcon size={16} />
+										</InputGroup.Text>
+										<Form.Control
+											type="url"
+											name="content_url"
+											value={formData.content_url}
+											onChange={handleInputChange}
+											placeholder="https://..."
+											className="shadow-none border-start-0 bg-white"
+											style={{ borderRadius: '0 8px 8px 0', fontSize: '13px', border: '1px solid #e2e8f0', padding: '10px 14px' }}
+										/>
+									</InputGroup>
+								</div>
+							)}
+						</div>
 
-//                             <Col md={12}>
-//                                 <Form.Group className="mb-2">
-//                                     <Form.Label className="fw-semibold small">Deskripsi Ringkas (Opsional)</Form.Label>
-//                                     <Form.Control
-//                                         as="textarea"
-//                                         name="description"
-//                                         rows={2}
-//                                         value={formData.description}
-//                                         onChange={handleInputChange}
-//                                         placeholder="Ringkasan singkat, petunjuk belajar, atau password zip berkas jika diperlukan..."
-//                                         className="rounded-3"
-//                                     />
-//                                 </Form.Group>
-//                             </Col>
-//                         </Row>
+						{/* --- SECTION 3: Pengaturan Opsional --- */}
+						<div className="border-top" style={{ borderColor: '#e2e8f0', backgroundColor: '#ffffff' }}>
+							<div
+								className="p-4 d-flex align-items-center justify-content-between cursor-pointer"
+								onClick={() => setShowOptional(!showOptional)}
+								style={{ transition: 'background-color 0.2s' }}
+								onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+								onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+							>
+								<div className="d-flex align-items-center gap-2">
+									<h6 className="fw-bold text-dark mb-0" style={{ fontSize: '13.5px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b' }}>
+										3. Pengaturan Tambahan (Opsional)
+									</h6>
+									{!showOptional && (
+										<span className="badge bg-light text-secondary border" style={{ fontSize: '10px' }}>Sesi, Pembicara, Deskripsi</span>
+									)}
+								</div>
+								<div style={{ transition: 'transform 0.3s ease', transform: showOptional ? 'rotate(180deg)' : 'rotate(0)' }}>
+									<ChevronDown size={18} className="text-secondary" />
+								</div>
+							</div>
 
-//                         <div className="d-flex justify-content-end gap-2 mt-4 pt-2 border-top border-light">
-//                             <Button 
-//                                 variant="outline-secondary" 
-//                                 onClick={() => setShowModal(false)}
-//                                 disabled={submitLoading}
-//                                 className="rounded-pill px-4"
-//                             >
-//                                 Batal
-//                             </Button>
-//                             <Button 
-//                                 type="submit" 
-//                                 variant="primary"
-//                                 disabled={submitLoading}
-//                                 className="rounded-pill px-4 shadow-sm fw-semibold d-flex align-items-center gap-1.5"
-//                             >
-//                                 {submitLoading ? (
-//                                     <>
-//                                         <Spinner size="sm" animation="border" /> Menyimpan...
-//                                     </>
-//                                 ) : (
-//                                     <>
-//                                         <Check size={16} /> {editingId ? 'Simpan Perubahan' : 'Terbitkan Konten'}
-//                                     </>
-//                                 )}
-//                             </Button>
-//                         </div>
-//                     </Form>
-//                 </Modal.Body>
-//             </Modal>
-//         </div>
-//     );
-// };
+							<Collapse in={showOptional}>
+								<div className="px-4 pb-4">
+									<Row className="g-3">
+										<Col md={12}>
+											<Form.Label className="fw-semibold text-secondary mb-1" style={{ fontSize: '12.5px' }}>Pilih Sesi Terkait</Form.Label>
+											<Form.Select
+												name="session_name"
+												value={formData.session_name}
+												onChange={handleInputChange}
+												className="shadow-none bg-light"
+												style={{ borderRadius: '8px', fontSize: '13px', border: '1px solid #e2e8f0', padding: '10px 14px' }}
+											>
+												<option value="">-- Materi Umum (Tidak Terikat Sesi) --</option>
+												{eventSessions.map(session => (
+													<option key={session.id} value={session.title}>
+														{session.date} | {session.start_time} - {session.title}
+													</option>
+												))}
+											</Form.Select>
+										</Col>
+										<Col md={12}>
+											<Form.Label className="fw-semibold text-secondary mb-1" style={{ fontSize: '12.5px' }}>Deskripsi Singkat</Form.Label>
+											<Form.Control
+												as="textarea"
+												rows={2}
+												name="description"
+												value={formData.description}
+												onChange={handleInputChange}
+												placeholder="Tambahkan instruksi atau penjelasan singkat untuk peserta..."
+												className="shadow-none bg-light"
+												style={{ borderRadius: '8px', fontSize: '13px', border: '1px solid #e2e8f0', padding: '10px 14px', resize: 'none' }}
+											/>
+										</Col>
+										<Col md={12}>
+											<Form.Label className="fw-semibold text-secondary mb-1" style={{ fontSize: '12.5px' }}>Visibilitas Awal</Form.Label>
+											<div className="d-flex gap-3 mt-1">
+												<Form.Check
+													type="radio"
+													id="status-published"
+													name="status"
+													value="published"
+													checked={formData.status === 'published'}
+													onChange={handleInputChange}
+													label={
+														<span className="ms-1" style={{ fontSize: '13px', fontWeight: formData.status === 'published' ? 600 : 400 }}>
+															Langsung Terbit <Eye size={14} className="ms-1 text-success" />
+														</span>
+													}
+												/>
+												<Form.Check
+													type="radio"
+													id="status-draft"
+													name="status"
+													value="draft"
+													checked={formData.status === 'draft'}
+													onChange={handleInputChange}
+													label={
+														<span className="ms-1 text-secondary" style={{ fontSize: '13px', fontWeight: formData.status === 'draft' ? 600 : 400 }}>
+															Simpan Draft <EyeOff size={14} className="ms-1" />
+														</span>
+													}
+												/>
+											</div>
+										</Col>
+									</Row>
+								</div>
+							</Collapse>
+						</div>
 
-// export default MateriAcara;
+						<Modal.Footer className="border-top px-4 py-3" style={{ backgroundColor: '#f8fafc' }}>
+							<Button variant="light" onClick={() => setShowModal(false)} className="fw-semibold border" style={{ borderRadius: '8px', fontSize: '13.5px', padding: '8px 20px' }}>
+								Batal
+							</Button>
+							<Button
+								type="submit"
+								disabled={submitLoading}
+								className="fw-semibold d-flex align-items-center gap-2"
+								style={{ backgroundColor: '#00699e', border: 'none', borderRadius: '8px', fontSize: '13.5px', padding: '8px 24px' }}
+							>
+								{submitLoading ? <Spinner size="sm" /> : <Check size={16} />}
+								{submitLoading ? 'Menyimpan...' : 'Simpan Materi'}
+							</Button>
+						</Modal.Footer>
+					</Form>
+				</Modal.Body>
+			</Modal>
+
+			{/* ===== HAPUS CONFIRMATION ===== */}
+			<ConfirmationModal
+				show={deleteModal.show}
+				onHide={() => setDeleteModal({ show: false, id: null, title: '' })}
+				onConfirm={handleDeleteConfirm}
+				config={{
+					title: 'Hapus Materi',
+					desc: `Yakin ingin menghapus "${deleteModal.title}"? Tindakan ini tidak dapat dibatalkan.`,
+					icon: Trash2,
+					iconColor: '#b91c1c',
+					iconBg: '#fee2e2',
+					iconBorder: '#fca5a5',
+					btnVariant: 'danger',
+				}}
+			/>
+		</div>
+	);
+};
+
+export default MateriAcara;

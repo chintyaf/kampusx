@@ -34,8 +34,8 @@ const NotificationDropdown = () => {
     useEffect(() => {
         fetchNotifications();
 
-        // Polling setiap 30 detik untuk real-time update
-        const interval = setInterval(fetchNotifications, 30000);
+        // Polling setiap 4 detik untuk real-time update
+        const interval = setInterval(fetchNotifications, 60000);
         return () => clearInterval(interval);
     }, []);
 

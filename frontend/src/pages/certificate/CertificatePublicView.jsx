@@ -6,6 +6,7 @@ import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import html2pdf from 'html2pdf.js';
 import QRCode from 'react-qr-code';
+import { formatDate } from '@/utils/dateUtils';
 
 const CertificatePublicView = () => {
     const { ticketCode } = useParams(); // Mengambil kode dari URL /certificate/CERT-123
@@ -122,7 +123,7 @@ const CertificatePublicView = () => {
     // Mapping properti data agar kompatibel dengan single-level verify API dan nested render API
     const attendeeName = certData.ticket?.attendee_name || certData.attendee_name || 'Peserta KampusX';
     const eventTitle = certData.event?.title || certData.event_title || 'Event KampusX';
-    const eventDate = certData.event?.start_date || certData.event_date || 'Tanggal Event';
+    const eventDate = certData.event?.start_date ? formatDate(certData.event.start_date) : (certData.event_date || 'Tanggal Event');
     const organizerName = certData.event?.organizer_name || certData.organizer_name || 'KampusX Organizer';
     const certificateNumber = certData.ticket?.ticket_code || certData.certificate_number || ticketCode;
     const template = certData.template || {};

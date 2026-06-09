@@ -20,7 +20,16 @@ import {
 	getAvatarColor,
 } from './ParticipantHelpers';
 
-const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, toggleReveal, summary, eventId }) => {
+const ParticipantTable = ({
+	participants,
+	loading,
+	showAll,
+	pageInfo,
+	revealed,
+	toggleReveal,
+	summary,
+	eventId,
+}) => {
 	if (loading) {
 		return (
 			<div className="participant-empty">
@@ -45,9 +54,9 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 				<tr>
 					<th style={{ width: 40 }}>#</th>
 					<th>Peserta</th>
-					<th>Institusi</th>
-					<th>Email</th>
-					<th>Telepon</th>
+					{/* <th>Institusi</th> */}
+					{/* <th>Email</th>
+					<th>Telepon</th> */}
 					<th className="text-center">Poin Lokal</th>
 					<th className="text-center">Kehadiran</th>
 					<th className="text-center">Persentase</th>
@@ -66,8 +75,11 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 					const isPhoneRevealed = revealed[ticket.id]?.phone;
 					const rowNum = showAll ? idx + 1 : (pageInfo.current_page - 1) * 15 + idx + 1;
 
-					const localPointsList = ticket.participant?.local_points || ticket.participant?.localPoints || [];
-					const localPointsRecord = localPointsList.find(lp => lp.event_id === parseInt(eventId));
+					const localPointsList =
+						ticket.participant?.local_points || ticket.participant?.localPoints || [];
+					const localPointsRecord = localPointsList.find(
+						(lp) => lp.event_id === parseInt(eventId),
+					);
 					const pointsBalance = localPointsRecord ? localPointsRecord.points_balance : 0;
 
 					const attendanceStatus = getAttendanceStatus(ticket);
@@ -93,13 +105,11 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 									</div>
 									<div>
 										<p className="participant-name">{name}</p>
-										<p className="participant-time">
-											#{ticket.ticket_code ?? ticket.id}
-										</p>
+								
 									</div>
 								</div>
 							</td>
-							<td>
+							{/* <td>
 								{university ? (
 									<div className="institution-cell">
 										<School size={13} />
@@ -156,7 +166,7 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 										</button>
 									)}
 								</div>
-							</td>
+							</td> */}
 							<td className="text-center">
 								<span className="fw-bold text-primary" style={{ fontSize: '14px' }}>
 									{pointsBalance} Pts
@@ -194,14 +204,28 @@ const ParticipantTable = ({ participants, loading, showAll, pageInfo, revealed, 
 							</td>
 							<td className="text-center">
 								{(() => {
-									const completedAttendance = (ticket.attendance_logs_count || 0) + (ticket.checkouts_count || 0);
+									const completedAttendance =
+										(ticket.attendance_logs_count || 0) +
+										(ticket.checkouts_count || 0);
 									return (
 										<div className="attendance-cell">
 											<span className="fw-semibold text-dark">
-												{Math.min(100, Math.round((completedAttendance / (summary?.total_attendance || 1)) * 100))}%
+												{Math.min(
+													100,
+													Math.round(
+														(completedAttendance /
+															(summary?.total_attendance || 1)) *
+															100,
+													),
+												)}
+												%
 											</span>
-											<span className="text-muted" style={{ fontSize: '10px' }}>
-												({completedAttendance}/{summary?.total_attendance || 1})
+											<span
+												className="text-muted"
+												style={{ fontSize: '10px' }}
+											>
+												({completedAttendance}/
+												{summary?.total_attendance || 1})
 											</span>
 										</div>
 									);

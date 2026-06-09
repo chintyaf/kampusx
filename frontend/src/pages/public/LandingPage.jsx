@@ -64,6 +64,14 @@ const LandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail]         = useState("");
   const [categories, setCategories] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchKeyword.trim()) {
+      navigate('/explore-events?search=' + encodeURIComponent(searchKeyword.trim()));
+    }
+  };
 
   const banners = [
     { id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
@@ -141,6 +149,24 @@ const LandingPage = () => {
           <p style={{ fontSize: "var(--font-md)", color: "var(--color-secondary)", maxWidth: 560, margin: "0 auto 32px", lineHeight: 1.7 }}>
             Lebih dari sekadar cari tiket. Setiap event yang kamu ikuti otomatis jadi portofolio profesionalmu.
           </p>
+
+          <Form onSubmit={handleSearch} className="mb-4" style={{ maxWidth: 560, margin: "0 auto" }}>
+            <InputGroup size="lg" className="shadow-sm" style={{ borderRadius: 12, overflow: "hidden", border: "1px solid var(--color-border)" }}>
+              <Form.Control
+                placeholder="Cari nama event"
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                style={{ border: "none", fontSize: "var(--font-sm)" }}
+              />
+              <Button
+                type="submit"
+                style={{ background: "var(--color-primary)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 24px" }}
+              >
+                <Search size={20} />
+              </Button>
+            </InputGroup>
+          </Form>
+
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Button
               as={Link}

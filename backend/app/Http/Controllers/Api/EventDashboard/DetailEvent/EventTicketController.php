@@ -15,6 +15,25 @@ class EventTicketController extends Controller
         // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
 
+        $missingSteps = [];
+        if ($event->eventTypes()->count() === 0) {
+            $missingSteps[] = 'tipe_event';
+        }
+        if (!$event->locationDetail || empty($event->locationDetail->type)) {
+            $missingSteps[] = 'lokasi';
+        }
+        if ($event->sessions()->count() === 0) {
+            $missingSteps[] = 'sesi';
+        }
+
+        if (!empty($missingSteps)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Tiket hanya bisa diisi jika sudah mengisi tipe event, lokasi, dan sesi.',
+                'missing_steps' => $missingSteps
+            ], 400);
+        }
+
         if (in_array($event->status, ['cancelled', 'completed'])) {
             $tickets = EventTicket::where('event_id', $eventId)->get();
             $data = $tickets->map(function ($ticket) use ($eventId) {
@@ -132,6 +151,28 @@ class EventTicketController extends Controller
      */
     public function update(Request $request, int $eventId)
     {
+        $event = Event::findOrFail($eventId);
+
+        $missingSteps = [];
+        if ($event->eventTypes()->count() === 0) {
+            $missingSteps[] = 'tipe_event';
+        }
+        if (!$event->locationDetail || empty($event->locationDetail->type)) {
+            $missingSteps[] = 'lokasi';
+        }
+        if ($event->sessions()->count() === 0) {
+            $missingSteps[] = 'sesi';
+        }
+
+        if (!empty($missingSteps)) {
+            return response()->json([
+                'success' => false,
+                'status'  => 'error',
+                'message' => 'Tiket hanya bisa diisi jika sudah mengisi tipe event, lokasi, dan sesi.',
+                'missing_steps' => $missingSteps
+            ], 400);
+        }
+
         // Validasi struktur data array tiket
         $request->validate([
             'tickets'                => 'required|array',
@@ -185,9 +226,8 @@ class EventTicketController extends Controller
             }
 
             // Hapus tiket yang tidak dikirim dari FE (termasuk tipe tiket yang tidak lagi valid)
-            $ticketIdsFromRequest = collect($request->tickets)->pluck('id')->filter()->toArray();
             $ticketsToDelete = EventTicket::where('event_id', $eventId)
-                       ->whereNotIn('id', $ticketIdsFromRequest)
+                       ->whereNotIn('id', $ticketIdsToKeep)
                        ->get();
 
             foreach ($ticketsToDelete as $ticket) {
@@ -208,14 +248,11 @@ class EventTicketController extends Controller
 
             DB::commit();
 
-            $event = \App\Models\Event::find($eventId);
-            $notified = $event ? $event->notifyParticipantsOfUpdate() : false;
-
             return response()->json([
                 'success' => true,
                 'status'  => 'success',
                 'message' => 'Data tiket berhasil disimpan',
-                'notified_participants' => $notified,
+                'notified_participants' => false,
             ], 200);
 
         } catch (\Exception $e) {

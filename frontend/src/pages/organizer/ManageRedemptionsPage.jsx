@@ -5,6 +5,7 @@ import { ClipboardList, Check, X, ShieldAlert, Search, Filter, Loader } from 'lu
 import toast from 'react-hot-toast';
 import api from '@/api/axios';
 import { useLoading } from '@/context/LoadingContext';
+import FormHeading from '@/components/dashboard/FormHeading';
 
 export default function ManageRedemptionsPage() {
 	const { eventId } = useParams();
@@ -138,45 +139,77 @@ export default function ManageRedemptionsPage() {
 	});
 
 	const getStatusBadge = (status) => {
+		let style = {};
+		let text = '';
+		let icon = '';
+
 		switch (status) {
 			case 'pending':
-				return <Badge bg="warning" className="px-2.5 py-1">🕒 Menunggu</Badge>;
+				style = { backgroundColor: 'var(--warning-bg)', color: 'var(--warning-text)', border: '1px solid var(--warning-border, #d9c266)' };
+				text = 'Menunggu';
+				icon = '🕒';
+				break;
 			case 'claimed':
-				return <Badge bg="success" className="px-2.5 py-1">🤝 Diambil (Fisik)</Badge>;
+				style = { backgroundColor: 'var(--success-bg)', color: 'var(--success-text)', border: '1px solid var(--success-border-color, #6da380)' };
+				text = 'Diambil (Fisik)';
+				icon = '🎁';
+				break;
 			case 'delivered':
-				return <Badge bg="success" className="px-2.5 py-1">📩 Terkirim (Digital)</Badge>;
+				style = { backgroundColor: 'var(--success-bg)', color: 'var(--success-text)', border: '1px solid var(--success-border-color, #6da380)' };
+				text = 'Terkirim (Digital)';
+				icon = '📩';
+				break;
 			case 'cancelled':
-				return <Badge bg="danger" className="px-2.5 py-1">❌ Dibatalkan</Badge>;
+				style = { backgroundColor: 'var(--danger-bg)', color: 'var(--danger-text)', border: '1px solid var(--danger-border-color, #fecaca)' };
+				text = 'Dibatalkan';
+				icon = '❌';
+				break;
 			default:
-				return <Badge bg="secondary" className="px-2.5 py-1">{status}</Badge>;
+				style = { backgroundColor: 'var(--neutral-bg)', color: 'var(--neutral-text)', border: '1px solid var(--neutral-border, #dae0eb)' };
+				text = status;
+				icon = '📝';
 		}
+
+		return (
+			<span 
+				className="px-2.5 py-1 rounded-3 fw-semibold d-inline-flex align-items-center gap-1.5"
+				style={{ ...style, fontSize: '0.75rem' }}
+			>
+				<span>{icon}</span>
+				<span>{text}</span>
+			</span>
+		);
 	};
 
 	return (
-		<div className="fade-in">
+		<div className="container-fluid p-0 fade-in">
 			{/* Header */}
-			<div className="mb-4">
-				<h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-					<ClipboardList className="text-primary" size={26} />
-					<span>Log Penukaran Reward Member</span>
-				</h4>
-				<p className="text-muted mb-0 small">
-					Kelola penyerahan hadiah fisik atau pengiriman voucher digital, serta tolak/batalkan penukaran dengan pengembalian poin otomatis.
-				</p>
-			</div>
+			<FormHeading
+				title="Log Penukaran Reward Member"
+				description="Kelola penyerahan hadiah fisik atau pengiriman voucher digital, serta tolak/batalkan penukaran dengan pengembalian poin otomatis."
+				className="mb-4"
+			/>
 
 			{/* Filter Cards */}
-			<Card className="border shadow-none rounded-4 mb-4">
+			<Card className="border shadow-sm rounded-4 mb-4 bg-white">
 				<Card.Body className="p-3.5">
 					<Row className="g-3 align-items-center">
 						<Col xs={12} md={5}>
-							<div className="d-flex align-items-center gap-2 bg-light border rounded-3 px-3 py-2">
-								<Search size={18} className="text-muted" />
-								<input 
+							<div className="position-relative d-flex align-items-center" style={{ maxWidth: '400px' }}>
+								<Search size={16} className="position-absolute start-0 ms-3 text-muted" style={{ pointerEvents: 'none' }} />
+								<Form.Control 
 									type="text" 
 									placeholder="Cari nama, email, atau hadiah..." 
-									className="bg-transparent border-0 w-100 outline-none"
-									style={{ fontSize: '0.88rem' }}
+									style={{
+										paddingLeft: '2.5rem',
+										fontSize: '0.85rem',
+										borderRadius: '10px',
+										border: '1.5px solid var(--border)',
+										backgroundColor: '#fafbfc',
+										outline: 'none',
+										boxShadow: 'none',
+									}}
+									className="py-2 text-dark"
 									value={searchTerm}
 									onChange={e => setSearchTerm(e.target.value)}
 								/>
@@ -188,8 +221,15 @@ export default function ManageRedemptionsPage() {
 								<Form.Select 
 									value={statusFilter} 
 									onChange={e => setStatusFilter(e.target.value)}
-									style={{ fontSize: '0.88rem' }}
-									className="py-2"
+									style={{
+										fontSize: '0.85rem',
+										borderRadius: '10px',
+										border: '1.5px solid var(--border)',
+										backgroundColor: '#fafbfc',
+										boxShadow: 'none',
+										outline: 'none',
+									}}
+									className="py-2 text-secondary fw-semibold"
 								>
 									<option value="all">Semua Status</option>
 									<option value="pending">🕒 Menunggu (Pending)</option>
@@ -204,7 +244,7 @@ export default function ManageRedemptionsPage() {
 			</Card>
 
 			{/* Logs Table */}
-			<Card className="border shadow-none rounded-4 overflow-hidden">
+			<Card className="border shadow-sm rounded-4 overflow-hidden bg-white mb-4">
 				{loading ? (
 					<div className="d-flex align-items-center justify-content-center py-5 text-muted" style={{ minHeight: '200px' }}>
 						<Spinner animation="border" variant="primary" style={{ width: 28, height: 28 }} />
@@ -213,15 +253,15 @@ export default function ManageRedemptionsPage() {
 				) : (
 					<div className="table-responsive">
 						<Table hover className="align-middle mb-0 custom-table">
-							<thead className="bg-light">
-								<tr className="text-secondary" style={{ fontSize: '0.82rem' }}>
-									<th className="px-4 py-3">Nama & Kontak Peserta</th>
-									<th className="py-3">Hadiah yang Ditukar</th>
-									<th className="py-3 text-center" style={{ width: '100px' }}>Poin spent</th>
-									<th className="py-3" style={{ width: '160px' }}>Waktu Penukaran</th>
-									<th className="py-3">Status</th>
-									<th className="py-3">Catatan / Alasan</th>
-									<th className="px-4 py-3 text-end" style={{ width: '200px' }}>Tindakan</th>
+							<thead>
+								<tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+									<th className="px-4 py-3 text-muted fw-bold text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.04em' }}>Nama & Kontak Peserta</th>
+									<th className="py-3 text-muted fw-bold text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.04em' }}>Hadiah yang Ditukar</th>
+									<th className="py-3 text-center text-muted fw-bold text-uppercase" style={{ width: '110px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Poin Spent</th>
+									<th className="py-3 text-muted fw-bold text-uppercase" style={{ width: '170px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Waktu Penukaran</th>
+									<th className="py-3 text-muted fw-bold text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.04em' }}>Status</th>
+									<th className="py-3 text-muted fw-bold text-uppercase" style={{ fontSize: '0.72rem', letterSpacing: '0.04em' }}>Catatan / Alasan</th>
+									<th className="px-4 py-3 text-end text-muted fw-bold text-uppercase" style={{ width: '180px', fontSize: '0.72rem', letterSpacing: '0.04em' }}>Tindakan</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -276,7 +316,8 @@ export default function ManageRedemptionsPage() {
 															<Button 
 																variant="success" 
 																size="sm" 
-																className="rounded-pill px-3 py-1.5 text-xs fw-semibold d-flex align-items-center gap-1 shadow-sm text-white"
+																className="rounded-3 px-3 py-1.5 text-xs fw-semibold d-flex align-items-center gap-1 border-0 text-white shadow-sm"
+																style={{ backgroundColor: 'var(--success-text)', transition: 'background-color 0.2s' }}
 																onClick={() => handleApprovePhysical(log.id)}
 															>
 																<Check size={12} /> Claim
@@ -285,7 +326,8 @@ export default function ManageRedemptionsPage() {
 															<Button 
 																variant="success" 
 																size="sm" 
-																className="rounded-pill px-3 py-1.5 text-xs fw-semibold d-flex align-items-center gap-1 shadow-sm text-white"
+																className="rounded-3 px-3 py-1.5 text-xs fw-semibold d-flex align-items-center gap-1 border-0 text-white shadow-sm"
+																style={{ backgroundColor: 'var(--success-text)', transition: 'background-color 0.2s' }}
 																onClick={() => handleOpenDeliverModal(log)}
 															>
 																<Check size={12} /> Deliver
@@ -294,7 +336,8 @@ export default function ManageRedemptionsPage() {
 														<Button 
 															variant="outline-danger" 
 															size="sm" 
-															className="rounded-pill px-3 py-1.5 text-xs fw-semibold d-flex align-items-center gap-1 border"
+															className="rounded-3 px-3 py-1.5 text-xs fw-semibold d-flex align-items-center gap-1 border bg-transparent"
+															style={{ color: 'var(--error-text)', borderColor: 'var(--error-border)' }}
 															onClick={() => handleOpenCancelModal(log)}
 														>
 															<X size={12} /> Cancel
@@ -335,14 +378,22 @@ export default function ManageRedemptionsPage() {
 								placeholder="e.g. Stok ukuran kaos tidak tersedia atau informasi kontak salah..."
 								value={cancellationReason}
 								onChange={e => setCancellationReason(e.target.value)}
+								style={{
+									borderRadius: '10px',
+									border: '1.5px solid var(--border)',
+									fontSize: '0.88rem',
+									outline: 'none',
+									boxShadow: 'none'
+								}}
+								className="p-2.5 text-dark"
 							/>
 						</Form.Group>
 					</Modal.Body>
 					<Modal.Footer className="border-0 pt-0">
-						<Button variant="outline-secondary" className="rounded-pill px-3.5" onClick={() => setShowCancelModal(false)}>
+						<Button variant="outline-secondary" className="rounded-3 px-3.5" onClick={() => setShowCancelModal(false)}>
 							Kembali
 						</Button>
-						<Button variant="danger" type="submit" className="rounded-pill px-3.5 text-white">
+						<Button variant="danger" type="submit" className="rounded-3 px-3.5 text-white border-0" style={{ backgroundColor: 'var(--error-text)' }}>
 							Batalkan & Refund
 						</Button>
 					</Modal.Footer>
@@ -369,14 +420,22 @@ export default function ManageRedemptionsPage() {
 								placeholder="e.g. GP-50K-XYZ987654321"
 								value={digitalVoucherCode}
 								onChange={e => setDigitalVoucherCode(e.target.value)}
+								style={{
+									borderRadius: '10px',
+									border: '1.5px solid var(--border)',
+									fontSize: '0.88rem',
+									outline: 'none',
+									boxShadow: 'none'
+								}}
+								className="p-2.5 text-dark"
 							/>
 						</Form.Group>
 					</Modal.Body>
 					<Modal.Footer className="border-0 pt-0">
-						<Button variant="outline-secondary" className="rounded-pill px-3.5" onClick={() => setShowDeliverModal(false)}>
+						<Button variant="outline-secondary" className="rounded-3 px-3.5" onClick={() => setShowDeliverModal(false)}>
 							Batal
 						</Button>
-						<Button variant="success" type="submit" className="rounded-pill px-3.5 text-white">
+						<Button variant="success" type="submit" className="rounded-3 px-3.5 text-white border-0" style={{ backgroundColor: 'var(--success-text)' }}>
 							Kirim Voucher
 						</Button>
 					</Modal.Footer>

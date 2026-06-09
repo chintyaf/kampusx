@@ -30,39 +30,6 @@ class AdminController extends Controller
         ], 200);
     }
 
-    /**
-     * 2. Approve/Reject Organizer
-     */
-    public function approveOrganizer(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:approved,rejected,pending',
-            'rejection_reason' => 'required_if:status,rejected|nullable|string|max:1000',
-            'can_resubmit' => 'nullable|boolean',
-        ]);
-        
-        $req = OrganizerRequest::findOrFail($id);
-        $user = User::findOrFail($req->user_id);
-        
-        $req->update([
-            'status' => $request->status,
-            'rejection_reason' => $request->status === 'rejected' ? $request->rejection_reason : null,
-            'can_resubmit' => $request->status === 'rejected' ? $request->input('can_resubmit', true) : true,
-        ]);
-        
-        if ($request->status === 'approved') {
-            $this->processOrganizerApproval($user, $req);
-        } elseif ($request->status === 'rejected') {
-            $this->processOrganizerRejection($user, $req, $request->rejection_reason);
-        } else {
-            $this->resetUserToParticipant($user);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Status pengajuan berhasil diubah menjadi {$request->status}"
-        ], 200);
-    }
 
     /**
      * 3. Suspend/Ban User
@@ -118,16 +85,6 @@ class AdminController extends Controller
         ], 200);
     }
 
-    /**
-     * 6. View All Organizer Requests
-     */
-    public function getOrganizerRequests()
-    {
-        return response()->json([
-            'success' => true,
-            'data' => OrganizerRequest::with(['user', 'institution'])->latest()->get()
-        ], 200);
-    }
 
     /* =========================================================================
        PRIVATE HELPER METHODS (Untuk menjaga controller tetap bersih dan rapi)
@@ -226,52 +183,6 @@ class AdminController extends Controller
         ];
     }
 
-    private function processOrganizerApproval(User $user, OrganizerRequest $req)
-    {
-        $universityId = null;
-
-        if ($req->institution_id) {
-            $universityId = $req->institution_id;
-        } elseif ($req->custom_institution_name) {
-            $newInstitution = Institution::create([
-                'name' => $req->custom_institution_name,
-                'type' => 'university',
-                'description' => 'Institusi baru terdaftar via pengajuan organizer.',
-            ]);
-            $universityId = $newInstitution->id;
-            $req->update(['institution_id' => $universityId]);
-        }
-
-        $user->update(['role' => 'organizer', 'university_id' => $universityId]);
-
-        $user->notify(new OperationalNotification(
-            'Persetujuan Organizer',
-            'Selamat! Pengajuan Anda sebagai Organizer telah DI-SETUJUI oleh Admin Pusat. Akun Anda aktif secara permanen dan otomatis kembali menjadi member jika tidak membuat event baru dalam 1 tahun. Silakan login kembali untuk menikmati akses fitur Organizer.',
-            'organizer_approved'
-        ));
-    }
-
-    private function processOrganizerRejection(User $user, OrganizerRequest $req, $reasonInput)
-    {
-        $this->resetUserToParticipant($user);
-        
-        $reason = $reasonInput ?? 'Maaf, pengajuan Anda belum memenuhi persyaratan.';
-        $resubmitText = $req->can_resubmit ? ' Silakan klik notifikasi ini untuk melakukan pengajuan ulang.' : ' Penolakan ini bersifat permanen.';
-        
-        $user->notify(new OperationalNotification(
-            'Persetujuan Organizer',
-            "Maaf, pengajuan Anda sebagai Organizer ditolak/ditangguhkan oleh Admin Pusat. Alasan: {$reason}{$resubmitText}",
-            'organizer_rejected'
-        ));
-    }
-
-    private function resetUserToParticipant(User $user)
-    {
-        $user->update([
-            'role' => 'participant',
-            'university_id' => null,
-        ]);
-    }
 
     private function mapStatusReason($rawReason)
     {

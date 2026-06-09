@@ -34,7 +34,7 @@ class TicketController extends Controller
         }
 
         // Pastikan hanya pemilik tiket yang bisa melihatnya
-        if ($ticket->participant_id !== $request->user()->id) {
+        if ((int) $ticket->participant_id !== (int) $request->user()->id) {
             return response()->json(['message' => 'Akses ditolak'], 403);
         }
 

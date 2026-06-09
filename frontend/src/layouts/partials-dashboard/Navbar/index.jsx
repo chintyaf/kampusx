@@ -92,11 +92,8 @@ const Navbar = ({ eventId, toggleSidebar, showToggleBtn }) => {
 							to="/organizer/buat-acara"
 							className="text-decoration-none d-none d-sm-block"
 						>
-							<button
-								className="btn btn-primary px-3 py-2"
-								style={{ fontSize: '14px' }}
-							>
-								Buat Event +
+							<button className="btn btn-primary px-3 py-1">
+								Buat Event
 							</button>
 						</NavLink>
 					)}
