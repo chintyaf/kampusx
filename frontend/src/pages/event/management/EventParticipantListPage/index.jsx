@@ -21,7 +21,6 @@ const EventParticipantListPage = () => {
 	const [isExporting, setIsExporting] = useState(false);
 	const [showAll, setShowAll] = useState(false);
 	const [attendanceFilter, setAttendanceFilter] = useState('');
-	const [searchTerm, setSearchTerm] = useState('');
 	const [revealed, setRevealed] = useState({});
 	const [pageInfo, setPageInfo] = useState({ current_page: 1, last_page: 1, total: 0 });
 
@@ -39,7 +38,6 @@ const EventParticipantListPage = () => {
 			setIsPageLoading(true);
 			const params = { all: showAll, page };
 			if (attendanceFilter) params.attendance = attendanceFilter;
-			if (searchTerm) params.search = searchTerm;
 
 			const response = await api.get(`/event-dashboard/${eventId}/daftar-peserta`, {
 				params,
@@ -68,13 +66,8 @@ const EventParticipantListPage = () => {
 	};
 
 	useEffect(() => {
-		const delayDebounce = setTimeout(() => {
-			if (eventId) {
-				fetchParticipants(1);
-			}
-		}, 300);
-		return () => clearTimeout(delayDebounce);
-	}, [eventId, showAll, attendanceFilter, searchTerm]);
+		if (eventId) fetchParticipants();
+	}, [eventId, showAll, attendanceFilter]);
 
 	const toggleReveal = (ticketId, field) => {
 		setRevealed((prev) => ({
@@ -123,8 +116,6 @@ const EventParticipantListPage = () => {
 
 			<div className="participant-card">
 				<ParticipantToolbar
-					searchTerm={searchTerm}
-					setSearchTerm={setSearchTerm}
 					attendanceFilter={attendanceFilter}
 					setAttendanceFilter={setAttendanceFilter}
 					showAll={showAll}

@@ -66,109 +66,82 @@ const SelectPost = () => {
         navigate('/staff/dashboard');
     };
 
-    const handleBackToModeSelection = () => {
-        localStorage.removeItem('staff_mode');
-        localStorage.removeItem('staff_selected_pos');
-        navigate('/staff/login');
-    };
-
     const handleLogout = () => {
         localStorage.clear();
         navigate('/staff/login');
     };
 
     return (
-        <div style={{ 
-            backgroundColor: 'var(--color-bg, #f4f5f7)', 
-            minHeight: '100vh', 
-            padding: '40px 16px',
-            color: 'var(--color-text, #0f172a)'
-        }}>
+        <div style={{ backgroundColor: 'var(--color-bg, #f8fafc)', minHeight: '100vh', padding: '40px 16px' }}>
             <Container style={{ maxWidth: '640px' }}>
                 
                 {/* Header */}
-                <div className="d-flex justify-content-between align-items-center mb-4 pb-3" style={{ borderBottom: '1px solid var(--color-border, #e2e8f0)' }}>
+                <div className="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h4 className="fw-extrabold mb-1 text-dark" style={{ tracking: '-0.03em' }}>Pilih Stasiun / POS</h4>
+                        <h4 className="fw-bold mb-0 text-dark">Pilih POS Kehadiran</h4>
                         {event && (
-                            <span className="text-muted small fw-semibold">
-                                Event: <strong style={{ color: 'var(--color-primary, #00699e)' }}>{event.title}</strong>
+                            <span className="text-primary small fw-semibold" style={{ color: '#1A365D' }}>
+                                Event: {event.title}
                             </span>
                         )}
                     </div>
-                    <div className="d-flex gap-2">
-                        <Button 
-                            variant="outline-secondary" 
-                            className="rounded-pill px-3 py-1.5 small border-0 bg-transparent text-secondary d-flex align-items-center gap-1.5 fw-bold"
-                            style={{ backgroundColor: 'rgba(100, 116, 139, 0.05)', fontSize: '0.85rem' }}
-                            onClick={handleBackToModeSelection}
-                        >
-                            <span>Kembali</span>
-                        </Button>
-                        <Button 
-                            variant="outline-danger" 
-                            className="rounded-pill px-3 py-1.5 small border-0 bg-transparent text-danger d-flex align-items-center gap-1.5 fw-bold"
-                            style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', fontSize: '0.85rem' }}
-                            onClick={handleLogout}
-                        >
-                            <LogOut size={15} />
-                            <span>Keluar</span>
-                        </Button>
-                    </div>
+                    <Button 
+                        variant="outline-danger" 
+                        className="rounded-pill px-3 py-1.5 small border-0 bg-transparent text-danger d-flex align-items-center gap-1.5"
+                        onClick={handleLogout}
+                    >
+                        <LogOut size={16} />
+                        <span>Keluar</span>
+                    </Button>
                 </div>
 
-                {error && <Alert variant="warning" className="rounded-3 mb-4 small border-0 text-warning bg-warning bg-opacity-10 py-2.5">{error}</Alert>}
+                {error && <Alert variant="warning" className="rounded-3 mb-4 small py-2">{error}</Alert>}
 
                 {isLoading ? (
                     <div className="text-center py-5">
-                        <Spinner animation="border" style={{ color: 'var(--color-primary, #00699e)' }} />
+                        <Spinner animation="border" variant="primary" />
                         <p className="text-muted mt-3 small">Memuat daftar POS aktif...</p>
                     </div>
                 ) : stations.length === 0 ? (
-                    <Alert variant="warning" className="rounded-3 py-4 text-center border-0 bg-warning bg-opacity-5">
-                        <MapPin size={40} className="text-warning mb-2 opacity-75" />
-                        <h5 className="fw-bold mb-1">Tidak Ada POS Aktif</h5>
-                        <p className="text-muted small mb-0">Event ini belum memiliki POS / Station check-in aktif.</p>
+                    <Alert variant="warning" className="rounded-3 shadow-sm py-4 text-center">
+                        <MapPin size={32} className="text-warning mb-2" />
+                        <h5>Tidak Ada POS Aktif</h5>
+                        <p className="text-muted small mb-0">Event ini belum memiliki POS / Station check-in aktif. Silakan hubungi Organizer untuk menambahkan POS terlebih dahulu.</p>
                     </Alert>
                 ) : (
-                    <div className="d-flex flex-column gap-3">
+                    <Row className="g-3">
                         {stations.map((station) => (
-                            <div key={station.id}>
+                            <Col xs={12} key={station.id}>
                                 <Card 
-                                    className="border-0 shadow-sm cursor-pointer" 
+                                    className="border-0 shadow-sm rounded-4 cursor-pointer hover-card" 
                                     onClick={() => handleSelectStation(station)}
                                     style={{
                                         borderRadius: '16px',
-                                        backgroundColor: '#ffffff',
-                                        border: '1px solid var(--color-border, #cbd5e1)',
                                         transition: 'all 0.2s ease',
                                         cursor: 'pointer'
                                     }}
                                     onMouseOver={(e) => {
                                         e.currentTarget.style.transform = 'translateY(-2px)';
-                                        e.currentTarget.style.borderColor = 'var(--color-primary, #00699e)';
-                                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.05)';
+                                        e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.06)';
                                     }}
                                     onMouseOut={(e) => {
                                         e.currentTarget.style.transform = 'translateY(0)';
-                                        e.currentTarget.style.borderColor = 'var(--color-border, #cbd5e1)';
-                                        e.currentTarget.style.boxShadow = 'none';
+                                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
                                     }}
                                 >
                                     <Card.Body className="p-4 d-flex align-items-center justify-content-between">
                                         <div className="d-flex align-items-center gap-3">
                                             <div style={{
-                                                width: '50px',
-                                                height: '50px',
+                                                width: '48px',
+                                                height: '48px',
                                                 borderRadius: '12px',
-                                                backgroundColor: 'var(--color-bg-2, #f1f5f9)',
-                                                color: 'var(--color-primary, #00699e)',
+                                                backgroundColor: '#e6fffa',
+                                                color: '#0d9488',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 overflow: 'hidden',
-                                                flexShrink: 0,
-                                                border: '1px solid var(--color-border, #cbd5e1)'
+                                                flexShrink: 0
                                             }}>
                                                 {station.photo_path ? (
                                                     <img 
@@ -181,28 +154,16 @@ const SelectPost = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                <h5 className="fw-bold mb-1 text-dark" style={{ fontSize: '1.05rem' }}>{station.name}</h5>
-                                                <span className="text-muted small" style={{ fontSize: '0.82rem' }}>{station.description || 'Stasiun operasional event'}</span>
+                                                <h5 className="fw-bold mb-0 text-dark">{station.name}</h5>
+                                                <span className="text-muted small">{station.description || 'Tidak ada deskripsi'}</span>
                                             </div>
                                         </div>
-                                        <div style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            borderRadius: '50%',
-                                            backgroundColor: 'var(--color-bg, #f8fafc)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            color: 'var(--color-secondary, #64748b)',
-                                            border: '1px solid var(--color-border, #cbd5e1)'
-                                        }}>
-                                            <ArrowRight size={16} />
-                                        </div>
+                                        <ArrowRight size={18} className="text-secondary" />
                                     </Card.Body>
                                 </Card>
-                            </div>
+                            </Col>
                         ))}
-                    </div>
+                    </Row>
                 )}
 
             </Container>

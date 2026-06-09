@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 
 import userImg from "../../assets/images/user-placeholder.avif";
 // import LogOut from "../../assets/icons/LogOut.svg";
-import { Bell, BellDotIcon, SquarePen, ChevronDown, LogOut, User } from "lucide-react";
+import { Bell, BellDotIcon, SquarePen, ChevronDown, LogOut } from "lucide-react";
 
 const ProfileDropdown = () => {
     const { user, logout } = useAuth();
@@ -43,15 +43,6 @@ const ProfileDropdown = () => {
                     className="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 pop-down"
                     style={{ minWidth: "150px" }}
                 >
-                    <li>
-                        <NavLink
-                            to={`/profile/${user.id}`}
-                            className="dropdown-item d-flex align-items-center gap-2 py-2"
-                        >
-                            <User size={16} />
-                            <span>Profil Saya</span>
-                        </NavLink>
-                    </li>
                 {(user.role === "admin" || user.role === "organizer") && (
                     <li>
                         <NavLink
@@ -92,7 +83,7 @@ const ProfileDropdown = () => {
                             onClick={handleLogout}
                         >
                             <LogOut size={16} />
-                            <span>Keluar</span>
+                            <span>Logout</span>
                         </button>
                     </li>
                 </ul>

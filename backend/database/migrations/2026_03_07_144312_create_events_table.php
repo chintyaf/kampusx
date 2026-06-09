@@ -126,9 +126,9 @@ return new class extends Migration {
             $table->text('offline_instruction')->nullable();
 
 
-            // Hybrid
-            $table->integer('online_quota')->nullable()->default(0);
-            $table->integer('offline_quota')->nullable()->default(0);
+            // Hybird
+            // $table->integer('online_quota')->nullable()->default(0);
+            // $table->integer('offline_quota')->nullable()->default(0);
 
             $table->timestamps();
         });

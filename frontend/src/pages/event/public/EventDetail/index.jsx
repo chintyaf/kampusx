@@ -21,7 +21,7 @@ const EventDetail = () => {
 	const [eventDetails, setEventDetails] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const [selectedTicket, setSelectedTicket] = useState(null);
+	const [selectedTicket, setSelectedTicket] = useState('day1');
 	const [isBookmarked, setIsBookmarked] = useState(false);
 	const [registration, setRegistration] = useState({
 		registered: false,
@@ -52,19 +52,6 @@ const EventDetail = () => {
 			fetchSingleEvent();
 		}
 	}, [slug]);
-
-	useEffect(() => {
-		if (eventDetails) {
-			const tickets = eventDetails.event_tickets || eventDetails.eventTickets || [];
-			if (tickets.length === 1) {
-				setSelectedTicket(tickets[0].id);
-			} else if (tickets.length === 0) {
-				setSelectedTicket('day1');
-			} else {
-				setSelectedTicket(null);
-			}
-		}
-	}, [eventDetails]);
 
 	useEffect(() => {
 		const checkUserRegistration = async () => {
@@ -105,8 +92,8 @@ const EventDetail = () => {
 			return;
 		}
 
-		navigate(`/checkout/${eventDetails?.id}?ticketId=${selectedTicket}`);
-		console.log('Navigasi ke halaman checkout dengan ID event:', eventDetails?.id, 'ticketId:', selectedTicket);
+		navigate(`/checkout/${eventDetails?.id}`);
+		console.log('Navigasi ke halaman checkout dengan ID event:', eventDetails?.id);
 	};
 
 	const handleToggleBookmark = async () => {

@@ -379,7 +379,7 @@ class EventCertificateController extends Controller
                 $labelPlaceholder = $element->custom_value ?? '{ Teks Kustom }';
                 if ($fieldId === 'f1') $labelPlaceholder = $ticket->attendee_name ?? '{ Nama Peserta }';
                 if ($fieldId === 'f2') $labelPlaceholder = $ticket->ticket_code ?? '{ ID Sertifikat }';
-                if ($fieldId === 'f3') $labelPlaceholder = config('app.frontend_url') . "/certificate/verify/{$ticketCode}";
+                if ($fieldId === 'f3') $labelPlaceholder = env('FRONTEND_URL') . "/certificate/verify/{$ticketCode}";
                 if ($fieldId === 'f4') $labelPlaceholder = $event->title ?? '{ Nama Event }';
                 if ($fieldId === 'f5') $labelPlaceholder = $event->start_date ? $event->start_date->translatedFormat('d F Y') : '{ Tanggal }';
                 if ($fieldId === 'f6') $labelPlaceholder = $organizerName;

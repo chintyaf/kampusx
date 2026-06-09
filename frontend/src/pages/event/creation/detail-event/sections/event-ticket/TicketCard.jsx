@@ -11,7 +11,6 @@ function TicketCard({
 	priceLocked = false,
 	eventStartDate = '',
 	locationType = 'offline',
-	eventStatus = 'draft',
 }) {
 	const [open, setOpen] = useState(true);
 
@@ -57,7 +56,7 @@ function TicketCard({
 	// LOGIKA VALIDASI PERINGATAN TANGGAL
 	// ==========================================
 	let startWarning = '';
-	if (eventStatus === 'draft' && ticket.sale_start) {
+	if (ticket.sale_start) {
 		const sVal = ticket.sale_start.slice(0, 16);
 		if (sVal < todayDateTime) {
 			startWarning = 'Waktu mulai tidak boleh di masa lalu.';
@@ -69,7 +68,7 @@ function TicketCard({
 	}
 
 	let endWarning = '';
-	if (eventStatus === 'draft' && ticket.sale_end) {
+	if (ticket.sale_end) {
 		const eVal = ticket.sale_end.slice(0, 16);
 		if (eVal < todayDateTime) {
 			endWarning = 'Waktu berakhir tidak boleh di masa lalu.';
@@ -139,7 +138,7 @@ function TicketCard({
 				</div>
 
 				<div className="d-flex align-items-center gap-3">
-					{/* {canDelete && (
+					{canDelete && (
 						<Button
 							variant="link"
 							className="p-0 text-danger"
@@ -152,7 +151,7 @@ function TicketCard({
 						>
 							<Trash2 size={18} strokeWidth={1.5} />
 						</Button>
-					)} */}
+					)}
 					{open ? (
 						<ChevronUp size={20} className="text-muted" strokeWidth={1.5} />
 					) : (

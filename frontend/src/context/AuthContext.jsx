@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
 			if (token) {
 				try {
 					const response = await api.get('/user');
+					// const response = await axios.get('http://localhost:8000/api/user');
 					setUser(response.data);
 					localStorage.setItem('user', JSON.stringify(response.data));
 				} catch (error) {
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }) => {
 	const logout = async () => {
 		try {
 			await api.post('/logout');
+			// await axios.post('http://localhost:8000/api/logout');
 		} catch (e) {
 			console.error('Logout di server gagal, tapi tetap bersihkan data lokal');
 		}

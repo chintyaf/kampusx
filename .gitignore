@@ -4,10 +4,3 @@ node_modules/
 frontend/.env
 frontend/.env.*
 frontend/.env
-backend.zip
-*.zip
-*.zip
-*.zip
-frontend/dist.zip
-frontend/.env
-/frontend

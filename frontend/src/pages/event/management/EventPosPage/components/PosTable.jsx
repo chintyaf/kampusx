@@ -17,9 +17,9 @@ const StatusBadge = ({ status }) => {
 				padding: '4px 10px',
 				borderRadius: 6,
 				fontWeight: 600,
-				backgroundColor: isActive ? 'var(--success-bg)' : 'var(--warning-bg)',
-				color: isActive ? 'var(--success-text)' : 'var(--warning-text)',
-				border: `1px solid ${isActive ? 'var(--success-border-color, #6da380)' : 'var(--warning-border, #d9c266)'}`,
+				backgroundColor: isActive ? '#ecfdf5' : '#fefce8',
+				color: isActive ? '#065f46' : '#854d0e',
+				border: `1px solid ${isActive ? '#a7f3d0' : '#fde68a'}`,
 			}}
 		>
 			<span
@@ -28,7 +28,7 @@ const StatusBadge = ({ status }) => {
 					height: 6,
 					borderRadius: '50%',
 					flexShrink: 0,
-					backgroundColor: isActive ? '#166534' : '#92400e',
+					backgroundColor: isActive ? '#10b981' : '#f59e0b',
 				}}
 			/>
 			{status}
@@ -90,38 +90,35 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) =>
 	};
 
 	return (
-		<div className="bg-white border shadow-sm rounded-4 overflow-hidden mb-4">
+		<div className="bg-white border rounded-3 shadow-none overflow-hidden">
 			{/* ── Table Toolbar / Header ── */}
-			<div className="p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 bg-white">
+			<div className="p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
 				{/* Bagian Kiri: PIN Panitia terintegrasi di tabel */}
-				<div className="d-flex align-items-center border rounded-3 px-3 py-2 gap-2 w-fit" style={{ backgroundColor: '#fafbfc', borderColor: 'var(--border)' }}>
-					<ShieldCheck size={16} style={{ color: 'var(--warning-text)' }} />
-					<span className="text-muted fw-semibold" style={{ fontSize: '0.82rem' }}>
+				<div className="d-flex align-items-center bg-light border rounded-2 px-3 py-2 gap-2 w-fit">
+					<ShieldCheck size={16} className="text-warning" />
+					<span className="text-muted fw-medium" style={{ fontSize: '0.85rem' }}>
 						PIN Akses Panitia:
 					</span>
 					<span
 						className="fw-bold text-dark font-monospace"
-						style={{ fontSize: '0.92rem', letterSpacing: '1px' }}
+						style={{ fontSize: '0.95rem', letterSpacing: '2px' }}
 					>
 						{posPin || '-'}
 					</span>
 					<div className="vr mx-1 opacity-25" style={{ height: '16px' }}></div>
-					<button
-						className="p-0 border-0 bg-transparent text-muted d-flex align-items-center"
+					<Button
+						variant="link"
+						className="p-0 border-0 text-muted d-flex align-items-center shadow-none text-decoration-none"
 						onClick={handleCopyPin}
-						style={{ cursor: 'pointer', transition: 'color 0.2s', outline: 'none' }}
-						onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text)'}
-						onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
 						title="Salin PIN"
 					>
-						<Copy size={13} />
-					</button>
+						<Copy size={14} />
+					</Button>
 					<div className="vr mx-1 opacity-25" style={{ height: '16px' }}></div>
-					<button
-						className="p-0 border-0 bg-transparent text-primary d-flex align-items-center gap-1"
-						style={{ fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer', outline: 'none', transition: 'color 0.2s' }}
-						onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary-mid)'}
-						onMouseLeave={(e) => e.currentTarget.style.color = 'var(--primary)'}
+					<Button
+						variant="link"
+						className="p-0 border-0 text-primary d-flex align-items-center gap-1 shadow-none text-decoration-none"
+						style={{ fontSize: '0.85rem' }}
 						onClick={() => {
 							const url = `${window.location.origin}/staff/login?pin=${posPin}`;
 							navigator.clipboard.writeText(url)
@@ -131,16 +128,24 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) =>
 						title="Salin Link Login Staf"
 					>
 						Salin Link Staf
-					</button>
+					</Button>
 				</div>
 
 				{/* Bagian Kanan: Search & Add Button */}
 				<div className="d-flex flex-wrap align-items-center gap-2">
+					{/* <div className="d-flex align-items-center gap-2 px-3 py-1 border rounded-2 bg-light">
+						<Search size={14} className="text-muted" />
+						<input
+							placeholder="Cari pos..."
+							className="border-0 bg-transparent text-sm"
+							style={{ outline: 'none', fontSize: '0.85rem', width: '150px' }}
+						/>
+					</div> */}
 					<Button
-						variant="primary"
-						className="d-flex align-items-center gap-2 px-3 py-2 shadow-sm rounded-3 fw-semibold text-white border-0"
+						variant="dark"
+						className="d-flex align-items-center gap-2 px-3 py-1 shadow-none rounded-2"
 						onClick={() => setShowForm(true)}
-						style={{ fontSize: '0.85rem', backgroundColor: 'var(--primary)' }}
+						style={{ fontSize: '0.85rem' }}
 					>
 						<Plus size={14} /> Tambah Pos
 					</Button>
@@ -215,20 +220,20 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) =>
 										<Button
 											variant="light"
 											size="sm"
-											className="border d-flex align-items-center justify-content-center p-2 bg-white shadow-sm rounded-3"
+											className="border d-flex align-items-center justify-content-center p-1 bg-white shadow-none"
 											onClick={() => handleEdit(pos)}
 											title="Edit"
 										>
-											<Pencil size={13} className="text-secondary" />
+											<Pencil size={14} className="text-secondary" />
 										</Button>
 										<Button
 											variant="light"
 											size="sm"
-											className="border d-flex align-items-center justify-content-center p-2 bg-white shadow-sm rounded-3"
+											className="border d-flex align-items-center justify-content-center p-1 bg-white shadow-none"
 											onClick={() => handleDelete(pos.id)}
 											title="Delete"
 										>
-											<Trash2 size={13} className="text-danger" />
+											<Trash2 size={14} className="text-danger" />
 										</Button>
 									</div>
 								</td>

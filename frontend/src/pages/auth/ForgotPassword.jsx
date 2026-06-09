@@ -33,18 +33,18 @@ const ForgotPassword = () => {
     const handleRequestOtp = async (e) => {
         e.preventDefault();
         if (!identifier.trim()) {
-            setErrorMsg('Silakan masukkan Email Anda');
+            setErrorMsg('Silakan masukkan Email atau Nomor HP.');
             return;
         }
         setIsLoading(true); setErrorMsg(''); setMessage('');
 
         try {
-            const response = await api.post('/forgot-password', { identifier });
+            const response = await api.post('/forgot-password', { email: identifier });
             setMessage(response.data.message || 'OTP berhasil dikirim!');
             setResolvedEmail(response.data.email); // Save the resolved email for next steps
             setStep(2); // Pindah ke Step 2 (Input OTP)
         } catch (error) {
-            setErrorMsg(error.response?.data?.message || 'Gagal mengirim OTP. Pastikan Email terdaftar.');
+            setErrorMsg(error.response?.data?.message || 'Gagal mengirim OTP. Pastikan Email/Nomor HP terdaftar.');
         } finally {
             setIsLoading(false);
         }
@@ -154,8 +154,8 @@ const ForgotPassword = () => {
             <div className="text-center mb-4">
                 <h3 className="fw-bold" style={{ color: 'var(--color-text)' }}>Reset Password</h3>
                 <p className="text-muted" style={{ fontSize: 'var(--font-sm)' }}>
-                    {step === 1 && "Masukkan Email Anda untuk menerima kode OTP."}
-                    {step === 2 && "Masukkan 6 digit kode OTP yang dikirim ke Email Anda."}
+                    {step === 1 && "Masukkan Email atau Nomor HP Anda untuk menerima kode OTP."}
+                    {step === 2 && "Masukkan 6 digit kode OTP yang dikirim ke kontak Anda."}
                     {step === 3 && "Buat password baru untuk akun Anda (minimal 8 karakter)."}
                 </p>
             </div>
@@ -167,9 +167,9 @@ const ForgotPassword = () => {
             {step === 1 && (
                 <Form onSubmit={handleRequestOtp}>
                     <Form.Group className="mb-4" controlId="formIdentifier">
-                        <Form.Label className="fw-semibold">Email</Form.Label>
+                        <Form.Label className="fw-semibold">Email atau Nomor HP</Form.Label>
                         <Form.Control 
-                            type="email" placeholder="Contoh: johndoe@gmail.com" 
+                            type="text" placeholder="Contoh: johndoe@gmail.com atau 08123456789" 
                             className="py-2 shadow-none" required
                             value={identifier} onChange={(e) => setIdentifier(e.target.value)}
                         />
@@ -214,7 +214,7 @@ const ForgotPassword = () => {
                             onClick={() => setStep(1)}
                             disabled={isLoading}
                         >
-                            Salah kontak? Ganti Email
+                            Salah kontak? Ganti Email/No HP
                         </Button>
                     </div>
                 </Form>

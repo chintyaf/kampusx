@@ -15,12 +15,7 @@
                 <div class="col-md-5 bg-dark text-white p-4 p-md-5 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-5">
-                            @php
-                                $logoUrl = (str_contains(request()->getHost(), 'localhost') || str_contains(request()->getHost(), '127.0.0.1'))
-                                    ? asset('images/Logo_Light_KampusX.svg')
-                                    : asset('storage/images/Logo_Light_KampusX.svg');
-                            @endphp
-                            <img src="{{ $logoUrl }}" alt="Logo KampusX" style="width: 120px;">
+                            <img src="{{ asset('images/Logo_Light_KampusX.svg') }}" alt="Logo KampusX" style="width: 120px;">
                             {{-- <h5 class="fw-bold mb-0">Kampus<span class="text-primary">X</span></h5> --}}
                             <span class="badge text-bg-secondary">Simulator</span>
                         </div>
@@ -127,7 +122,7 @@
                             @endif
                         </div>
                         @php
-                            $fallbackUrl = config('app.frontend_url');
+                            $fallbackUrl = env('FRONTEND_URL', 'http://localhost:5173');
                             $targetUrl = $fallbackUrl;
                             
                             // Find the event slug from the order to go back to the source event page
@@ -211,7 +206,7 @@
                         if (isRedirecting) return;
                         
                         const status = data.status;
-                        const redirectBase = '{{ $transaction->redirect_url ?: config("app.frontend_url") . "/ticket/" }}';
+                        const redirectBase = '{{ $transaction->redirect_url ?: env("FRONTEND_URL", "http://localhost:5173") . "/ticket/" }}';
                         
                         if (status === 'success' || status === 'failed' || status === 'expired') {
                             isRedirecting = true;

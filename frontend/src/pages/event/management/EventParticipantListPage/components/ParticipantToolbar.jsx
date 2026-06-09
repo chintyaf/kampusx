@@ -4,8 +4,6 @@ import { Search, Filter, Download } from 'lucide-react';
 import { ATTENDANCE_FILTERS } from './ParticipantHelpers';
 
 const ParticipantToolbar = ({
-	searchTerm,
-	setSearchTerm,
 	attendanceFilter,
 	setAttendanceFilter,
 	showAll,
@@ -23,10 +21,9 @@ const ParticipantToolbar = ({
 					<Search size={16} className="participant-search__icon" />
 					<input
 						type="text"
-						placeholder="Cari nama, email, atau tiket..."
+						placeholder="Cari peserta… (segera hadir)"
 						className="participant-search__input"
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
+						disabled
 					/>
 				</div>
 

@@ -147,19 +147,6 @@ class OrganizerQATest extends TestCase
     public function test_c7_manage_event_tickets()
     {
         $event = $this->createDraftEvent();
-        
-        // Setup prerequisites
-        $event->eventTypes()->sync([1]);
-        $event->locationDetail()->create([
-            'type' => 'online',
-            'meeting_link' => 'https://zoom.us/j/123456789'
-        ]);
-        $event->sessions()->create([
-            'title' => 'Opening',
-            'start_time' => '09:00',
-            'end_time' => '10:00'
-        ]);
-
         $response = $this->actingAs($this->organizer)->postJson("/api/event-dashboard/{$event->id}/info-utama/tickets", [
             'tickets' => [
                 [
@@ -178,29 +165,6 @@ class OrganizerQATest extends TestCase
             'event_id' => $event->id,
             'name' => 'Regular',
             'type' => 'online'
-        ]);
-    }
-
-    public function test_manage_event_tickets_fails_without_prerequisites()
-    {
-        $event = $this->createDraftEvent();
-        $response = $this->actingAs($this->organizer)->postJson("/api/event-dashboard/{$event->id}/info-utama/tickets", [
-            'tickets' => [
-                [
-                    'name' => 'Regular',
-                    'type' => 'online',
-                    'is_free' => true,
-                    'capacity' => 100,
-                    'sale_start' => now()->format('Y-m-d H:i:s'),
-                    'sale_end' => now()->addDays(4)->format('Y-m-d H:i:s')
-                ]
-            ]
-        ]);
-        
-        $response->assertStatus(400);
-        $response->assertJsonFragment([
-            'status' => 'error',
-            'message' => 'Tiket hanya bisa diisi jika sudah mengisi tipe event, lokasi, dan sesi.'
         ]);
     }
 

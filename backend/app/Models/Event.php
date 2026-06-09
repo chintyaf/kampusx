@@ -125,6 +125,11 @@ class Event extends Model
                 if (empty($location->platform)) {
                     $errors[] = 'Platform (Zoom, GMeet, dll) wajib diisi untuk akses online.';
                 }
+                // Gunakan null coalescing (??) untuk memastikan angka saat perbandingan
+                // Hanya validasi jika online_quota TIDAK null
+                if ($location?->online_quota !== null && $location->online_quota <= 0) {
+                    $errors[] = 'Kuota peserta online harus lebih dari 0.';
+                }
             }
 
             // B. Validasi Khusus Offline & Hybrid
@@ -138,6 +143,9 @@ class Event extends Model
                 if (empty($location->address_detail)) {
                     $errors[] = 'Alamat lengkap (jalan/nomor) lokasi offline wajib diisi.';
                 }
+                if ($location?->offline_quota !== null && $location->offline_quota <= 0) {
+                    $errors[] = 'Kuota peserta offline harus lebih dari 0.';
+                }
 
                 // Validasi Map (Minimal Maps URL atau Koordinat)
                 $hasCoords = !empty($location->latitude) && !empty($location->longitude);
@@ -147,21 +155,7 @@ class Event extends Model
             }
         }
 
-        // --- 4. Validasi Tiket & Kapasitas ---
-        $tickets = $this->eventTickets;
-
-        if ($tickets->isEmpty()) {
-            $errors[] = 'Event harus memiliki minimal 1 tiket.';
-        } else {
-            foreach ($tickets as $ticket) {
-                // capacity null = unlimited (valid), capacity > 0 = valid, capacity <= 0 = invalid
-                if (!is_null($ticket->capacity) && $ticket->capacity <= 0) {
-                    $errors[] = "Kapasitas tiket '{$ticket->name}' harus lebih dari 0 atau diatur ke Tak Terbatas.";
-                }
-            }
-        }
-
-        // --- 5. Validasi Sesi & Pembicara ---
+        // --- 4. Validasi Sesi & Pembicara ---
         $sessions = $this->sessions;
         if ($sessions->isEmpty()) {
             $errors[] = 'Jadwal atau sesi event belum dibuat.';

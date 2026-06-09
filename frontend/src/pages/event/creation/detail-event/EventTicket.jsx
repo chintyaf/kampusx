@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
 import EventLayout from '@/layouts/EventLayout';
 import TicketCard from '@/pages/event/creation/detail-event/sections/event-ticket/TicketCard';
@@ -6,7 +6,6 @@ import TicketSummary from '@/pages/event/creation/detail-event/sections/event-ti
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
 import useEventMeta from '@/hooks/useEventMeta';
-import TicketPrerequisitesWarning from './sections/event-location/TicketPrerequisitesWarning';
 
 // Helper: Ekstrak logika parsing harga
 const parsePriceNum = (val) => {
@@ -29,8 +28,6 @@ export default function EventTicket() {
 	const [eventStartDate, setEventStartDate] = useState('');
 	const [locationType, setLocationType] = useState('offline');
 	const [saved, setSaved] = useState(true);
-	const [error, setError] = useState(null);
-	const hasFetched = useRef(false);
 
 	const update = useCallback((id, patch) => {
 		setTickets((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -43,8 +40,6 @@ export default function EventTicket() {
 	}, []);
 
 	useEffect(() => {
-		if (hasFetched.current || !eventId) return;
-
 		const fetchData = async () => {
 			if (setIsPageLoading) setIsPageLoading(true);
 			try {
@@ -60,18 +55,15 @@ export default function EventTicket() {
 				setTickets(formattedFromApi);
 				setEventStartDate(event_start_date || '');
 				setLocationType(location_type || 'offline');
-				setError(null);
-				hasFetched.current = true;
 			} catch (err) {
 				console.error('Error fetching tickets:', err);
-				setError(err.response?.data || { message: 'Terjadi kesalahan saat memuat data tiket.' });
 			} finally {
 				if (setIsPageLoading) setIsPageLoading(false);
 			}
 		};
 
-		fetchData();
-	}, [eventId, setIsPageLoading]);
+		if (tickets.length === 0) fetchData();
+	}, [tickets.length, eventId, setIsPageLoading]);
 
 	const handleUpdate = async (shouldNotify = false) => {
 		const todayStr = getLocalIsoString();
@@ -111,7 +103,7 @@ export default function EventTicket() {
 					`Waktu Akhir Pendaftaran "${label}" wajib ditentukan.`,
 				);
 
-			if (eventStatus === 'draft' && startVal < todayStr)
+			if (startVal < todayStr)
 				return notify(
 					'error',
 					'Gagal!',
@@ -123,7 +115,7 @@ export default function EventTicket() {
 					'Gagal!',
 					`Mulai Pendaftaran "${label}" tidak bisa melebihi atau sama dengan hari H.`,
 				);
-			if (eventStatus === 'draft' && endVal < todayStr)
+			if (endVal < todayStr)
 				return notify(
 					'error',
 					'Gagal!',
@@ -180,8 +172,6 @@ export default function EventTicket() {
 			}
 		} catch (error) {
 			console.error('Gagal update data:', error.response?.data?.errors || error.message);
-			const errMsg = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan tiket.';
-			notify('error', 'Gagal!', errMsg);
 		}
 	};
 
@@ -200,28 +190,13 @@ export default function EventTicket() {
 
 			if (!hasName || !hasPrice || !hasCapacity || !startVal || !endVal) return false;
 
-			if (eventStatus === 'draft') {
-				if (startVal < todayStr || (maxStr && startVal >= maxStr)) return false;
-				if (endVal < todayStr || (maxStr && endVal > maxStr)) return false;
-			} else {
-				if (maxStr && startVal >= maxStr) return false;
-				if (maxStr && endVal > maxStr) return false;
-			}
+			if (startVal < todayStr || (maxStr && startVal >= maxStr)) return false;
+			if (endVal < todayStr || (maxStr && endVal > maxStr)) return false;
 			if (endVal <= startVal) return false;
 
 			return true;
 		});
-	}, [tickets, eventStartDate, eventStatus]);
-
-	if (error) {
-		return (
-			<TicketPrerequisitesWarning
-				error={error}
-				eventStatus={eventStatus}
-				hasParticipants={hasParticipants}
-			/>
-		);
-	}
+	}, [tickets, eventStartDate]);
 
 	return (
 		<EventLayout
@@ -285,7 +260,6 @@ export default function EventTicket() {
 							priceLocked={hasParticipants}
 							eventStartDate={eventStartDate}
 							locationType={locationType}
-							eventStatus={eventStatus}
 						/>
 					))}
 				</div>

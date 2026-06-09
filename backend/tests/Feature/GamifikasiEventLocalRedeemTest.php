@@ -139,32 +139,4 @@ class GamifikasiEventLocalRedeemTest extends TestCase
 
         $response->assertStatus(401);
     }
-
-    // 6. Get local rewards using slug
-    public function test_get_local_rewards_by_slug()
-    {
-        $this->awardLocalPoints(80);
-
-        $response = $this->actingAs($this->user)->getJson("/api/events/{$this->event->slug}/local-rewards");
-
-        $response->assertStatus(200);
-        $response->assertJsonPath('success', true);
-        $response->assertJsonPath('data.local_balance', 80);
-        $response->assertJsonCount(1, 'data.rewards');
-    }
-
-    // 7. Redeem local reward using slug
-    public function test_redeem_local_reward_by_slug()
-    {
-        $this->awardLocalPoints(100);
-
-        $response = $this->actingAs($this->user)->postJson("/api/events/{$this->event->slug}/local-rewards/redeem", [
-            'reward_id' => $this->reward->id,
-            'notes' => 'Size L'
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJsonPath('success', true);
-        $response->assertJsonPath('data.new_balance', 50);
-    }
 }

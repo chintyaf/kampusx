@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Spinner, Form, InputGroup } from 'react-bootstrap';
+import { Container, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
 import api from '../../../api/axios';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -28,14 +27,6 @@ const MemberDashboard = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [loadingPersonalized, setLoadingPersonalized] = useState(true);
 	const [pointsData, setPointsData] = useState({ current_local_points: 0, current_global_points: 0 });
-	const [searchKeyword, setSearchKeyword] = useState('');
-
-	const handleSearch = (e) => {
-		e.preventDefault();
-		if (searchKeyword.trim()) {
-			navigate('/explore-events?search=' + encodeURIComponent(searchKeyword.trim()));
-		}
-	};
 
 	const banners = [
 		{ id: 1, image: `${STORAGE_URL}/event-banners/1.jpg` },
@@ -314,21 +305,6 @@ const MemberDashboard = () => {
 						{user?.name ?? 'Member'}
 					</h1>
 				</div>
-
-				<Form onSubmit={handleSearch} style={{ marginBottom: 24 }}>
-					<InputGroup style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border)' }}>
-						<InputGroup.Text style={{ background: '#fff', borderRight: 'none', borderColor: 'transparent', paddingLeft: 16 }}>
-							<Search size={18} color="var(--color-secondary)" />
-						</InputGroup.Text>
-						<Form.Control
-							type="text"
-							placeholder="Cari nama event atau organizer..."
-							value={searchKeyword}
-							onChange={(e) => setSearchKeyword(e.target.value)}
-							style={{ borderLeft: 'none', border: 'none', padding: '12px 16px 12px 0', fontSize: 'var(--font-sm)', outline: 'none', boxShadow: 'none' }}
-						/>
-					</InputGroup>
-				</Form>
 
 				<QuickStatsSection
 					activeTicketsCount={activeTickets.length}

@@ -14,8 +14,7 @@ class OrganizerEventController extends Controller
     public function getOrgEvents(Request $request)
     {
         // 1. Get the events for this user
-        $events = Event::with(['locationDetail', 'sessions'])
-            ->where('organizer_id', $request->user()->id)
+        $events = Event::where('organizer_id', $request->user()->id)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($event) {

@@ -5,7 +5,6 @@ import SectionHeader from '../SectionHeader';
 import StatusPill from '../StatusPill';
 import { clr } from '../constants';
 import { STORAGE_URL } from '@/api/storage';
-import { formatDate } from '@/utils/dateUtils';
 
 const ActiveTicketsSection = ({ activeTickets }) => {
   const navigate = useNavigate();
@@ -105,7 +104,7 @@ const ActiveTicketsSection = ({ activeTickets }) => {
                         gap: 4,
                       }}>
                       <Calendar size={10} />
-                      {formatDate(ev.start_date)}
+                      {ev.start_date}
                     </span>
                     <span
                       style={{

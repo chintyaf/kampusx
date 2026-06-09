@@ -91,7 +91,7 @@ class EventAttendanceController extends Controller
         );
 
         // 6. Merakit URL Pendek Final di Backend
-        $frontendUrl = config('app.frontend_url');
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
         $finalUrl = "{$frontendUrl}/a/{$code}";
 
         // 7. Menyimpan URL Pendek dan Waktu Kedaluwarsa ke Database

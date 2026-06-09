@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Badge, Button, Collapse, Spinner } from 'react-bootstrap';
-import { ChevronDown, Trash2, CheckCircle, Users, BarChart2, Video } from 'lucide-react';
+import { ChevronDown, Trash2, CheckCircle, Users, BarChart2 } from 'lucide-react';
 import FilePreviewModal from './FilePreviewModal';
 import VideoPreviewModal from './VideoPreviewModal';
 import MaterialList from './MaterialList';
@@ -135,15 +135,13 @@ const SessionContentCard = ({
 	};
 
 	const completionStyle = getCompletionStyle(session.stats?.completionRate || 0);
-	const hasMaterials = !!(session.videoUrl || session.videoFileName || (session.materials && session.materials.length > 0));
 
 	return (
 		<div className="mb-4">
 			<div
 				style={{
 					backgroundColor: '#ffffff',
-					border: '1px solid #e2e8f0',
-					borderLeft: isExpanded ? '5px solid #00699e' : '5px solid #cbd5e1',
+					border: '1px solid #e2e8f0' /* Border dibuat solid abu-abu konsisten */,
 					borderRadius: '12px',
 					transition: 'all 0.2s ease-in-out',
 					overflow: 'hidden',
@@ -249,78 +247,6 @@ const SessionContentCard = ({
 							className="border-top p-4 d-flex flex-column gap-4 bg-white"
 							style={{ borderColor: '#e2e8f0' }}
 						>
-							{!hasMaterials && (
-								<div className="mb-2">
-									<p className="text-secondary fw-semibold mb-2" style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-										Pratinjau Konten Yang Dapat Ditambahkan
-									</p>
-									<div className="row g-3">
-										<div className="col-md-6">
-											<div
-												className="p-3 d-flex align-items-center gap-3 rounded"
-												style={{
-													border: '1px dashed #e2e8f0',
-													backgroundColor: '#f8fafc',
-													opacity: 0.65,
-													cursor: 'default',
-												}}
-											>
-												<div
-													className="d-flex align-items-center justify-content-center rounded"
-													style={{
-														width: '36px',
-														height: '36px',
-														backgroundColor: '#e2e8f0',
-														color: '#94a3b8',
-													}}
-												>
-													<Video size={16} />
-												</div>
-												<div>
-													<h6 className="mb-0 text-secondary fw-bold" style={{ fontSize: '13px' }}>
-														Video Replay Sesi
-													</h6>
-													<p className="mb-0 text-muted" style={{ fontSize: '11px' }}>
-														Unggah file video MP4 atau sematkan tautan YouTube
-													</p>
-												</div>
-											</div>
-										</div>
-										<div className="col-md-6">
-											<div
-												className="p-3 d-flex align-items-center gap-3 rounded"
-												style={{
-													border: '1px dashed #e2e8f0',
-													backgroundColor: '#f8fafc',
-													opacity: 0.65,
-													cursor: 'default',
-												}}
-											>
-												<div
-													className="d-flex align-items-center justify-content-center rounded"
-													style={{
-														width: '36px',
-														height: '36px',
-														backgroundColor: '#e2e8f0',
-														color: '#94a3b8',
-													}}
-												>
-													<CheckCircle size={16} />
-												</div>
-												<div>
-													<h6 className="mb-0 text-secondary fw-bold" style={{ fontSize: '13px' }}>
-														Slide Presentasi & PDF
-													</h6>
-													<p className="mb-0 text-muted" style={{ fontSize: '11px' }}>
-														Bagikan dokumen PDF, slide materi, atau kuis pendukung
-													</p>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							)}
-
 							<MaterialList
 								session={session}
 								onClearVideoUrl={async () => {
@@ -357,29 +283,6 @@ const SessionContentCard = ({
 									hadir dan telah mengisi survey.
 								</span>
 							</div>
-
-							<Button
-								variant={session.published ? 'outline-secondary' : 'primary'}
-								size="sm"
-								className="d-flex align-items-center gap-2"
-								disabled={isSaving}
-								onClick={(e) => {
-									e.stopPropagation();
-									handleSave(!session.published);
-								}}
-							>
-								{isSaving ? (
-									<>
-										<Spinner animation="border" size="sm" className="me-1" />
-										<span>Menyimpan...</span>
-									</>
-								) : (
-									<>
-										<CheckCircle size={14} />
-										<span>{session.published ? 'Batal' : 'Simpan'}</span>
-									</>
-								)}
-							</Button>
 						</div>
 					</div>
 				</Collapse>

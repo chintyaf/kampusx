@@ -26,7 +26,7 @@ Route::prefix('payment')->group(function () {
 
 // Named login route to redirect guest browser requests to React frontend login page
 Route::get('/login', function () {
-    $frontendUrl = config('app.frontend_url');
+    $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
     return redirect()->away($frontendUrl . '/login');
 })->name('login');
 

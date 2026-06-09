@@ -5,16 +5,16 @@ import LogoKampusX from "../assets/images/logo/Logo_KampusX.svg";
 
 const AuthLayout = () => {
     return (
-        <div className="min-vh-100 d-flex flex-column" style={{ backgroundColor: "var(--color-bg)" }}>
+        <div className="vh-100 d-flex flex-column" style={{ backgroundColor: "var(--color-bg)" }}>
             {/* Navbar Super Minimalis Khusus Auth */}
-            <nav className="p-3 p-md-4 text-center text-md-start">
+            <nav className="p-4 text-center text-md-start">
                 <Link to="/" className="text-decoration-none fw-bold fs-4" style={{ color: "var(--color-primary)" }}>
                     <img src={LogoKampusX} alt="Logo KampusX" style={{ height: 40 }} />
                 </Link>
             </nav>
 
             {/* Tempat Halaman Sign In / Sign Up akan dirender */}
-            <main className="flex-grow-1 d-flex align-items-start align-items-md-center justify-content-center pt-4 pt-md-0">
+            <main className="flex-grow-1 d-flex align-items-center justify-content-center">
                 <Outlet />
             </main>
         </div>

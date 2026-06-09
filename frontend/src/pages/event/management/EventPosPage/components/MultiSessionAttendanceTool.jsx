@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Spinner, Modal, Badge, Card, InputGroup, Dropdown } from 'react-bootstrap';
+import { Button, Form, Spinner, Modal, Badge, Card, InputGroup } from 'react-bootstrap';
 import {
 	Link as LinkIcon,
 	Copy,
@@ -8,7 +8,6 @@ import {
 	Clock,
 	CheckCircle,
 	AlertCircle,
-	MoreVertical,
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -50,7 +49,7 @@ const MultiSessionAttendanceTool = () => {
 			const res = await api.get(`/event-dashboard/${eventId}/attendance/links`);
 			if (res.data?.success) {
 				const data = res.data.data;
-
+				
 				// Auto-fill initialCheckIn if empty using first session's start time + 15 mins
 				let checkinExpires = formatDateTimeForInput(data.checkin_expires_at);
 				if (!checkinExpires && data.sessions && data.sessions.length > 0) {
@@ -125,18 +124,16 @@ const MultiSessionAttendanceTool = () => {
 		fetchAttendanceData();
 	}, [eventId]);
 
-	const handleGenerate = async (type, sessionId = null, customExpires = null) => {
-		let expiresAt = customExpires;
-		if (!expiresAt) {
-			if (type === 'in') expiresAt = initialCheckIn.expires;
-			else if (type === 'out') expiresAt = finalCheckOut.expires;
-			else if (type === 'session_in') {
-				const s = sessions.find((session) => session.id === sessionId);
-				expiresAt = s?.checkin.expires;
-			} else if (type === 'session_out') {
-				const s = sessions.find((session) => session.id === sessionId);
-				expiresAt = s?.checkout.expires;
-			}
+	const handleGenerate = async (type, sessionId = null) => {
+		let expiresAt = '';
+		if (type === 'in') expiresAt = initialCheckIn.expires;
+		else if (type === 'out') expiresAt = finalCheckOut.expires;
+		else if (type === 'session_in') {
+			const s = sessions.find((session) => session.id === sessionId);
+			expiresAt = s?.checkin.expires;
+		} else if (type === 'session_out') {
+			const s = sessions.find((session) => session.id === sessionId);
+			expiresAt = s?.checkout.expires;
 		}
 
 		if (!expiresAt) {
@@ -186,13 +183,13 @@ const MultiSessionAttendanceTool = () => {
 						prev.map((s) =>
 							s.id === sessionId
 								? {
-									...s,
-									checkin: {
-										link: finalUrl,
-										expires: formatDateTimeForInput(responseData.expires_at),
-										loading: false,
-									},
-								}
+										...s,
+										checkin: {
+											link: finalUrl,
+											expires: formatDateTimeForInput(responseData.expires_at),
+											loading: false,
+										},
+								  }
 								: s
 						)
 					);
@@ -201,13 +198,13 @@ const MultiSessionAttendanceTool = () => {
 						prev.map((s) =>
 							s.id === sessionId
 								? {
-									...s,
-									checkout: {
-										link: finalUrl,
-										expires: formatDateTimeForInput(responseData.expires_at),
-										loading: false,
-									},
-								}
+										...s,
+										checkout: {
+											link: finalUrl,
+											expires: formatDateTimeForInput(responseData.expires_at),
+											loading: false,
+										},
+								  }
 								: s
 						)
 					);
@@ -261,23 +258,6 @@ const MultiSessionAttendanceTool = () => {
 		}
 	};
 
-	const handleDateChange = (type, value, sessionId = null) => {
-		handleExpiresChange(type, value, sessionId);
-
-		const hasLink = (() => {
-			if (type === 'in') return !!initialCheckIn.link;
-			if (type === 'out') return !!finalCheckOut.link;
-			const s = sessions.find((session) => session.id === sessionId);
-			if (type === 'session_in') return !!s?.checkin.link;
-			if (type === 'session_out') return !!s?.checkout.link;
-			return false;
-		})();
-
-		if (hasLink && value) {
-			handleGenerate(type, sessionId, value);
-		}
-	};
-
 	if (isFetching) {
 		return (
 			<div className="bg-white border rounded-4 p-5 d-flex justify-content-center align-items-center" style={{ minHeight: '300px' }}>
@@ -289,51 +269,22 @@ const MultiSessionAttendanceTool = () => {
 		);
 	}
 
-	// Custom Toggle to hide caret in React-Bootstrap Dropdown
-	const CustomToggle = React.forwardRef(({ onClick }, ref) => (
-		<button
-			ref={ref}
-			onClick={(e) => {
-				e.preventDefault();
-				onClick(e);
-			}}
-			className="btn btn-light border p-0 d-flex align-items-center justify-content-center shadow-none"
-			style={{ height: '32px', width: '32px', borderRadius: '6px' }}
-			title="Opsi Lainnya"
-		>
-			<MoreVertical size={16} className="text-dark" />
-		</button>
-	));
-
 	const renderActionRow = (type, title, subtitle, data, icon, sessionId = null) => {
 		const hasLink = !!data.link;
 
 		return (
-			<div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between py-4 px-4 border-bottom last-border-0 gap-3">
+			<div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between p-3 border-bottom last-border-0 gap-3">
 				{/* Left Info Column */}
-				<div className="d-flex align-items-start gap-3 flex-grow-1">
-					<div className="mt-1 p-2 bg-light rounded text-muted d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '40px', height: '40px' }}>
+				<div className="d-flex align-items-start gap-3">
+					<div className="mt-1 p-2 bg-light rounded text-muted d-flex align-items-center justify-content-center" style={{ width: '36px', height: '36px' }}>
 						{icon}
 					</div>
-					<div className="flex-grow-1">
-						<div className="d-flex flex-wrap align-items-center gap-2 mb-1">
-							<Badge
-								bg={type.includes('in') ? 'success' : 'danger'}
-								style={{
-									fontSize: '0.725rem',
-									fontWeight: '600',
-									padding: '4px 8px',
-									borderRadius: '6px'
-								}}
-							>
-								{type.includes('in') ? 'Check-In' : 'Check-Out'}
-							</Badge>
-							<h6 className="fw-bold text-dark mb-0" style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
-								{title}
-							</h6>
+					<div>
+						<div className="fw-semibold text-dark" style={{ fontSize: '0.875rem' }}>
+							{title}
 						</div>
 						{subtitle && (
-							<div className="text-muted" style={{ fontSize: '0.8rem', fontWeight: '500' }}>
+							<div className="text-muted mt-0.5" style={{ fontSize: '0.75rem' }}>
 								{subtitle}
 							</div>
 						)}
@@ -341,55 +292,69 @@ const MultiSessionAttendanceTool = () => {
 				</div>
 
 				{/* Right Control/Action Column */}
-				<div className="d-flex flex-wrap align-items-center gap-3 justify-content-md-end flex-shrink-0">
-					<div className="d-flex align-items-center gap-2">
-						<span className="text-muted" style={{ fontSize: '0.8rem', fontWeight: 500 }}>
-							Batas Waktu:
-						</span>
+				<div className="d-flex flex-wrap align-items-center gap-2 justify-content-md-end">
+					<div className="d-flex align-items-center gap-1.5">
 						<Form.Control
 							type="datetime-local"
 							size="sm"
 							value={data.expires || ''}
-							onChange={(e) => handleDateChange(type, e.target.value, sessionId)}
+							onChange={(e) => handleExpiresChange(type, e.target.value, sessionId)}
 							className={`shadow-none border rounded-2 ${!data.expires && !data.link ? 'border-danger' : ''}`}
-							style={{ width: '175px', height: '32px', fontSize: '0.8rem' }}
+							style={{ width: '165px', height: '32px', fontSize: '0.8rem' }}
 							title="Batas waktu akses (Wajib)"
 							required
-							disabled={data.loading}
 						/>
-					</div>
-
-					{data.loading ? (
-						<div className="d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
-							<Spinner size="sm" variant="primary" style={{ width: '16px', height: '16px' }} />
-						</div>
-					) : hasLink ? (
-						<Dropdown align="end">
-							<Dropdown.Toggle as={CustomToggle} id={`dropdown-${type}-${sessionId || 'main'}`} />
-
-							<Dropdown.Menu className="shadow-sm border rounded-3" style={{ fontSize: '0.85rem' }}>
-								<Dropdown.Item onClick={() => handleShowQR(data.link, `${type.includes('in') ? 'Check-in' : 'Check-out'} - ${title}`)} className="d-flex align-items-center gap-2 py-2">
-									<QrCode size={14} className="text-muted" />
-									<span>Tampilkan QR Code</span>
-								</Dropdown.Item>
-								<Dropdown.Item onClick={() => handleCopy(data.link)} className="d-flex align-items-center gap-2 py-2">
-									<Copy size={14} className="text-muted" />
-									<span>Salin Link</span>
-								</Dropdown.Item>
-							</Dropdown.Menu>
-						</Dropdown>
-					) : (
 						<Button
-							variant="dark"
+							variant={hasLink ? "outline-secondary" : "dark"}
 							size="sm"
-							className="px-3 d-flex align-items-center justify-content-center shadow-none"
+							className="border px-2.5 d-flex align-items-center justify-content-center"
 							style={{ height: '32px', fontSize: '0.8rem', fontWeight: 500 }}
 							onClick={() => handleGenerate(type, sessionId)}
-							disabled={!data.expires}
+							disabled={data.loading || (!data.link && !data.expires)}
 						>
-							<LinkIcon size={12} className="me-1.5" />
-							Buat Link
+							{data.loading ? (
+								<Spinner size="sm" style={{ width: '12px', height: '12px' }} />
+							) : (
+								<>
+									<LinkIcon size={12} className="me-1" />
+									{hasLink ? 'Perbarui' : 'Buat Link'}
+								</>
+							)}
 						</Button>
+					</div>
+
+					{hasLink ? (
+						<div className="d-flex align-items-center gap-1">
+							<Button
+								variant="light"
+								size="sm"
+								onClick={() => handleShowQR(data.link, title)}
+								className="border px-2.5 d-flex align-items-center justify-content-center"
+								style={{ height: '32px' }}
+								title="Tampilkan QR Code"
+							>
+								<QrCode size={13} className="text-dark" />
+							</Button>
+							<Button
+								variant="light"
+								size="sm"
+								onClick={() => handleCopy(data.link)}
+								className="border px-2.5 d-flex align-items-center justify-content-center"
+								style={{ height: '32px' }}
+								title="Salin Link"
+							>
+								<Copy size={13} className="text-dark" />
+							</Button>
+						</div>
+					) : (
+						<Badge
+							bg="warning"
+							className="text-dark d-flex align-items-center gap-1.5 px-3 py-2 rounded-pill font-semibold border-0"
+							style={{ fontSize: '0.75rem', height: '32px' }}
+						>
+							<AlertCircle size={12} />
+							<span>Belum Dibuat</span>
+						</Badge>
 					)}
 				</div>
 			</div>
@@ -423,13 +388,15 @@ const MultiSessionAttendanceTool = () => {
 			<div className="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
 				<div>
 					<h5 className="mb-1 text-dark fw-bold" style={{ fontSize: '1.1rem' }}>
-						Link Presensi
+						Link Presensi Online
 					</h5>
 					<p className="mb-0 text-muted" style={{ fontSize: '0.8rem' }}>
 						Atur batas waktu pengisian dan bagikan tautan kehadiran peserta.
 					</p>
 				</div>
-
+				<Badge bg="light" className="text-dark border px-2.5 py-1 text-xs font-semibold rounded-pill">
+					Online Flow
+				</Badge>
 			</div>
 
 			<div className="border rounded-3 overflow-hidden d-flex flex-column bg-white">
@@ -453,16 +420,16 @@ const MultiSessionAttendanceTool = () => {
 												<React.Fragment key={session.id}>
 													{renderActionRow(
 														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+														`Check-in Masuk Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 														session.checkin,
 														<CheckCircle size={16} className="text-success" />,
 														session.id
 													)}
 													{renderActionRow(
 														'session_out',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+														`Check-out Keluar Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 														session.checkout,
 														<CheckCircle size={16} className="text-danger" />,
 														session.id
@@ -476,8 +443,8 @@ const MultiSessionAttendanceTool = () => {
 												<React.Fragment key={session.id}>
 													{renderActionRow(
 														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+														`Check-in Masuk Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 														session.checkin,
 														<CheckCircle size={16} className="text-success" />,
 														session.id
@@ -491,8 +458,8 @@ const MultiSessionAttendanceTool = () => {
 												<React.Fragment key={session.id}>
 													{renderActionRow(
 														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+														`Check-in Sesi: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 														session.checkin,
 														<Calendar size={16} className="text-primary" />,
 														session.id
@@ -506,16 +473,16 @@ const MultiSessionAttendanceTool = () => {
 												<React.Fragment key={session.id}>
 													{renderActionRow(
 														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+														`Check-in Sesi: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 														session.checkin,
 														<Calendar size={16} className="text-primary" />,
 														session.id
 													)}
 													{renderActionRow(
 														'session_out',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+														`Check-out Keluar Hari ${day}: ${session.title}`,
+														`Sesi ${idx + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 														session.checkout,
 														<CheckCircle size={16} className="text-danger" />,
 														session.id
@@ -536,7 +503,7 @@ const MultiSessionAttendanceTool = () => {
 						{/* 1. INITIAL CHECK-IN */}
 						{renderActionRow(
 							'in',
-							'Masuk Awal Event',
+							'Check-in Masuk Awal Event',
 							'Akses masuk utama & registrasi perangkat',
 							initialCheckIn,
 							<CheckCircle size={16} className="text-success" />
@@ -548,8 +515,8 @@ const MultiSessionAttendanceTool = () => {
 
 							return renderActionRow(
 								'session_in',
-								session.title,
-								`Sesi ${index + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
+								`Check-in Sesi: ${session.title}`,
+								`Sesi ${index + 1} (${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)})`,
 								session.checkin,
 								<Calendar size={16} className="text-primary" />,
 								session.id
@@ -559,7 +526,7 @@ const MultiSessionAttendanceTool = () => {
 						{/* 3. FINAL CHECK-OUT */}
 						{renderActionRow(
 							'out',
-							'Keluar Akhir Event',
+							'Check-out Keluar Akhir Event',
 							'Akses keluar setelah seluruh sesi selesai',
 							finalCheckOut,
 							<CheckCircle size={16} className="text-danger" />

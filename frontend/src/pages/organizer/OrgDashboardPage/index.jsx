@@ -2,7 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/api/axios';
 import StatCards from '@/components/dashboard/StatCards';
-import { Search, Plus, Users, Activity, Mic2, ShieldAlert } from 'lucide-react';
+import {
+	Search,
+	Plus,
+	Users,
+	Activity,
+	Mic2,
+	ShieldAlert,
+} from 'lucide-react';
 import { useLoading } from '@/context/LoadingContext';
 
 import './org-dashboard.css';
@@ -41,6 +48,8 @@ export default function OrgDashboardPage() {
 
 		fetchEvents();
 	}, []);
+
+
 
 	const activeEventsCount = events.filter(
 		(e) => e.status === 'published' || e.status === 'ongoing',
@@ -140,11 +149,10 @@ export default function OrgDashboardPage() {
 										/>
 									</div>
 									<button
-										onClick={() => navigate('/organizer/buat-acara')}
+										onClick={() => navigate('/organizer/create-event')}
 										className="btn btn-dark d-flex align-items-center gap-2 px-3 py-2 fw-medium fs-4 rounded-2 text-nowrap"
 									>
-										Buat Event
-										<Plus size={16} />
+										<Plus size={16} /> Buat Event
 									</button>
 								</div>
 							</div>

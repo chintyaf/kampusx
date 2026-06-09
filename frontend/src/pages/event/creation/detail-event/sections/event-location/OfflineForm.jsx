@@ -28,10 +28,7 @@ const OfflineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => 
 					onChange={onChange}
 					onBlur={() => handleBlur('location_name')}
 					placeholder="Contoh: Gedung Rektorat..."
-					isInvalid={
-						touched.location_name &&
-						(!data?.location_name || data.location_name.trim() === '')
-					}
+					isInvalid={touched.location_name && (!data?.location_name || data.location_name.trim() === '')}
 				/>
 				<Form.Control.Feedback type="invalid">
 					Ringkasan lokasi wajib diisi.
@@ -40,11 +37,6 @@ const OfflineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => 
 					Nama lokasi singkat yang muncul di kartu event halaman publik.
 				</Form.Text>
 			</Form.Group>
-
-			{/* Panggil komponen peta */}
-			<div>
-				<OfflineLocationInput onLocationChange={handleMapLocationChange} data={data} />
-			</div>
 
 			{/* Detail Lokasi Spesifik */}
 			<Form.Group controlId="formLocationDetail" className="mb-4">
@@ -91,6 +83,9 @@ const OfflineForm = ({ data, onChange, errors, touched = {}, handleBlur = () => 
 					</Form.Text>
 				</div>
 			</Form.Group>
+
+			{/* Panggil komponen peta */}
+			<OfflineLocationInput onLocationChange={handleMapLocationChange} data={data} />
 		</>
 	);
 };

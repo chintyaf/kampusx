@@ -25,18 +25,6 @@ class LocalRewardController extends Controller
             ], 401);
         }
 
-        // Resolve slug to numeric ID if necessary
-        if (!is_numeric($eventId)) {
-            $event = \App\Models\Event::where('slug', $eventId)->first();
-            if (!$event) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Event tidak ditemukan.'
-                ], 404);
-            }
-            $eventId = $event->id;
-        }
-
         try {
             // Ambil reward bertipe 'local' spesifik untuk event ini
             $rewards = Reward::where('event_id', $eventId)
@@ -66,23 +54,11 @@ class LocalRewardController extends Controller
         }
     }
 
-/**
-     * Redeem Local Reward
+    /**
+     * Redeem a local reward using event-specific local points.
      */
     public function redeemLocalReward(Request $request, $eventId)
     {
-        // Resolve slug to numeric ID if necessary
-        if (!is_numeric($eventId)) {
-            $event = \App\Models\Event::where('slug', $eventId)->first();
-            if (!$event) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Event tidak ditemukan.'
-                ], 404);
-            }
-            $eventId = $event->id;
-        }
-
         $request->validate([
             'reward_id' => 'required|exists:rewards,id',
             'notes' => 'nullable|string',

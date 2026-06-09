@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Navigate } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import EventOrganizerGuard from '@/components/guards/EventOrganizerGuard';
 
 // ==========================================
@@ -9,7 +9,7 @@ import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
 import ManageAnnouncements from '../pages/organizer/ManageAnnouncements';
 
-import CreateEvent from '@/pages/event/creation/CreateEvent/CreateEvent';
+import CreateEvent from '@/pages/event/creation/CreateEvent/index';
 import EventGeneralInfo from '@/pages/event/creation/detail-event/EventGeneralInfo';
 import EventScheduleLocation from '@/pages/event/creation/detail-event/EventLocation';
 import EventSession from '@/pages/event/creation/detail-event/EventSession';
@@ -27,14 +27,10 @@ import ManageRedemptionsPage from '../pages/organizer/ManageRedemptionsPage';
 import KioskModePage from '../pages/organizer/KioskModePage';
 
 // ==========================================
-// 🟡 KOMPONEN DIAKTIFKAN KEMBALI
-// ==========================================
-import EventMaterial from '@/pages/event/management/EventMaterialPage/index';
-
-// ==========================================
 // 🔴 KOMPONEN TIDAK DIPAKAI / DISIMPAN SEMENTARA
 // ==========================================
 /*
+import EventMaterial from '@/pages/event/management/EventMaterialPage/index';
 import EventQuiz from '@/pages/event/management/EventQuizPage/index';
 import EventLocationTest from '@/pages/event/creation/EventLocationTest/index';
 import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventPreviewPage';
@@ -61,43 +57,54 @@ export const OrganizerRoutes = (
 		<Route path=":eventId/event-dashboard" element={<EventOrganizerGuard />}>
 			{/* Halaman Default (Dashboard) */}
 			<Route index element={<EventDashboardPage />} />
+
 			{/* ========================================== */}
 			{/* EVENT DASHBOARD ROUTES                     */}
 			{/* ========================================== */}
 			<Route index element={<EventDashboardPage />} />
+
 			{/* Pemecahan Detail Event (Bungkus dengan path "detail") */}
 			<Route path="info" element={<EventGeneralInfo />} />
 			<Route path="tempat" element={<EventScheduleLocation />} />
 			<Route path="sesi" element={<EventSession />} />
 			<Route path="tiket" element={<EventTicket />} />
+			
+			{/* Operasional / Manajemen Peserta */}
+			<Route path="daftar-peserta" element={<EventParticipantList />} />
+			<Route path="check-in" element={<EventPosPage />} />
 
-			{/* Modul Materi */}
-			<Route path="materi-acara" element={<EventMaterial />} />
+			{/* Modul Belajar & Interaksi */}
+			<Route path="materi-after" element={<EventPostMaterial />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
 			<Route path="sertifikat" element={<EventCertificatePage />} />
 			<Route path="pengumuman" element={<ManageAnnouncements />} />
-
 			{/* Operasional / Manajemen Peserta */}
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
-			<Route path="redemptions" element={<ManageRedemptionsPage />} />
-			<Route path="rewards" element={<ManageRewardsPage />} />
-			
+			{/* Karena disatukan, arahkan check-in ke PosPage. Jika butuh scanner, bisa diakses dari dalam PosPage */}
 			<Route path="check-in" element={<EventPosPage />} />
 
+			{/* Modul Belajar & Interaksi */}
+			<Route path="materi-after" element={<EventPostMaterial />} />
+			<Route path="survey-form" element={<EventSurveyPage />} />
+			<Route path="sertifikat" element={<EventCertificatePage />} />
+			<Route path="pengumuman" element={<ManageAnnouncements />} />
+			<Route path="rewards" element={<ManageRewardsPage />} />
+			<Route path="redemptions" element={<ManageRedemptionsPage />} />
 			<Route path="kiosk" element={<KioskModePage />} />
 
 			{/* ========================================== */}
 			{/* ROUTE TIDAK DIPAKAI / HIDDEN DARI MENU     */}
 			{/* ========================================== */}
 			{/*
-			<Route path="scanner" element={<ScannerPage />} />
-			<Route path="kuis" element={<EventQuiz />} />
-			<Route path="statistik" element={<EventStatistics />} />
-			<Route path="wallet-split" element={<EventWalletSplitPage />} />
-			<Route path="revenue-analytic" element={<EventAnalyticsPage />} />
-			<Route path="promosi" element={<EventPromotion />} />
-			<Route path="event-location-test" element={<EventLocationTest />} />
-			*/}
+			<Route path="scanner" element={<ScannerPage />} /> // Opsional jika ingin tetap diakses via URL langsung
+            <Route path="materi-acara" element={<EventMaterial />} />
+            <Route path="kuis" element={<EventQuiz />} />
+            <Route path="statistik" element={<EventStatistics />} />
+            <Route path="wallet-split" element={<EventWalletSplitPage />} />
+            <Route path="revenue-analytic" element={<EventAnalyticsPage />} />
+            <Route path="promosi" element={<EventPromotion />} />
+            <Route path="event-location-test" element={<EventLocationTest />} />
+            */}
 		</Route>
 	</Route>
 );

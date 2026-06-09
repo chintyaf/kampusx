@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
 	BookOpen,
 	ScanLine,
@@ -10,7 +10,6 @@ import {
 	ChevronUp,
 	CheckCircle,
 	Circle,
-	X,
 } from 'lucide-react';
 
 /**
@@ -18,15 +17,12 @@ import {
  * Panduan step-by-step cara kerja sistem presensi di halaman Check-in / Event POS.
  * Menampilkan dua jalur: Scanner QR (offline) dan Magic Link (online).
  */
-const PosGuideCard = ({ eventType = 'offline', onClose }) => {
-	const isOffline = eventType === 'offline';
-	const [openSection, setOpenSection] = useState(isOffline ? 'scanner' : 'magic_link');
-
-	useEffect(() => {
-		setOpenSection(eventType === 'offline' ? 'scanner' : 'magic_link');
-	}, [eventType]);
+const PosGuideCard = ({ eventType = 'offline' }) => {
+	const [openSection, setOpenSection] = useState(null);
 
 	const toggle = (id) => setOpenSection((prev) => (prev === id ? null : id));
+
+	const isOffline = eventType === 'offline';
 
 	const GUIDES = [
 		{
@@ -127,7 +123,7 @@ const PosGuideCard = ({ eventType = 'offline', onClose }) => {
 		<div
 			style={{
 				background: '#fff',
-				border: onClose ? 'none' : '1px solid #E2E8F0',
+				border: '1px solid #E2E8F0',
 				borderRadius: 12,
 				overflow: 'hidden',
 			}}
@@ -139,61 +135,32 @@ const PosGuideCard = ({ eventType = 'offline', onClose }) => {
 					borderBottom: '1px solid #E2E8F0',
 					display: 'flex',
 					alignItems: 'center',
-					justifyContent: 'space-between',
 					gap: 12,
 					background: '#FAFBFC',
 				}}
 			>
-				<div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
-					<div
-						style={{
-							width: 34,
-							height: 34,
-							borderRadius: 8,
-							background: '#FEF3C7',
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							flexShrink: 0,
-						}}
-					>
-						<BookOpen size={17} color="#D97706" />
-					</div>
-					<div style={{ minWidth: 0 }}>
-						<div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-							Cara Kerja Sistem Presensi
-						</div>
-						<div style={{ fontSize: 11.5, color: '#64748B', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-							Pilih metode yang sesuai dengan format event Anda
-						</div>
-					</div>
-				</div>
-				<button
-					onClick={onClose}
+				<div
 					style={{
-						background: 'transparent',
-						border: 'none',
-						padding: 4,
-						cursor: 'pointer',
-						color: '#94A3B8',
+						width: 34,
+						height: 34,
+						borderRadius: 8,
+						background: '#FEF3C7',
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
-						borderRadius: 4,
-						transition: 'color 0.15s, background-color 0.15s',
+						flexShrink: 0,
 					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.color = '#475569';
-						e.currentTarget.style.backgroundColor = '#F1F5F9';
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.color = '#94A3B8';
-						e.currentTarget.style.backgroundColor = 'transparent';
-					}}
-					title="Tutup Panduan"
 				>
-					<X size={16} />
-				</button>
+					<BookOpen size={17} color="#D97706" />
+				</div>
+				<div>
+					<div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F172A' }}>
+						Cara Kerja Sistem Presensi
+					</div>
+					<div style={{ fontSize: 11.5, color: '#64748B', marginTop: 1 }}>
+						Pilih metode yang sesuai dengan format event Anda
+					</div>
+				</div>
 			</div>
 
 			{/* ── Guide sections ──────────────────────────────────── */}

@@ -4,7 +4,6 @@ import { Calendar, MapPin, QrCode, ArrowRight, Ticket, History, MoreHorizontal }
 import { Link } from 'react-router-dom';
 
 import api from '../../api/axios'; 
-import { formatDate } from '@/utils/dateUtils';
 
 const TicketCard = ({ ticket, isActive }) => {
     const event = ticket.order_item?.order?.event;
@@ -24,7 +23,7 @@ const TicketCard = ({ ticket, isActive }) => {
                 <div className="d-flex gap-4 text-muted mt-3" style={{ fontSize: '14px' }}>
                     <div className="d-flex align-items-center gap-2">
                         <Calendar size={16} className="text-primary" />
-                        <span>{event.start_date ? formatDate(event.start_date) : 'TBA'}</span>
+                        <span>{event.start_date || 'TBA'}</span>
                     </div>
                     <div className="d-flex align-items-center gap-2">
                         <MapPin size={16} className="text-primary" />

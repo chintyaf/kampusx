@@ -8,9 +8,6 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Event;
 use App\Models\EventStation;
 use App\Models\Ticket;
-use App\Models\Activity;
-use App\Models\PointTransaction;
-use App\Models\LocalMemberPoint;
 use Carbon\Carbon;
 
 class StaffController extends Controller
@@ -101,7 +98,7 @@ class StaffController extends Controller
         // 1. VERIFIKASI STRICT EVENT ID MATCH
         $ticketOrderItem = $ticket->orderItem;
         $ticketOrder = $ticketOrderItem ? $ticketOrderItem->order : null;
-        if (!$ticketOrder || (int) $ticketOrder->event_id !== (int) $event->id) {
+        if (!$ticketOrder || $ticketOrder->event_id !== $event->id) {
             return response()->json(['message' => 'Tiket tidak terdaftar untuk event ini.'], 422);
         }
 
@@ -221,7 +218,7 @@ class StaffController extends Controller
         // 1. VERIFIKASI STRICT EVENT ID MATCH
         $ticketOrderItem = $ticket->orderItem;
         $ticketOrder = $ticketOrderItem ? $ticketOrderItem->order : null;
-        if (!$ticketOrder || (int) $ticketOrder->event_id !== (int) $event->id) {
+        if (!$ticketOrder || $ticketOrder->event_id !== $event->id) {
             return response()->json(['message' => 'Tiket tidak terdaftar untuk event ini.'], 422);
         }
 
@@ -331,7 +328,7 @@ class StaffController extends Controller
         $query = $request->query('q');
 
         // Cari tiket yang terkait dengan order lunas di event ini
-        $ticketsQuery = Ticket::with(['participant.localPoints'])->whereHas('orderItem.order', function ($q) use ($event) {
+        $ticketsQuery = Ticket::whereHas('orderItem.order', function ($q) use ($event) {
             $q->where('event_id', $event->id)->where('status', 'paid');
         });
 
@@ -346,10 +343,10 @@ class StaffController extends Controller
             });
             
             // Batasi hanya untuk query pencarian agar ringan
-            $tickets = $ticketsQuery->take(15)->get();
+            $tickets = $ticketsQuery->take(15)->get(['id', 'attendee_name', 'attendee_email', 'ticket_code', 'status']);
         } else {
             // Jika tidak ada query (load awal), ambil semua untuk menu daftar peserta
-            $tickets = $ticketsQuery->get();
+            $tickets = $ticketsQuery->get(['id', 'attendee_name', 'attendee_email', 'ticket_code', 'status']);
         }
 
         return response()->json([
@@ -389,161 +386,5 @@ class StaffController extends Controller
             'checked_in' => $checkedIn,
             'remaining' => $notCheckedIn
         ];
-    }
-
-    /**
-     * POST /api/v1/staff/kiosk-scan
-     * Memproses scan Kiosk berpoin dari staff (tanpa organizer login, menggunakan PIN).
-     */
-    public function kioskScan(Request $request)
-    {
-        $validated = $request->validate([
-            'ticket_code' => 'required|string',
-            'activity_slug' => 'required|string|in:check_in,ask_question,booth_visit',
-            'description' => 'nullable|string',
-            'pos_pin' => 'nullable|string'
-        ]);
-
-        $ticketCode = strtoupper(trim($validated['ticket_code']));
-        $activitySlug = $validated['activity_slug'];
-        $description = $validated['description'] ?? null;
-
-        // Cari tiket dan event-nya
-        $ticket = Ticket::with(['orderItem.order'])
-            ->where('ticket_code', $ticketCode)
-            ->first();
-
-        if (!$ticket || $ticket->status === 'cancelled') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Tiket tidak valid atau telah dibatalkan.'
-            ], 422);
-        }
-
-        $eventId = $ticket->orderItem->order->event_id ?? null;
-        $event = Event::find($eventId);
-
-        if (!$event) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Event tidak ditemukan.'
-            ], 404);
-        }
-
-        $userId = $ticket->participant_id;
-        if (!$userId) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Peserta tidak terhubung dengan user account.'
-            ], 422);
-        }
-
-        // Ambil/buat master activity
-        $defaultActivities = [
-            'check_in' => ['name' => 'Check-in Kehadiran', 'points' => 50],
-            'ask_question' => ['name' => 'Tanya Jawab (Ask Question)', 'points' => 10],
-            'booth_visit' => ['name' => 'Kunjungan Booth (Booth Visit)', 'points' => 15],
-        ];
-
-        $activityInfo = $defaultActivities[$activitySlug];
-        $activity = Activity::firstOrCreate(
-            ['slug' => $activitySlug],
-            [
-                'name' => $activityInfo['name'],
-                'points_rewarded' => $activityInfo['points'],
-                'type' => 'local',
-                'is_active' => true
-            ]
-        );
-
-        // Validasi double claim (anti fraud)
-        if ($activitySlug === 'check_in') {
-            $exists = PointTransaction::where('user_id', $userId)
-                ->where('event_id', $eventId)
-                ->where('activity_id', $activity->id)
-                ->exists();
-            if ($exists) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Peserta ini sudah melakukan check-in kehadiran sebelumnya.'
-                ], 422);
-            }
-        }
-
-        if ($activitySlug === 'booth_visit') {
-            $boothName = $description ?: 'Booth';
-            $exists = PointTransaction::where('user_id', $userId)
-                ->where('event_id', $eventId)
-                ->where('activity_id', $activity->id)
-                ->where('description', $boothName)
-                ->exists();
-            if ($exists) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "Peserta sudah memindai kunjungan \"{$boothName}\" sebelumnya."
-                ], 422);
-            }
-        }
-
-        $points = $activity->points_rewarded;
-
-        $result = DB::transaction(function () use ($userId, $eventId, $activity, $points, $description) {
-            $localPoint = LocalMemberPoint::firstOrCreate(
-                ['user_id' => $userId, 'event_id' => $eventId],
-                ['points_balance' => 0]
-            );
-
-            $lockedPoint = LocalMemberPoint::where('id', $localPoint->id)
-                ->lockForUpdate()
-                ->first();
-
-            $oldBalance = $lockedPoint->points_balance;
-            $lockedPoint->points_balance += $points;
-            $lockedPoint->save();
-
-            PointTransaction::create([
-                'type' => 'local',
-                'user_id' => $userId,
-                'event_id' => $eventId,
-                'activity_id' => $activity->id,
-                'amount' => $points,
-                'description' => $description ?: $activity->name,
-            ]);
-
-            return [
-                'old_balance' => $oldBalance,
-                'new_balance' => $lockedPoint->points_balance
-            ];
-        });
-
-        // NOTIFICATION: Kirim notifikasi ke peserta
-        $participantUser = \App\Models\User::find($userId);
-        if ($participantUser) {
-            $stasiunName = $description ?: $activity->name;
-            $participantUser->notify(new \App\Notifications\OperationalNotification(
-                "Poin Aktivitas Ditambahkan!",
-                "Selamat! Kamu mendapatkan +{$points} poin dari aktivitas \"{$activity->name}\".",
-                "points_earned",
-                [
-                    'event_id' => $eventId,
-                    'points' => $points,
-                    'activity_name' => $activity->name,
-                    'description' => $stasiunName
-                ]
-            ));
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => "Berhasil memberikan +{$points} poin!",
-            'data' => [
-                'participant_name' => $ticket->attendee_name,
-                'ticket_code' => $ticketCode,
-                'activity_name' => $activity->name,
-                'points_rewarded' => $points,
-                'old_balance' => $result['old_balance'],
-                'new_balance' => $result['new_balance'],
-            ]
-        ], 200);
     }
 }

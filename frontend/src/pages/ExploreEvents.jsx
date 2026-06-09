@@ -160,36 +160,6 @@ const ExploreEvents = () => {
         return () => clearTimeout(timer);
     }, [filters.search]);
 
-    // Sync URL searchParams to state when URL changes
-    useEffect(() => {
-        const searchVal = sanitizeQueryParam(searchParams.get('search'), '');
-        const categoryVal = sanitizeQueryParam(searchParams.get('category'), '');
-        const priceVal = sanitizeQueryParam(searchParams.get('price'), 'Semua');
-        const dateStartVal = sanitizeQueryParam(searchParams.get('dateStart'), '');
-        const dateEndVal = sanitizeQueryParam(searchParams.get('dateEnd'), '');
-        
-        setFilters((prev) => {
-            if (
-                prev.search === searchVal &&
-                prev.category === categoryVal &&
-                prev.price === priceVal &&
-                prev.dateStart === dateStartVal &&
-                prev.dateEnd === dateEndVal
-            ) {
-                return prev;
-            }
-            return {
-                ...prev,
-                search: searchVal,
-                category: categoryVal,
-                price: priceVal,
-                dateStart: dateStartVal,
-                dateEnd: dateEndVal,
-            };
-        });
-    }, [searchParams]);
-
-
     // Fetch API setiap kali filters (selain search ketikan aktif) berubah
     useEffect(() => {
         const fetchEvents = async () => {
@@ -284,7 +254,7 @@ const ExploreEvents = () => {
                                 </InputGroup.Text>
                                 <Form.Control
                                     type="text"
-                                    placeholder="Cari event atau organizer..."
+                                    placeholder="Cari event, topik, atau pembicara..."
                                     value={filters.search}
                                     onChange={(e) => handleChange('search', e.target.value)}
                                     style={{ borderLeft: 'none', borderColor: 'var(--color-border)', padding: '12px 0' }}

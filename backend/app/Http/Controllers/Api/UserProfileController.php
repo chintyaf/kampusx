@@ -233,7 +233,7 @@ class UserProfileController extends Controller
                 ->exists();
 
             if ($isUnlocked) {
-                $frontendUrl = rtrim(config('app.frontend_url'), '/');
+                $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:5173'), '/');
                 $certificates[] = [
                     'id' => 'CERT-' . $ticket->ticket_code,
                     'eventName' => $event->title,

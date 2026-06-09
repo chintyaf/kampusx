@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Users, Image as ImageIcon } from 'lucide-react';
 import { getEventImageUrl } from '@/utils/eventUtils';
 import StatusBadge from './StatusBadge';
@@ -53,18 +53,22 @@ export const HeroCard = ({ heroEvent }) => {
 					</span>
 				</div>
 				<div className="d-flex gap-3">
-					<Link
-						to={`/organizer/${heroEvent.id}/event-dashboard`}
+					<button
+						onClick={() =>
+							navigate(`/organizer/${heroEvent.id}/event-dashboard`)
+						}
 						className="btn btn-dark px-4 py-2 fw-medium fs-4 rounded-2"
 					>
 						Kelola Event
-					</Link>
-					<Link
-						to={`/organizer/${heroEvent.id}/event-pos`}
+					</button>
+					<button
+						onClick={() =>
+							navigate(`/organizer/${heroEvent.id}/event-pos`)
+						}
 						className="btn btn-outline-dark px-4 py-2 fw-medium fs-4 rounded-2"
 					>
 						Buka Scanner
-					</Link>
+					</button>
 				</div>
 			</div>
 		</div>
