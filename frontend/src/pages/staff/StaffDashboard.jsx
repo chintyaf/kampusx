@@ -44,29 +44,41 @@ const StaffDashboard = () => {
         const storedPin = localStorage.getItem('staff_pin');
         const storedEvent = JSON.parse(localStorage.getItem('staff_event') || 'null');
         const storedPos = JSON.parse(localStorage.getItem('staff_selected_pos') || 'null');
+        const staffMode = localStorage.getItem('staff_mode') || 'attendance';
 
-        if (!storedPin || !storedEvent || !storedPos) {
+        if (!storedPin || !storedEvent) {
             localStorage.clear();
             navigate('/staff/login');
             return;
         }
 
+        if (staffMode === 'attendance' && !storedPos) {
+            navigate('/staff/select-post');
+            return;
+        }
+
         setPin(storedPin);
         setEvent(storedEvent);
-        setStation(storedPos);
+        if (storedPos) {
+            setStation(storedPos);
+        }
+
+        setCurrentMode(staffMode);
 
         // Behind the scenes / automation:
         // Jika stasiun ditujukan khusus untuk registrasi masuk, otomatis skip Mode Selection
-        const name = storedPos.name.toLowerCase();
-        const isCheckInOnly = name.includes('pintu masuk') || 
-                            name.includes('registrasi') || 
-                            name.includes('gate') || 
-                            name.includes('entrance') || 
-                            name.includes('check-in') || 
-                            name.includes('checkin');
-        
-        if (isCheckInOnly) {
-            setCurrentMode('attendance');
+        if (staffMode === 'attendance' && storedPos) {
+            const name = storedPos.name.toLowerCase();
+            const isCheckInOnly = name.includes('pintu masuk') || 
+                                name.includes('registrasi') || 
+                                name.includes('gate') || 
+                                name.includes('entrance') || 
+                                name.includes('check-in') || 
+                                name.includes('checkin');
+            
+            if (isCheckInOnly) {
+                setCurrentMode('attendance');
+            }
         }
     }, [navigate]);
 
@@ -131,7 +143,7 @@ const StaffDashboard = () => {
         try {
             const response = await api.post('/v1/staff/manual-checkin', {
                 ticket_id: ticketId,
-                post_id: station.id,
+                post_id: station?.id,
                 pos_pin: pin,
                 scan_type: overrideMode
             });
@@ -235,7 +247,7 @@ const StaffDashboard = () => {
                 const response = await api.post('/v1/staff/kiosk-scan', {
                     ticket_code: cleanCode,
                     activity_slug: pointsActivitySlug,
-                    description: station.name,
+                    description: station?.name || 'Kiosk Poin',
                     pos_pin: pin
                 });
                 
@@ -294,7 +306,8 @@ const StaffDashboard = () => {
 
     const handleExitPost = () => {
         localStorage.removeItem('staff_selected_pos');
-        navigate('/staff/select-post');
+        localStorage.removeItem('staff_mode');
+        navigate('/staff/login');
     };
 
     // Render Mode Selection (Layar dashboard pilihan fungsi)
@@ -459,7 +472,7 @@ const StaffDashboard = () => {
             {/* Main Content Area */}
             <Container className="d-flex flex-column flex-grow-1 py-4 justify-content-center">
                 {currentMode === null ? renderModeSelection() : 
-                 currentMode === 'attendance' ? (
+                  currentMode === 'attendance' ? (
                     <AttendanceKiosk 
                         stats={stats}
                         searchQuery={searchQuery}
@@ -472,11 +485,12 @@ const StaffDashboard = () => {
                         processScan={processScan}
                         handleSearchChange={handleSearchChange}
                         handleManualCheckIn={handleManualCheckIn}
-                        onBack={() => setCurrentMode(null)}
+                        onBack={handleExitPost}
                     />
                  ) : (
                     <PointsKiosk 
                         station={station}
+                        setStation={setStation}
                         participantsDb={participantsDb}
                         loadingParticipants={loadingParticipants}
                         recentLogs={recentLogs}
@@ -484,7 +498,7 @@ const StaffDashboard = () => {
                         isScanning={isScanning}
                         scanLock={scanLock}
                         processScan={processScan}
-                        onBack={() => setCurrentMode(null)}
+                        onBack={handleExitPost}
                     />
                  )}
             </Container>

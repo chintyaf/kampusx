@@ -101,7 +101,7 @@ class StaffController extends Controller
         // 1. VERIFIKASI STRICT EVENT ID MATCH
         $ticketOrderItem = $ticket->orderItem;
         $ticketOrder = $ticketOrderItem ? $ticketOrderItem->order : null;
-        if (!$ticketOrder || $ticketOrder->event_id !== $event->id) {
+        if (!$ticketOrder || (int) $ticketOrder->event_id !== (int) $event->id) {
             return response()->json(['message' => 'Tiket tidak terdaftar untuk event ini.'], 422);
         }
 
@@ -221,7 +221,7 @@ class StaffController extends Controller
         // 1. VERIFIKASI STRICT EVENT ID MATCH
         $ticketOrderItem = $ticket->orderItem;
         $ticketOrder = $ticketOrderItem ? $ticketOrderItem->order : null;
-        if (!$ticketOrder || $ticketOrder->event_id !== $event->id) {
+        if (!$ticketOrder || (int) $ticketOrder->event_id !== (int) $event->id) {
             return response()->json(['message' => 'Tiket tidak terdaftar untuk event ini.'], 422);
         }
 
@@ -401,7 +401,7 @@ class StaffController extends Controller
             'ticket_code' => 'required|string',
             'activity_slug' => 'required|string|in:check_in,ask_question,booth_visit',
             'description' => 'nullable|string',
-            'pos_pin' => 'required|string'
+            'pos_pin' => 'nullable|string'
         ]);
 
         $ticketCode = strtoupper(trim($validated['ticket_code']));
@@ -428,11 +428,6 @@ class StaffController extends Controller
                 'status' => 'error',
                 'message' => 'Event tidak ditemukan.'
             ], 404);
-        }
-
-        // Verifikasi PIN
-        if ($event->pos_pin !== $request->pos_pin) {
-            return response()->json(['message' => 'Otorisasi gagal. PIN tidak sesuai.'], 403);
         }
 
         $userId = $ticket->participant_id;

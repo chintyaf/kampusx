@@ -47,7 +47,7 @@ main {
 	text-align: left;
 	white-space: nowrap; /* Mencegah tulisan turun ke bawah saat transisi mengecil */
 	color: var(--color-text);
-	font-size: var(--font-xs);
+	font-size: var(--font-sm);
 }
 
 /* Ganti .collapse-menu-class dengan class yang membungkus sub-menu Anda */
@@ -109,7 +109,7 @@ main {
 
 .menu-text,
 .sidebar-parent-menu {
-	font-size: var(--font-xs);
+	font-size: var(--font-sm);
 	text-decoration: none;
 	color: var(--color-text); /* Kembali menggunakan var text aslinya */
 }

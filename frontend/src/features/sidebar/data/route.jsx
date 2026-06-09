@@ -13,7 +13,7 @@ import {
 	UserRoundPen,
 	BookOpen,
 	Megaphone,
-	Award,
+Award,
 	ClipboardList,
 	MapPin,
 	CalendarDays,
@@ -177,12 +177,12 @@ export const MENU_ITEMS = {
 			icon: <Megaphone size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/pengumuman',
 		},
-		{
-			id: 'kiosk-event',
-			name: 'Kiosk Mode',
-			icon: <Tv size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/kiosk',
-		},
+		// {
+		// 	id: 'kiosk-event',
+		// 	name: 'Kiosk Mode',
+		// 	icon: <Tv size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/kiosk',
+		// },
 
 		// --- PASCA-ACARA ---
 		{

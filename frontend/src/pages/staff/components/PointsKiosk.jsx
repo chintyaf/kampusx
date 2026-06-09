@@ -11,6 +11,7 @@ const ACTIVITIES = [
 
 const PointsKiosk = ({
     station,
+    setStation,
     participantsDb,
     loadingParticipants,
     recentLogs,
@@ -21,7 +22,7 @@ const PointsKiosk = ({
     onBack
 }) => {
     const brandColor = 'var(--color-primary, #00699e)';
-    
+
     // Mobile responsiveness states
     const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
     const [activeTab, setActiveTab] = useState('scan'); // 'scan' | 'dashboard'
@@ -30,9 +31,29 @@ const PointsKiosk = ({
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [tempActivitySlug, setTempActivitySlug] = useState('booth_visit');
     const [isConfigured, setIsConfigured] = useState(false);
-    
+
+    // Available POS stations
+    const [availableStations] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('staff_stations') || '[]');
+        } catch {
+            return [];
+        }
+    });
+    const [selectedStationId, setSelectedStationId] = useState(station?.id || (availableStations[0]?.id || ''));
+
     // Hidden simulation state toggled by Ctrl + Alt + D
     const [showSimulation, setShowSimulation] = useState(false);
+
+    // Automatically assign the first POS station if not selected yet
+    useEffect(() => {
+        if (!station && availableStations.length > 0 && setStation) {
+            const defaultStation = availableStations[0];
+            setStation(defaultStation);
+            localStorage.setItem('staff_selected_pos', JSON.stringify(defaultStation));
+            setSelectedStationId(defaultStation.id);
+        }
+    }, [station, availableStations, setStation]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -72,15 +93,15 @@ const PointsKiosk = ({
                         <div>
                             <h5 className="fw-extrabold text-dark mb-1 d-flex align-items-center gap-2" style={{ fontSize: '1.25rem' }}>
                                 <ShieldCheck className="text-primary" size={24} style={{ color: brandColor }} />
-                                <span>Konfigurasi Kiosk Stasiun</span>
+                                <span>Pilih Tugas Poin</span>
                             </h5>
                             <p className="text-muted mb-0 small">
-                                Pilih stasiun operasional dan jenis aktivitas untuk device Kios ini.
+                                Pilih jenis aktivitas pemberian poin yang ingin Anda jalankan pada perangkat Kios ini.
                             </p>
                         </div>
-                        <Button 
-                            variant="outline-secondary" 
-                            size="sm" 
+                        <Button
+                            variant="outline-secondary"
+                            size="sm"
                             className="rounded-pill px-3 border-0 bg-light text-secondary"
                             onClick={onBack}
                             style={{ fontSize: '0.8rem' }}
@@ -90,20 +111,10 @@ const PointsKiosk = ({
                     </div>
 
                     <div className="mb-4">
-                        <label className="fw-bold small text-secondary mb-2 uppercase" style={{ letterSpacing: '0.05em' }}>Stasiun / Booth Kiosk</label>
-                        <Card className="border bg-light" style={{ borderRadius: '12px', borderColor: 'var(--color-border, #cbd5e1)' }}>
-                            <Card.Body className="py-2.5 px-3 d-flex align-items-center gap-2 text-dark fw-bold" style={{ fontSize: '0.92rem' }}>
-                                <MapPin size={16} className="text-secondary" />
-                                <span>{station?.name || 'Stasiun POS'}</span>
-                            </Card.Body>
-                        </Card>
-                    </div>
-
-                    <div className="mb-4">
                         <label className="fw-bold small text-secondary mb-2.5 uppercase" style={{ letterSpacing: '0.05em' }}>Aktivitas Point yang Diberikan</label>
                         <div className="d-flex flex-column gap-2.5">
                             {ACTIVITIES.map(a => (
-                                <div 
+                                <div
                                     key={a.slug}
                                     className="p-3 border cursor-pointer transition-all d-flex justify-content-between align-items-center"
                                     style={{
@@ -121,8 +132,8 @@ const PointsKiosk = ({
                                             {a.desc}
                                         </span>
                                     </div>
-                                    <span 
-                                        style={{ 
+                                    <span
+                                        style={{
                                             backgroundColor: tempActivitySlug === a.slug ? brandColor : '#f1f5f9',
                                             color: tempActivitySlug === a.slug ? '#ffffff' : 'var(--color-secondary, #64748b)',
                                             fontWeight: 'bold',
@@ -139,13 +150,13 @@ const PointsKiosk = ({
                         </div>
                     </div>
 
-                    <Button 
-                        size="lg" 
+                    <Button
+                        size="lg"
                         className="w-100 rounded-pill fw-bold border-0 d-flex align-items-center justify-content-center gap-2 py-2.5 text-white"
-                        style={{ 
+                        style={{
                             backgroundColor: brandColor,
                             fontSize: '0.95rem',
-                            boxShadow: '0 4px 12px rgba(0, 105, 158, 0.15)' 
+                            boxShadow: '0 4px 12px rgba(0, 105, 158, 0.15)'
                         }}
                         onClick={() => {
                             setSelectedActivity(currentTempObj);
@@ -164,22 +175,33 @@ const PointsKiosk = ({
         <div className="fade-in">
             {/* Header Sub-Menu */}
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <Button 
-                    variant="link" 
-                    onClick={() => {
-                        setIsConfigured(false);
-                        setSelectedActivity(null);
-                    }} 
-                    className="text-secondary p-0 d-flex align-items-center gap-2 text-decoration-none"
-                    style={{ color: 'var(--color-secondary, #64748b)' }}
-                >
-                    <ArrowLeft size={18} />
-                    <span className="fw-bold">Ganti Tugas</span>
-                </Button>
+                <div className="d-flex gap-3 align-items-center">
+                    <Button
+                        variant="link"
+                        onClick={onBack}
+                        className="text-secondary p-0 d-flex align-items-center gap-2 text-decoration-none"
+                        style={{ color: 'var(--color-secondary, #64748b)' }}
+                    >
+                        <ArrowLeft size={18} />
+                        <span className="fw-bold">Kembali</span>
+                    </Button>
+                    <div style={{ width: '1px', height: '16px', backgroundColor: '#cbd5e1' }} />
+                    <Button
+                        variant="link"
+                        onClick={() => {
+                            setIsConfigured(false);
+                            setSelectedActivity(null);
+                        }}
+                        className="text-secondary p-0 d-flex align-items-center gap-2 text-decoration-none"
+                        style={{ color: 'var(--color-secondary, #64748b)' }}
+                    >
+                        <span className="fw-bold">Ganti Aktivitas Poin</span>
+                    </Button>
+                </div>
 
-                <Badge 
+                <Badge
                     className="px-4 py-2.5 fs-6 font-extrabold text-uppercase rounded-3 text-white"
-                    style={{ 
+                    style={{
                         backgroundColor: brandColor,
                         letterSpacing: '0.05em'
                     }}
@@ -191,9 +213,9 @@ const PointsKiosk = ({
             {/* Mobile Tab Switcher */}
             {isMobile && (
                 <div className="d-flex gap-2 mb-4 bg-light p-1.5 rounded-3 border" style={{ borderColor: 'var(--color-border, #cbd5e1)', padding: '6px' }}>
-                    <Button 
-                        className="flex-grow-1 rounded-pill fw-bold py-2 border-0" 
-                        style={{ 
+                    <Button
+                        className="flex-grow-1 rounded-pill fw-bold py-2 border-0"
+                        style={{
                             fontSize: '0.85rem',
                             backgroundColor: activeTab === 'scan' ? brandColor : 'transparent',
                             color: activeTab === 'scan' ? '#ffffff' : 'var(--color-secondary, #64748b)',
@@ -203,9 +225,9 @@ const PointsKiosk = ({
                     >
                         Kamera Scanner
                     </Button>
-                    <Button 
-                        className="flex-grow-1 rounded-pill fw-bold py-2 border-0" 
-                        style={{ 
+                    <Button
+                        className="flex-grow-1 rounded-pill fw-bold py-2 border-0"
+                        style={{
                             fontSize: '0.85rem',
                             backgroundColor: activeTab === 'dashboard' ? brandColor : 'transparent',
                             color: activeTab === 'dashboard' ? '#ffffff' : 'var(--color-secondary, #64748b)',
@@ -224,27 +246,13 @@ const PointsKiosk = ({
                     <div className="bg-primary text-white rounded-circle p-2 d-flex" style={{ backgroundColor: brandColor }}>
                         <Sparkles size={18} />
                     </div>
-                    <div className="overflow-hidden" style={{ maxWidth: '240px' }}>
-                        <h6 className="fw-bold mb-0.5 text-truncate" style={{ fontSize: '0.85rem', color: 'var(--color-primary, #00699e)' }}>
-                            Stasiun : {station?.name}
-                        </h6>
-                        <p className="mb-0 text-truncate" style={{ fontSize: '0.72rem', color: 'var(--color-text, #0f172a)' }}>
+                    <div className="overflow-hidden">
+                        <span className="fw-bold small d-block mb-1" style={{ color: 'var(--color-primary, #00699e)', fontSize: '0.85rem' }}>Aktivitas Kiosk Aktif</span>
+                        <p className="mb-0 text-truncate" style={{ fontSize: '0.78rem', color: 'var(--color-text, #0f172a)' }}>
                             Melayani: <span className="fw-extrabold" style={{ color: 'var(--bahama-blue-800, #075985)' }}>{selectedActivity?.name} (+{selectedActivity?.points} Pts)</span>
                         </p>
                     </div>
                 </div>
-                <Button 
-                    variant="outline-primary" 
-                    size="sm" 
-                    className="rounded-pill px-3 py-1 bg-transparent"
-                    style={{ fontSize: '0.75rem', borderColor: brandColor, color: brandColor }}
-                    onClick={() => {
-                        setIsConfigured(false);
-                        setSelectedActivity(null);
-                    }}
-                >
-                    Ganti Tugas
-                </Button>
             </div>
 
             {/* Layout Columns */}
@@ -252,7 +260,7 @@ const PointsKiosk = ({
                 {/* Column 1: Scanner */}
                 {(!isMobile || activeTab === 'scan') && (
                     <Col xs={12} lg={5} className="fade-in-quick">
-                        <KioskScanner 
+                        <KioskScanner
                             brandColor={brandColor}
                             isAttendance={false}
                             feedback={feedback}
@@ -286,9 +294,9 @@ const PointsKiosk = ({
                                                             Saldo: <strong>{p.balance} Pts</strong>
                                                         </span>
                                                     </div>
-                                                    <Button 
-                                                        variant="outline-primary" 
-                                                        size="sm" 
+                                                    <Button
+                                                        variant="outline-primary"
+                                                        size="sm"
                                                         className="rounded-pill px-3 py-1 font-semibold border"
                                                         style={{ fontSize: '10px', borderColor: 'var(--color-border, #cbd5e1)', color: 'var(--color-primary, #00699e)' }}
                                                         onClick={() => handleScanWithActivity(p.ticket_code)}

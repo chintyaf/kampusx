@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldAlert, KeyRound, ArrowRight } from 'lucide-react';
+import { ShieldAlert, KeyRound, ArrowRight, Users, Sparkles } from 'lucide-react';
 import api from '../../api/axios';
 
 const StaffLogin = () => {
     const [pin, setPin] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [loginSuccessData, setLoginSuccessData] = useState(null);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -23,8 +24,24 @@ const StaffLogin = () => {
     useEffect(() => {
         const storedPin = localStorage.getItem('staff_pin');
         const storedPos = localStorage.getItem('staff_selected_pos');
+        const storedMode = localStorage.getItem('staff_mode');
+        const storedEvent = localStorage.getItem('staff_event');
+        const storedStations = localStorage.getItem('staff_stations');
+
         if (storedPin) {
-            if (storedPos) {
+            if (!storedMode) {
+                try {
+                    setLoginSuccessData({
+                        pin: storedPin,
+                        event: JSON.parse(storedEvent || 'null'),
+                        stations: JSON.parse(storedStations || '[]')
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            } else if (storedMode === 'points') {
+                navigate('/staff/dashboard');
+            } else if (storedPos) {
                 navigate('/staff/dashboard');
             } else {
                 navigate('/staff/select-post');
@@ -46,19 +63,12 @@ const StaffLogin = () => {
         try {
             const response = await api.post('/v1/staff/verify-pin', { pin: cleanPin });
             if (response.data.success) {
-                localStorage.setItem('staff_pin', cleanPin);
-                localStorage.setItem('staff_event', JSON.stringify(response.data.event));
-                
                 const stations = response.data.stations || [];
-                localStorage.setItem('staff_stations', JSON.stringify(stations));
-
-                // Behind the scenes: auto-select if there is only one station
-                if (stations.length === 1) {
-                    localStorage.setItem('staff_selected_pos', JSON.stringify(stations[0]));
-                    navigate('/staff/dashboard');
-                } else {
-                    navigate('/staff/select-post');
-                }
+                setLoginSuccessData({
+                    pin: cleanPin,
+                    event: response.data.event,
+                    stations: stations
+                });
             } else {
                 setError(response.data.message || 'Gagal memverifikasi PIN.');
             }
@@ -72,6 +82,158 @@ const StaffLogin = () => {
             setIsLoading(false);
         }
     };
+
+    const handleSelectMode = (mode) => {
+        if (!loginSuccessData) return;
+        const { pin: cleanPin, event, stations } = loginSuccessData;
+        localStorage.setItem('staff_pin', cleanPin);
+        localStorage.setItem('staff_event', JSON.stringify(event));
+        localStorage.setItem('staff_stations', JSON.stringify(stations));
+        localStorage.setItem('staff_mode', mode);
+
+        if (mode === 'attendance') {
+            // Behind the scenes: auto-select if there is only one station
+            if (stations.length === 1) {
+                localStorage.setItem('staff_selected_pos', JSON.stringify(stations[0]));
+                navigate('/staff/dashboard');
+            } else {
+                navigate('/staff/select-post');
+            }
+        } else {
+            // Points mode goes directly to points dashboard
+            localStorage.removeItem('staff_selected_pos');
+            navigate('/staff/dashboard');
+        }
+    };
+
+    if (loginSuccessData) {
+        return (
+            <div style={{ 
+                backgroundColor: 'var(--color-bg, #f4f5f7)', 
+                minHeight: '100vh', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                padding: '24px' 
+            }}>
+                <Container style={{ maxWidth: '600px' }}>
+                    <div className="text-center mb-5">
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '18px',
+                            backgroundColor: 'var(--color-primary, #00699e)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 16px auto',
+                            boxShadow: '0 4px 12px rgba(0, 105, 158, 0.15)'
+                        }}>
+                            <KeyRound size={28} color="#ffffff" />
+                        </div>
+                        <h2 className="fw-extrabold mb-1" style={{ tracking: '-0.04em', color: 'var(--color-text, #0f172a)', fontSize: '1.75rem' }}>Pilih Layanan Staff</h2>
+                        <p className="text-muted small" style={{ fontSize: '0.88rem' }}>Silakan pilih opsi operasi stasiun yang ingin Anda lakukan.</p>
+                    </div>
+
+                    <div className="d-flex flex-column flex-md-row gap-4 justify-content-center align-items-stretch">
+                        {/* Attendance Mode */}
+                        <div 
+                            className="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-5 text-center"
+                            style={{
+                                borderRadius: '24px',
+                                backgroundColor: '#ffffff',
+                                border: '2.5px solid var(--color-border, #e2e8f0)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer',
+                                minHeight: '220px'
+                            }}
+                            onClick={() => handleSelectMode('attendance')}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.borderColor = 'var(--color-primary, #00699e)';
+                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 105, 158, 0.12)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.borderColor = 'var(--color-border, #e2e8f0)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.02)';
+                            }}
+                        >
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '16px',
+                                backgroundColor: 'var(--primary-light, #dff3ff)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-primary, #00699e)',
+                                marginBottom: '16px',
+                                border: '1.5px solid var(--primary-border, #b9e7fe)'
+                            }}>
+                                <Users size={28} />
+                            </div>
+                            <h4 className="fw-bold text-dark mb-2" style={{ fontSize: '1.2rem' }}>Absensi & Kehadiran</h4>
+                            <p className="text-muted small mb-0 px-2" style={{ fontSize: '0.8rem' }}>Mencatat kedatangan/kehadiran peserta event secara langsung (Check-in).</p>
+                        </div>
+
+                        {/* Points Mode */}
+                        <div 
+                            className="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-5 text-center"
+                            style={{
+                                borderRadius: '24px',
+                                backgroundColor: '#ffffff',
+                                border: '2.5px solid var(--color-border, #e2e8f0)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
+                                transition: 'all 0.2s ease',
+                                cursor: 'pointer',
+                                minHeight: '220px'
+                            }}
+                            onClick={() => handleSelectMode('points')}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.borderColor = 'var(--color-primary, #00699e)';
+                                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 105, 158, 0.12)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.borderColor = 'var(--color-border, #e2e8f0)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.02)';
+                            }}
+                        >
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '16px',
+                                backgroundColor: 'var(--primary-light, #dff3ff)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-primary, #00699e)',
+                                marginBottom: '16px',
+                                border: '1.5px solid var(--primary-border, #b9e7fe)'
+                            }}>
+                                <Sparkles size={28} />
+                            </div>
+                            <h4 className="fw-bold text-dark mb-2" style={{ fontSize: '1.2rem' }}>Masukkan Poin</h4>
+                            <p className="text-muted small mb-0 px-2" style={{ fontSize: '0.8rem' }}>Memberikan poin bonus untuk peserta (kunjungan booth/stan atau tanya jawab).</p>
+                        </div>
+                    </div>
+
+                    <div className="text-center mt-5">
+                        <Button 
+                            variant="link" 
+                            className="text-muted small text-decoration-none fw-semibold"
+                            onClick={() => setLoginSuccessData(null)}
+                        >
+                            Kembali ke Halaman PIN
+                        </Button>
+                    </div>
+                </Container>
+            </div>
+        );
+    }
 
     return (
         <div style={{ 

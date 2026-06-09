@@ -248,14 +248,11 @@ class EventTicketController extends Controller
 
             DB::commit();
 
-            $event = \App\Models\Event::find($eventId);
-            $notified = $event ? $event->notifyParticipantsOfUpdate() : false;
-
             return response()->json([
                 'success' => true,
                 'status'  => 'success',
                 'message' => 'Data tiket berhasil disimpan',
-                'notified_participants' => $notified,
+                'notified_participants' => false,
             ], 200);
 
         } catch (\Exception $e) {

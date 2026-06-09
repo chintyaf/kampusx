@@ -195,7 +195,7 @@ class EventController extends Controller
         // Security check: only allow draft view if user is the creator
         if ($event->status === 'draft') {
             $authUser = auth('sanctum')->user();
-            if (!$authUser || $event->organizer_id !== $authUser->id) {
+            if (!$authUser || (int) $event->organizer_id !== (int) $authUser->id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Akses ditolak. Event ini masih berupa draft.'

@@ -66,6 +66,12 @@ const SelectPost = () => {
         navigate('/staff/dashboard');
     };
 
+    const handleBackToModeSelection = () => {
+        localStorage.removeItem('staff_mode');
+        localStorage.removeItem('staff_selected_pos');
+        navigate('/staff/login');
+    };
+
     const handleLogout = () => {
         localStorage.clear();
         navigate('/staff/login');
@@ -90,15 +96,25 @@ const SelectPost = () => {
                             </span>
                         )}
                     </div>
-                    <Button 
-                        variant="outline-danger" 
-                        className="rounded-pill px-3 py-1.5 small border-0 bg-transparent text-danger d-flex align-items-center gap-1.5 fw-bold"
-                        style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', fontSize: '0.85rem' }}
-                        onClick={handleLogout}
-                    >
-                        <LogOut size={15} />
-                        <span>Keluar</span>
-                    </Button>
+                    <div className="d-flex gap-2">
+                        <Button 
+                            variant="outline-secondary" 
+                            className="rounded-pill px-3 py-1.5 small border-0 bg-transparent text-secondary d-flex align-items-center gap-1.5 fw-bold"
+                            style={{ backgroundColor: 'rgba(100, 116, 139, 0.05)', fontSize: '0.85rem' }}
+                            onClick={handleBackToModeSelection}
+                        >
+                            <span>Kembali</span>
+                        </Button>
+                        <Button 
+                            variant="outline-danger" 
+                            className="rounded-pill px-3 py-1.5 small border-0 bg-transparent text-danger d-flex align-items-center gap-1.5 fw-bold"
+                            style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', fontSize: '0.85rem' }}
+                            onClick={handleLogout}
+                        >
+                            <LogOut size={15} />
+                            <span>Keluar</span>
+                        </Button>
+                    </div>
                 </div>
 
                 {error && <Alert variant="warning" className="rounded-3 mb-4 small border-0 text-warning bg-warning bg-opacity-10 py-2.5">{error}</Alert>}

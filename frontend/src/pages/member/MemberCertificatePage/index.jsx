@@ -15,6 +15,7 @@ import toast from 'react-hot-toast';
 import api from '@/api/axios';
 import PreviewModal from '@/components/event/certificate/PreviewModal';
 import CertificateCard from './CertificateCard';
+import { formatDate } from '@/utils/dateUtils';
 
 const MemberCertificatePage = () => {
 	const [certificates, setCertificates] = useState([]);
@@ -203,7 +204,7 @@ const MemberCertificatePage = () => {
 					f2: selectedCert?.ticket?.ticket_code || 'ID Sertifikat',
 					f3: `${window.location.origin}/certificate/verify/${selectedCert?.ticket?.ticket_code || ''}`,
 					f4: selectedCert?.event?.title || 'Nama Event',
-					f5: selectedCert?.event?.start_date || 'Tanggal Event',
+					f5: selectedCert?.event?.start_date ? formatDate(selectedCert.event.start_date) : 'Tanggal Event',
 					f6: selectedCert?.event?.organizer_name || 'Instansi Penyelenggara',
 				}}
 			/>

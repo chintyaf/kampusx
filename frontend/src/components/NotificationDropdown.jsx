@@ -35,7 +35,7 @@ const NotificationDropdown = () => {
         fetchNotifications();
 
         // Polling setiap 4 detik untuk real-time update
-        const interval = setInterval(fetchNotifications, 5000);
+        const interval = setInterval(fetchNotifications, 60000);
         return () => clearInterval(interval);
     }, []);
 
