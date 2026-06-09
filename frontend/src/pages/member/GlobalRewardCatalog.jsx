@@ -99,43 +99,46 @@ const GlobalRewardCatalog = () => {
         <Container className="py-4 py-md-5">
             {/* Saldo Section */}
             <div 
-                className="mb-5 p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 shadow-lg"
+                className="mb-5 p-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 border shadow-sm"
                 style={{ 
-                    background: 'linear-gradient(135deg, #00699E 0%, #004d73 100%)', 
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                    backgroundColor: 'var(--color-white)', 
+                    borderRadius: '12px',
+                    borderColor: 'var(--color-border)',
+                    boxShadow: '0 2px 12px rgba(0,105,158,0.08)'
                 }}
             >
                 <div className="d-flex align-items-center gap-3">
                     <div 
-                        className="p-3 bg-white bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
-                        style={{ backdropFilter: 'blur(4px)' }}
+                        className="p-3 rounded-circle d-flex align-items-center justify-content-center"
+                        style={{ backgroundColor: '#fffbeb', border: '1px solid rgba(217,119,6,0.15)' }}
                     >
-                        <Coins size={32} className="text-warning" />
+                        <Coins size={32} style={{ color: '#d97706' }} />
                     </div>
                     <div>
-                        <h6 className="mb-1 text-white-50 fw-semibold text-uppercase tracking-wider" style={{ fontSize: '12px' }}>Saldo Global Point Anda</h6>
-                        <h2 className="mb-0 fw-bold fs-1 tracking-tight">{balance.toLocaleString()} <span className="fs-5 fw-normal text-white-50">Points</span></h2>
+                        <h6 className="mb-1 fw-semibold text-uppercase tracking-wider" style={{ fontSize: '12px', color: 'var(--color-secondary)' }}>Saldo Global Point Anda</h6>
+                        <h2 className="mb-0 fw-bold fs-1 tracking-tight" style={{ color: 'var(--color-text)' }}>
+                            {balance.toLocaleString()} <span className="fs-5 fw-normal" style={{ color: 'var(--color-secondary)' }}>Points</span>
+                        </h2>
                     </div>
                 </div>
                 
                 {/* Aksi Saldo */}
                 <div className="d-flex align-items-center gap-2">
                     <Button 
-                        variant="outline-light" 
-                        className="px-3 py-2 fw-bold d-flex align-items-center gap-2 transition-all hover-scale"
+                        variant="light" 
+                        className="px-3 py-2 fw-semibold d-flex align-items-center gap-2 transition-all hover-scale"
                         onClick={() => navigate('/member/points/history?type=global')}
-                        style={{ borderRadius: '10px', fontSize: '13px' }}
+                        style={{ borderRadius: '8px', fontSize: '13px', color: '#00699e', backgroundColor: '#f0f9ff', border: '1px solid rgba(0, 105, 158, 0.2)' }}
                     >
                         <History size={16} />
                         Riwayat
                     </Button>
                     <Button 
-                        variant="light" 
-                        className="px-4 py-2 fw-bold text-primary border-0 shadow-sm transition-all hover-scale"
+                        variant="primary" 
+                        className="px-4 py-2 fw-bold text-white shadow-sm transition-all hover-scale border-0"
                         onClick={loadData}
                         disabled={isLoading}
-                        style={{ borderRadius: '10px', fontSize: '13px' }}
+                        style={{ borderRadius: '8px', fontSize: '13px', backgroundColor: '#00699e' }}
                     >
                         Refresh Katalog
                     </Button>

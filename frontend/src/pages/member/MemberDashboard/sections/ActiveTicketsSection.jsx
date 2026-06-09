@@ -13,7 +13,7 @@ const ActiveTicketsSection = ({ activeTickets }) => {
   return (
     <section style={{ marginBottom: 36 }}>
       <SectionHeader
-        title="🎟️ Event Aktif Saya"
+        title="Event Aktif Saya"
         onSeeAll={() => navigate('/my-tickets')}
       />
 

@@ -62,6 +62,10 @@ const MemberDashboard = () => {
 						const display = eventType === "online"
 							? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
 							: (loc.location_name || loc.city || "Offline Venue");
+						const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
+						const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
+						const lat = isNaN(rawLat) ? null : rawLat;
+						const lng = isNaN(rawLng) ? null : rawLng;
 						return {
 							...ev,
 							id: ev.id,
@@ -77,6 +81,8 @@ const MemberDashboard = () => {
 							isOnline: ["online", "hybrid"].includes(eventType),
 							isInPerson: ["offline", "hybrid"].includes(eventType),
 							isFeatured: ev.id % 2 === 0,
+							lat,
+							lng,
 						};
 					})
 					// data.map((ev) => ({
@@ -126,6 +132,10 @@ const MemberDashboard = () => {
 						const display = eventType === "online"
 							? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
 							: (loc.location_name || loc.city || "Offline Venue");
+						const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
+						const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
+						const lat = isNaN(rawLat) ? null : rawLat;
+						const lng = isNaN(rawLng) ? null : rawLng;
 						return {
 							...ev,
 							id: ev.id,
@@ -141,6 +151,8 @@ const MemberDashboard = () => {
 							isOnline: ["online", "hybrid"].includes(eventType),
 							isInPerson: ["offline", "hybrid"].includes(eventType),
 							isFeatured: ev.id % 2 === 0,
+							lat,
+							lng,
 						};
 					})
 				);
@@ -227,7 +239,7 @@ const MemberDashboard = () => {
 			({ coords: { latitude, longitude } }) => {
 				setLocationStatus('granted');
 				const withDist = allEvents
-					.filter((ev) => ev.lat && ev.lng)
+					.filter((ev) => typeof ev.lat === 'number' && !isNaN(ev.lat) && typeof ev.lng === 'number' && !isNaN(ev.lng))
 					.map((ev) => ({
 						...ev,
 						distance: haversine(latitude, longitude, ev.lat, ev.lng),
@@ -240,6 +252,7 @@ const MemberDashboard = () => {
 				if (withDist.length === 0) {
 					setNearbyEvents(
 						allEvents
+							.filter((ev) => ev.isInPerson)
 							.slice(0, 4)
 							.map((ev, i) => ({ ...ev, distance: (0.8 + i * 1.3).toFixed(1) })),
 					);
@@ -301,7 +314,8 @@ const MemberDashboard = () => {
 							color: 'var(--color-secondary)',
 						}}
 					>
-						Selamat datang kembali 👋
+						Selamat datang kembali
+						{/* {user?.name ? `, ${user.name.split(' ')[0]}` : ''}! */}
 					</p>
 					<h1
 						style={{
@@ -351,7 +365,7 @@ const MemberDashboard = () => {
 					</div>
 				) : (
 					<EventListSection
-						title="✨ Untuk Kamu"
+						title="Untuk Kamu"
 						events={personalizedEvents}
 						seeAllUrl="/explore"
 						style={{ marginBottom: 36 }}
@@ -359,7 +373,7 @@ const MemberDashboard = () => {
 				)}
 
 				<EventListSection
-					title="✨ Event Terbaru"
+					title="Event Terbaru"
 					events={eventTerbaru}
 					seeAllUrl="/explore?sort=newest"
 				/>

@@ -29,8 +29,18 @@ class MemberDashboardController extends Controller
 
             $eventId = $request->query('event_id');
 
-            // Jika event_id tidak diberikan di query parameter, coba cari dari tiket terbaru user
-            if (!$eventId) {
+            // Hitung saldo poin lokal real-time
+            $currentLocalPoints = 0;
+            if ($eventId) {
+                $currentLocalPoints = (int) LocalMemberPoint::where('user_id', $user->id)
+                    ->where('event_id', $eventId)
+                    ->value('points_balance') ?? 0;
+            } else {
+                // Sum all local points across all events for this user
+                $currentLocalPoints = (int) LocalMemberPoint::where('user_id', $user->id)
+                    ->sum('points_balance');
+
+                // Determine the fallback event_id to return in response
                 $latestTicket = Ticket::where('participant_id', $user->id)
                     ->with(['orderItem.order'])
                     ->orderBy('created_at', 'desc')
@@ -39,22 +49,13 @@ class MemberDashboardController extends Controller
                 if ($latestTicket && $latestTicket->orderItem && $latestTicket->orderItem->order) {
                     $eventId = $latestTicket->orderItem->order->event_id;
                 }
-            }
 
-            // Jika masih belum ada, cari dari record point lokal terbaru
-            if (!$eventId) {
-                $latestLocalPoint = LocalMemberPoint::where('user_id', $user->id)
-                    ->orderBy('updated_at', 'desc')
-                    ->first();
-                $eventId = $latestLocalPoint ? $latestLocalPoint->event_id : null;
-            }
-
-            // Hitung saldo poin lokal real-time
-            $currentLocalPoints = 0;
-            if ($eventId) {
-                $currentLocalPoints = (int) LocalMemberPoint::where('user_id', $user->id)
-                    ->where('event_id', $eventId)
-                    ->value('points_balance') ?? 0;
+                if (!$eventId) {
+                    $latestLocalPoint = LocalMemberPoint::where('user_id', $user->id)
+                        ->orderBy('updated_at', 'desc')
+                        ->first();
+                    $eventId = $latestLocalPoint ? $latestLocalPoint->event_id : null;
+                }
             }
 
             // Hitung saldo poin global real-time

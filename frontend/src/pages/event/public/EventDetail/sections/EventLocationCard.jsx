@@ -21,7 +21,7 @@ const EventLocationCard = ({ eventDetails, eventLocation, getTzLabel }) => {
 					</div>
 					<div>
 						<div className="text-muted" style={{ fontSize: 'var(--font-xs)' }}>
-							Lokasi Event
+							Waktu Event
 						</div>
 						<div
 							className="fw-semibold text-dark"

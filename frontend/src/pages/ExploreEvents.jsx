@@ -5,7 +5,8 @@ import {
     SlidersHorizontal,
     X,
     RotateCcw,
-	Heart,
+    Heart,
+    Sparkles,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import EventCard from '../components/event/EventCard';
@@ -26,7 +27,7 @@ const chipStyle = {
 };
 
 // ── FilterSidebar (Tanpa Search Bar & Tombol Apply) ───────────────────────────
-const FilterSidebar = ({ filters, onChange, onReset, dbCategories = [] }) => (
+const FilterSidebar = ({ filters, onChange, onReset, dbCategories = [], dbEventTypes = [] }) => (
     <Card style={{ borderRadius: 12, border: '1px solid var(--color-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
         <div style={{ padding: '16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
             <span style={{ fontWeight: 700, fontSize: 'var(--font-sm)', color: 'var(--color-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -78,19 +79,60 @@ const FilterSidebar = ({ filters, onChange, onReset, dbCategories = [] }) => (
                 </Form.Group>
 
                 {/* Kategori */}
-                <Form.Group style={{ marginBottom: 8 }}>
+                <Form.Group style={{ marginBottom: 24 }}>
                     <Form.Label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 12 }}>Kategori</Form.Label>
-                    <Form.Select
-                        value={filters.category}
-                        onChange={(e) => onChange('category', e.target.value)}
-                        style={{ fontSize: 'var(--font-sm)', borderRadius: 8, padding: '10px' }}>
-                        <option value="">Semua Kategori</option>
-                        {dbCategories.map((cat) => (
-                            <option key={cat.id} value={cat.name}>{cat.name}</option>
-                        ))}
-                    </Form.Select>
+                    <div style={{ maxHeight: '160px', overflowY: 'auto', paddingRight: '4px', border: '1px solid var(--color-border-soft, #e2e8f0)', borderRadius: 8, padding: '8px 12px', background: '#f8fafc' }}>
+                        {dbCategories.length === 0 ? (
+                            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-secondary)' }}>Memuat kategori...</div>
+                        ) : (
+                            dbCategories.map((cat) => (
+                                <Form.Check
+                                    key={cat.id}
+                                    type="checkbox"
+                                    id={`cat-${cat.id}`}
+                                    label={cat.name}
+                                    checked={filters.category.includes(cat.name)}
+                                    onChange={(e) => {
+                                        const next = e.target.checked
+                                            ? [...filters.category, cat.name]
+                                            : filters.category.filter((c) => c !== cat.name);
+                                        onChange('category', next);
+                                    }}
+                                    style={{ fontSize: 'var(--font-xs)', marginBottom: 8, color: 'var(--color-text)' }}
+                                />
+                            ))
+                        )}
+                    </div>
                 </Form.Group>
-				{/* Rentang Tanggal Event */}
+
+                {/* Tipe Event */}
+                <Form.Group style={{ marginBottom: 24 }}>
+                    <Form.Label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 12 }}>Tipe Event</Form.Label>
+                    <div style={{ maxHeight: '160px', overflowY: 'auto', paddingRight: '4px', border: '1px solid var(--color-border-soft, #e2e8f0)', borderRadius: 8, padding: '8px 12px', background: '#f8fafc' }}>
+                        {dbEventTypes.length === 0 ? (
+                            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-secondary)' }}>Memuat tipe event...</div>
+                        ) : (
+                            dbEventTypes.map((type) => (
+                                <Form.Check
+                                    key={type.id}
+                                    type="checkbox"
+                                    id={`type-${type.id}`}
+                                    label={type.name}
+                                    checked={filters.eventType.includes(type.name)}
+                                    onChange={(e) => {
+                                        const next = e.target.checked
+                                            ? [...filters.eventType, type.name]
+                                            : filters.eventType.filter((t) => t !== type.name);
+                                        onChange('eventType', next);
+                                    }}
+                                    style={{ fontSize: 'var(--font-xs)', marginBottom: 8, color: 'var(--color-text)' }}
+                                />
+                            ))
+                        )}
+                    </div>
+                </Form.Group>
+
+                {/* Rentang Tanggal Event */}
                 <Form.Group style={{ marginBottom: 8 }}>
                     <Form.Label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 12 }}>Tanggal Event</Form.Label>
                     <Row className="g-2">
@@ -131,6 +173,8 @@ const ExploreEvents = () => {
     const [error, setError] = useState(null);
     const [showMobileFilter, setShowMobileFilter] = useState(false);
     const [dbCategories, setDbCategories] = useState([]);
+    const [dbEventTypes, setDbEventTypes] = useState([]);
+    const [personalizedEvents, setPersonalizedEvents] = useState([]);
 
     const sanitizeQueryParam = (val, fallback = '') => {
         if (!val || val.toLowerCase() === 'on' || val.toLowerCase() === 'undefined') {
@@ -139,13 +183,24 @@ const ExploreEvents = () => {
         return val;
     };
 
+    const getInitialCategory = () => {
+        const catParam = sanitizeQueryParam(searchParams.get('category'), '');
+        return catParam ? [catParam] : [];
+    };
+
+    const getInitialEventType = () => {
+        const typeParam = sanitizeQueryParam(searchParams.get('eventType'), '');
+        return typeParam ? [typeParam] : [];
+    };
+
     const defaultFilters = {
         search: sanitizeQueryParam(searchParams.get('search'), ''),
         locationType: [],
         price: sanitizeQueryParam(searchParams.get('price'), 'Semua'),
-        category: sanitizeQueryParam(searchParams.get('category'), ''),
-		dateStart: sanitizeQueryParam(searchParams.get('dateStart'), ''),
-		dateEnd: sanitizeQueryParam(searchParams.get('dateEnd'), ''),
+        category: getInitialCategory(),
+        eventType: getInitialEventType(),
+        dateStart: sanitizeQueryParam(searchParams.get('dateStart'), ''),
+        dateEnd: sanitizeQueryParam(searchParams.get('dateEnd'), ''),
     };
     
     // Single source of truth untuk filter (agar real-time)
@@ -164,14 +219,24 @@ const ExploreEvents = () => {
     useEffect(() => {
         const searchVal = sanitizeQueryParam(searchParams.get('search'), '');
         const categoryVal = sanitizeQueryParam(searchParams.get('category'), '');
+        const eventTypeVal = sanitizeQueryParam(searchParams.get('eventType'), '');
         const priceVal = sanitizeQueryParam(searchParams.get('price'), 'Semua');
         const dateStartVal = sanitizeQueryParam(searchParams.get('dateStart'), '');
         const dateEndVal = sanitizeQueryParam(searchParams.get('dateEnd'), '');
         
+        const nextCategoryArr = categoryVal ? [categoryVal] : [];
+        const nextEventTypeArr = eventTypeVal ? [eventTypeVal] : [];
+
         setFilters((prev) => {
+            const prevCategoryStr = prev.category.join(',');
+            const nextCategoryStr = nextCategoryArr.join(',');
+            const prevEventTypeStr = prev.eventType.join(',');
+            const nextEventTypeStr = nextEventTypeArr.join(',');
+
             if (
                 prev.search === searchVal &&
-                prev.category === categoryVal &&
+                prevCategoryStr === nextCategoryStr &&
+                prevEventTypeStr === nextEventTypeStr &&
                 prev.price === priceVal &&
                 prev.dateStart === dateStartVal &&
                 prev.dateEnd === dateEndVal
@@ -181,7 +246,8 @@ const ExploreEvents = () => {
             return {
                 ...prev,
                 search: searchVal,
-                category: categoryVal,
+                category: nextCategoryArr,
+                eventType: nextEventTypeArr,
                 price: priceVal,
                 dateStart: dateStartVal,
                 dateEnd: dateEndVal,
@@ -197,12 +263,16 @@ const ExploreEvents = () => {
             try {
                 const params = {};
                 if (debouncedSearch.trim()) params.search = debouncedSearch;
-                if (filters.category) params.category = filters.category;
                 if (filters.price !== 'Semua') params.price = filters.price.toLowerCase();
 
-                const [eventsRes, categoriesRes] = await Promise.all([
+                const [eventsRes, categoriesRes, eventTypesRes, personalizedRes] = await Promise.all([
                     api.get('/events', { params }),
-                    api.get('/categories')
+                    api.get('/categories'),
+                    api.get('/event-types'),
+                    api.get('/events/personalized').catch((err) => {
+                        console.error('Gagal memuat event personalisasi:', err);
+                        return { data: { data: [] } };
+                    })
                 ]);
 
                 const result = eventsRes.data;
@@ -210,7 +280,6 @@ const ExploreEvents = () => {
                 let resultData = raw;
 
                 // Client-side filtering untuk Location Type
-                
                 if (filters.locationType.includes('Online') && !filters.locationType.includes('In-Person')) {
                     resultData = raw.filter((ev) => ev.is_online || ev.location_type === 'online');
                 } else if (filters.locationType.includes('In-Person') && !filters.locationType.includes('Online')) {
@@ -222,6 +291,23 @@ const ExploreEvents = () => {
                     resultData = resultData.filter((ev) => Number(ev.price) === 0);
                 } else if (filters.price === 'Berbayar') {
                     resultData = resultData.filter((ev) => Number(ev.price) > 0);
+                }
+
+                // Client-side filtering untuk Kategori (bisa pilih lebih dari satu)
+                if (filters.category && filters.category.length > 0) {
+                    resultData = resultData.filter((ev) => {
+                        if (!ev.categories || ev.categories.length === 0) return false;
+                        return ev.categories.some((cat) => filters.category.includes(cat.name));
+                    });
+                }
+
+                // Client-side filtering untuk Tipe Event (bisa pilih lebih dari satu)
+                if (filters.eventType && filters.eventType.length > 0) {
+                    resultData = resultData.filter((ev) => {
+                        const types = ev.event_types || ev.eventTypes;
+                        if (!types || types.length === 0) return false;
+                        return types.some((t) => filters.eventType.includes(t.name));
+                    });
                 }
 
 				// Client-side filtering untuk Rentang Tanggal
@@ -250,6 +336,8 @@ const ExploreEvents = () => {
 
                 setFiltered(resultData);
                 setDbCategories(categoriesRes.data?.data ?? categoriesRes.data ?? []);
+                setDbEventTypes(eventTypesRes.data?.data ?? eventTypesRes.data ?? []);
+                setPersonalizedEvents(personalizedRes.data?.data ?? personalizedRes.data ?? []);
             } catch (err) {
                 console.error(err);
                 setError('Gagal memuat data event.');
@@ -259,13 +347,13 @@ const ExploreEvents = () => {
         };
 
         fetchEvents();
-    }, [debouncedSearch, filters.category, filters.price, filters.locationType, filters.dateStart, filters.dateEnd]);
+    }, [debouncedSearch, filters.category, filters.eventType, filters.price, filters.locationType, filters.dateStart, filters.dateEnd]);
 
     const handleChange = (key, val) => setFilters((prev) => ({ ...prev, [key]: val }));
-    const resetFilters = () => setFilters({ search: '', locationType: [], price: 'Semua', category: '', dateStart: '', dateEnd: '' });
+    const resetFilters = () => setFilters({ search: '', locationType: [], price: 'Semua', category: [], eventType: [], dateStart: '', dateEnd: '' });
 
     // Hitung filter aktif (di luar search)
-    const activeCount = filters.locationType.length + (filters.price !== 'Semua' ? 1 : 0) + (filters.category ? 1 : 0) + (filters.dateStart || filters.dateEnd ? 1 : 0);
+    const activeCount = filters.locationType.length + (filters.price !== 'Semua' ? 1 : 0) + filters.category.length + filters.eventType.length + (filters.dateStart || filters.dateEnd ? 1 : 0);
 
     return (
         <div style={{ background: 'var(--color-bg, #F8FAFC)', minHeight: '100vh', paddingBottom: 56 }}>
@@ -311,7 +399,7 @@ const ExploreEvents = () => {
                             </button>
                         </div>
                         <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-                            <FilterSidebar filters={filters} onChange={handleChange} onReset={resetFilters} dbCategories={dbCategories} />
+                            <FilterSidebar filters={filters} onChange={handleChange} onReset={resetFilters} dbCategories={dbCategories} dbEventTypes={dbEventTypes} />
                         </div>
                         <div style={{ padding: '16px 24px', borderTop: '1px solid var(--color-border)', background: '#fff' }}>
                             <button onClick={() => setShowMobileFilter(false)} style={{ width: '100%', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 8, padding: '12px', fontWeight: 600 }}>Tampilkan {filtered.length} Event</button>
@@ -323,13 +411,37 @@ const ExploreEvents = () => {
             <Container>
                 <Row className="g-4">
                     {/* ── Sidebar (Desktop) ───────────────────────────────────────── */}
-                    <Col lg={3} className="d-none d-lg-block">
-                        <FilterSidebar filters={filters} onChange={handleChange} onReset={resetFilters} dbCategories={dbCategories} />
+                    <Col lg={3} className="d-none d-lg-block" style={{ position: 'sticky', top: '24px', alignSelf: 'start', height: 'fit-content', zIndex: 10 }}>
+                        <FilterSidebar filters={filters} onChange={handleChange} onReset={resetFilters} dbCategories={dbCategories} dbEventTypes={dbEventTypes} />
                     </Col>
 
                     {/* ── Content Area ────────────────────────────────────────────── */}
                     <Col lg={9}>
+                        {/* Section 1: Personalized Events */}
+                        {!isLoading && activeCount === 0 && !filters.search && personalizedEvents.length > 0 && (
+                            <div style={{ marginBottom: 40 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+                                    {/* <Sparkles size={18} color="var(--color-primary)" /> */}
+                                    <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-text)', margin: 0 }}>
+                                        Rekomendasi Untuk Kamu
+                                    </h3>
+                                </div>
+                                <Row className="g-4">
+                                    {personalizedEvents.slice(0, 3).map((ev) => (
+                                        <Col xs={12} md={6} xl={4} key={`pers-${ev.id}`}>
+                                            <EventCard ev={ev} onClick={() => navigate(`/event/${ev.slug || ev.id}`)} />
+                                        </Col>
+                                    ))}
+                                </Row>
+                                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '32px 0 24px' }} />
+                            </div>
+                        )}
+
+                        {/* Section 2: All / Filtered Events */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
+                            <h3 style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-text)', margin: 0 }}>
+                                {(activeCount > 0 || filters.search) ? 'Hasil Pencarian' : 'Semua Event'}
+                            </h3>
                             <span style={{ fontSize: 'var(--font-sm)', color: 'var(--color-secondary)', fontWeight: 500 }}>
                                 {isLoading ? 'Memuat data...' : `Menampilkan ${filtered.length} event`}
                             </span>
@@ -349,9 +461,12 @@ const ExploreEvents = () => {
                                 {filters.price !== 'Semua' && (
                                     <span style={chipStyle}>{filters.price} <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleChange('price', 'Semua')} /></span>
                                 )}
-                                {filters.category && (
-                                    <span style={chipStyle}>{filters.category} <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleChange('category', '')} /></span>
-                                )}
+                                {filters.category.map((cat) => (
+                                    <span key={cat} style={chipStyle}>{cat} <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleChange('category', filters.category.filter((x) => x !== cat))} /></span>
+                                ))}
+                                {filters.eventType.map((type) => (
+                                    <span key={type} style={chipStyle}>{type} <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleChange('eventType', filters.eventType.filter((x) => x !== type))} /></span>
+                                ))}
 								{/* Chip Rentang Tanggal */}
                                 {(filters.dateStart || filters.dateEnd) && (
                                     <span style={chipStyle}>

@@ -11,7 +11,7 @@ const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
 					className="border-0 shadow-sm rounded-4 d-inline-block text-start"
 					style={{ maxWidth: '500px', width: '100%' }}
 				>
-					<Card.Body className="p-5 d-flex flex-column align-items-center text-center">
+					<Card.Body className="p-4 p-md-5 d-flex flex-column align-items-center text-center">
 						<div className="bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex p-3.5 mb-4 border border-warning border-opacity-25">
 							<Lock size={40} className="animate-pulse" />
 						</div>
@@ -39,7 +39,7 @@ const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
 					className="border-0 shadow-sm rounded-4 d-inline-block text-start"
 					style={{ maxWidth: '550px', width: '100%' }}
 				>
-					<Card.Body className="p-5 d-flex flex-column align-items-center text-center">
+					<Card.Body className="p-4 p-md-5 d-flex flex-column align-items-center text-center">
 						<div className="bg-success bg-opacity-10 text-success rounded-circle d-inline-flex p-3.5 mb-4 border border-success border-opacity-25">
 							<Award size={44} className="text-warning" />
 						</div>

@@ -18,7 +18,7 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets']);
+        $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets', 'eventTypes']);
 
         // Security check: Only show published events in the public explore catalog
         $query->where('status', 'published');
@@ -312,7 +312,7 @@ class EventController extends Controller
         $user = auth('sanctum')->user();
 
         // Base query for published events with all necessary relationships eager loaded
-        $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets'])
+        $query = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets', 'eventTypes'])
             ->where('status', 'published');
 
         if ($user) {
@@ -332,7 +332,7 @@ class EventController extends Controller
 
         // If no events found or user has no preferences / not logged in, fallback to general latest events
         if ($events->isEmpty()) {
-            $events = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets'])
+            $events = Event::with(['organizer', 'locationDetail', 'categories', 'eventTickets', 'eventTypes'])
                 ->where('status', 'published')
                 ->orderBy('id', 'desc')
                 ->take(8)

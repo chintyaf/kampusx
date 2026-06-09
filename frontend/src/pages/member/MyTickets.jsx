@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Spinner, Button, Alert } from 'react-bootstrap';
-import { Calendar, MapPin, QrCode, ArrowRight, Ticket, History, MoreHorizontal } from 'lucide-react';
+import { Calendar, MapPin, QrCode, ArrowRight, Ticket, History, MoreHorizontal, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import api from '../../api/axios'; 
@@ -21,7 +21,7 @@ const TicketCard = ({ ticket, isActive }) => {
                 <Card.Title className="fs-5 fw-semibold mb-2" style={{ color: "var(--color-primary, #1A365D)" }}>
                     {event.title}
                 </Card.Title>
-                <div className="d-flex gap-4 text-muted mt-3" style={{ fontSize: '14px' }}>
+                <div className="d-flex flex-wrap gap-3 gap-md-4 text-muted mt-3" style={{ fontSize: '14px' }}>
                     <div className="d-flex align-items-center gap-2">
                         <Calendar size={16} className="text-primary" />
                         <span>{event.start_date ? formatDate(event.start_date) : 'TBA'}</span>
@@ -30,6 +30,12 @@ const TicketCard = ({ ticket, isActive }) => {
                         <MapPin size={16} className="text-primary" />
                         <span>{event.location}</span>
                     </div>
+                    {ticket.local_points !== undefined && ticket.local_points > 0 && (
+                        <div className="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded shadow-sm" style={{ fontSize: '13px', backgroundColor: '#f0fdfa', border: '1px solid rgba(13,148,136,0.15)' }}>
+                            <Award size={14} style={{ color: '#0d9488' }} />
+                            <span className="fw-semibold" style={{ color: '#0f766e' }}>{ticket.local_points} Poin Lokal</span>
+                        </div>
+                    )}
                 </div>
             </Card.Body>
 

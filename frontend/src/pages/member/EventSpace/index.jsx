@@ -5,24 +5,16 @@ import {
 	Col,
 	Card,
 	Button,
-	Nav,
-	Badge,
 	Spinner,
 	Alert,
 } from 'react-bootstrap';
 import {
 	ArrowLeft,
-	Layout,
-	BookOpen,
-	MessageCircle,
 	QrCode,
-	Award,
-	Gift,
-	Megaphone,
 	ShieldAlert,
 	Video,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ParticipantMaterialsTab from '../../../components/event/ParticipantMaterialsTab';
 import EventAnnouncementsTab from '../../../components/event/EventAnnouncementsTab';
 
@@ -33,6 +25,7 @@ import OverviewTab from './OverviewTab';
 import DiscussionTab from './DiscussionTab';
 import CertificateTab from './CertificateTab';
 import RewardsTab from './RewardsTab';
+import SidebarNav from './SidebarNav';
 import { useEventSpace } from './useEventSpace';
 
 const EventSpace = () => {
@@ -171,9 +164,9 @@ const EventSpace = () => {
 		<div className="bg-light min-vh-100 pb-5">
 			{/* HEADER MICRO LMS */}
 			<div className="bg-white border-bottom shadow-sm sticky-top" style={{ zIndex: 1020 }}>
-				<Container className="py-3">
-					<div className="d-flex align-items-center justify-content-between">
-						<div className="d-flex align-items-center gap-3">
+				<Container className="py-2 py-md-3">
+					<div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 gap-md-0">
+						<div className="d-flex align-items-center gap-2 gap-sm-3 w-100 w-md-auto">
 							<Button
 								variant="light"
 								className="rounded-circle p-2 d-flex border"
@@ -181,39 +174,42 @@ const EventSpace = () => {
 							>
 								<ArrowLeft size={20} className="text-dark" />
 							</Button>
-							<div>
+							<div className="overflow-hidden">
 								<h5
-									className="fw-bold mb-0 text-truncate"
+									className="fw-bold mb-0 text-truncate fs-md-4"
 									style={{
-										maxWidth: '600px',
+										maxWidth: '100%',
 										color: 'var(--color-primary, #1A365D)',
 									}}
+									title={title}
 								>
 									{title}
 								</h5>
-								<span className="text-muted small">Penyelenggara: {organizer}</span>
+								<span className="text-muted small text-truncate d-block">Penyelenggara: {organizer}</span>
 							</div>
 						</div>
 
 						{/* TOMBOL CEPAT QR CODE DI HEADER & JOIN MEETING */}
-						<div className="d-flex gap-2">
+						<div className="d-flex gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
 							{(locationType === 'online' || locationType === 'hybrid') && meetingLink && (
 								<Button 
 									variant="success" 
-									className="rounded-pill px-4 py-2 d-flex align-items-center shadow-sm fw-medium gap-1.5"
+									className="rounded-pill px-3 px-md-4 py-2 d-flex align-items-center shadow-sm fw-medium gap-1.5 text-nowrap"
 									href={meetingLink}
 									target="_blank"
 									rel="noopener noreferrer"
+									style={{ fontSize: '13px' }}
 								>
-									<Video size={18} /> Join Meeting
+									<Video size={16} /> <span>Join<span className="d-none d-sm-inline"> Meeting</span></span>
 								</Button>
 							)}
 							<Button
 								variant="dark"
-								className="rounded-pill px-4 py-2 d-flex align-items-center shadow-sm fw-medium"
+								className="rounded-pill px-3 px-md-4 py-2 d-flex align-items-center shadow-sm fw-medium text-nowrap"
 								onClick={() => setShowTicketModal(true)}
+								style={{ fontSize: '13px' }}
 							>
-								<QrCode size={18} className="me-2" /> E-Tiket QR
+								<QrCode size={16} className="me-1.5" /> <span><span className="d-none d-sm-inline">E-Tiket </span>QR</span>
 							</Button>
 						</div>
 					</div>
@@ -228,84 +224,18 @@ const EventSpace = () => {
 				)}
 
 				<Row className="g-4">
-					{/* SIDEBAR NAVIGASI */}
-					<Col lg={3} md={4}>
-						<Card
-							className="border-0 shadow-sm rounded-4 position-sticky"
-							style={{ top: '100px' }}
-						>
-							<Card.Body className="p-3">
-								<Nav className="flex-column gap-2 custom-pills">
-									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'overview' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
-										onClick={() => setActiveTab('overview')}
-									>
-										<Layout size={18} className="me-3" /> Overview
-									</Nav.Link>
-									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'materi' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
-										onClick={() => setActiveTab('materi')}
-									>
-										<BookOpen size={18} className="me-3" /> Materi Pembelajaran
-									</Nav.Link>
-									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'diskusi' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
-										onClick={() => setActiveTab('diskusi')}
-									>
-										<MessageCircle size={18} className="me-3" /> Forum Diskusi
-									</Nav.Link>
-									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'pengumuman' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
-										onClick={() => setActiveTab('pengumuman')}
-									>
-										<Megaphone size={18} className="me-3" /> Pengumuman Event
-									</Nav.Link>
-									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'rewards' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
-										onClick={() => setActiveTab('rewards')}
-										style={{ transition: 'background-color 0.2s' }}
-									>
-										<Gift size={18} className="me-3" style={{ color: activeTab === 'rewards' ? '#fff' : '#0d9488' }} /> 
-										Tukar Local Reward
-										<Badge bg={activeTab === 'rewards' ? 'light' : 'primary-subtle'} className={`${activeTab === 'rewards' ? 'text-dark' : 'text-primary'} ms-auto rounded-pill border small font-bold px-2 py-1`}>
-											{memberPoints || 0} Pts
-										</Badge>
-									</Nav.Link>
-
-									<hr className="my-2.5 opacity-25" />
-
-									{/* MENU SERTIFIKAT & ULASAN DI SIDEBAR */}
-									<Nav.Link
-										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'sertifikat' ? 'bg-success text-white shadow-sm' : 'text-success hover-bg-success-subtle'}`}
-										onClick={() => setActiveTab('sertifikat')}
-										style={{ transition: 'all 0.2s ease' }}
-									>
-										<Award size={18} className="me-3" /> Sertifikat & Ulasan
-										{alreadySubmitted ? (
-											<Badge
-												bg="success-subtle"
-												text="success"
-												className="ms-auto rounded-pill border border-success border-opacity-10 small"
-											>
-												Aktif
-											</Badge>
-										) : (
-											<Badge
-												bg="warning-subtle"
-												text="warning"
-												className="ms-auto rounded-pill border border-warning border-opacity-10 small"
-											>
-												Klaim
-											</Badge>
-										)}
-									</Nav.Link>
-								</Nav>
-							</Card.Body>
-						</Card>
+					{/* NAVIGASI (SIDEBAR / HORIZONTAL SCROLL) */}
+					<Col lg={3} md={4} xs={12}>
+						<SidebarNav
+							activeTab={activeTab}
+							setActiveTab={setActiveTab}
+							memberPoints={memberPoints}
+							alreadySubmitted={alreadySubmitted}
+						/>
 					</Col>
 
 					{/* MAIN CONTENT AREA */}
-					<Col lg={9} md={8}>
+					<Col lg={9} md={8} xs={12}>
 						{activeTab === 'materi' ? (
 							<div className="fade-in">
 								<ParticipantMaterialsTab eventId={id} />
@@ -315,7 +245,7 @@ const EventSpace = () => {
 								className="border-0 shadow-sm rounded-4"
 								style={{ minHeight: '450px' }}
 							>
-								<Card.Body className="p-4 p-md-5">{renderContent()}</Card.Body>
+								<Card.Body className="p-3 p-md-5">{renderContent()}</Card.Body>
 							</Card>
 						)}
 					</Col>
@@ -341,3 +271,4 @@ const EventSpace = () => {
 };
 
 export default EventSpace;
+

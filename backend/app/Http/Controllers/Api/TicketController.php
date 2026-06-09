@@ -11,11 +11,25 @@ class TicketController extends Controller
 
     public function index(Request $request)
     {
+        $userId = $request->user()->id;
+
         // Ambil semua tiket milik user yang sedang login, urutkan dari yang terbaru
         $tickets = Ticket::with('orderItem.order.event.locationDetail')
-            ->where('participant_id', $request->user()->id)
+            ->where('participant_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Ambil data poin lokal untuk user ini di seluruh event
+        $localPoints = \App\Models\LocalMemberPoint::where('user_id', $userId)
+            ->pluck('points_balance', 'event_id')
+            ->toArray();
+
+        // Tempelkan info poin lokal ke masing-masing ticket
+        $tickets = $tickets->map(function($ticket) use ($localPoints) {
+            $eventId = $ticket->orderItem->order->event_id ?? null;
+            $ticket->local_points = $eventId ? ($localPoints[$eventId] ?? 0) : 0;
+            return $ticket;
+        });
 
         return response()->json([
             'data' => $tickets

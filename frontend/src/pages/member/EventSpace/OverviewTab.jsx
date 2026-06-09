@@ -28,7 +28,7 @@ const OverviewTab = ({
 			{/* 1. PHOTO BANNER EVENT */}
 			<div
 				className="mb-4 overflow-hidden rounded-4 shadow-sm border position-relative"
-				style={{ height: '320px' }}
+				style={{ height: 'clamp(180px, 30vw, 320px)' }}
 			>
 				<img
 					src={
@@ -47,7 +47,7 @@ const OverviewTab = ({
 						right: 0,
 						background:
 							'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%)',
-						padding: '24px',
+						padding: 'clamp(12px, 3vw, 24px)',
 						color: '#ffffff',
 					}}
 				>
@@ -75,7 +75,7 @@ const OverviewTab = ({
 							</Badge>
 						)}
 					</div>
-					<h3 className="fw-bold mb-1">{event?.title}</h3>
+					<h3 className="fw-bold mb-1 fs-5 fs-md-3">{event?.title}</h3>
 					<div className="d-flex flex-wrap gap-3 small opacity-90">
 						<span className="d-flex align-items-center gap-1">
 							<Calendar size={14} /> {event?.date || 'Tanggal Acara'}
@@ -373,10 +373,10 @@ const OverviewTab = ({
 														.map((session, index) => (
 															<li
 																key={session.id || index}
-																className="d-flex mb-4 align-items-start gap-3"
+																className="d-flex flex-column flex-sm-row mb-4 align-items-start gap-2 gap-sm-3"
 															>
 																<div
-																	className="fw-bold text-primary"
+																	className="fw-bold text-primary text-nowrap"
 																	style={{
 																		minWidth: '95px',
 																		fontSize: '12px',

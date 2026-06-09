@@ -10,7 +10,7 @@ const NearbyEventsSection = ({ locationStatus, nearbyEvents, requestLocation }) 
 
   return (
     <section style={{ marginBottom: 36 }}>
-      <SectionHeader title="📍 Event Terdekat" />
+      <SectionHeader title="Event Terdekat" />
 
       {locationStatus === 'idle' && (
         <div

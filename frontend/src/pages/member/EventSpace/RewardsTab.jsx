@@ -23,6 +23,12 @@ const RewardsTab = ({
 					<span className="text-secondary small fw-semibold">
 						Saldo Poin Lokal Anda
 					</span>
+						{/* <Badge
+							bg="light"
+							className="text-dark border px-3 py-2 rounded-pill mt-3 mt-md-0 font-semibold text-xs shadow-sm"
+						>
+							Event: {event?.title || 'Workshop & Kelas'}
+						</Badge> */}
 					<h2 className="fw-extrabold text-primary mb-1 d-flex align-items-center gap-2">
 						<Gift className="text-warning animate-bounce" />
 						<span>{memberPoints} Poin</span>
@@ -35,12 +41,6 @@ const RewardsTab = ({
 						survey, bertanya di sesi, atau mengunjungi booth sponsor.
 					</p>
 				</div>
-				<Badge
-					bg="light"
-					className="text-dark border px-3 py-2 rounded-pill mt-3 mt-md-0 font-semibold text-xs shadow-sm"
-				>
-					Event: {event?.title || 'Workshop & Kelas'}
-				</Badge>
 			</div>
 
 			{/* Rewards Catalog */}
