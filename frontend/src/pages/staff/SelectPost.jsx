@@ -63,12 +63,11 @@ const SelectPost = () => {
 
     const handleSelectStation = (station) => {
         localStorage.setItem('staff_selected_pos', JSON.stringify(station));
-        navigate('/staff/dashboard');
+        navigate('/staff/select-service');
     };
 
     const handleBackToModeSelection = () => {
-        localStorage.removeItem('staff_mode');
-        localStorage.removeItem('staff_selected_pos');
+        localStorage.clear();
         navigate('/staff/login');
     };
 

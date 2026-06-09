@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Ticket;
+use App\Models\Activity;
+use App\Models\LocalMemberPoint;
+use App\Models\PointTransaction;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -68,6 +71,9 @@ class AttendanceController extends Controller
 
         // Opsional: perbarui status tiket
         $ticket->update(['status' => 'used']);
+
+        // Auto reward check-in points
+        $this->awardAttendancePoints($ticket, $request->event_id);
 
         return response()->json([
             'success' => true,
@@ -136,6 +142,9 @@ class AttendanceController extends Controller
         ]);
 
         $ticket->update(['status' => 'used']);
+
+        // Auto reward check-in points
+        $this->awardAttendancePoints($ticket, $request->event_id);
 
         return response()->json([
             'success' => true,
@@ -260,6 +269,9 @@ class AttendanceController extends Controller
 
             $ticket->update(['status' => 'used']);
 
+            // Auto reward check-in points
+            $this->awardAttendancePoints($ticket, $request->event_id);
+
             return response()->json([
                 'success' => true,
                 'type' => 'in',
@@ -364,6 +376,73 @@ class AttendanceController extends Controller
             'success' => true,
             'message' => 'Presensi berhasil dicatat.'
         ]);
+    }
+
+    /**
+     * Automatically award points for the check_in activity.
+     */
+    private function awardAttendancePoints($ticket, $eventId)
+    {
+        $userId = $ticket->participant_id;
+        if (!$userId) {
+            return;
+        }
+
+        $activity = Activity::where('slug', 'check_in')->first();
+        if (!$activity || !$activity->is_active) {
+            return;
+        }
+
+        // Check if already has points for check_in for this event to avoid duplicate points
+        $exists = PointTransaction::where('user_id', $userId)
+            ->where('event_id', $eventId)
+            ->where('activity_id', $activity->id)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $points = $activity->points_rewarded;
+
+        DB::transaction(function () use ($userId, $eventId, $activity, $points) {
+            $localPoint = LocalMemberPoint::firstOrCreate(
+                ['user_id' => $userId, 'event_id' => $eventId],
+                ['points_balance' => 0]
+            );
+
+            $lockedPoint = LocalMemberPoint::where('id', $localPoint->id)
+                ->lockForUpdate()
+                ->first();
+
+            $lockedPoint->points_balance += $points;
+            $lockedPoint->save();
+
+            PointTransaction::create([
+                'type' => 'local',
+                'user_id' => $userId,
+                'event_id' => $eventId,
+                'activity_id' => $activity->id,
+                'amount' => $points,
+                'description' => 'Poin Kehadiran (Check-in)',
+            ]);
+        });
+
+        // NOTIFICATION: Kirim notifikasi ke peserta
+        $participantUser = \App\Models\User::find($userId);
+        if ($participantUser) {
+            $participantUser->notify(new \App\Notifications\OperationalNotification(
+                "Poin Aktivitas Ditambahkan!",
+                "Selamat! Kamu mendapatkan +{$points} poin dari aktivitas \"{$activity->name}\".",
+                "points_earned",
+                [
+                    'event_id' => $eventId,
+                    'points' => $points,
+                    'activity_name' => $activity->name,
+                    'description' => 'Poin Kehadiran (Check-in)'
+                ]
+            ));
+        }
     }
 
 }

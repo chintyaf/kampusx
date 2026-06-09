@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Card, Button } from 'react-bootstrap';
+import { Container, Card, Button, Modal } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { QrCode, LogOut, Users, Sparkles } from 'lucide-react';
+import { QrCode, LogOut, Users, Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 import api from '../../api/axios';
 import AttendanceKiosk from './components/AttendanceKiosk';
 import PointsKiosk from './components/PointsKiosk';
@@ -44,7 +44,7 @@ const StaffDashboard = () => {
         const storedPin = localStorage.getItem('staff_pin');
         const storedEvent = JSON.parse(localStorage.getItem('staff_event') || 'null');
         const storedPos = JSON.parse(localStorage.getItem('staff_selected_pos') || 'null');
-        const staffMode = localStorage.getItem('staff_mode') || 'attendance';
+        const staffMode = localStorage.getItem('staff_mode');
 
         if (!storedPin || !storedEvent) {
             localStorage.clear();
@@ -52,34 +52,20 @@ const StaffDashboard = () => {
             return;
         }
 
-        if (staffMode === 'attendance' && !storedPos) {
+        if (!storedPos) {
             navigate('/staff/select-post');
+            return;
+        }
+
+        if (!staffMode) {
+            navigate('/staff/select-service');
             return;
         }
 
         setPin(storedPin);
         setEvent(storedEvent);
-        if (storedPos) {
-            setStation(storedPos);
-        }
-
+        setStation(storedPos);
         setCurrentMode(staffMode);
-
-        // Behind the scenes / automation:
-        // Jika stasiun ditujukan khusus untuk registrasi masuk, otomatis skip Mode Selection
-        if (staffMode === 'attendance' && storedPos) {
-            const name = storedPos.name.toLowerCase();
-            const isCheckInOnly = name.includes('pintu masuk') || 
-                                name.includes('registrasi') || 
-                                name.includes('gate') || 
-                                name.includes('entrance') || 
-                                name.includes('check-in') || 
-                                name.includes('checkin');
-            
-            if (isCheckInOnly) {
-                setCurrentMode('attendance');
-            }
-        }
     }, [navigate]);
 
     // Fetch initial data based on mode
@@ -307,7 +293,12 @@ const StaffDashboard = () => {
     const handleExitPost = () => {
         localStorage.removeItem('staff_selected_pos');
         localStorage.removeItem('staff_mode');
-        navigate('/staff/login');
+        navigate('/staff/select-post');
+    };
+
+    const handleGoBackToServiceSelection = () => {
+        localStorage.removeItem('staff_mode');
+        navigate('/staff/select-service');
     };
 
     // Render Mode Selection (Layar dashboard pilihan fungsi)
@@ -485,7 +476,7 @@ const StaffDashboard = () => {
                         processScan={processScan}
                         handleSearchChange={handleSearchChange}
                         handleManualCheckIn={handleManualCheckIn}
-                        onBack={handleExitPost}
+                        onBack={handleGoBackToServiceSelection}
                     />
                  ) : (
                     <PointsKiosk 
@@ -498,10 +489,75 @@ const StaffDashboard = () => {
                         isScanning={isScanning}
                         scanLock={scanLock}
                         processScan={processScan}
-                        onBack={handleExitPost}
+                        onBack={handleGoBackToServiceSelection}
                     />
                  )}
             </Container>
+
+            {/* Feedback Modal Overlay */}
+            <Modal
+                show={feedback !== null}
+                onHide={() => setFeedback(null)}
+                centered
+                backdrop="static"
+                contentClassName="border-0 shadow-lg"
+                style={{ zIndex: 1060 }}
+            >
+                <Modal.Body className="p-4 text-center">
+                    <div className="d-flex flex-column align-items-center gap-3">
+                        {feedback?.type === 'success' ? (
+                            <div 
+                                className="d-flex align-items-center justify-content-center animate-fade-in"
+                                style={{
+                                    width: '72px',
+                                    height: '72px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#d1fae5',
+                                    color: '#10b981',
+                                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)'
+                                }}
+                            >
+                                <CheckCircle2 size={40} />
+                            </div>
+                        ) : (
+                            <div 
+                                className="d-flex align-items-center justify-content-center animate-fade-in"
+                                style={{
+                                    width: '72px',
+                                    height: '72px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#fee2e2',
+                                    color: '#ef4444',
+                                    boxShadow: '0 4px 14px rgba(239, 68, 68, 0.2)'
+                                }}
+                            >
+                                <XCircle size={40} />
+                            </div>
+                        )}
+
+                        <div>
+                            <h4 className="fw-extrabold text-dark mb-2">
+                                {feedback?.type === 'success' ? 'Berhasil!' : 'Gagal!'}
+                            </h4>
+                            <p className="text-secondary mb-0 fw-semibold" style={{ fontSize: '0.95rem', lineHeight: '1.5' }}>
+                                {feedback?.message}
+                            </p>
+                        </div>
+
+                        <Button
+                            variant={feedback?.type === 'success' ? 'success' : 'danger'}
+                            className="w-100 rounded-pill py-2 fw-bold border-0 mt-2 text-white"
+                            style={{
+                                backgroundColor: feedback?.type === 'success' ? '#10b981' : '#ef4444',
+                                boxShadow: feedback?.type === 'success' ? '0 4px 12px rgba(16, 185, 129, 0.15)' : '0 4px 12px rgba(239, 68, 68, 0.15)'
+                            }}
+                            onClick={() => setFeedback(null)}
+                        >
+                            Tutup
+                        </Button>
+                    </div>
+                </Modal.Body>
+            </Modal>
 
             {/* Responsive design styling overrides */}
             <style>{`

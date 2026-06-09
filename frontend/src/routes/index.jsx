@@ -52,6 +52,7 @@ import CertificatePublicView from '@/pages/certificate/CertificatePublicView';
 // Pages: Staff & Test/Misc
 import StaffLogin from '../pages/staff/StaffLogin';
 import SelectPost from '../pages/staff/SelectPost';
+import SelectService from '../pages/staff/SelectService';
 import StaffDashboard from '../pages/staff/StaffDashboard';
 import StaffScanner from '../pages/staff/StaffScanner';
 import StaffScanResult from '../pages/staff/StaffScanResult';
@@ -154,6 +155,7 @@ const AppRoutes = () => {
 				{/* 7. STAFF ROUTES */}
 				<Route path="/staff/login" element={<StaffLogin />} />
 				<Route path="/staff/select-post" element={<SelectPost />} />
+				<Route path="/staff/select-service" element={<SelectService />} />
 				<Route path="/staff/dashboard" element={<StaffDashboard />} />
 				<Route path="/staff/scanner" element={<StaffScanner />} />
 				<Route path="/staff/scan-result" element={<StaffScanResult />} />

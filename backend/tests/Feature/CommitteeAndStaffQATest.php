@@ -184,4 +184,47 @@ class CommitteeAndStaffQATest extends TestCase
         $statsResp = $this->actingAs($this->committee)->getJson("/api/committee/stats?event_id={$this->event->id}&post_id={$this->station->id}");
         $statsResp->assertStatus(200);
     }
+
+    public function test_f3_attendance_awards_points()
+    {
+        // Setup check_in activity in DB
+        \App\Models\Activity::create([
+            'name' => 'Check-in Kehadiran',
+            'slug' => 'check_in',
+            'points_rewarded' => 50,
+            'type' => 'local',
+            'is_active' => true
+        ]);
+
+        $userId = $this->ticket->participant_id;
+
+        // Verify no point transaction exists initially
+        $this->assertDatabaseMissing('point_transactions', [
+            'user_id' => $userId,
+            'event_id' => $this->event->id
+        ]);
+
+        // Perform scan check-in
+        $scanResp = $this->postJson('/api/v1/staff/scan', [
+            'qr_string' => 'TCK-001',
+            'post_id' => $this->station->id,
+            'pos_pin' => '123456'
+        ]);
+        $scanResp->assertStatus(200);
+
+        // Verify points were awarded automatically
+        $this->assertDatabaseHas('point_transactions', [
+            'user_id' => $userId,
+            'event_id' => $this->event->id,
+            'amount' => 50,
+            'type' => 'local',
+            'description' => 'Poin Kehadiran (Check-in)'
+        ]);
+
+        $this->assertDatabaseHas('local_member_points', [
+            'user_id' => $userId,
+            'event_id' => $this->event->id,
+            'points_balance' => 50
+        ]);
+    }
 }
