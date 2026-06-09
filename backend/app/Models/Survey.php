@@ -15,6 +15,7 @@ class Survey extends Model
         'event_id',
         'title',
         'description',
+        'session',
         'is_active',
     ];
 

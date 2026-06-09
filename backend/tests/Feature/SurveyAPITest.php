@@ -37,6 +37,12 @@ class SurveyAPITest extends TestCase
             'is_active' => true,
         ]);
 
+        $survey->questions()->create([
+            'type' => 'text',
+            'label' => 'Sample Question',
+            'is_required' => true,
+        ]);
+
         // 4. Send API request as organizer
         $response = $this->actingAs($organizer)
             ->getJson("/api/events/{$event->id}/survey");
@@ -112,5 +118,140 @@ class SurveyAPITest extends TestCase
             'status' => 'error',
             'message' => 'Penyelenggara acara tidak dapat mengirimkan jawaban survei.',
         ]);
+    }
+
+    /**
+     * Test custom survey creation with session, select type question, participant retrieval, submission and analytics check.
+     */
+    public function test_custom_survey_flow(): void
+    {
+        // 1. Create organizer and event
+        $organizer = User::factory()->create(['role' => 'organizer']);
+        $event = Event::factory()->create(['organizer_id' => $organizer->id]);
+
+        // 2. Create custom survey via SurveyFormController API
+        $response = $this->actingAs($organizer)
+            ->postJson("/api/event-dashboard/{$event->id}/survey-form", [
+                'title' => 'Session Feedback Survey',
+                'description' => 'Give us your honest opinion.',
+                'session' => 'Sesi 1 - Intro to Programming',
+                'is_active' => true,
+            ]);
+
+        $response->assertStatus(201);
+        $surveyId = $response->json('data.id');
+
+        $this->assertEquals('Sesi 1 - Intro to Programming', $response->json('data.session'));
+
+        // 3. Sync questions including 'select' type and 'rating' type
+        $syncResponse = $this->actingAs($organizer)
+            ->putJson("/api/event-dashboard/{$event->id}/survey-form/{$surveyId}/questions", [
+                'questions' => [
+                    [
+                        'type' => 'select',
+                        'label' => 'What is your background?',
+                        'options' => ['IT', 'Business', 'Design'],
+                        'is_required' => true,
+                    ],
+                    [
+                        'type' => 'rating',
+                        'label' => 'Rate this event',
+                        'is_required' => true,
+                    ],
+                    [
+                        'type' => 'rating',
+                        'label' => 'Rate the speaker',
+                        'is_required' => false,
+                    ],
+                ]
+            ]);
+
+        $syncResponse->assertStatus(200);
+
+        // Fetch questions from DB
+        $survey = Survey::with('questions')->find($surveyId);
+        $this->assertCount(3, $survey->questions);
+        $this->assertEquals('select', $survey->questions[0]->type);
+        $this->assertEquals('rating', $survey->questions[1]->type);
+
+        // 4. Create participant with ticket
+        $participant = User::factory()->create(['role' => 'participant']);
+        $order = \App\Models\Order::create([
+            'order_id' => 'ORD-12345',
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'amount' => 0,
+            'total_price' => 0,
+            'status' => 'completed',
+        ]);
+        $orderItem = \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'price' => 0,
+            'quantity' => 1,
+        ]);
+        $ticket = Ticket::create([
+            'order_item_id' => $orderItem->id,
+            'participant_id' => $participant->id,
+            'ticket_code' => 'TKT-123456',
+            'attendee_name' => $participant->name,
+            'attendee_email' => $participant->email,
+            'qr_token' => 'qr_token_placeholder',
+            'status' => 'active',
+        ]);
+
+        // 5. Participant fetches survey details
+        $detailsResponse = $this->actingAs($participant)
+            ->getJson("/api/events/{$event->id}/survey");
+
+        $detailsResponse->assertStatus(200);
+        $this->assertEquals('Session Feedback Survey', $detailsResponse->json('data.custom_survey.title'));
+        $this->assertEquals('Sesi 1 - Intro to Programming', $detailsResponse->json('data.custom_survey.session'));
+
+        // 6. Participant submits responses
+        $submitResponse = $this->actingAs($participant)
+            ->postJson("/api/events/{$event->id}/survey", [
+                'survey_id' => $surveyId,
+                'answers' => [
+                    [
+                        'question_id' => $survey->questions[0]->id,
+                        'value' => 'IT',
+                    ],
+                    [
+                        'question_id' => $survey->questions[1]->id,
+                        'value' => '5',
+                    ],
+                    [
+                        'question_id' => $survey->questions[2]->id,
+                        'value' => '4',
+                    ]
+                ]
+            ]);
+
+        $submitResponse->assertStatus(200);
+
+        // Verify points were awarded to the participant
+        $this->assertDatabaseHas('point_transactions', [
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'amount' => 30, // Default fallback
+            'type' => 'local',
+        ]);
+
+        $this->assertDatabaseHas('local_member_points', [
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'points_balance' => 30,
+        ]);
+
+        // 7. Organizer fetches analytics and checks dynamic rating averages
+        $analyticsResponse = $this->actingAs($organizer)
+            ->getJson("/api/event-dashboard/{$event->id}/survey-analytics");
+
+        $analyticsResponse->assertStatus(200);
+        $analyticsResponse->assertJsonPath('data.total_responses', 1);
+        $analyticsResponse->assertJsonPath('data.avg_rating', 5);
+        $analyticsResponse->assertJsonPath('data.avg_speaker_rating', 4);
+        $analyticsResponse->assertJsonPath('data.avg_material_rating', 0);
+        $analyticsResponse->assertJsonPath('data.satisfaction_rate', 100);
     }
 }

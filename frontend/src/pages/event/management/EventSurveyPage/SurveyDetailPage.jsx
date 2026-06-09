@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Card, Button, Form, Badge, Spinner } from 'react-bootstrap';
 import {
 	Plus,
@@ -170,7 +170,7 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 
 	// State Kuesioner
 	const [status, setStatus] = useState(initialSurvey?.is_active ? 'aktif' : 'draft');
-	const [session, setSession] = useState(isNew ? '' : 'Sesi 1 - UI/UX Basic');
+	const [session, setSession] = useState(initialSurvey?.session || '');
 	const [title, setTitle] = useState(
 		initialSurvey?.title || 'Kuesioner Evaluasi & Masukan Acara',
 	);
@@ -179,13 +179,14 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 		'Silakan berikan masukan Anda untuk membantu meningkatkan kualitas acara.',
 	);
 	const [isSaving, setIsSaving] = useState(false);
+	const [sessions, setSessions] = useState([]);
 
 	// State Pertanyaan
 	const [questions, setQuestions] = useState(() => {
 		if (initialSurvey?.questions?.length > 0) {
 			return initialSurvey.questions.map((q) => ({
 				id: q.id.toString(),
-				type: q.type === 'radio' && q.options ? 'select' : q.type,
+				type: q.type,
 				label: q.label,
 				required: !!q.is_required,
 				options: q.options || [],
@@ -193,6 +194,22 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 		}
 		return isNew ? [{ id: '1', type: 'rating', label: '', required: true }] : [];
 	});
+
+	useEffect(() => {
+		const fetchSessions = async () => {
+			try {
+				const res = await api.get(`/event-dashboard/${eventId}/info-utama/session`);
+				if (res.data && res.data.session) {
+					setSessions(res.data.session);
+				}
+			} catch (err) {
+				console.error('Error fetching sessions:', err);
+			}
+		};
+		if (eventId) {
+			fetchSessions();
+		}
+	}, [eventId]);
 
 	// Helper Functions
 	const addQuestion = () => {
@@ -240,6 +257,7 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 			const surveyPayload = {
 				title: title.trim(),
 				description: description.trim() || null,
+				session: session || null,
 				is_active: status === 'aktif',
 			};
 
@@ -254,7 +272,7 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 			}
 
 			const questionsPayload = questions.map((q) => ({
-				type: q.type === 'select' ? 'radio' : q.type,
+				type: q.type,
 				label: q.label.trim(),
 				options: ['radio', 'checkbox', 'select'].includes(q.type) ? q.options : null,
 				is_required: !!q.required,
@@ -364,16 +382,15 @@ export default function SurveyDetailPage({ surveyId, eventId, initialSurvey, onB
 						<Form.Select
 							value={session}
 							onChange={(e) => setSession(e.target.value)}
-							className="rounded-2 shadow-none text-dark bg-light border-0"
+							className="rounded-2 shadow-none text-dark bg-light border-0 py-2 fs-4"
 							disabled={isSaving}
 						>
 							<option value="">Semua Sesi / Berlaku untuk seluruh acara</option>
-							<option value="Sesi 1 - UI/UX Basic">Sesi 1 – UI/UX Basic</option>
-							<option value="Sesi 2 - Advanced Prototyping">
-								Sesi 2 – Advanced Prototyping
-							</option>
-							<option value="Sesi 3 - Design System">Sesi 3 – Design System</option>
-							<option value="Workshop A">Workshop A</option>
+							{sessions.map((sess) => (
+								<option key={sess.id} value={sess.title}>
+									{sess.title}
+								</option>
+							))}
 						</Form.Select>
 					</Form.Group>
 				</Card.Body>

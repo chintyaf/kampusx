@@ -35,15 +35,6 @@ export default function SurveyPage() {
 	const [submitting, setSubmitting] = useState(false);
 	const [successMsg, setSuccessMsg] = useState('');
 
-	// Legacy fixed-form states (when no custom survey)
-	const [rating, setRating] = useState(0);
-	const [speakerRating, setSpeakerRating] = useState(0);
-	const [materialRating, setMaterialRating] = useState(0);
-	const [comments, setComments] = useState('');
-	const [ratingHover, setRatingHover] = useState(0);
-	const [speakerHover, setSpeakerHover] = useState(0);
-	const [materialHover, setMaterialHover] = useState(0);
-
 	useEffect(() => {
 		fetchSurveyData();
 	}, [eventId]);
@@ -71,20 +62,13 @@ export default function SurveyPage() {
 				setCustomSurvey(custom_survey || null);
 				setIsPreviewOnly(!!is_preview_only);
 
-				if (already_submitted && survey_response && !custom_survey) {
-					setRating(survey_response.rating || 0);
-					setSpeakerRating(survey_response.speaker_rating || 0);
-					setMaterialRating(survey_response.material_rating || 0);
-					setComments(survey_response.comments || '');
-				}
-
 				if (already_submitted && survey_response?.answers) {
-					const existing = {};
-					survey_response.answers.forEach((a) => {
-						existing[a.question_id] = a.value || '';
-					});
-					setAnswers(existing);
-				}
+ 					const existing = {};
+ 					survey_response.answers.forEach((a) => {
+ 						existing[a.question_id] = a.value || '';
+ 					});
+ 					setAnswers(existing);
+ 				}
 			}
 		} catch (err) {
 			setError(
@@ -142,42 +126,7 @@ export default function SurveyPage() {
 		}
 	};
 
-	const handleSubmitLegacySurvey = async (e) => {
-		e.preventDefault();
-		if (isPreviewOnly) {
-			alert('Mode Pratinjau: Penyelenggara tidak dapat mengirimkan jawaban survei.');
-			return;
-		}
-		if (rating === 0) {
-			alert('Silakan berikan penilaian kepuasan keseluruhan acara!');
-			return;
-		}
 
-		setSubmitting(true);
-		setError(null);
-		try {
-			const response = await api.post(`/events/${eventId}/survey`, {
-				rating,
-				speaker_rating: speakerRating || null,
-				material_rating: materialRating || null,
-				comments,
-			});
-			if (response.data.success) {
-				setSuccessMsg(response.data.message);
-				setAlreadySubmitted(true);
-				setSurveyResponse(response.data.data.survey_response);
-				setCertificateTemplate(response.data.data.certificate_template);
-				setParticipantName(response.data.data.participant_name);
-				window.scrollTo({ top: 0, behavior: 'smooth' });
-			}
-		} catch (err) {
-			setError(
-				err.response?.data?.message || 'Gagal menyimpan ulasan. Silakan coba kembali.',
-			);
-		} finally {
-			setSubmitting(false);
-		}
-	};
 
 	const handleDownloadPDF = () => {
 		const element = document.getElementById('certificate-print-area');
@@ -511,8 +460,13 @@ export default function SurveyPage() {
 													? customSurvey.title
 													: 'Formulir Evaluasi'}
 											</h5>
+											{customSurvey?.session && (
+												<Badge bg="light" text="dark" className="mt-1 small fw-semibold">
+													Sesi: {customSurvey.session}
+												</Badge>
+											)}
 											<p
-												className="mb-0 small"
+												className="mb-0 small mt-1"
 												style={{ color: 'rgba(255,255,255,0.75)' }}
 											>
 												{customSurvey?.description ||
@@ -541,7 +495,7 @@ export default function SurveyPage() {
 									)}
 
 									{/* === CUSTOM DYNAMIC FORM === */}
-									{customSurvey ? (
+									{customSurvey && (
 										<Form onSubmit={handleSubmitCustomSurvey}>
 											<div className="d-flex flex-column gap-4">
 												{customSurvey.questions.map((q, idx) => (
@@ -600,6 +554,28 @@ export default function SurveyPage() {
 																	</Badge>
 																)}
 															</div>
+														)}
+
+														{/* Select / Dropdown */}
+														{q.type === 'select' && (
+															<Form.Select
+																value={answers[q.id] || ''}
+																onChange={(e) =>
+																	setAnswers({
+																		...answers,
+																		[q.id]: e.target.value,
+																	})
+																}
+																className="rounded-3 mt-2"
+																required={q.is_required}
+															>
+																<option value="">Pilih salah satu...</option>
+																{(q.options || []).map((opt, i) => (
+																	<option key={i} value={opt}>
+																		{opt}
+																	</option>
+																))}
+															</Form.Select>
 														)}
 
 														{/* Text */}
@@ -717,167 +693,6 @@ export default function SurveyPage() {
 											<Button
 												type="submit"
 												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mt-4 ${
-													isPreviewOnly ? 'opacity-75' : ''
-												}`}
-												style={{
-													background: isPreviewOnly
-														? 'linear-gradient(135deg, #6c757d, #adb5bd)'
-														: 'linear-gradient(135deg,#3b82f6,#7c3aed)',
-													border: 'none',
-												}}
-												disabled={submitting || isPreviewOnly}
-											>
-												{isPreviewOnly ? (
-													<>
-														<Lock size={16} /> Hanya Pratinjau
-													</>
-												) : submitting ? (
-													<>
-														<Spinner animation="border" size="sm" />{' '}
-														Mengirim...
-													</>
-												) : (
-													<>
-														<Sparkles size={16} /> Kirim & Buka
-														Sertifikat
-													</>
-												)}
-											</Button>
-										</Form>
-									) : (
-										/* === LEGACY FIXED FORM (no custom survey) === */
-										<Form onSubmit={handleSubmitLegacySurvey}>
-											<Form.Group className="mb-4">
-												<Form.Label className="fw-bold text-dark mb-1">
-													1. Kepuasan Acara Keseluruhan{' '}
-													<span className="text-danger">*</span>
-												</Form.Label>
-												<div className="d-flex gap-2 mt-2 flex-wrap">
-													{[1, 2, 3, 4, 5].map((s) => (
-														<Star
-															key={s}
-															size={32}
-															onClick={() => setRating(s)}
-															onMouseEnter={() => setRatingHover(s)}
-															onMouseLeave={() => setRatingHover(0)}
-															fill={
-																(ratingHover || rating) >= s
-																	? '#ffc107'
-																	: 'none'
-															}
-															color={
-																(ratingHover || rating) >= s
-																	? '#ffc107'
-																	: '#ced4da'
-															}
-															style={{
-																cursor: 'pointer',
-																transition: 'all 0.15s ease',
-															}}
-														/>
-													))}
-													{rating > 0 && (
-														<Badge
-															bg="warning-subtle"
-															text="warning"
-															className="ms-1 px-2 py-1 rounded fw-semibold"
-														>
-															{getRatingText(rating)}
-														</Badge>
-													)}
-												</div>
-											</Form.Group>
-
-											<Form.Group className="mb-4">
-												<Form.Label className="fw-bold text-dark mb-1">
-													2. Kualitas Pembicara (Opsional)
-												</Form.Label>
-												<div className="d-flex gap-2 mt-2 flex-wrap">
-													{[1, 2, 3, 4, 5].map((s) => (
-														<Star
-															key={s}
-															size={26}
-															onClick={() =>
-																setSpeakerRating(
-																	speakerRating === s ? 0 : s,
-																)
-															}
-															onMouseEnter={() => setSpeakerHover(s)}
-															onMouseLeave={() => setSpeakerHover(0)}
-															fill={
-																(speakerHover || speakerRating) >= s
-																	? '#f59e0b'
-																	: 'none'
-															}
-															color={
-																(speakerHover || speakerRating) >= s
-																	? '#f59e0b'
-																	: '#ced4da'
-															}
-															style={{
-																cursor: 'pointer',
-																transition: 'all 0.15s ease',
-															}}
-														/>
-													))}
-												</div>
-											</Form.Group>
-
-											<Form.Group className="mb-4">
-												<Form.Label className="fw-bold text-dark mb-1">
-													3. Relevansi Materi (Opsional)
-												</Form.Label>
-												<div className="d-flex gap-2 mt-2 flex-wrap">
-													{[1, 2, 3, 4, 5].map((s) => (
-														<Star
-															key={s}
-															size={26}
-															onClick={() =>
-																setMaterialRating(
-																	materialRating === s ? 0 : s,
-																)
-															}
-															onMouseEnter={() => setMaterialHover(s)}
-															onMouseLeave={() => setMaterialHover(0)}
-															fill={
-																(materialHover || materialRating) >=
-																	s
-																	? '#f59e0b'
-																	: 'none'
-															}
-															color={
-																(materialHover || materialRating) >=
-																	s
-																	? '#f59e0b'
-																	: '#ced4da'
-															}
-															style={{
-																cursor: 'pointer',
-																transition: 'all 0.15s ease',
-															}}
-														/>
-													))}
-												</div>
-											</Form.Group>
-
-											<Form.Group className="mb-4">
-												<Form.Label className="fw-bold text-dark mb-1">
-													4. Kritik & Saran (Opsional)
-												</Form.Label>
-												<Form.Control
-													as="textarea"
-													rows={4}
-													value={comments}
-													onChange={(e) => setComments(e.target.value)}
-													placeholder="Bagikan pengalaman Anda..."
-													className="rounded-3"
-													style={{ fontSize: '14px', resize: 'none' }}
-												/>
-											</Form.Group>
-
-											<Button
-												type="submit"
-												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm ${
 													isPreviewOnly ? 'opacity-75' : ''
 												}`}
 												style={{

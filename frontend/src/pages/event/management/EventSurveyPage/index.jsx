@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Spinner, Row, Col } from 'react-bootstrap';
+import { Card, Button, Spinner, Row, Col, Badge } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import SurveyCard from './SurveyCard';
 import SurveyDetailPage from './SurveyDetailPage';
 import FormHeading from '@/components/dashboard/FormHeading';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
-import { Users, Star, Activity, FileText } from 'lucide-react';
+import { Users, Star, Activity, FileText, ArrowLeft } from 'lucide-react';
 import '../../../../assets/css/participant-list.css'; // For stat-card styles
 
 // --- Komponen Halaman Utama (Index) ---
@@ -46,7 +46,7 @@ const Index = () => {
 						responses: analytics?.total_responses ?? 0,
 						completionRate: analytics?.satisfaction_rate ?? 0,
 						avgRating: analytics?.avg_rating && analytics.avg_rating > 0 ? analytics.avg_rating : null,
-						session: null,
+						session: dbSurvey.session,
 						createdAt: new Date(dbSurvey.created_at).toLocaleDateString('id-ID', {
 							day: 'numeric',
 							month: 'long',
@@ -190,6 +190,112 @@ const Index = () => {
 						fetchSurveyAndAnalytics();
 					}}
 				/>
+			)}
+
+			{/* Tampilkan halaman list respon jika currentView adalah 'responses' */}
+			{currentView === 'responses' && (
+				<div style={{ margin: '0 auto', padding: '2rem 1rem' }}>
+					{/* Header dengan tombol kembali */}
+					<div className="d-flex align-items-center gap-3 mb-4">
+						<Button
+							variant="outline-secondary"
+							className="rounded-circle p-2 d-flex align-items-center justify-content-center"
+							style={{ width: '40px', height: '40px' }}
+							onClick={() => setCurrentView('list')}
+						>
+							<ArrowLeft size={20} />
+						</Button>
+						<div>
+							<h3 className="mb-0 text-dark fw-bold">Hasil Respon Survei</h3>
+							<p className="text-muted small mb-0">
+								Melihat semua feedback yang dikirimkan oleh peserta untuk {rawSurvey?.title || 'Survei Event'}.
+							</p>
+						</div>
+					</div>
+
+					{/* Daftar Respon */}
+					<div className="d-flex flex-column gap-3">
+						{!surveyAnalytics?.responses || surveyAnalytics.responses.length === 0 ? (
+							<Card className="border rounded-4 bg-light shadow-sm">
+								<Card.Body className="text-center py-5">
+									<p className="text-muted mb-0">Belum ada respon yang masuk untuk survei ini.</p>
+								</Card.Body>
+							</Card>
+						) : (
+							surveyAnalytics.responses.map((resp) => (
+								<Card key={resp.id} className="border rounded-4 shadow-sm overflow-hidden">
+									{/* Header Card Respon */}
+									<Card.Header className="bg-white border-0 pt-4 px-4 pb-2">
+										<div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
+											<div>
+												<h6 className="mb-0 text-dark fw-bold">{resp.user?.name || 'Peserta Tanpa Nama'}</h6>
+												<span className="text-muted small">{resp.user?.email || '-'}</span>
+											</div>
+											<Badge bg="light" className="text-secondary border rounded-pill fw-medium">
+												{new Date(resp.created_at).toLocaleString('id-ID', {
+													day: 'numeric',
+													month: 'short',
+													year: 'numeric',
+													hour: '2-digit',
+													minute: '2-digit'
+												})}
+											</Badge>
+										</div>
+									</Card.Header>
+									{/* Body Card Respon */}
+									<Card.Body className="px-4 pb-4 pt-2">
+										<hr className="my-2 text-muted opacity-25" />
+										<div className="d-flex flex-column gap-3 mt-3">
+											{resp.answers && resp.answers.length > 0 ? (
+												resp.answers.map((ans) => {
+													const questionText = ans.question?.label || 'Pertanyaan';
+													const isRating = ans.question?.type === 'rating';
+													const ratingValue = isRating ? parseInt(ans.value, 10) || 0 : 0;
+
+													return (
+														<div key={ans.id} className="pb-2 border-bottom border-light">
+															<span className="text-muted small fw-medium d-block mb-1">
+																{questionText}
+															</span>
+															{isRating ? (
+																<div className="d-flex align-items-center gap-1">
+																	{[1, 2, 3, 4, 5].map((starIdx) => (
+																		<Star
+																			key={starIdx}
+																			size={16}
+																			className={
+																				starIdx <= ratingValue
+																					? 'fill-warning text-warning'
+																					: 'text-black-30'
+																			}
+																			style={{
+																				fill: starIdx <= ratingValue ? '#ffc107' : 'none',
+																				color: starIdx <= ratingValue ? '#ffc107' : '#dee2e6'
+																			}}
+																		/>
+																	))}
+																	<span className="ms-2 small fw-semibold text-dark">
+																		{ratingValue} / 5
+																	</span>
+																</div>
+															) : (
+																<p className="mb-0 text-dark fw-medium" style={{ whiteSpace: 'pre-line' }}>
+																	{ans.value || <em className="text-muted small">Tidak diisi</em>}
+																</p>
+															)}
+														</div>
+													);
+												})
+											) : (
+												<p className="text-muted small mb-0 italic">Tidak ada detail jawaban.</p>
+											)}
+										</div>
+									</Card.Body>
+								</Card>
+							))
+						)}
+					</div>
+				</div>
 			)}
 		</div>
 	);

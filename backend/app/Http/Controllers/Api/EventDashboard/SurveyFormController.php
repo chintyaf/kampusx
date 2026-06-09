@@ -46,6 +46,7 @@ class SurveyFormController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'session' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ]);
 
@@ -59,6 +60,7 @@ class SurveyFormController extends Controller
                 'event_id' => $eventId,
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
+                'session' => $validated['session'] ?? null,
                 'is_active' => $validated['is_active'] ?? false,
             ]);
 
@@ -82,6 +84,7 @@ class SurveyFormController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'session' => 'nullable|string|max:255',
             'is_active' => 'sometimes|boolean',
         ]);
 
@@ -114,7 +117,7 @@ class SurveyFormController extends Controller
 
         $validated = $request->validate([
             'questions' => 'required|array',
-            'questions.*.type' => 'required|in:text,textarea,rating,radio,checkbox',
+            'questions.*.type' => 'required|in:text,textarea,rating,radio,checkbox,select',
             'questions.*.label' => 'required|string|max:500',
             'questions.*.options' => 'nullable|array',
             'questions.*.options.*' => 'string|max:255',

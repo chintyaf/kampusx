@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Badge } from 'react-bootstrap';
+import { Card, Badge, Button } from 'react-bootstrap';
 import { MessageSquare, CheckCircle2, Users, Star, ChevronRight } from 'lucide-react';
 
 const SurveyCard = ({ survey, setSelectedSurveyId, setCurrentView }) => {
@@ -96,10 +96,22 @@ const SurveyCard = ({ survey, setSelectedSurveyId, setCurrentView }) => {
 			</Card.Body>
 
 			{/* Footer Kartu */}
-			<div className="bg-light px-4 py-2 border-top">
+			<div className="bg-light px-4 py-2 border-top d-flex justify-content-between align-items-center">
 				<span className="small text-muted" style={{ fontSize: '0.8rem' }}>
 					Dibuat pada {survey.createdAt}
 				</span>
+				<Button
+					variant="outline-primary"
+					size="sm"
+					className="rounded-3 py-1 px-3 small fw-semibold primary-hover d-flex align-items-center gap-1"
+					onClick={(e) => {
+						e.stopPropagation();
+						setSelectedSurveyId(survey.id);
+						setCurrentView('responses');
+					}}
+				>
+					Lihat Respon &rarr;
+				</Button>
 			</div>
 		</Card>
 	);

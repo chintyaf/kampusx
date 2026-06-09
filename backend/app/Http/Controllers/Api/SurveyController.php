@@ -9,7 +9,11 @@ use App\Models\Survey;
 use App\Models\Ticket;
 use App\Models\SurveyResponse;
 use App\Models\SurveyAnswer;
+use App\Models\SurveyQuestion;
 use App\Models\CertificateTemplate;
+use App\Models\Activity;
+use App\Models\LocalMemberPoint;
+use App\Models\PointTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -55,11 +59,19 @@ class SurveyController extends Controller
 
             $alreadySubmitted = !is_null($response);
 
-            // 3. Get the active custom survey (if organizer built one)
+            // Get the custom survey by event_id only (no is_active check)
             $customSurvey = Survey::where('event_id', $eventId)
-                ->where('is_active', true)
                 ->with(['questions' => fn($q) => $q->orderBy('sort_order')])
                 ->first();
+
+            // Block access if survey is empty/null or questions are empty
+            if (!$customSurvey || $customSurvey->questions->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Survei belum tersedia untuk event ini.',
+                ], 403);
+            }
 
             // 4. Get certificate template (if exists)
             $template = CertificateTemplate::where('event_id', $eventId)
@@ -150,61 +162,52 @@ class SurveyController extends Controller
             ], 422);
         }
 
-        // 3. Check if there's an active custom survey
-        $customSurvey = Survey::where('event_id', $eventId)->where('is_active', true)->first();
+        // Get the custom survey by event_id only (no is_active check)
+        $customSurvey = Survey::where('event_id', $eventId)->first();
+
+        if (!$customSurvey) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Survei belum tersedia untuk event ini.'
+            ], 403);
+        }
 
         try {
             DB::beginTransaction();
 
-            if ($customSurvey) {
-                // === DYNAMIC CUSTOM SURVEY SUBMISSION ===
-                $validated = $request->validate([
-                    'survey_id' => 'required|integer',
-                    'answers' => 'required|array',
-                    'answers.*.question_id' => 'required|integer|exists:survey_questions,id',
-                    'answers.*.value' => 'nullable|string|max:2000',
-                ]);
+            // === DYNAMIC CUSTOM SURVEY SUBMISSION ===
+            $validated = $request->validate([
+                'survey_id' => 'required|integer',
+                'answers' => 'required|array',
+                'answers.*.question_id' => 'required|integer|exists:survey_questions,id',
+                'answers.*.value' => 'nullable|string|max:2000',
+            ]);
 
-                $surveyResponse = SurveyResponse::create([
-                    'user_id' => $user->id,
-                    'event_id' => $eventId,
-                    'survey_id' => $customSurvey->id,
-                    // Legacy fields get a default so they're not null
-                    'rating' => null,
-                    'comments' => null,
-                ]);
+            $surveyResponse = SurveyResponse::create([
+                'user_id' => $user->id,
+                'event_id' => $eventId,
+                'survey_id' => $customSurvey->id,
+                // Legacy fields get a default so they're not null
+                'rating' => null,
+                'comments' => null,
+            ]);
 
-                // Insert all answers
-                $answersData = collect($validated['answers'])->map(fn($a) => [
-                    'response_id' => $surveyResponse->id,
-                    'question_id' => $a['question_id'],
-                    'value' => $a['value'] ?? null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ])->toArray();
+            // Insert all answers
+            $answersData = collect($validated['answers'])->map(fn($a) => [
+                'response_id' => $surveyResponse->id,
+                'question_id' => $a['question_id'],
+                'value' => $a['value'] ?? null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])->toArray();
 
-                SurveyAnswer::insert($answersData);
-
-            } else {
-                // === LEGACY FIXED SURVEY SUBMISSION ===
-                $validated = $request->validate([
-                    'rating' => 'required|integer|min:1|max:5',
-                    'speaker_rating' => 'nullable|integer|min:1|max:5',
-                    'material_rating' => 'nullable|integer|min:1|max:5',
-                    'comments' => 'nullable|string|max:1000',
-                ]);
-
-                $surveyResponse = SurveyResponse::create([
-                    'user_id' => $user->id,
-                    'event_id' => $eventId,
-                    'rating' => $validated['rating'],
-                    'speaker_rating' => $validated['speaker_rating'] ?? null,
-                    'material_rating' => $validated['material_rating'] ?? null,
-                    'comments' => $validated['comments'] ?? null,
-                ]);
-            }
+            SurveyAnswer::insert($answersData);
 
             DB::commit();
+
+            // Award points to the participant for survey submission
+            $this->awardSurveyPoints($user->id, $eventId);
 
             // Return certificate template
             $template = CertificateTemplate::where('event_id', $eventId)->with('elements')->first();
@@ -254,31 +257,90 @@ class SurveyController extends Controller
             }
 
             $responses = SurveyResponse::where('event_id', $eventId)
-                ->with('user:id,name,email')
+                ->with(['user:id,name,email', 'answers.question'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
             $total = $responses->count();
 
-            // Compute averages
-            $avgRating = $total > 0 ? round($responses->avg('rating'), 1) : 0;
-            $avgSpeaker = $total > 0 ? round($responses->whereNotNull('speaker_rating')->avg('speaker_rating'), 1) : 0;
-            $avgMaterial = $total > 0 ? round($responses->whereNotNull('material_rating')->avg('material_rating'), 1) : 0;
+            // Get the custom survey by event_id only (no is_active check)
+            $customSurvey = Survey::where('event_id', $eventId)->first();
 
-            // Rating distribution (1-5)
+            $avgRating = 0;
+            $avgSpeaker = 0;
+            $avgMaterial = 0;
+            $satisfactionRate = 0;
             $distribution = [];
             for ($i = 1; $i <= 5; $i++) {
-                $count = $responses->where('rating', $i)->count();
                 $distribution[] = [
                     'star' => $i,
-                    'count' => $count,
-                    'percent' => $total > 0 ? round(($count / $total) * 100) : 0,
+                    'count' => 0,
+                    'percent' => 0,
                 ];
             }
 
-            // Satisfaction %: responses rating >= 4
-            $satisfiedCount = $responses->filter(fn($r) => $r->rating >= 4)->count();
-            $satisfactionRate = $total > 0 ? round(($satisfiedCount / $total) * 100) : 0;
+            if ($customSurvey) {
+                // Fetch all rating questions for this custom survey
+                $ratingQuestions = SurveyQuestion::where('survey_id', $customSurvey->id)
+                    ->where('type', 'rating')
+                    ->get();
+
+                // Find specific questions based on keyword matching
+                $eventRatingQ = $ratingQuestions->filter(function($q) {
+                    $lbl = strtolower($q->label);
+                    return str_contains($lbl, 'acara') || str_contains($lbl, 'event') || str_contains($lbl, 'keseluruhan') || str_contains($lbl, 'overall') || str_contains($lbl, 'puas') || str_contains($lbl, 'kepuasan');
+                })->first();
+
+                // If not found, fall back to the first rating question
+                if (!$eventRatingQ) {
+                    $eventRatingQ = $ratingQuestions->first();
+                }
+
+                $speakerRatingQ = $ratingQuestions->filter(function($q) {
+                    $lbl = strtolower($q->label);
+                    return str_contains($lbl, 'pembicara') || str_contains($lbl, 'speaker') || str_contains($lbl, 'pemateri');
+                })->first();
+
+                $materialRatingQ = $ratingQuestions->filter(function($q) {
+                    $lbl = strtolower($q->label);
+                    return str_contains($lbl, 'materi') || str_contains($lbl, 'slide') || str_contains($lbl, 'presentasi') || str_contains($lbl, 'material');
+                })->first();
+
+                if ($eventRatingQ) {
+                    $avgRating = round(SurveyAnswer::where('question_id', $eventRatingQ->id)->whereNotNull('value')->avg(DB::raw('CAST(value AS UNSIGNED)')), 1);
+                }
+                if ($speakerRatingQ) {
+                    $avgSpeaker = round(SurveyAnswer::where('question_id', $speakerRatingQ->id)->whereNotNull('value')->avg(DB::raw('CAST(value AS UNSIGNED)')), 1);
+                }
+                if ($materialRatingQ) {
+                    $avgMaterial = round(SurveyAnswer::where('question_id', $materialRatingQ->id)->whereNotNull('value')->avg(DB::raw('CAST(value AS UNSIGNED)')), 1);
+                }
+
+                // Satisfaction rate: percentage of event rating answers >= 4
+                $totalEventRatingAnswers = 0;
+                $satisfiedEventRatingAnswers = 0;
+                if ($eventRatingQ) {
+                    $eventAnswers = SurveyAnswer::where('question_id', $eventRatingQ->id)->whereNotNull('value')->pluck('value');
+                    $totalEventRatingAnswers = $eventAnswers->count();
+                    $satisfiedEventRatingAnswers = $eventAnswers->filter(fn($val) => (int)$val >= 4)->count();
+                }
+                $satisfactionRate = $totalEventRatingAnswers > 0 ? round(($satisfiedEventRatingAnswers / $totalEventRatingAnswers) * 100) : 0;
+
+                // Distribution based on the event rating question
+                $distribution = [];
+                for ($i = 1; $i <= 5; $i++) {
+                    $count = 0;
+                    if ($eventRatingQ) {
+                        $count = SurveyAnswer::where('question_id', $eventRatingQ->id)->where('value', (string)$i)->count();
+                    }
+                    $distribution[] = [
+                        'star' => $i,
+                        'count' => $count,
+                        'percent' => $totalEventRatingAnswers > 0 ? round(($count / $totalEventRatingAnswers) * 100) : 0,
+                    ];
+                }
+            }
+
 
             return response()->json([
                 'success' => true,
@@ -385,6 +447,82 @@ class SurveyController extends Controller
                 'status' => 'error',
                 'message' => 'Gagal mengambil data sertifikat: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Automatically award points for the survey_submission activity.
+     */
+    private function awardSurveyPoints($userId, $eventId)
+    {
+        if (!$userId) {
+            return;
+        }
+
+        $activity = Activity::firstOrCreate(
+            ['slug' => 'survey_submission'],
+            [
+                'name' => 'Pengisian Survei (Survey Submission)',
+                'points_rewarded' => 30, // Default fallback
+                'type' => 'local',
+                'description' => 'Poin lokal untuk mengisi survei evaluasi event.',
+                'is_active' => true
+            ]
+        );
+
+        if (!$activity->is_active) {
+            return;
+        }
+
+        // Check if already has points for survey_submission for this event to avoid duplicate points
+        $exists = PointTransaction::where('user_id', $userId)
+            ->where('event_id', $eventId)
+            ->where('activity_id', $activity->id)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $points = $activity->points_rewarded;
+
+        DB::transaction(function () use ($userId, $eventId, $activity, $points) {
+            $localPoint = LocalMemberPoint::firstOrCreate(
+                ['user_id' => $userId, 'event_id' => $eventId],
+                ['points_balance' => 0]
+            );
+
+            $lockedPoint = LocalMemberPoint::where('id', $localPoint->id)
+                ->lockForUpdate()
+                ->first();
+
+            $lockedPoint->points_balance += $points;
+            $lockedPoint->save();
+
+            PointTransaction::create([
+                'type' => 'local',
+                'user_id' => $userId,
+                'event_id' => $eventId,
+                'activity_id' => $activity->id,
+                'amount' => $points,
+                'description' => 'Poin Pengisian Survei',
+            ]);
+        });
+
+        // NOTIFICATION: Kirim notifikasi ke peserta
+        $participantUser = \App\Models\User::find($userId);
+        if ($participantUser) {
+            $participantUser->notify(new \App\Notifications\OperationalNotification(
+                "Poin Aktivitas Ditambahkan!",
+                "Selamat! Kamu mendapatkan +{$points} poin dari aktivitas \"{$activity->name}\".",
+                "points_earned",
+                [
+                    'event_id' => $eventId,
+                    'points' => $points,
+                    'activity_name' => $activity->name,
+                    'description' => 'Poin Pengisian Survei'
+                ]
+            ));
         }
     }
 }
