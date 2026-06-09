@@ -261,16 +261,13 @@ const EventSpace = () => {
 										<Megaphone size={18} className="me-3" /> Pengumuman Event
 									</Nav.Link>
 									<Nav.Link
-										as={Link}
-										to={`/event-space/${id}/rewards`}
-										className="d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium text-dark text-decoration-none"
+										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'rewards' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
+										onClick={() => setActiveTab('rewards')}
 										style={{ transition: 'background-color 0.2s' }}
-										onMouseEnter={(e) => e.currentTarget.classList.add('bg-light')}
-										onMouseLeave={(e) => e.currentTarget.classList.remove('bg-light')}
 									>
-										<Gift size={18} className="me-3" style={{ color: '#0d9488' }} /> 
+										<Gift size={18} className="me-3" style={{ color: activeTab === 'rewards' ? '#fff' : '#0d9488' }} /> 
 										Tukar Local Reward
-										<Badge bg="primary-subtle" className="text-primary ms-auto rounded-pill border small font-bold px-2 py-1">
+										<Badge bg={activeTab === 'rewards' ? 'light' : 'primary-subtle'} className={`${activeTab === 'rewards' ? 'text-dark' : 'text-primary'} ms-auto rounded-pill border small font-bold px-2 py-1`}>
 											{memberPoints || 0} Pts
 										</Badge>
 									</Nav.Link>

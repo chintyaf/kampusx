@@ -21,57 +21,47 @@ export const useEventSpace = () => {
 	const [announcements, setAnnouncements] = useState([]);
 
 	// Poin & Reward States
-	const [memberPoints, setMemberPoints] = useState(120);
-	const [localRewardsCatalog, setLocalRewardsCatalog] = useState([
-		{
-			id: 1,
-			title: 'Kaos Eksklusif KampusX',
-			description:
-				'Bahan cotton combed 30s premium, sablon discharge rapi, tersedia ukuran S-XXL.',
-			points_cost: 100,
-			stock: 50,
-			limit_per_user: 1,
-			reward_type: 'physical',
-			image_path: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=300',
-			is_active: true,
-		},
-		{
-			id: 2,
-			title: 'E-Voucher Gopay Rp50.000',
-			description:
-				'Saldo Gopay senilai Rp50.000. Kode voucher dikirim otomatis via log penukaran.',
-			points_cost: 80,
-			stock: 20,
-			limit_per_user: 2,
-			reward_type: 'digital',
-			image_path: 'https://images.unsplash.com/photo-1580828343064-fde4fc206bc6?w=300',
-			is_active: true,
-		},
-		{
-			id: 3,
-			title: 'Stiker Pack Hologram',
-			description: 'Satu pack berisi 5 stiker hologram desain maskot dan ikon KampusX.',
-			points_cost: 15,
-			stock: 200,
-			limit_per_user: 5,
-			reward_type: 'physical',
-			image_path: 'https://images.unsplash.com/photo-1572375995301-3b9894856aef?w=300',
-			is_active: true,
-		},
-	]);
-	const [myRedemptions, setMyRedemptions] = useState([
-		{
-			id: 1,
-			reward_title: 'Stiker Pack Hologram',
-			points_spent: 15,
-			reward_type: 'physical',
-			redeemed_at: new Date(Date.now() - 86400000).toISOString(),
-			status: 'claimed',
-			notes: 'Diambil langsung di Booth Utama.',
-		},
-	]);
+	const [memberPoints, setMemberPoints] = useState(0);
+	const [localRewardsCatalog, setLocalRewardsCatalog] = useState([]);
+	const [myRedemptions, setMyRedemptions] = useState([]);
 	const [showRedeemWarningModal, setShowRedeemWarningModal] = useState(false);
 	const [pendingRedeemReward, setPendingRedeemReward] = useState(null);
+
+	const fetchRewardsCatalog = async () => {
+		try {
+			const resRewards = await api.get(`/events/${id}/rewards`);
+			if (resRewards.data?.status === 'success') {
+				setLocalRewardsCatalog(resRewards.data.data || []);
+			}
+		} catch (err) {
+			console.error('Gagal memuat katalog reward:', err);
+		}
+	};
+
+	const fetchPointsAndRedemptions = async () => {
+		try {
+			const resPoints = await api.get(`/events/${id}/my-points`);
+			if (resPoints.data?.status === 'success') {
+				const data = resPoints.data.data;
+				setMemberPoints(data.points_balance || 0);
+
+				const mapped = (data.redemptions || []).map((item) => ({
+					id: item.id,
+					reward_id: item.reward_id,
+					reward_title: item.reward?.title || 'Reward tidak diketahui',
+					reward_type: item.reward?.reward_type || 'physical',
+					points_spent: item.points_spent,
+					status: item.status,
+					notes: item.notes,
+					cancellation_reason: item.cancellation_reason,
+					redeemed_at: item.redeemed_at || item.created_at,
+				}));
+				setMyRedemptions(mapped);
+			}
+		} catch (err) {
+			console.error('Gagal memuat saldo poin & riwayat:', err);
+		}
+	};
 
 	const handleRedeemReward = (reward) => {
 		if (memberPoints < reward.points_cost) {
@@ -94,8 +84,12 @@ export const useEventSpace = () => {
 			return;
 		}
 
+		const locationDetail = event?.location_detail || event?.locationDetail || {};
+		const locationType = locationDetail?.type || event?.location_type || 'offline';
+		const isOnline = locationType === 'online';
+
 		// Jika event diselenggarakan online (is_online) dan reward fisik
-		if (event?.is_online && reward.reward_type === 'physical') {
+		if (isOnline && reward.reward_type === 'physical') {
 			setPendingRedeemReward(reward);
 			setShowRedeemWarningModal(true);
 		} else {
@@ -103,30 +97,18 @@ export const useEventSpace = () => {
 		}
 	};
 
-	const executeRedemption = (reward) => {
-		setMemberPoints((prev) => prev - reward.points_cost);
-		setLocalRewardsCatalog((prev) =>
-			prev.map((r) =>
-				r.id === reward.id ? { ...r, stock: r.stock !== null ? r.stock - 1 : null } : r,
-			),
-		);
-
-		const newRedemption = {
-			id: Date.now(),
-			reward_title: reward.title,
-			points_spent: reward.points_cost,
-			reward_type: reward.reward_type,
-			redeemed_at: new Date().toISOString(),
-			status: 'pending',
-			notes:
-				reward.reward_type === 'physical'
-					? 'Menunggu pengambilan di lokasi event.'
-					: 'Kode e-voucher akan segera dikirim oleh panitia.',
-		};
-
-		setMyRedemptions([newRedemption, ...myRedemptions]);
-		toast.success(`Berhasil menukar ${reward.title}!`);
-		setShowRedeemWarningModal(false);
+	const executeRedemption = async (reward, notes = '') => {
+		try {
+			const res = await api.post(`/events/${id}/rewards/${reward.id}/redeem`, { notes });
+			if (res.data?.status === 'success') {
+				toast.success(res.data.message || `Berhasil menukar ${reward.title}!`);
+				await fetchPointsAndRedemptions();
+				setShowRedeemWarningModal(false);
+			}
+		} catch (err) {
+			console.error('Gagal menukar reward:', err);
+			toast.error(err.response?.data?.message || 'Gagal melakukan penukaran reward.');
+		}
 	};
 
 	const getFullAttachmentUrl = (url, path) => {
@@ -264,6 +246,12 @@ export const useEventSpace = () => {
 					);
 
 					setAnnouncements(combined);
+
+					// Fetch local rewards catalog, member points, and redemptions in parallel
+					await Promise.all([
+						fetchRewardsCatalog(),
+						fetchPointsAndRedemptions(),
+					]);
 				} else {
 					setIsAccessDenied(true);
 				}

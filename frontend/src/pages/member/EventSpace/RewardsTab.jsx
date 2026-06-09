@@ -82,8 +82,8 @@ const RewardsTab = ({
 												className="px-2.5 py-1.5 shadow-sm text-xxs font-bold text-white border border-opacity-10"
 											>
 												{reward.reward_type === 'physical'
-													? '🎁 Fisik'
-													: '💻 Digital'}
+													? 'Fisik'
+													: 'Digital'}
 											</Badge>
 										</div>
 										<div className="position-absolute top-0 end-0 p-2.5">
@@ -220,8 +220,8 @@ const RewardsTab = ({
 											</span>
 											<div className="text-xxs text-muted">
 												{item.reward_type === 'physical'
-													? '🎁 Fisik'
-													: '💻 Digital'}
+													? 'Fisik'
+													: 'Digital'}
 											</div>
 										</td>
 										<td className="py-3 text-center fw-bold text-secondary">
@@ -233,7 +233,7 @@ const RewardsTab = ({
 													bg="warning"
 													className="text-dark"
 												>
-													🕒 Menunggu
+													Menunggu
 												</Badge>
 											)}
 											{item.status === 'claimed' && (
@@ -241,7 +241,7 @@ const RewardsTab = ({
 													bg="success"
 													className="text-white"
 												>
-													🤝 Diambil
+													Diambil
 												</Badge>
 											)}
 											{item.status === 'delivered' && (
@@ -249,7 +249,7 @@ const RewardsTab = ({
 													bg="success"
 													className="text-white"
 												>
-													📩 Terkirim
+													Terkirim
 												</Badge>
 											)}
 											{item.status === 'cancelled' && (
@@ -257,7 +257,7 @@ const RewardsTab = ({
 													bg="danger"
 													className="text-white"
 												>
-													❌ Dibatalkan
+													Dibatalkan
 												</Badge>
 											)}
 										</td>
