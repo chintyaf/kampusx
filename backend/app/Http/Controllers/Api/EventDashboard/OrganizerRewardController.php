@@ -274,11 +274,11 @@ class OrganizerRewardController extends Controller
     {
         $event = Event::findOrFail($eventId);
 
-        // 1. Validasi status event (harus sudah ended/completed)
-        if ($event->status !== 'completed') {
+        // 1. Validasi status event (harus aktif / tidak boleh draft atau cancelled)
+        if (in_array($event->status, ['draft', 'cancelled'])) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Validasi gagal: Event belum selesai (status harus completed).'
+                'message' => 'Validasi gagal: Event tidak dapat dikonversi karena masih berupa draft atau telah dibatalkan.'
             ], 422);
         }
 
@@ -327,6 +327,11 @@ class OrganizerRewardController extends Controller
                         'amount' => $globalPoints,
                         'description' => "Konversi Poin Lokal Event {$event->title} (Rasio 1:{$ratio})",
                     ]);
+
+                    // Sinkronisasi kolom points di tabel users
+                    if ($localPoint->user) {
+                        $localPoint->user->increment('points', $globalPoints);
+                    }
                 }
 
                 $convertedList[] = [

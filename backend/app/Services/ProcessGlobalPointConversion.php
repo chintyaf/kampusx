@@ -53,6 +53,9 @@ class ProcessGlobalPointConversion
                 'description' => "Konversi otomatis dari sisa Poin Lokal (Event ID: {$eventId})",
             ]);
 
+            // Synchronize user global points column
+            $user->increment('points', $globalPoints);
+
             // 3. Kurangi / bersihkan Poin Lokal user untuk event ini dengan pencatatan mutasi negatif
             PointTransaction::create([
                 'user_id' => $user->id,

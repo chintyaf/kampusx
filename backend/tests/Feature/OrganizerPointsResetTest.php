@@ -58,12 +58,12 @@ class OrganizerPointsResetTest extends TestCase
     }
 
     /**
-     * Test validasi status event (harus sudah completed).
+     * Test validasi status event (tidak boleh draft atau cancelled).
      */
-    public function test_cannot_reset_points_if_event_not_completed()
+    public function test_cannot_reset_points_if_event_draft_or_cancelled()
     {
-        // Ubah status event menjadi published
-        $this->event->update(['status' => 'published']);
+        // 1. Cek status draft
+        $this->event->update(['status' => 'draft']);
 
         $response = $this->actingAs($this->organizer)
             ->postJson("/api/event-dashboard/{$this->event->id}/points/reset");
@@ -71,7 +71,19 @@ class OrganizerPointsResetTest extends TestCase
         $response->assertStatus(422);
         $response->assertJson([
             'status' => 'error',
-            'message' => 'Validasi gagal: Event belum selesai (status harus completed).'
+            'message' => 'Validasi gagal: Event tidak dapat dikonversi karena masih berupa draft atau telah dibatalkan.'
+        ]);
+
+        // 2. Cek status cancelled
+        $this->event->update(['status' => 'cancelled']);
+
+        $response2 = $this->actingAs($this->organizer)
+            ->postJson("/api/event-dashboard/{$this->event->id}/points/reset");
+
+        $response2->assertStatus(422);
+        $response2->assertJson([
+            'status' => 'error',
+            'message' => 'Validasi gagal: Event tidak dapat dikonversi karena masih berupa draft atau telah dibatalkan.'
         ]);
     }
 
