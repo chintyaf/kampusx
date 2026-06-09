@@ -3,7 +3,7 @@ import { Route } from 'react-router-dom';
 
 import Dashboard from '@/pages/dashboard/Dashboard';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
-import CreateEvent from '@/pages/event/creation/CreateEvent/index';
+import CreateEvent from '@/pages/event/creation/CreateEvent/CreateEvent';
 import ManageUserPage from '@/pages/admin/ManageUserPage';
 import AdminPaymentPage from '@/pages/admin/AdminPaymentPage';
 

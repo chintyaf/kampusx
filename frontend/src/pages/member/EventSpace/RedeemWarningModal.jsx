@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import React from 'react';
+import { Modal, Button } from 'react-bootstrap';
 import { AlertTriangle } from 'lucide-react';
 
 const RedeemWarningModal = ({ show, onHide, pendingRedeemReward, executeRedemption }) => {
-	const [notes, setNotes] = useState('');
-
-	useEffect(() => {
-		if (show) {
-			setNotes('');
-		}
-	}, [show]);
-
 	return (
 		<Modal
 			show={show}
@@ -37,31 +29,18 @@ const RedeemWarningModal = ({ show, onHide, pendingRedeemReward, executeRedempti
 					menukar reward fisik <strong>({pendingRedeemReward?.title})</strong>.
 					<br />
 					<br />
-					Harap masukkan alamat pengiriman Anda di bawah ini agar panitia dapat mengirimkan hadiah tersebut ke alamat Anda.
+					Harap diperhatikan bahwa reward fisik hanya dapat diambil secara langsung di
+					lokasi fisik acara atau harus diatur pengirimannya dengan panitia. Apakah
+					Anda yakin ingin melanjutkan penukaran?
 				</p>
-
-				<Form.Group className="mb-4 text-start">
-					<Form.Label className="fw-semibold text-secondary small">
-						Alamat Pengiriman (Min. 10 karakter):
-					</Form.Label>
-					<Form.Control
-						as="textarea"
-						rows={3}
-						value={notes}
-						onChange={(e) => setNotes(e.target.value)}
-						placeholder="Nama Penerima, No HP, Alamat Lengkap (Jalan, RT/RW, Kecamatan, Kota, Kode Pos)..."
-						style={{ fontSize: '13px', borderRadius: '8px' }}
-					/>
-				</Form.Group>
 
 				<div className="d-flex flex-column gap-2">
 					<Button
 						variant="warning"
 						size="lg"
 						className="rounded-pill fw-bold text-white shadow-sm"
-						disabled={!notes || notes.trim().length < 10}
 						onClick={() =>
-							pendingRedeemReward && executeRedemption(pendingRedeemReward, notes)
+							pendingRedeemReward && executeRedemption(pendingRedeemReward)
 						}
 					>
 						Ya, Tukar Sekarang

@@ -29,7 +29,7 @@ class SurveyController extends Controller
             $eventId = $event->id;
 
             // Check if user is the organizer of the event or an admin
-            $isOrganizerOrAdmin = ($event->organizer_id === $user->id || $user->role === 'admin');
+            $isOrganizerOrAdmin = ((int) $event->organizer_id === (int) $user->id || $user->role === 'admin');
 
             // 1. Check if user has a ticket for this event
             $hasTicket = Ticket::where('participant_id', $user->id)
@@ -118,7 +118,7 @@ class SurveyController extends Controller
         $eventId = $event->id;
 
         // Penyelenggara/Admin tidak boleh submit survei
-        if ($event->organizer_id === $user->id || $user->role === 'admin') {
+        if ((int) $event->organizer_id === (int) $user->id || $user->role === 'admin') {
             return response()->json([
                 'success' => false,
                 'status' => 'error',
@@ -246,7 +246,7 @@ class SurveyController extends Controller
             $eventId = $event->id;
 
             // Only organizer or admin of this event can see results
-            if ($event->organizer_id !== $user->id && $user->role !== 'admin') {
+            if ((int) $event->organizer_id !== (int) $user->id && $user->role !== 'admin') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki akses ke data survei event ini.'

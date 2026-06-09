@@ -615,4 +615,99 @@ class OrganizerQAAdvancedTest extends TestCase
             'message' => 'Event hanya dapat dibatalkan saat status Published atau Ongoing.'
         ]);
     }
+
+    public function test_update_tickets_does_not_notify_participants()
+    {
+        $event = $this->createDraftEvent();
+        $event->update([
+            'status' => 'published',
+            'start_date' => now()->addDays(5)->format('Y-m-d H:i:s'),
+            'end_date' => now()->addDays(6)->format('Y-m-d H:i:s'),
+        ]);
+        
+        $event->eventTypes()->sync([1]);
+        $event->locationDetail()->create([
+            'type' => 'online',
+            'meeting_link' => 'https://zoom.us/j/123456789'
+        ]);
+        $event->sessions()->create([
+            'title' => 'Opening',
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+            'date' => now()->addDays(5)->format('Y-m-d'),
+        ]);
+
+        $ticket = EventTicket::create([
+            'event_id' => $event->id,
+            'name' => 'Regular Old',
+            'type' => 'online',
+            'is_free' => true,
+            'price' => 0,
+            'capacity' => 100,
+            'sale_start' => now()->format('Y-m-d H:i:s'),
+            'sale_end' => now()->addDays(4)->format('Y-m-d H:i:s'),
+        ]);
+
+        $participant = User::factory()->create();
+        
+        $order = \App\Models\Order::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => 'completed',
+            'amount' => 0,
+            'total_price' => 0,
+            'order_id' => 'ORD-TEST-123'
+        ]);
+
+        $orderItem = \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'quantity' => 1,
+            'price' => 0,
+        ]);
+
+        $ticketRegistration = \App\Models\Ticket::create([
+            'participant_id' => $participant->id,
+            'order_item_id' => $orderItem->id,
+            'status' => 'active',
+            'ticket_code' => 'TICKET-TEST-123',
+            'qr_token' => 'QR-TEST-123',
+            'attendee_name' => 'Jane Test',
+            'attendee_email' => 'jane@test.com'
+        ]);
+
+        // Prior to our changes, updating tickets for a published event with registered participants would send a notification.
+        // We assert that the database count of notifications for this user is 0 before the update.
+        $this->assertEquals(0, \DB::table('notifications')->where('notifiable_id', $participant->id)->count());
+
+        $response = $this->actingAs($this->organizer)->postJson("/api/event-dashboard/{$event->id}/info-utama/tickets", [
+            'tickets' => [
+                [
+                    'id' => $ticket->id,
+                    'name' => 'Regular Updated',
+                    'type' => 'online',
+                    'is_free' => true,
+                    'capacity' => 150,
+                    'sale_start' => now()->format('Y-m-d H:i:s'),
+                    'sale_end' => now()->addDays(4)->format('Y-m-d H:i:s'),
+                ]
+            ]
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'status' => 'success',
+            'notified_participants' => false
+        ]);
+
+        // Verify that the ticket name was actually updated in the database
+        $this->assertDatabaseHas('event_tickets', [
+            'id' => $ticket->id,
+            'name' => 'Regular Updated',
+            'capacity' => 150
+        ]);
+
+        // Verify that NO notification was sent to the participant
+        $this->assertEquals(0, \DB::table('notifications')->where('notifiable_id', $participant->id)->count());
+    }
 }

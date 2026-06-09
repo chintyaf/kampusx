@@ -37,8 +37,9 @@ const createPayload = (type, data) => {
 		type,
 		is_online_quota_unlimited: data.is_online_quota_unlimited,
 		is_offline_quota_unlimited: data.is_offline_quota_unlimited,
-		online_quota: data.online_quota,
-		offline_quota: data.offline_quota,
+		// Kirim null jika unlimited aktif — backend skip validasi quota <= 0 untuk nilai null
+		online_quota: data.is_online_quota_unlimited ? null : data.online_quota,
+		offline_quota: data.is_offline_quota_unlimited ? null : data.offline_quota,
 	};
 
 	if (type === 'online' || type === 'hybrid') {

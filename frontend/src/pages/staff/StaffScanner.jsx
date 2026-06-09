@@ -101,7 +101,7 @@ const StaffScanner = () => {
             <div className="p-4 bg-white rounded-top-4 shadow-lg position-relative" style={{ marginTop: -20, zIndex: 10 }}>
                 <Form onSubmit={(e) => { e.preventDefault(); processQrCode(qrInput); }} className="d-flex gap-2">
                     <Form.Control type="text" placeholder="Input manual..." value={qrInput} onChange={(e) => setQrInput(e.target.value)} disabled={isScanning} className="py-3 px-4 rounded-pill bg-light border-0" />
-                    <Button type="submit" disabled={isScanning || !qrInput.trim()} className="px-4 border-0 rounded-pill fw-bold" style={{ backgroundColor: '#1A365D' }}>Cek</Button>
+                    <Button type="submit" disabled={isScanning || !qrInput.trim()} className="px-4 border-0 rounded-pill fw-bold text-white" style={{ backgroundColor: 'var(--color-primary, #00699e)' }}>Cek</Button>
                 </Form>
             </div>
         </div>

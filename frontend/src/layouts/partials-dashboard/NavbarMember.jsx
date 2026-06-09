@@ -109,7 +109,7 @@ const NavbarPublic = () => {
     });
 
 	return (
-        <Navbar expand="lg" className="bg-white border-bottom shadow-sm sticky-top py-2" style={{ zIndex: 1050 }}>
+        <Navbar expand="lg" className="bg-white border-bottom shadow-sm sticky-top py-2">
             <Container className="px-4 d-flex align-items-center justify-content-between">
                 {/* Brand Logo */}
                 <Navbar.Brand as={Link} to="/" className="d-flex align-items-center me-0">
@@ -137,26 +137,26 @@ const NavbarPublic = () => {
 							</NavLink>
 						</>
 					)}
-					<NavLink to="/about" style={linkStyle}>
+					{/* <NavLink to="/about" style={linkStyle}>
 						Tentang Kami
-					</NavLink>
+					</NavLink> */}
 				</Nav>
 
 				{/* Desktop Actions */}
 				<div className="d-none d-lg-flex align-items-center gap-3">
 					{!user ? (
 						<>
-							<Button as={Link} to="/login" variant="light" style={{
+							<Button as={Link} to="/register" variant="light" style={{
 								fontSize: '13px', fontWeight: 600, background: '#fff', color: 'var(--color-text)',
 								border: '1px solid var(--color-border)', borderRadius: 8, padding: '8px 20px'
 							}}>
-								Masuk
+								Daftar
 							</Button>
-							<Button as={Link} to="/register" variant="dark" style={{
+							<Button as={Link} to="/login" variant="dark" style={{
 								fontSize: '13px', fontWeight: 600, backgroundColor: 'var(--color-text)',
 								border: 'none', borderRadius: 8, padding: '8px 20px'
 							}}>
-								Daftar
+								Masuk
 							</Button>
 						</>
 					) : (
@@ -237,10 +237,10 @@ const NavbarPublic = () => {
                                     </NavLink>
                                 </>
                             )}
-                            <NavLink to="/about" style={mobileLinkStyle} onClick={handleClose}>
+                            {/* <NavLink to="/about" style={mobileLinkStyle} onClick={handleClose}>
                                 <Info size={18} />
                                 <span>Tentang Kami</span>
-                            </NavLink>
+                            </NavLink> */}
                         </Nav>
 
                         {/* Unified User Profile & Account Menu in Mobile Sidebar */}

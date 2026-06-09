@@ -283,7 +283,7 @@
                 successState.style.display = 'block';
 
                 setTimeout(() => {
-                    const frontendUrl = "{{ env('FRONTEND_URL', 'http://localhost:5173') }}";
+                    const frontendUrl = "{{ config('app.frontend_url') }}";
                     const ticketCode = data.ticket_code;
 
                     if (ticketCode) {

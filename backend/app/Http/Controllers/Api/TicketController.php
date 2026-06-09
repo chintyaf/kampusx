@@ -12,7 +12,7 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         // Ambil semua tiket milik user yang sedang login, urutkan dari yang terbaru
-        $tickets = Ticket::with('orderItem.order.event')
+        $tickets = Ticket::with('orderItem.order.event.locationDetail')
             ->where('participant_id', $request->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -25,7 +25,7 @@ class TicketController extends Controller
     public function show($ticket_code, Request $request)
     {
         // Ambil tiket beserta relasi ke order dan event
-        $ticket = Ticket::with('orderItem.order.event')
+        $ticket = Ticket::with('orderItem.order.event.locationDetail')
                         ->where('ticket_code', $ticket_code)
                         ->first();
 
@@ -34,7 +34,7 @@ class TicketController extends Controller
         }
 
         // Pastikan hanya pemilik tiket yang bisa melihatnya
-        if ($ticket->participant_id !== $request->user()->id) {
+        if ((int) $ticket->participant_id !== (int) $request->user()->id) {
             return response()->json(['message' => 'Akses ditolak'], 403);
         }
 
