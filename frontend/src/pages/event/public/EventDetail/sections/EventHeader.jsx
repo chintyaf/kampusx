@@ -42,9 +42,9 @@ const EventHeader = ({
 						</Badge>
 					) : null}
 					{/* Kategori Event (Jika ada) */}
-					{eventDetails.category ? (
+					{eventDetails.category || (eventDetails.categories && eventDetails.categories.length > 0) ? (
 						<Badge bg="light" text="dark" className="border px-3 py-2">
-							{eventDetails.category}
+							{eventDetails.category || eventDetails.categories[0].name}
 						</Badge>
 					) : null}
 				</div>

@@ -11,6 +11,8 @@ import EventAgenda from './sections/EventAgenda';
 import EventTicketCard from './sections/EventTicketCard';
 import EventLocationCard from './sections/EventLocationCard';
 import EventOrganizerCard from './sections/EventOrganizerCard';
+import EventSpeakers from './sections/EventSpeakers';
+import EventCollaborators from './sections/EventCollaborators';
 
 const EventDetail = () => {
 	const { slug } = useParams();
@@ -205,8 +207,14 @@ const EventDetail = () => {
 						{/* Poster & About */}
 						<EventAbout eventDetails={eventDetails} />
 
+						{/* Pembicara / Narasumber */}
+						<EventSpeakers eventDetails={eventDetails} />
+
 						{/* Jadwal & Agenda */}
 						<EventAgenda eventDetails={eventDetails} />
+
+						{/* Sponsor & Partner Pendukung */}
+						<EventCollaborators eventDetails={eventDetails} />
 					</Col>
 
 					{/* ========================================== */}

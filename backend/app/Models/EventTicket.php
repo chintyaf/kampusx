@@ -36,6 +36,30 @@ class EventTicket extends Model
         'sale_end' => 'datetime',
     ];
 
+    protected $appends = [
+        'sold_count',
+        'remaining_count',
+    ];
+
+    public function getSoldCountAttribute(): int
+    {
+        return \DB::table('tickets')
+            ->join('order_items', 'tickets.order_item_id', '=', 'order_items.id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.event_id', $this->event_id)
+            ->where('order_items.price', $this->price)
+            ->whereIn('orders.status', ['paid', 'pending'])
+            ->count();
+    }
+
+    public function getRemainingCountAttribute(): ?int
+    {
+        if (is_null($this->capacity)) {
+            return null;
+        }
+        return max(0, $this->capacity - $this->sold_count);
+    }
+
     /**
      * Relasi: Tiket ini milik sebuah Event.
      */

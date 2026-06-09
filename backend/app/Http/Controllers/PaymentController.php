@@ -30,7 +30,7 @@ class PaymentController extends Controller
         $expiredAt = now()->addMinutes(15);
 
         // Build payment URL using environment or request host
-        $baseUrl = env('PAYMENT_BASE_URL', url('/'));
+        $baseUrl = config('app.payment_base_url') ?: url('/');
         $baseUrl = rtrim($baseUrl, '/');
         $paymentUrl = $baseUrl . '/payment/' . $token;
 
@@ -229,7 +229,7 @@ class PaymentController extends Controller
         ];
 
         $jsonPayload = json_encode($payload);
-        $secretKey = env('PAYMENT_SECRET_KEY', 'sandbox_secret_key_123');
+        $secretKey = config('app.payment_secret_key');
         $signature = hash_hmac('sha256', $jsonPayload, $secretKey);
 
         try {

@@ -43,8 +43,22 @@ class Event extends Model
 
     protected $appends = [
         'price',
-        'is_bookmarked'
+        'is_bookmarked',
+        'is_online',
+        'is_in_person'
     ];
+
+    public function getIsOnlineAttribute(): bool
+    {
+        $location = $this->locationDetail;
+        return $location ? in_array($location->type, ['online', 'hybrid']) : false;
+    }
+
+    public function getIsInPersonAttribute(): bool
+    {
+        $location = $this->locationDetail;
+        return $location ? in_array($location->type, ['offline', 'hybrid']) : false;
+    }
 
     // Penyelenggara individu (User)
     public function organizer(): BelongsTo

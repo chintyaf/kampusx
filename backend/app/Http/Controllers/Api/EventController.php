@@ -206,10 +206,13 @@ class EventController extends Controller
         // Eager load all necessary relations for rich detail and preview modes
         $event->load([
             'organizer',
+            'institution',
+            'collaborators',
             'locationDetail',
             'categories',
             'eventTypes',
             'eventTickets',
+            'speakers',
             'sessions' => function($q) {
                 $q->orderBy('day_number', 'asc')
                   ->orderBy('start_time', 'asc')

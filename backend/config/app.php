@@ -58,6 +58,8 @@ return [
 
     'payment_base_url' => env('PAYMENT_BASE_URL'),
 
+    'payment_secret_key' => env('PAYMENT_SECRET_KEY', 'sandbox_secret_key_123'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
