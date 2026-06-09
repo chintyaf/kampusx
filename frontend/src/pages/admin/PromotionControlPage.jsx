@@ -187,6 +187,7 @@ const PromotionControlPage = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="users"
 				/>
 			</div>
 		</div>

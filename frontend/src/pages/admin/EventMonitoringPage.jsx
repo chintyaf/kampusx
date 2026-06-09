@@ -427,6 +427,7 @@ const EventMonitoringPage = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="events"
 				/>
 			</div>
 		</div>

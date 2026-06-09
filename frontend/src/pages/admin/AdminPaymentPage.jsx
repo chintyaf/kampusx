@@ -362,6 +362,7 @@ const AdminPaymentPage = () => {
 								totalCount={filtered.length}
 								perPage={perPage}
 								onPageChange={setPage}
+								itemName="transactions"
 							/>
 						</div>
 					)}

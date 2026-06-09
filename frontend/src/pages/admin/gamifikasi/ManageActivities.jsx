@@ -380,6 +380,7 @@ const ManageActivities = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="aktivitas"
 				/>
 			</div>
 

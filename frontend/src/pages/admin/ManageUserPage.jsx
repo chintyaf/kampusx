@@ -366,6 +366,7 @@ const ManageUserPage = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="users"
 				/>
 			</div>
 

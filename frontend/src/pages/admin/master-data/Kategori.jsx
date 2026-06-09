@@ -305,6 +305,7 @@ const Kategori = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="kategori"
 				/>
 			</div>
 

@@ -335,6 +335,7 @@ const Institusi = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="institusi"
 				/>
 			</div>
 

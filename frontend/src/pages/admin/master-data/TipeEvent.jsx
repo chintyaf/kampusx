@@ -305,6 +305,7 @@ const TipeEvent = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="tipe event"
 				/>
 			</div>
 

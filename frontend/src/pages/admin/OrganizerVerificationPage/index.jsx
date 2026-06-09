@@ -220,6 +220,7 @@ const OrganizerVerificationPage = () => {
 					totalCount={filtered.length}
 					perPage={perPage}
 					onPageChange={setPage}
+					itemName="permohonan"
 				/>
 			</div>
 

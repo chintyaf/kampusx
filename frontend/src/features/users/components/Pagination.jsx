@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function Pagination({ currentPage, totalPages, totalCount, perPage, onPageChange }) {
+export default function Pagination({ currentPage, totalPages, totalCount, perPage, onPageChange, itemName = 'items' }) {
 	const pages = useMemo(() => {
 		if (totalPages <= 6) return Array.from({ length: totalPages }, (_, i) => i + 1);
 		const pts = new Set([1, 2]);
@@ -21,7 +21,7 @@ export default function Pagination({ currentPage, totalPages, totalCount, perPag
 			<span className="pagination-info">
 				{totalCount === 0
 					? 'No results found'
-					: `Showing ${start}–${end} of ${totalCount} users`}
+					: `Showing ${start}–${end} of ${totalCount} ${itemName}`}
 			</span>
 			<div className="pagination-btns">
 				<button
