@@ -10,4 +10,4 @@ backend.zip
 *.zip
 frontend/dist.zip
 frontend/.env
-/frontend
+# /frontend
