@@ -17,6 +17,11 @@ class MemberRewardController extends Controller
      */
     public function listAvailableRewards($eventId)
     {
+        if (!is_numeric($eventId)) {
+            $event = \App\Models\Event::where('slug', $eventId)->first();
+            $eventId = $event ? $event->id : 0;
+        }
+
         $rewards = Reward::where('event_id', $eventId)
             ->where('type', 'local')
             ->where('is_active', true)
@@ -35,6 +40,11 @@ class MemberRewardController extends Controller
     public function redeemReward(Request $request, $eventId, $rewardId)
     {
         $userId = auth()->id();
+
+        if (!is_numeric($eventId)) {
+            $event = \App\Models\Event::where('slug', $eventId)->first();
+            $eventId = $event ? $event->id : 0;
+        }
 
         // 1. Cari reward beserta relasi lokasi event
         $reward = Reward::with('event.locationDetail')
@@ -176,6 +186,11 @@ class MemberRewardController extends Controller
     public function getMemberPointDetails($eventId)
     {
         $userId = auth()->id();
+
+        if (!is_numeric($eventId)) {
+            $event = \App\Models\Event::where('slug', $eventId)->first();
+            $eventId = $event ? $event->id : 0;
+        }
 
         // Ambil saldo poin lokal
         $localPoint = LocalMemberPoint::where('user_id', $userId)
