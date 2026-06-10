@@ -64,13 +64,9 @@ class SurveyController extends Controller
                 ->with(['questions' => fn($q) => $q->orderBy('sort_order')])
                 ->first();
 
-            // Block access if survey is empty/null or questions are empty
+            // Set custom survey to null if it is empty/null or questions are empty
             if (!$customSurvey || $customSurvey->questions->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'status' => 'error',
-                    'message' => 'Survei belum tersedia untuk event ini.',
-                ], 403);
+                $customSurvey = null;
             }
 
             // 4. Get certificate template (if exists)

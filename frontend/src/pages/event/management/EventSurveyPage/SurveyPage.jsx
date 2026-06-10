@@ -721,6 +721,18 @@ export default function SurveyPage() {
 											</Button>
 										</Form>
 									)}
+									{!customSurvey && (
+										<div className="text-center py-5 text-muted">
+											<MessageSquare size={44} className="mx-auto mb-3 text-muted opacity-50" />
+											<h6 className="fw-bold text-dark">Survei Belum Tersedia</h6>
+											<p className="mb-0 small text-secondary">
+												Penyelenggara belum membuat survei evaluasi untuk event ini.
+											</p>
+											<p className="text-secondary small mt-1">
+												Silakan hubungi penyelenggara acara untuk informasi lebih lanjut.
+											</p>
+										</div>
+									)}
 								</Card.Body>
 							</Card>
 						</Col>
