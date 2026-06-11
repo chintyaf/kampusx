@@ -17,6 +17,10 @@ export const useEventSpace = () => {
 	const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 	const [ticketCode, setTicketCode] = useState('TKT-ACTIVE-001');
 	const [participantName, setParticipantName] = useState('');
+	const [ticketStatus, setTicketStatus] = useState(null);
+	const [certificateTemplate, setCertificateTemplate] = useState(null);
+	const [customSurvey, setCustomSurvey] = useState(null);
+	const [isPreviewOnly, setIsPreviewOnly] = useState(false);
 
 	const [announcements, setAnnouncements] = useState([]);
 
@@ -177,6 +181,10 @@ export const useEventSpace = () => {
 					setAlreadySubmitted(data.already_submitted);
 					setTicketCode(data.ticket_code);
 					setParticipantName(data.participant_name);
+					setTicketStatus(data.ticket_status);
+					setCertificateTemplate(data.certificate_template);
+					setCustomSurvey(data.custom_survey);
+					setIsPreviewOnly(!!data.is_preview_only);
 
 					let fetchedAnnouncements = [];
 					try {
@@ -296,5 +304,9 @@ export const useEventSpace = () => {
 		executeRedemption,
 		getFullAttachmentUrl,
 		formatTimeAgo,
+		ticketStatus,
+		certificateTemplate,
+		customSurvey,
+		isPreviewOnly,
 	};
 };

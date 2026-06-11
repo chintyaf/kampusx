@@ -53,7 +53,16 @@ export default function SurveyPage() {
 					participant_name,
 					custom_survey,
 					is_preview_only,
+					can_claim_certificate,
+					claim_disabled_reason,
 				} = response.data.data;
+
+				if (!is_preview_only && !can_claim_certificate) {
+					setError(claim_disabled_reason || 'Akses ditolak: Anda tidak dapat mengisi survei pada saat ini.');
+					setIsLoading(false);
+					return;
+				}
+
 				setEvent(event);
 				setAlreadySubmitted(already_submitted);
 				setSurveyResponse(survey_response);

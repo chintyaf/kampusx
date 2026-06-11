@@ -46,6 +46,16 @@ const ActiveTicketsSection = ({ activeTickets }) => {
           {activeTickets.map((t) => {
             const ev = t.order_item?.order?.event;
             if (!ev) return null;
+
+            const locationDetail = ev.location_detail || ev.locationDetail;
+            const locationText = locationDetail
+              ? locationDetail.type === 'online'
+                ? `Online (${locationDetail.platform || 'Platform'})`
+                : locationDetail.location_name || locationDetail.city || 'Offline Venue'
+              : ev.location_type === 'online'
+                ? 'Online'
+                : ev.venue || 'Offline Venue';
+
             return (
               <div
                 key={t.id}
@@ -114,7 +124,7 @@ const ActiveTicketsSection = ({ activeTickets }) => {
                         gap: 4,
                       }}>
                       <MapPin size={10} />
-                      {ev.location}
+                      {locationText}
                     </span>
                   </div>
                 </div>
