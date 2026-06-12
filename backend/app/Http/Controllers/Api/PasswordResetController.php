@@ -18,6 +18,10 @@ class PasswordResetController extends Controller
     {
         $request->validate([
             'identifier' => 'required|email|exists:users,email', // Validasi hanya untuk email, karena OTP dikirim via email
+        ], [
+            'identifier.required' => 'Email wajib diisi.',
+            'identifier.email' => 'Format email tidak valid.',
+            'identifier.exists' => 'Email belum terdaftar, silakan daftar akun baru atau gunakan email lain.',
         ]);
 
         // Cari user berdasarkan email
@@ -27,7 +31,7 @@ class PasswordResetController extends Controller
         if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'Email tidak terdaftar di sistem kami.'
+                'message' => 'Email belum terdaftar, silakan daftar akun baru atau gunakan email lain.'
             ], 404);
         }
 

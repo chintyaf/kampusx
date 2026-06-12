@@ -313,7 +313,7 @@ const TicketDetail = () => {
                 <>
                   
                   <Button
-                    onClick={() => navigate(`/event-space/${event.id}`)}
+                    onClick={() => navigate(`/event-space/${event.slug}`)}
                     className="flex-fill flex-md-grow-0 d-flex align-items-center justify-content-center gap-2"
                     style={{
                       background: "var(--color-primary)",

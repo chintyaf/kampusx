@@ -72,13 +72,9 @@ class SurveyController extends Controller
                 ->with(['questions' => fn($q) => $q->orderBy('sort_order')])
                 ->first();
 
-            // Block access if survey is empty/null or questions are empty
+            // Set custom survey to null if it is empty/null or questions are empty
             if (!$customSurvey || $customSurvey->questions->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'status' => 'error',
-                    'message' => 'Survei belum tersedia untuk event ini.',
-                ], 403);
+                $customSurvey = null;
             }
 
             // 4. Get certificate template (if exists)
@@ -100,6 +96,22 @@ class SurveyController extends Controller
                     ->first();
             }
 
+            $canClaimCertificate = true;
+            $claimDisabledReason = null;
+
+            if (!$isOrganizerOrAdmin) {
+                if (!in_array($event->status, ['completed', 'post_event'])) {
+                    $canClaimCertificate = false;
+                    $claimDisabledReason = 'Sertifikat dan evaluasi belum tersedia karena acara belum selesai.';
+                } elseif (!$ticket || $ticket->status !== 'used') {
+                    $canClaimCertificate = false;
+                    $claimDisabledReason = 'Sertifikat dan ulasan belum tersedia karena Anda belum tercatat hadir di acara ini.';
+                } elseif (!$template || !$customSurvey) {
+                    $canClaimCertificate = false;
+                    $claimDisabledReason = 'Evaluasi dan Sertifikat belum disiapkan oleh Penyelenggara.';
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'status' => 'success',
@@ -113,6 +125,9 @@ class SurveyController extends Controller
                     'certificate_template' => $template,
                     'participant_name' => $user->name,
                     'ticket_code' => $ticket ? $ticket->ticket_code : 'TKT-PREVIEW',
+                    'ticket_status' => $ticket ? $ticket->status : null,
+                    'can_claim_certificate' => $canClaimCertificate,
+                    'claim_disabled_reason' => $claimDisabledReason,
                 ]
             ], 200);
 
@@ -147,13 +162,13 @@ class SurveyController extends Controller
         }
 
         // 1. Verify ticket
-        $hasTicket = Ticket::where('participant_id', $user->id)
+        $ticket = Ticket::where('participant_id', $user->id)
             ->whereHas('orderItem.order', function ($query) use ($eventId) {
                 $query->where('event_id', $eventId);
             })
-            ->exists();
+            ->first();
 
-        if (!$hasTicket) {
+        if (!$ticket) {
             return response()->json([
                 'success' => false,
                 'status' => 'error',
@@ -161,13 +176,21 @@ class SurveyController extends Controller
             ], 403);
         }
 
-        // 2. Check if already submitted
-        $existing = SurveyResponse::where('user_id', $user->id)->where('event_id', $eventId)->first();
-        if ($existing) {
+        // 2. Check conditions (event finished, participant checked-in, template exists)
+        if (!in_array($event->status, ['completed', 'post_event'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Anda sudah mengisi survei ini sebelumnya.'
-            ], 422);
+                'status' => 'error',
+                'message' => 'Sertifikat dan evaluasi belum tersedia karena acara belum selesai.'
+            ], 403);
+        }
+
+        if ($ticket->status !== 'used') {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Sertifikat dan ulasan belum tersedia karena Anda belum tercatat hadir di acara ini.'
+            ], 403);
         }
 
         // Get the custom survey by event_id only (no is_active check)
@@ -179,6 +202,24 @@ class SurveyController extends Controller
                 'status' => 'error',
                 'message' => 'Survei belum tersedia untuk event ini.'
             ], 403);
+        }
+
+        $template = CertificateTemplate::where('event_id', $eventId)->exists();
+        if (!$template) {
+            return response()->json([
+                'success' => false,
+                'status' => 'error',
+                'message' => 'Evaluasi dan Sertifikat belum disiapkan oleh Penyelenggara.'
+            ], 403);
+        }
+
+        // 3. Check if already submitted
+        $existing = SurveyResponse::where('user_id', $user->id)->where('event_id', $eventId)->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah mengisi survei ini sebelumnya.'
+            ], 422);
         }
 
         try {

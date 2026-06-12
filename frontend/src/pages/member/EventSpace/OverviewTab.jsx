@@ -22,7 +22,75 @@ const OverviewTab = ({
 	setActiveTab,
 	getFullAttachmentUrl,
 	formatTimeAgo,
+	canClaimCertificate,
 }) => {
+	// Helper to format event date range (e.g. "Kamis, 11 Juni 2026" or "11 - 13 Juni 2026")
+	const formatEventDate = () => {
+		if (!event?.start_date) return 'Tanggal Acara';
+		try {
+			const start = new Date(event.start_date);
+			const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+			const startFormatted = start.toLocaleDateString('id-ID', options);
+
+			if (event.end_date) {
+				const end = new Date(event.end_date);
+				if (start.toDateString() === end.toDateString()) {
+					return startFormatted;
+				} else {
+					const startDay = start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+					const endDay = end.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+					return `${startDay} - ${endDay}`;
+				}
+			}
+			return startFormatted;
+		} catch (e) {
+			return 'Tanggal Acara';
+		}
+	};
+
+	// Helper to format event time (e.g. "18:00 - 21:00 WIB")
+	const formatEventTime = () => {
+		if (!event?.start_date) return '09:00 - Selesai';
+		try {
+			const start = new Date(event.start_date);
+			const startStr = start.toLocaleTimeString('id-ID', {
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false,
+			}).replace('.', ':');
+
+			let endStr = 'Selesai';
+			if (event.end_date) {
+				const end = new Date(event.end_date);
+				endStr = end.toLocaleTimeString('id-ID', {
+					hour: '2-digit',
+					minute: '2-digit',
+					hour12: false,
+				}).replace('.', ':');
+			}
+
+			return `${startStr} - ${endStr} ${event.timezone || 'WIB'}`;
+		} catch (e) {
+			return '09:00 - Selesai';
+		}
+	};
+
+	// Helper to format event location (e.g. "Online (Zoom)" or "Aula Utama, Jakarta")
+	const formatEventLocation = () => {
+		const loc = event?.location_detail || event?.locationDetail;
+		if (!loc) return 'Venue Acara';
+
+		if (loc.type === 'online') {
+			return `Online (${loc.platform || 'Platform'})`;
+		} else if (loc.type === 'offline') {
+			return [loc.location_name, loc.city].filter(Boolean).join(', ') || 'Venue Acara';
+		} else if (loc.type === 'hybrid') {
+			const offlinePart = [loc.location_name, loc.city].filter(Boolean).join(', ');
+			return `${offlinePart || 'Venue Acara'} & Online (${loc.platform || 'Platform'})`;
+		}
+		return 'Venue Acara';
+	};
+
 	return (
 		<div className="fade-in">
 			{/* 1. PHOTO BANNER EVENT */}
@@ -78,90 +146,89 @@ const OverviewTab = ({
 					<h3 className="fw-bold mb-1 fs-5 fs-md-3">{event?.title}</h3>
 					<div className="d-flex flex-wrap gap-3 small opacity-90">
 						<span className="d-flex align-items-center gap-1">
-							<Calendar size={14} /> {event?.date || 'Tanggal Acara'}
+							<Calendar size={14} /> {formatEventDate()}
 						</span>
 						<span className="d-flex align-items-center gap-1">
-							<Clock size={14} /> {event?.time || '09:00 - Selesai'}
-						</span>
-						<span className="d-flex align-items-center gap-1">
-							<MapPin size={14} /> {event?.location || 'Venue Acara'}
+							<MapPin size={14} /> {formatEventLocation()}
 						</span>
 					</div>
 				</div>
 			</div>
 
 			{/* Certificate Claim Alert Banner */}
-			{!alreadySubmitted ? (
-				<Alert
-					variant="warning"
-					className="border-0 shadow-sm rounded-4 p-3.5 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
-				>
-					<div className="d-flex align-items-center gap-3">
-						<div className="bg-warning bg-opacity-20 rounded-circle p-2 text-warning d-flex">
-							<Award size={24} className="animate-bounce" />
-						</div>
-						<div>
-							<h6
-								className="fw-bold text-dark mb-1"
-								style={{ fontSize: '14px' }}
-							>
-								E-Sertifikat Kelulusan Tersedia!
-							</h6>
-							<p
-								className="mb-0 text-muted small"
-								style={{ fontSize: '12px' }}
-							>
-								Berikan penilaian/feedback kelas setelah menyelesaikan
-								seluruh rangkaian materi untuk mengklaim sertifikat
-								kelulusan.
-							</p>
-						</div>
-					</div>
-					<Button
+			{canClaimCertificate && (
+				!alreadySubmitted ? (
+					<Alert
 						variant="warning"
-						size="sm"
-						onClick={() => setActiveTab('sertifikat')}
-						className="rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5"
-						style={{ fontSize: '12px' }}
+						className="border-0 shadow-sm rounded-4 p-3.5 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
 					>
-						<Sparkles size={14} /> Klaim Sertifikat
-					</Button>
-				</Alert>
-			) : (
-				<Alert
-					variant="success"
-					className="border-0 shadow-sm rounded-4 p-3.5 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
-				>
-					<div className="d-flex align-items-center gap-3">
-						<div className="bg-success bg-opacity-20 rounded-circle p-2 text-success d-flex">
-							<CheckCircle size={24} />
+						<div className="d-flex align-items-center gap-3">
+							<div className="bg-warning bg-opacity-20 rounded-circle p-2 text-warning d-flex">
+								<Award size={24} className="animate-bounce" />
+							</div>
+							<div>
+								<h6
+									className="fw-bold text-dark mb-1"
+									style={{ fontSize: '14px' }}
+								>
+									E-Sertifikat Kelulusan Tersedia!
+								</h6>
+								<p
+									className="mb-0 text-muted small"
+									style={{ fontSize: '12px' }}
+								>
+									Berikan penilaian/feedback kelas setelah menyelesaikan
+									seluruh rangkaian materi untuk mengklaim sertifikat
+									kelulusan.
+								</p>
+							</div>
 						</div>
-						<div>
-							<h6
-								className="fw-bold text-dark mb-1"
-								style={{ fontSize: '14px' }}
-							>
-								E-Sertifikat Kelulusan Telah Aktif!
-							</h6>
-							<p
-								className="mb-0 text-muted small"
-								style={{ fontSize: '12px' }}
-							>
-								Terima kasih atas partisipasi Anda. Berkas e-sertifikat
-								PDF dengan kode QR verifikasi unik telah siap diunduh.
-							</p>
-						</div>
-					</div>
-					<Button
+						<Button
+							variant="warning"
+							size="sm"
+							onClick={() => setActiveTab('sertifikat')}
+							className="rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5"
+							style={{ fontSize: '12px' }}
+						>
+							<Sparkles size={14} /> Klaim Sertifikat
+						</Button>
+					</Alert>
+				) : (
+					<Alert
 						variant="success"
-						size="sm"
-						onClick={() => setActiveTab('sertifikat')}
-						className="rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5"
-						style={{ fontSize: '12px' }}
+						className="border-0 shadow-sm rounded-4 p-3.5 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
 					>
-						<Download size={14} /> Unduh Sertifikat
-					</Button>
-				</Alert>
+						<div className="d-flex align-items-center gap-3">
+							<div className="bg-success bg-opacity-20 rounded-circle p-2 text-success d-flex">
+								<CheckCircle size={24} />
+							</div>
+							<div>
+								<h6
+									className="fw-bold text-dark mb-1"
+									style={{ fontSize: '14px' }}
+								>
+									E-Sertifikat Kelulusan Telah Aktif!
+								</h6>
+								<p
+									className="mb-0 text-muted small"
+									style={{ fontSize: '12px' }}
+								>
+									Terima kasih atas partisipasi Anda. Berkas e-sertifikat
+									PDF dengan kode QR verifikasi unik telah siap diunduh.
+								</p>
+							</div>
+						</div>
+						<Button
+							variant="success"
+							size="sm"
+							onClick={() => setActiveTab('sertifikat')}
+							className="rounded-pill px-3.5 py-1.5 fw-bold shadow-sm d-flex align-items-center gap-1.5"
+							style={{ fontSize: '12px' }}
+						>
+							<Download size={14} /> Unduh Sertifikat
+						</Button>
+					</Alert>
+				)
 			)}
 
 			{/* PENGUMUMAN TERBARU */}
@@ -329,6 +396,56 @@ const OverviewTab = ({
 							__html: event?.description || '<p>Deskripsi tidak tersedia.</p>',
 						}}
 					/>
+				</Card.Body>
+			</Card>
+
+			{/* PENYELENGGARA & COLLABORATORS */}
+			<Card className="border-0 shadow-sm rounded-4 mb-4">
+				<Card.Body className="p-4">
+					<h6 className="fw-extrabold text-dark mb-3">Penyelenggara & Partner</h6>
+					<div className="d-flex align-items-center gap-3">
+						<div 
+							className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center"
+							style={{ width: '48px', height: '48px' }}
+						>
+							<Users size={22} />
+						</div>
+						<div>
+							<h6 className="fw-bold text-dark mb-0">
+								{event?.institution?.name || event?.organizer?.name || 'Penyelenggara KampusX'}
+							</h6>
+							<p className="mb-0 text-muted small">Penyelenggara Utama</p>
+						</div>
+					</div>
+
+					{/* Collaborators / Co-Hosts / Sponsors */}
+					{event?.collaborators && event.collaborators.length > 0 && (
+						<div className="mt-4 border-top pt-3">
+							<h6 className="fw-bold text-secondary text-uppercase tracking-wider mb-3" style={{ fontSize: '11px' }}>
+								Partner Pendukung
+							</h6>
+							<div className="d-flex flex-wrap gap-2">
+								{event.collaborators.map((col, idx) => {
+									const roleLabels = {
+										co_host: 'Co-Host',
+										sponsor: 'Sponsor Resmi',
+										media_partner: 'Media Partner',
+									};
+									const roleLabel = roleLabels[col.pivot?.role] || 'Partner';
+									return (
+										<Badge 
+											key={col.id || idx} 
+											bg="light" 
+											text="dark" 
+											className="border px-3 py-2 rounded-pill small fw-medium"
+										>
+											🤝 {col.name} <span className="text-muted opacity-75">({roleLabel})</span>
+										</Badge>
+									);
+								})}
+							</div>
+						</div>
+					)}
 				</Card.Body>
 			</Card>
 

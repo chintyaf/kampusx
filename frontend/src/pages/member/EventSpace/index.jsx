@@ -54,6 +54,10 @@ const EventSpace = () => {
 		executeRedemption,
 		getFullAttachmentUrl,
 		formatTimeAgo,
+		ticketStatus,
+		certificateTemplate,
+		customSurvey,
+		isPreviewOnly,
 	} = useEventSpace();
 
 	if (isLoading) {
@@ -107,6 +111,13 @@ const EventSpace = () => {
 	const locationType = locationDetail?.type || event?.location_type || 'offline';
 	const meetingLink = locationDetail?.meeting_link || event?.meeting_link;
 
+	const canClaimCertificate = !!isPreviewOnly || (
+		ticketStatus === 'used' &&
+		(event?.status === 'completed' || event?.status === 'post_event') &&
+		!!certificateTemplate &&
+		!!customSurvey
+	);
+
 	const renderContent = () => {
 		switch (activeTab) {
 			case 'overview':
@@ -118,6 +129,7 @@ const EventSpace = () => {
 						setActiveTab={setActiveTab}
 						getFullAttachmentUrl={getFullAttachmentUrl}
 						formatTimeAgo={formatTimeAgo}
+						canClaimCertificate={canClaimCertificate}
 					/>
 				);
 			case 'materi':
@@ -138,13 +150,13 @@ const EventSpace = () => {
 					</div>
 				);
 			case 'sertifikat':
-				return (
+				return canClaimCertificate ? (
 					<CertificateTab
 						id={id}
 						alreadySubmitted={alreadySubmitted}
 						participantName={participantName}
 					/>
-				);
+				) : null;
 			case 'rewards':
 				return (
 					<RewardsTab
@@ -231,6 +243,7 @@ const EventSpace = () => {
 							setActiveTab={setActiveTab}
 							memberPoints={memberPoints}
 							alreadySubmitted={alreadySubmitted}
+							canClaimCertificate={canClaimCertificate}
 						/>
 					</Col>
 

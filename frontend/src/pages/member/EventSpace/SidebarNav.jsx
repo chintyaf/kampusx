@@ -9,7 +9,7 @@ import {
 	Award,
 } from 'lucide-react';
 
-const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted }) => {
+const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, canClaimCertificate }) => {
 	return (
 		<>
 			{/* MOBILE HORIZONTAL NAVIGATION (Visible on screens smaller than md) */}
@@ -75,33 +75,35 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted })
 						</Badge>
 					</Button>
 
-					<Button
-						variant={activeTab === 'sertifikat' ? 'success' : 'white'}
-						className={`rounded-pill px-3 py-2 fw-medium d-flex align-items-center gap-2 border ${activeTab === 'sertifikat' ? 'shadow-sm text-white' : 'text-success bg-white'}`}
-						onClick={() => setActiveTab('sertifikat')}
-						style={{ fontSize: '13px' }}
-					>
-						<Award size={16} /> Sertifikat
-						{alreadySubmitted ? (
-							<Badge
-								bg="success-subtle"
-								text="success"
-								className="rounded-pill border border-success border-opacity-10"
-								style={{ fontSize: '10px', padding: '0.2rem 0.4rem' }}
-							>
-								Aktif
-							</Badge>
-						) : (
-							<Badge
-								bg="warning-subtle"
-								text="warning"
-								className="rounded-pill border border-warning border-opacity-10"
-								style={{ fontSize: '10px', padding: '0.2rem 0.4rem' }}
-							>
-								Klaim
-							</Badge>
-						)}
-					</Button>
+					{canClaimCertificate && (
+						<Button
+							variant={activeTab === 'sertifikat' ? 'success' : 'white'}
+							className={`rounded-pill px-3 py-2 fw-medium d-flex align-items-center gap-2 border ${activeTab === 'sertifikat' ? 'shadow-sm text-white' : 'text-success bg-white'}`}
+							onClick={() => setActiveTab('sertifikat')}
+							style={{ fontSize: '13px' }}
+						>
+							<Award size={16} /> Sertifikat
+							{alreadySubmitted ? (
+								<Badge
+									bg="success-subtle"
+									text="success"
+									className="rounded-pill border border-success border-opacity-10"
+									style={{ fontSize: '10px', padding: '0.2rem 0.4rem' }}
+								>
+									Aktif
+								</Badge>
+							) : (
+								<Badge
+									bg="warning-subtle"
+									text="warning"
+									className="rounded-pill border border-warning border-opacity-10"
+									style={{ fontSize: '10px', padding: '0.2rem 0.4rem' }}
+								>
+									Klaim
+								</Badge>
+							)}
+						</Button>
+					)}
 				</div>
 			</div>
 
@@ -149,32 +151,36 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted })
 								</Badge>
 							</Nav.Link>
 
-							<hr className="my-2.5 opacity-25" />
+							{canClaimCertificate && (
+								<>
+									<hr className="my-2.5 opacity-25" />
 
-							<Nav.Link
-								className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'sertifikat' ? 'bg-success text-white shadow-sm' : 'text-success hover-bg-success-subtle'}`}
-								onClick={() => setActiveTab('sertifikat')}
-								style={{ transition: 'all 0.2s ease' }}
-							>
-								<Award size={18} className="me-3" /> Sertifikat & Ulasan
-								{alreadySubmitted ? (
-									<Badge
-										bg="success-subtle"
-										text="success"
-										className="ms-auto rounded-pill border border-success border-opacity-10 small"
+									<Nav.Link
+										className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'sertifikat' ? 'bg-success text-white shadow-sm' : 'text-success hover-bg-success-subtle'}`}
+										onClick={() => setActiveTab('sertifikat')}
+										style={{ transition: 'all 0.2s ease' }}
 									>
-										Aktif
-									</Badge>
-								) : (
-									<Badge
-										bg="warning-subtle"
-										text="warning"
-										className="ms-auto rounded-pill border border-warning border-opacity-10 small"
-									>
-										Klaim
-									</Badge>
-								)}
-							</Nav.Link>
+										<Award size={18} className="me-3" /> Sertifikat & Ulasan
+										{alreadySubmitted ? (
+											<Badge
+												bg="success-subtle"
+												text="success"
+												className="ms-auto rounded-pill border border-success border-opacity-10 small"
+											>
+												Aktif
+											</Badge>
+										) : (
+											<Badge
+												bg="warning-subtle"
+												text="warning"
+												className="ms-auto rounded-pill border border-warning border-opacity-10 small"
+											>
+												Klaim
+											</Badge>
+										)}
+									</Nav.Link>
+								</>
+							)}
 						</Nav>
 					</Card.Body>
 				</Card>
