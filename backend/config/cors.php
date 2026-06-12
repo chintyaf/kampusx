@@ -19,7 +19,11 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL'))),
+    'allowed_origins' => array_values(array_unique(array_filter([
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        ...explode(',', env('CORS_ALLOWED_ORIGINS', env('FRONTEND_URL') ?? '')),
+    ]))),
 
     'allowed_origins_patterns' => [],
 

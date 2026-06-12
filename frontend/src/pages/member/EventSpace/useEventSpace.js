@@ -17,6 +17,7 @@ export const useEventSpace = () => {
 	const [event, setEvent] = useState(null);
 	const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 	const [ticketCode, setTicketCode] = useState('TKT-ACTIVE-001');
+	const [qrToken, setQrToken] = useState('');
 	const [participantName, setParticipantName] = useState('');
 	const [ticketStatus, setTicketStatus] = useState(null);
 	const [certificateTemplate, setCertificateTemplate] = useState(null);
@@ -182,6 +183,17 @@ export const useEventSpace = () => {
 					setAlreadySubmitted(data.already_submitted);
 					setTicketCode(data.ticket_code);
 					setParticipantName(data.participant_name);
+
+					if (data.ticket_code && data.ticket_code !== 'TKT-PREVIEW') {
+						try {
+							const qrRes = await api.get(`/tickets/${data.ticket_code}/qr-string`);
+							if (qrRes.data?.qr_string) {
+								setQrToken(qrRes.data.qr_string);
+							}
+						} catch (qrErr) {
+							console.error("Gagal mengambil QR string yang ditandatangani:", qrErr);
+						}
+					}
 					setTicketStatus(data.ticket_status);
 					setCertificateTemplate(data.certificate_template);
 					setCustomSurvey(data.custom_survey);
@@ -297,6 +309,7 @@ export const useEventSpace = () => {
 		event,
 		alreadySubmitted,
 		ticketCode,
+		qrToken,
 		participantName,
 		announcements,
 		memberPoints,

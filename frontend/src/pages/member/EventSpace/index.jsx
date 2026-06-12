@@ -42,6 +42,7 @@ const EventSpace = () => {
 		event,
 		alreadySubmitted,
 		ticketCode,
+		qrToken,
 		participantName,
 		announcements,
 		memberPoints,
@@ -205,8 +206,8 @@ const EventSpace = () => {
 						{/* TOMBOL CEPAT QR CODE DI HEADER & JOIN MEETING */}
 						<div className="d-flex gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
 							{(locationType === 'online' || locationType === 'hybrid') && meetingLink && (
-								<Button 
-									variant="success" 
+								<Button
+									variant="success"
 									className="rounded-pill px-3 px-md-4 py-2 d-flex align-items-center shadow-sm fw-medium gap-1.5 text-nowrap"
 									href={meetingLink}
 									target="_blank"
@@ -271,6 +272,7 @@ const EventSpace = () => {
 				show={showTicketModal}
 				onHide={() => setShowTicketModal(false)}
 				ticketCode={ticketCode}
+				qrToken={qrToken}
 			/>
 
 			{/* WARNING MODAL: ONLINE EVENT + PHYSICAL REWARD */}

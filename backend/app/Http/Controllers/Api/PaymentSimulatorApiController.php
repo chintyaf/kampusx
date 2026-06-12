@@ -49,7 +49,7 @@ class PaymentSimulatorApiController extends Controller
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,
                     'quantity' => 1,
-                    'price'    => $amount,
+                    'price'    => $amount > 0 ? ($amount - 1) : 0,
                 ]);
 
                 $ticket = Ticket::create([
