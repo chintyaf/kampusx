@@ -22,7 +22,7 @@ class OrganizerRequest extends Model
 
     public function getProofUrlAttribute()
     {
-        return $this->proof_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->proof_path) : null;
+        return $this->proof_path ? asset('storage/' . $this->proof_path) : null;
     }
 
     public function user()

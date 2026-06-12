@@ -10,6 +10,7 @@ function TicketCard({
 	canDelete,
 	priceLocked = false,
 	eventStartDate = '',
+	eventEndDate = '',
 	locationType = 'offline',
 	eventStatus = 'draft',
 }) {
@@ -30,6 +31,7 @@ function TicketCard({
 
 	const todayDateTime = getLocalISOString();
 	const maxDateTime = formatToLocalDatetime(eventStartDate);
+	const maxEndDateTime = eventEndDate ? formatToLocalDatetime(eventEndDate) : maxDateTime;
 
 	const formatReadableDatetime = (dateStr) => {
 		if (!dateStr) return '';
@@ -73,8 +75,8 @@ function TicketCard({
 		const eVal = ticket.sale_end.slice(0, 16);
 		if (eVal < todayDateTime) {
 			endWarning = 'Waktu berakhir tidak boleh di masa lalu.';
-		} else if (maxDateTime && eVal > maxDateTime) {
-			endWarning = 'Waktu berakhir tidak boleh melewati waktu acara.';
+		} else if (maxEndDateTime && eVal > maxEndDateTime) {
+			endWarning = 'Waktu berakhir tidak boleh melewati waktu selesai acara.';
 		} else if (ticket.sale_start && eVal <= ticket.sale_start.slice(0, 16)) {
 			endWarning = 'Waktu berakhir harus setelah waktu mulai.';
 		}
@@ -381,7 +383,7 @@ function TicketCard({
 												? ticket.sale_start.slice(0, 16)
 												: todayDateTime
 										}
-										max={maxDateTime || undefined}
+										max={maxEndDateTime || undefined}
 										onChange={(e) => onChange({ sale_end: e.target.value })}
 										style={{ color: ticket.sale_end ? '#1e293b' : '#94a3b8' }}
 										required
@@ -391,8 +393,11 @@ function TicketCard({
 										style={{ fontSize: '12px', fontWeight: 500 }}
 									>
 										Min: {formatReadableDatetime(new Date())}
-										{eventStartDate &&
-											` | Maks: ${formatReadableDatetime(eventStartDate)}`}
+										{eventEndDate ? (
+											` | Maks: ${formatReadableDatetime(eventEndDate)}`
+										) : (
+											eventStartDate && ` | Maks: ${formatReadableDatetime(eventStartDate)}`
+										)}
 									</div>
 									{endWarning && (
 										<div

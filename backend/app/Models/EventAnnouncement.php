@@ -34,7 +34,7 @@ class EventAnnouncement extends Model
     public function getAttachmentUrlAttribute()
     {
         return $this->attachment_path 
-            ? Storage::disk('public')->url($this->attachment_path)
+            ? asset('storage/' . $this->attachment_path)
             : null;
     }
 }

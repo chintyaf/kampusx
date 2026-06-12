@@ -83,7 +83,7 @@ class SurveyController extends Controller
                 ->first();
 
             if ($template) {
-                $template->background_url = Storage::disk('public')->url($template->background_path);
+                $template->background_url = asset('storage/' . $template->background_path);
             }
 
             // 5. Get ticket code
@@ -261,7 +261,7 @@ class SurveyController extends Controller
             // Return certificate template
             $template = CertificateTemplate::where('event_id', $eventId)->with('elements')->first();
             if ($template) {
-                $template->background_url = Storage::disk('public')->url($template->background_path);
+                $template->background_url = asset('storage/' . $template->background_path);
             }
 
             return response()->json([

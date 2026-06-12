@@ -62,7 +62,8 @@ class EventTicketController extends Controller
             return response()->json([
                 'status' => 'success',
                 'data' => $data,
-                'event_start_date' => $event->start_date
+                'event_start_date' => $event->start_date,
+                'event_end_date' => $event->end_date
             ]);
         }
 
@@ -139,7 +140,8 @@ class EventTicketController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $data,
-            'event_start_date' => $event->start_date
+            'event_start_date' => $event->start_date,
+            'event_end_date' => $event->end_date
         ]);
     }
 

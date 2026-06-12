@@ -27,6 +27,7 @@ export default function EventTicket() {
 
 	const [tickets, setTickets] = useState([]);
 	const [eventStartDate, setEventStartDate] = useState('');
+	const [eventEndDate, setEventEndDate] = useState('');
 	const [locationType, setLocationType] = useState('offline');
 	const [saved, setSaved] = useState(true);
 	const [error, setError] = useState(null);
@@ -49,7 +50,7 @@ export default function EventTicket() {
 			if (setIsPageLoading) setIsPageLoading(true);
 			try {
 				const {
-					data: { data: resultTickets = [], event_start_date, location_type },
+					data: { data: resultTickets = [], event_start_date, event_end_date, location_type },
 				} = await api.get(`/event-dashboard/${eventId}/info-utama/tickets`);
 
 				const formattedFromApi = resultTickets.map((t) => ({
@@ -59,6 +60,7 @@ export default function EventTicket() {
 
 				setTickets(formattedFromApi);
 				setEventStartDate(event_start_date || '');
+				setEventEndDate(event_end_date || '');
 				setLocationType(location_type || 'offline');
 				setError(null);
 				hasFetched.current = true;
@@ -77,7 +79,8 @@ export default function EventTicket() {
 
 	const handleUpdate = async (shouldNotify = false) => {
 		const todayStr = getLocalIsoString();
-		const maxStr = eventStartDate ? getLocalIsoString(new Date(eventStartDate)) : '';
+		const maxStartStr = eventStartDate ? getLocalIsoString(new Date(eventStartDate)) : '';
+		const maxEndStr = eventEndDate ? getLocalIsoString(new Date(eventEndDate)) : maxStartStr;
 
 		// 1. Validasi Frontend
 		for (let i = 0; i < tickets.length; i++) {
@@ -119,7 +122,7 @@ export default function EventTicket() {
 					'Gagal!',
 					`Mulai Pendaftaran "${label}" tidak bisa kurang dari hari ini.`,
 				);
-			if (maxStr && startVal >= maxStr)
+			if (maxStartStr && startVal >= maxStartStr)
 				return notify(
 					'error',
 					'Gagal!',
@@ -131,7 +134,7 @@ export default function EventTicket() {
 					'Gagal!',
 					`Akhir Pendaftaran "${label}" tidak bisa kurang dari hari ini.`,
 				);
-			if (maxStr && endVal > maxStr)
+			if (maxEndStr && endVal > maxEndStr)
 				return notify(
 					'error',
 					'Gagal!',
@@ -192,7 +195,8 @@ export default function EventTicket() {
 		if (tickets.length === 0) return false;
 
 		const todayStr = getLocalIsoString();
-		const maxStr = eventStartDate ? getLocalIsoString(new Date(eventStartDate)) : '';
+		const maxStartStr = eventStartDate ? getLocalIsoString(new Date(eventStartDate)) : '';
+		const maxEndStr = eventEndDate ? getLocalIsoString(new Date(eventEndDate)) : maxStartStr;
 
 		return tickets.every((t) => {
 			const hasName = t.name?.trim();
@@ -204,17 +208,17 @@ export default function EventTicket() {
 			if (!hasName || !hasPrice || !hasCapacity || !startVal || !endVal) return false;
 
 			if (eventStatus === 'draft') {
-				if (startVal < todayStr || (maxStr && startVal >= maxStr)) return false;
-				if (endVal < todayStr || (maxStr && endVal > maxStr)) return false;
+				if (startVal < todayStr || (maxStartStr && startVal >= maxStartStr)) return false;
+				if (endVal < todayStr || (maxEndStr && endVal > maxEndStr)) return false;
 			} else {
-				if (maxStr && startVal >= maxStr) return false;
-				if (maxStr && endVal > maxStr) return false;
+				if (maxStartStr && startVal >= maxStartStr) return false;
+				if (maxEndStr && endVal > maxEndStr) return false;
 			}
 			if (endVal <= startVal) return false;
 
 			return true;
 		});
-	}, [tickets, eventStartDate, eventStatus]);
+	}, [tickets, eventStartDate, eventEndDate, eventStatus]);
 
 	if (error) {
 		return (
@@ -287,6 +291,7 @@ export default function EventTicket() {
 							canDelete={tickets.length > 1}
 							priceLocked={hasParticipants}
 							eventStartDate={eventStartDate}
+							eventEndDate={eventEndDate}
 							locationType={locationType}
 							eventStatus={eventStatus}
 						/>

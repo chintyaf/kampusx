@@ -126,21 +126,20 @@ class EventController extends Controller
                     'pos_pin'        => $pin,
                 ];
 
-                // 3. Handle Upload File (Tanpa cek file lama karena ini data baru)
-                if ($request->hasFile('banner')) {
-                    $extension = $request->file('banner')->getClientOriginalExtension();
-                    // Gunakan nama unik karena ID event belum ada
-                    $fileName = "banner_" . time() . "_" . uniqid() . "." . $extension;
-
-                    // Simpan di folder general events/banners
-                    $path = $request->file('banner')->storeAs("events/banners", $fileName, 'public');
-
-                    // Masukkan ke array data yang akan di-insert
-                    $eventData['image_path'] = $path;
-                }
-
                 // 4. Buat Event Utama
                 $event = Event::create($eventData);
+
+                // 3. Handle Upload File (Sertakan ID Event untuk konsistensi)
+                if ($request->hasFile('banner')) {
+                    $extension = $request->file('banner')->getClientOriginalExtension();
+                    $fileName = "{$event->id}.{$extension}";
+
+                    // Simpan di folder event-banners
+                    $path = $request->file('banner')->storeAs("event-banners", $fileName, 'public');
+
+                    // Update image_path di event
+                    $event->update(['image_path' => $path]);
+                }
 
                 // 5. Relasi Kategori (Many to Many) - Gunakan $validated, bukan $validatedData
                 if (!empty($validated['kategori_ids'])) {

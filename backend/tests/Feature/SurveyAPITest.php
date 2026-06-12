@@ -68,7 +68,10 @@ class SurveyAPITest extends TestCase
         $organizer = User::factory()->create(['role' => 'organizer']);
 
         // 2. Create event
-        $event = Event::factory()->create(['organizer_id' => $organizer->id]);
+        $event = Event::factory()->create([
+            'organizer_id' => $organizer->id,
+            'status' => 'published',
+        ]);
 
         // 3. Create another random user (not participant, not organizer)
         $stranger = User::factory()->create(['role' => 'participant']);
@@ -127,7 +130,10 @@ class SurveyAPITest extends TestCase
     {
         // 1. Create organizer and event
         $organizer = User::factory()->create(['role' => 'organizer']);
-        $event = Event::factory()->create(['organizer_id' => $organizer->id]);
+        $event = Event::factory()->create([
+            'organizer_id' => $organizer->id,
+            'status' => 'completed',
+        ]);
 
         // 2. Create custom survey via SurveyFormController API
         $response = $this->actingAs($organizer)
@@ -196,7 +202,13 @@ class SurveyAPITest extends TestCase
             'attendee_name' => $participant->name,
             'attendee_email' => $participant->email,
             'qr_token' => 'qr_token_placeholder',
-            'status' => 'active',
+            'status' => 'used',
+        ]);
+
+        \App\Models\CertificateTemplate::create([
+            'event_id' => $event->id,
+            'background_path' => 'templates/bg.jpg',
+            'title' => 'Sertifikat Kehadiran',
         ]);
 
         // 5. Participant fetches survey details

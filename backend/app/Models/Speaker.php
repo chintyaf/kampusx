@@ -29,7 +29,7 @@ class Speaker extends Model
     public function getImageUrlAttribute()
     {
         return $this->image_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path)
+            ? asset('storage/' . $this->image_path)
             : null;
     }
 

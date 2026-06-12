@@ -151,7 +151,7 @@ class EventCertificateController extends Controller
         try {
             $file = $request->file('background');
             $path = $file->store("certificates/{$eventId}", 'public');
-            $url = Storage::disk('public')->url($path);
+            $url = asset('storage/' . $path);
 
             return response()->json([
                 'success' => true,
