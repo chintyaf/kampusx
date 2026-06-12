@@ -337,6 +337,9 @@ class AttendanceController extends Controller
                 'updated_at'=> Carbon::now(),
             ]);
 
+            // Update ticket status to used on check-in
+            $ticket->update(['status' => 'used']);
+
             $this->awardAttendancePoints($ticket, $request->event_id);
 
             return response()->json([

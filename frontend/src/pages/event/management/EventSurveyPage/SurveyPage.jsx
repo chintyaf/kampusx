@@ -34,20 +34,20 @@ export default function SurveyPage() {
 
     useEffect(() => {
         if (!containerRef.current) return;
-        
+
         const updateWidth = () => {
             if (containerRef.current) {
                 setContainerWidth(containerRef.current.clientWidth);
             }
         };
-        
+
         updateWidth();
-        
+
         const resizeObserver = new ResizeObserver(() => {
             updateWidth();
         });
         resizeObserver.observe(containerRef.current);
-        
+
         return () => {
             resizeObserver.disconnect();
         };
@@ -163,18 +163,18 @@ export default function SurveyPage() {
         const canvasHeight = certificateTemplate?.canvas_height || 792;
         const opt = {
             margin: 0,
-            filename: `Sertifikat_${event?.title?.replace(/\s+/g, '_') || 'Event'}.pdf`,
+            filename: `Sertifikat - ${event?.title || 'Event'} - ${participantName || 'Peserta'}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
                 logging: false,
                 onclone: (clonedDoc) => {
                     const clonedArea = clonedDoc.getElementById('certificate-print-area');
                     if (clonedArea) {
                         clonedArea.style.width = `${canvasWidth}px`;
                         clonedArea.style.height = `${canvasHeight}px`;
-                        
+
                         const textElements = clonedArea.querySelectorAll('[data-design-font-size]');
                         textElements.forEach((el) => {
                             const designSize = el.getAttribute('data-design-font-size');
@@ -188,7 +188,7 @@ export default function SurveyPage() {
                             const designQrSize = parseInt(container.getAttribute('data-design-qr-size') || '80', 10);
                             container.style.width = `${designQrSize + 8}px`;
                             container.style.height = `${designQrSize + 8}px`;
-                            
+
                             const svg = container.querySelector('svg');
                             if (svg) {
                                 svg.setAttribute('width', designQrSize.toString());

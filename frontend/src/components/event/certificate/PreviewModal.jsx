@@ -44,7 +44,7 @@ const PreviewModal = ({ show, onHide, templateFile, elements, previewData = {} }
 
 		const opt = {
 			margin: 0,
-			filename: `sertifikat_${previewData?.f1?.replace(/\s+/g, '_') || 'preview'}.pdf`,
+			filename: `Sertifikat - ${previewData?.f4 || 'Event'} - ${previewData?.f1 || 'Peserta'}.pdf`,
 			image: { type: 'jpeg', quality: 1.0 },
 			html2canvas: {
 				scale: 3,

@@ -152,12 +152,14 @@ export default function EventDashboardPage() {
 	const highlightIssues = eventStatus === 'draft' && issues.length > 0;
 	const isDraft = eventStatus === 'draft';
 
-	const statsData = (eventData.stats || []).map((s) => ({
-		...s,
-		lucideIcon: iconMap[s.label] || Ticket,
-		showProgress: s.label === 'Tickets Sold' && ['published', 'ongoing'].includes(eventStatus),
-		totalCapacity: eventData.quota || 0,
-	}));
+	const statsData = (eventData.stats || [])
+		.filter((s) => s.label !== 'Survey Responses')
+		.map((s) => ({
+			...s,
+			lucideIcon: iconMap[s.label] || Ticket,
+			showProgress: s.label === 'Tickets Sold' && ['published', 'ongoing'].includes(eventStatus),
+			totalCapacity: eventData.quota || 0,
+		}));
 
 	return (
 		<div>

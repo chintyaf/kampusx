@@ -221,7 +221,7 @@ class EventAttendanceController extends Controller
     private function getActiveTicket($userId, $eventId)
     {
         return Ticket::where('participant_id', $userId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'used'])
             ->whereHas('orderItem.order', function ($query) use ($eventId) {
                 $query->where('event_id', $eventId);
             })
@@ -289,6 +289,9 @@ class EventAttendanceController extends Controller
         } else {
             $attendance->scan_time = Carbon::now();
             $msg = $type === 'in' ? 'Check-in awal berhasil dicatat!' : 'Check-in sesi berhasil dicatat!';
+            
+            // Update ticket status to used on check-in
+            $ticket->update(['status' => 'used']);
         }
 
         $attendance->save();

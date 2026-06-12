@@ -151,7 +151,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/my-tickets', [TicketController::class, 'index']);
     Route::post('/v1/events/{id}/bookmark', [\App\Http\Controllers\Api\BookmarkController::class, 'toggle']);
     Route::get('/v1/bookmarks', [\App\Http\Controllers\Api\BookmarkController::class, 'index']);
-    // Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
+    Route::get('/my-certificates', [\App\Http\Controllers\Api\SurveyController::class, 'getMyCertificates']);
     Route::get('/events/{id}/materials', [EventMaterialController::class, 'index'])->middleware('event.participant');
     Route::get('/events/{id}/post-event/sessions', [EventSessionMaterialController::class, 'getSessionsWithMaterialsForParticipant'])->middleware('event.participant');
     Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'index']);

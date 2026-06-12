@@ -30,20 +30,20 @@ const CertificatePublicView = () => {
 
     useEffect(() => {
         if (!containerRef.current) return;
-        
+
         const updateWidth = () => {
             if (containerRef.current) {
                 setContainerWidth(containerRef.current.clientWidth);
             }
         };
-        
+
         updateWidth();
-        
+
         const resizeObserver = new ResizeObserver(() => {
             updateWidth();
         });
         resizeObserver.observe(containerRef.current);
-        
+
         return () => {
             resizeObserver.disconnect();
         };
@@ -54,7 +54,7 @@ const CertificatePublicView = () => {
     useEffect(() => {
         const fetchCertificate = async () => {
             setIsLoading(true); // Pastikan loading menyala di awal
-            
+
             try {
                 // 1. Coba panggil API Render
                 const res = await api.get(`/certificate/render/${ticketCode}`);
@@ -63,7 +63,7 @@ const CertificatePublicView = () => {
                 }
             } catch (err) {
                 console.error("Gagal memuat render data sertifikat, mencoba fallback...", err);
-                
+
                 try {
                     // 2. Jika gagal, tunggu API Fallback selesai
                     const fallbackRes = await api.get(`/certificate/verify/${ticketCode}`);
@@ -98,21 +98,21 @@ const CertificatePublicView = () => {
         setIsDownloading(true);
         const canvasWidth = template.canvas_width || 1120;
         const canvasHeight = template.canvas_height || 792;
-        
+
         const opt = {
             margin: 0,
-            filename: `Sertifikat_${eventTitle.replace(/\s+/g, '_') || 'Event'}.pdf`,
+            filename: `Sertifikat - ${eventTitle || 'Event'} - ${attendeeName || 'Peserta'}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
                 logging: false,
                 onclone: (clonedDoc) => {
                     const clonedArea = clonedDoc.getElementById('certificate-print-area');
                     if (clonedArea) {
                         clonedArea.style.width = `${canvasWidth}px`;
                         clonedArea.style.height = `${canvasHeight}px`;
-                        
+
                         // Set text font sizes to their design sizes
                         const textElements = clonedArea.querySelectorAll('[data-design-font-size]');
                         textElements.forEach((el) => {
@@ -128,7 +128,7 @@ const CertificatePublicView = () => {
                             const designQrSize = parseInt(container.getAttribute('data-design-qr-size') || '80', 10);
                             container.style.width = `${designQrSize + 8}px`;
                             container.style.height = `${designQrSize + 8}px`;
-                            
+
                             const svg = container.querySelector('svg');
                             if (svg) {
                                 svg.setAttribute('width', designQrSize.toString());
@@ -227,7 +227,7 @@ const CertificatePublicView = () => {
                                             <Award size={28} className="text-warning" />{' '}
                                             {attendeeName}
                                         </h4>
-                                        
+
                                         <p className="text-muted mb-0 small">
                                             Sertifikat kelulusan resmi diterbitkan oleh <strong>{organizerName}</strong>.
                                         </p>
@@ -251,8 +251,8 @@ const CertificatePublicView = () => {
                                                 </>
                                             )}
                                         </Button>
-                                        <Button 
-                                            variant="outline-secondary" 
+                                        <Button
+                                            variant="outline-secondary"
                                             className="rounded-pill px-3 d-flex align-items-center justify-content-center border"
                                             title="Bagikan Tautan"
                                             onClick={handleShare}
@@ -291,8 +291,13 @@ const CertificatePublicView = () => {
                                                     const xPct = el.x;
                                                     const yPct = el.y;
 
+                                                    const rawFont = el.fontFamily || 'Arial';
+                                                    const bold = rawFont.includes('|bold') || !!el.bold;
+                                                    const fontFamily = rawFont.replace('|bold', '');
+
                                                     if (el.elementType === 'qr_code') {
-                                                        const qrSize = Math.max(30, Math.round((el.fontSize || 80) * scale));
+                                                        const qrSize = (el.fontSize || 80) * scale;
+                                                        const qrPadding = 4 * scale;
                                                         return (
                                                             <div
                                                                 key={el.id}
@@ -303,21 +308,24 @@ const CertificatePublicView = () => {
                                                                     top: `${yPct}%`,
                                                                     transform: 'translate(-50%,-50%)',
                                                                     background: 'white',
-                                                                    padding: '4px',
-                                                                    borderRadius: '4px',
+                                                                    padding: `${qrPadding}px`,
+                                                                    borderRadius: `${qrPadding}px`,
                                                                     zIndex: 2,
-                                                                    width: `${qrSize + 8}px`,
-                                                                    height: `${qrSize + 8}px`,
+                                                                    width: `${qrSize}px`,
+                                                                    height: `${qrSize}px`,
                                                                     display: 'flex',
                                                                     alignItems: 'center',
                                                                     justifyContent: 'center',
+                                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                                                                 }}
                                                             >
-                                                                    <QRCode
-                                                                        value={el.label || `${window.location.origin}/certificate/verify/${certificateNumber}`}
-                                                                        size={qrSize}
-                                                                        style={{ width: '100%', height: '100%' }}
-                                                                    />
+                                                                <QRCode
+                                                                    value={el.label || `${window.location.origin}/certificate/verify/${certificateNumber}`}
+                                                                    size={Math.max(16, Math.round(qrSize) - 8)}
+                                                                    fgColor={el.color === '#ffffff' ? '#000000' : el.color}
+                                                                    bgColor="#ffffff"
+                                                                    style={{ width: '100%', height: '100%' }}
+                                                                />
                                                             </div>
                                                         );
                                                     }
@@ -331,12 +339,12 @@ const CertificatePublicView = () => {
                                                                 position: 'absolute',
                                                                 left: `${xPct}%`,
                                                                 top: `${yPct}%`,
-                                                                transform: `translate(${el.textAlign === 'center' ? '-50%' : el.textAlign === 'right' ? '-100%' : '0%'}, -50%)`,
-                                                                textAlign: el.textAlign || 'center',
+                                                                transform: 'translate(-50%, -50%)',
+                                                                textAlign: 'center',
                                                                 fontSize: `${currentFontSize}px`,
                                                                 color: el.color || '#000',
-                                                                fontFamily: el.fontFamily || 'Georgia, serif',
-                                                                fontWeight: el.bold ? 'bold' : 'normal',
+                                                                fontFamily: fontFamily || 'Arial',
+                                                                fontWeight: bold ? 'bold' : 'normal',
                                                                 pointerEvents: 'none',
                                                                 whiteSpace: 'nowrap',
                                                                 zIndex: 2,
@@ -382,125 +390,125 @@ const CertificatePublicView = () => {
 };
 
 function FallbackCertificate({ participantName, certId, event, dateStr }) {
-	return (
-		<div
-			id="certificate-print-area"
-			className="bg-white text-center position-relative overflow-hidden"
-			style={{
-				width: '100%',
-				aspectRatio: '1120/792',
-				border: '5px solid #d4af37',
-				display: 'flex',
-				flexDirection: 'column',
-				justifyContent: 'center',
-				alignItems: 'center',
-				padding: '60px 80px',
+    return (
+        <div
+            id="certificate-print-area"
+            className="bg-white text-center position-relative overflow-hidden"
+            style={{
+                width: '100%',
+                aspectRatio: '1120/792',
+                border: '5px solid #d4af37',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '60px 80px',
                 borderRadius: '4px'
-			}}
-		>
-			<div
-				style={{
-					position: 'absolute',
-					border: '1px solid rgba(212,175,55,0.3)',
-					inset: '20px',
-					pointerEvents: 'none',
-				}}
-			/>
-			<Award size={56} className="text-warning mb-3" />
-			<h1
-				style={{
-					fontFamily: 'Georgia, serif',
-					letterSpacing: '4px',
-					fontSize: '26px',
-					fontWeight: 'bold',
-					marginBottom: '4px',
-				}}
-			>
-				SERTIFIKAT KELULUSAN
-			</h1>
-			<p
-				style={{
-					letterSpacing: '2px',
-					fontSize: '11px',
-					color: '#888',
-					marginBottom: '20px',
-				}}
-			>
-				NOMOR: {certId}
-			</p>
-			<p
-				style={{
-					fontSize: '13px',
-					color: '#666',
-					fontStyle: 'italic',
-					marginBottom: '8px',
-				}}
-			>
-				Diberikan kepada:
-			</p>
-			<h2
-				style={{
-					fontFamily: 'Georgia, serif',
-					fontSize: '24px',
-					fontWeight: 'bold',
-					textDecoration: 'underline',
-					textUnderlineOffset: '6px',
-					marginBottom: '16px',
-					textTransform: 'uppercase',
-				}}
-			>
-				{participantName}
-			</h2>
-			<p
-				style={{
-					fontSize: '12px',
-					color: '#555',
-					maxWidth: '480px',
-					lineHeight: '1.6',
-					marginBottom: '10px',
-				}}
-			>
-				Atas keberhasilan menyelesaikan seluruh rangkaian pembelajaran pada event bertajuk:
-			</p>
-			<h4 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '28px' }}>
-				"{event?.title}"
-			</h4>
-			<div
-				style={{
-					width: '100%',
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'flex-end',
-				}}
-			>
-				<div style={{ textAlign: 'left' }}>
-					<p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Penyelenggara:</p>
-					<p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
-						{event?.institution?.name || event?.organizer?.name || 'KampusX Academy'}
-					</p>
-				</div>
-				<div
-					style={{
-						background: 'white',
-						padding: '4px',
-						border: '1px solid #eee',
-						borderRadius: '4px',
-					}}
-				>
-					<QRCode value={`${window.location.origin}/certificate/verify/${certId}`} size={48} />
-				</div>
-				<div style={{ textAlign: 'right' }}>
-					<p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Diterbitkan:</p>
-					<p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
-						{dateStr}
-					</p>
-					<span style={{ color: '#22c55e', fontSize: '11px', fontWeight: '600' }}>
-						✓ VALID
-					</span>
-				</div>
-			</div>
-		</div>
-	);
+            }}
+        >
+            <div
+                style={{
+                    position: 'absolute',
+                    border: '1px solid rgba(212,175,55,0.3)',
+                    inset: '20px',
+                    pointerEvents: 'none',
+                }}
+            />
+            <Award size={56} className="text-warning mb-3" />
+            <h1
+                style={{
+                    fontFamily: 'Georgia, serif',
+                    letterSpacing: '4px',
+                    fontSize: '26px',
+                    fontWeight: 'bold',
+                    marginBottom: '4px',
+                }}
+            >
+                SERTIFIKAT KELULUSAN
+            </h1>
+            <p
+                style={{
+                    letterSpacing: '2px',
+                    fontSize: '11px',
+                    color: '#888',
+                    marginBottom: '20px',
+                }}
+            >
+                NOMOR: {certId}
+            </p>
+            <p
+                style={{
+                    fontSize: '13px',
+                    color: '#666',
+                    fontStyle: 'italic',
+                    marginBottom: '8px',
+                }}
+            >
+                Diberikan kepada:
+            </p>
+            <h2
+                style={{
+                    fontFamily: 'Georgia, serif',
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '6px',
+                    marginBottom: '16px',
+                    textTransform: 'uppercase',
+                }}
+            >
+                {participantName}
+            </h2>
+            <p
+                style={{
+                    fontSize: '12px',
+                    color: '#555',
+                    maxWidth: '480px',
+                    lineHeight: '1.6',
+                    marginBottom: '10px',
+                }}
+            >
+                Atas keberhasilan menyelesaikan seluruh rangkaian pembelajaran pada event bertajuk:
+            </p>
+            <h4 style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '28px' }}>
+                "{event?.title}"
+            </h4>
+            <div
+                style={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                }}
+            >
+                <div style={{ textAlign: 'left' }}>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Penyelenggara:</p>
+                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
+                        {event?.institution?.name || event?.organizer?.name || 'KampusX Academy'}
+                    </p>
+                </div>
+                <div
+                    style={{
+                        background: 'white',
+                        padding: '4px',
+                        border: '1px solid #eee',
+                        borderRadius: '4px',
+                    }}
+                >
+                    <QRCode value={`${window.location.origin}/certificate/verify/${certId}`} size={48} />
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Diterbitkan:</p>
+                    <p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
+                        {dateStr}
+                    </p>
+                    <span style={{ color: '#22c55e', fontSize: '11px', fontWeight: '600' }}>
+                        ✓ VALID
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default CertificatePublicView;
