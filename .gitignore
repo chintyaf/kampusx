@@ -12,3 +12,4 @@ frontend/dist.zip
 frontend/.env
 # /frontend
 frontend/dist.zip
+*.zip

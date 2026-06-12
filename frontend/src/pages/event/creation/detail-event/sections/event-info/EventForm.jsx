@@ -1,22 +1,10 @@
-import { useState, useCallback } from 'react';
-import { Form, Modal, Button } from 'react-bootstrap';
+import { useState } from 'react';
+import { Form } from 'react-bootstrap';
 import Select from 'react-select';
-import Cropper from 'react-easy-crop';
 import api from '@/api/axios';
-import { notify } from '@/utils/notify';
-import getCroppedImg from '@/utils/cropImage';
 import UploadImage from './UploadImage';
 
 const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChange }) => {
-	// ==========================================
-	// STATE UNTUK CROP GAMBAR
-	// ==========================================
-	const [showCropModal, setShowCropModal] = useState(false);
-	const [imageSrc, setImageSrc] = useState(null);
-	const [crop, setCrop] = useState({ x: 0, y: 0 });
-	const [zoom, setZoom] = useState(1);
-	const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-
 	// ==========================================
 	// STATE UNTUK OPTIONS & LOADING DROPDOWN
 	// ==========================================
@@ -30,23 +18,6 @@ const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChang
 
 	const handleSelectChange = (field, selectedOptions) => {
 		setFormData((prev) => ({ ...prev, [field]: selectedOptions || [] }));
-	};
-
-	// ==========================================
-	// HANDLER CROP GAMBAR
-	// ==========================================
-	const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
-		setCroppedAreaPixels(croppedAreaPixels);
-	}, []);
-
-	const handleSaveCrop = async () => {
-		try {
-			const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels);
-			setFormData((prev) => ({ ...prev, banner: croppedFile }));
-			setShowCropModal(false);
-		} catch (e) {
-			console.error('Error saat cropping:', e);
-		}
 	};
 
 	// ==========================================
@@ -259,12 +230,9 @@ const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChang
 					</Form.Control.Feedback>
 				</Form.Group>
 
-				{/* Modifikasi props UploadImage agar bisa trigger Modal Crop dari child ini */}
 				<UploadImage
 					formData={formData}
 					setFormData={setFormData}
-					setImageSrc={setImageSrc}
-					setShowCropModal={setShowCropModal}
 				/>
 
 				{touched.banner && !formData.banner && (
@@ -273,42 +241,6 @@ const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChang
 					</div>
 				)}
 			</Form>
-
-			{/* MODAL CROP GAMBAR */}
-			<Modal
-				show={showCropModal}
-				onHide={() => setShowCropModal(false)}
-				size="lg"
-				centered
-				backdrop="static"
-			>
-				<Modal.Header closeButton>
-					<Modal.Title>Sesuaikan Banner (Rasio 2:3)</Modal.Title>
-				</Modal.Header>
-				<Modal.Body
-					style={{ position: 'relative', height: '400px', backgroundColor: '#333' }}
-				>
-					{imageSrc && (
-						<Cropper
-							image={imageSrc}
-							crop={crop}
-							zoom={zoom}
-							aspect={3 / 2}
-							onCropChange={setCrop}
-							onCropComplete={onCropComplete}
-							onZoomChange={setZoom}
-						/>
-					)}
-				</Modal.Body>
-				<Modal.Footer>
-					<Button variant="secondary" onClick={() => setShowCropModal(false)}>
-						Batal
-					</Button>
-					<Button variant="primary" onClick={handleSaveCrop}>
-						Simpan Potongan
-					</Button>
-				</Modal.Footer>
-			</Modal>
 		</>
 	);
 };

@@ -99,9 +99,9 @@ class EventGeneralInfoController extends Controller
                         Storage::disk('public')->delete($event->image_path);
                     }
 
-                    // 2. Simpan file baru di folder event-banners dengan nama ID event
+                    // 2. Simpan file baru di folder event-banners dengan nama unik
                     $extension = $request->file('banner')->getClientOriginalExtension();
-                    $fileName = "{$event->id}.{$extension}";
+                    $fileName = "banner_{$event->id}_" . time() . "_" . uniqid() . ".{$extension}";
                     $path = $request->file('banner')->storeAs("event-banners", $fileName, 'public');
 
                     $updateData['image_path'] = $path;

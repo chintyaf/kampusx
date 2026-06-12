@@ -132,7 +132,7 @@ class EventController extends Controller
                 // 3. Handle Upload File (Sertakan ID Event untuk konsistensi)
                 if ($request->hasFile('banner')) {
                     $extension = $request->file('banner')->getClientOriginalExtension();
-                    $fileName = "{$event->id}.{$extension}";
+                    $fileName = "banner_{$event->id}_" . time() . "_" . uniqid() . ".{$extension}";
 
                     // Simpan di folder event-banners
                     $path = $request->file('banner')->storeAs("event-banners", $fileName, 'public');
