@@ -153,6 +153,23 @@ class EventStatusController extends Controller
             'published_at' => now() // Opsional: untuk track kapan mulai live
         ]);
 
+        // Notify users who favorited the event categories (event recommendation)
+        $categoryIds = $event->categories()->pluck('categories.id')->toArray();
+        if (!empty($categoryIds)) {
+            $usersToNotify = \App\Models\User::whereHas('categories', function($q) use ($categoryIds) {
+                $q->whereIn('categories.id', $categoryIds);
+            })->where('id', '!=', $event->organizer_id)->get();
+
+            foreach ($usersToNotify as $userToNotify) {
+                $userToNotify->notify(new \App\Notifications\OperationalNotification(
+                    "Rekomendasi Event Baru!",
+                    "Event baru '{$event->title}' telah dipublikasikan dan cocok dengan minat kategori Anda.",
+                    "event_recommendation",
+                    ['event_id' => $event->id]
+                ));
+            }
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Event berhasil dipublish!',
@@ -281,6 +298,8 @@ class EventStatusController extends Controller
             'status' => 'post_event'
         ]);
 
+        \App\Services\CertificateNotificationHelper::checkAndNotify($event->id);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Status event berhasil diubah menjadi Setelah Acara!',
@@ -299,6 +318,8 @@ class EventStatusController extends Controller
         $event->update([
             'status' => 'completed'
         ]);
+
+        \App\Services\CertificateNotificationHelper::checkAndNotify($event->id);
 
         $hasCertificate = \DB::table('certificate_templates')->where('event_id', $event->id)->exists();
         if (!$hasCertificate && $event->organizer) {

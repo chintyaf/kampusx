@@ -64,6 +64,8 @@ class SurveyFormController extends Controller
                 'is_active' => $validated['is_active'] ?? false,
             ]);
 
+            \App\Services\CertificateNotificationHelper::checkAndNotify($eventId);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Survei berhasil dibuat!',
@@ -97,6 +99,8 @@ class SurveyFormController extends Controller
             }
 
             $survey->update($validated);
+
+            \App\Services\CertificateNotificationHelper::checkAndNotify($eventId);
 
             return response()->json([
                 'success' => true,
@@ -147,6 +151,8 @@ class SurveyFormController extends Controller
             SurveyQuestion::insert($questionsData);
 
             DB::commit();
+
+            \App\Services\CertificateNotificationHelper::checkAndNotify($eventId);
 
             return response()->json([
                 'success' => true,

@@ -71,6 +71,7 @@ class AttendanceController extends Controller
 
         // Opsional: perbarui status tiket
         $ticket->update(['status' => 'used']);
+        \App\Services\CertificateNotificationHelper::checkAndNotify($request->event_id, $ticket->participant_id);
 
         // Auto reward check-in points
         $this->awardAttendancePoints($ticket, $request->event_id);
@@ -142,6 +143,7 @@ class AttendanceController extends Controller
         ]);
 
         $ticket->update(['status' => 'used']);
+        \App\Services\CertificateNotificationHelper::checkAndNotify($request->event_id, $ticket->participant_id);
 
         // Auto reward check-in points
         $this->awardAttendancePoints($ticket, $request->event_id);
@@ -268,6 +270,7 @@ class AttendanceController extends Controller
             ]);
 
             $ticket->update(['status' => 'used']);
+            \App\Services\CertificateNotificationHelper::checkAndNotify($request->event_id, $ticket->participant_id);
 
             // Auto reward check-in points
             $this->awardAttendancePoints($ticket, $request->event_id);

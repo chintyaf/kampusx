@@ -94,6 +94,13 @@ class CheckoutController extends Controller
                     ]);
                 }
 
+                $user->notify(new \App\Notifications\OperationalNotification(
+                    "Pendaftaran Berhasil!",
+                    "Selamat! Tiket gratis Anda untuk event '{$event->title}' berhasil didaftarkan.",
+                    "payment_success",
+                    ['event_id' => $event->id]
+                ));
+
                 DB::commit();
 
                 // Kembalikan ke React TANPA snap_token
@@ -153,6 +160,13 @@ class CheckoutController extends Controller
                 ];
 
                 $snapToken = Snap::getSnapToken($params);
+
+                $user->notify(new \App\Notifications\OperationalNotification(
+                    "Menunggu Pembayaran",
+                    "Tiket Anda untuk event '{$event->title}' berhasil dipesan. Selesaikan pembayaran Anda sebelum kedaluwarsa.",
+                    "payment_pending",
+                    ['event_id' => $event->id]
+                ));
 
                 DB::commit();
 

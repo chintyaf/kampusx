@@ -169,6 +169,16 @@ class PaymentSimulatorApiController extends Controller
                     $item->tickets()->update(['status' => 'active']);
                 }
 
+                // Notify User
+                if ($order->user) {
+                    $order->user->notify(new \App\Notifications\OperationalNotification(
+                        "Pembayaran Sukses!",
+                        "Pembayaran Anda untuk event '{$order->event->title}' telah berhasil diverifikasi. Tiket Anda kini aktif.",
+                        "payment_success",
+                        ['event_id' => $order->event_id]
+                    ));
+                }
+
                 $message = 'Pembayaran lunas berhasil disimulasikan.';
             } else {
                 $mappedStatus = ($status === 'expired') ? 'expired' : 'cancelled';
@@ -182,6 +192,16 @@ class PaymentSimulatorApiController extends Controller
                 // Mark associated tickets as cancelled
                 foreach ($order->orderItems as $item) {
                     $item->tickets()->update(['status' => 'cancelled']);
+                }
+
+                // Notify User
+                if ($order->user) {
+                    $order->user->notify(new \App\Notifications\OperationalNotification(
+                        "Pembayaran Gagal/Batal",
+                        "Pembayaran tiket event '{$order->event->title}' telah dibatalkan atau kedaluwarsa.",
+                        "payment_failed",
+                        ['event_id' => $order->event_id]
+                    ));
                 }
 
                 $message = 'Transaksi dibatalkan atau kedaluwarsa berhasil diproses.';

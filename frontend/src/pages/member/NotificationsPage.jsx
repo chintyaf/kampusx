@@ -10,7 +10,11 @@ import {
     AlertCircle, 
     ChevronRight,
     Inbox,
-    Trash2
+    Trash2,
+    Sparkles,
+    Clock,
+    XCircle,
+    Award
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
@@ -149,6 +153,36 @@ const NotificationsPage = () => {
                     icon: <AlertCircle size={20} className="text-danger" />,
                     bg: "bg-danger-subtle",
                     iconColor: "var(--error-text, #dc2626)"
+                };
+            case "event_recommendation":
+                return {
+                    icon: <Sparkles size={20} className="text-warning" />,
+                    bg: "bg-warning-subtle",
+                    iconColor: "var(--warning-text, #a16207)"
+                };
+            case "payment_success":
+                return {
+                    icon: <CheckCircle2 size={20} className="text-success" />,
+                    bg: "bg-success-subtle",
+                    iconColor: "var(--success-text, #166534)"
+                };
+            case "payment_pending":
+                return {
+                    icon: <Clock size={20} className="text-warning" />,
+                    bg: "bg-warning-subtle",
+                    iconColor: "var(--warning-text, #a16207)"
+                };
+            case "payment_failed":
+                return {
+                    icon: <XCircle size={20} className="text-danger" />,
+                    bg: "bg-danger-subtle",
+                    iconColor: "var(--error-text, #dc2626)"
+                };
+            case "certificate_available":
+                return {
+                    icon: <Award size={20} className="text-primary" />,
+                    bg: "bg-primary-subtle",
+                    iconColor: "var(--color-primary, #00699e)"
                 };
             default:
                 return {
