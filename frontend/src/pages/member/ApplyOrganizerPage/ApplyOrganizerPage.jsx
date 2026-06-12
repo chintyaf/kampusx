@@ -19,6 +19,7 @@ const ApplyOrganizerPage = () => {
 	const [request, setRequest] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [submitting, setSubmitting] = useState(false);
+	const [showForm, setShowForm] = useState(false);
 
 	// Form States
 	const [organizerType, setOrganizerType] = useState('internal'); // 'internal' | 'independent'
@@ -97,6 +98,7 @@ const ApplyOrganizerPage = () => {
 					'Content-Type': 'multipart/form-data',
 				},
 			});
+			setShowForm(false);
 			fetchRequestStatus();
 		} catch (error) {
 			console.error('Gagal mengajukan permohonan:', error);
@@ -163,7 +165,7 @@ const ApplyOrganizerPage = () => {
 				className="bg-white p-4 border shadow-sm mx-auto animate__animated animate__fadeIn"
 				style={{ maxWidth: 580, borderRadius: 12 }}
 			>
-				{!request ? (
+				{!request || showForm ? (
 					<OrganizerForm
 						initialData={{
 							organizerType,
@@ -177,7 +179,13 @@ const ApplyOrganizerPage = () => {
 						submitting={submitting}
 						request={request}
 						onSubmit={handleApply}
-						onCancel={() => setShowForm(false)}
+						onCancel={() => {
+							if (request) {
+								setShowForm(false);
+							} else {
+								navigate('/');
+							}
+						}}
 					/>
 				) : (
 					renderContent()

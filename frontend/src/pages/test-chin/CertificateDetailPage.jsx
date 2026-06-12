@@ -181,7 +181,7 @@ const CertificateDetailPage = () => {
                                                 src={certData.template.background_url} 
                                                 alt="Certificate Template" 
                                                 className="w-100 h-100"
-                                                style={{ display: 'block', objectFit: 'cover' }}
+                                                style={{ display: 'block', objectFit: 'fill' }}
                                             />
 
                                             {/* Render Elements Dynamically from coordinates */}

@@ -14,10 +14,10 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 		<>
 			{/* MOBILE HORIZONTAL NAVIGATION (Visible on screens smaller than md) */}
 			<div className="d-block d-md-none mb-3">
-				<div 
-					className="d-flex overflow-x-auto pb-2 gap-2 text-nowrap scrollbar-hidden" 
-					style={{ 
-						scrollbarWidth: 'none', 
+				<div
+					className="d-flex overflow-x-auto pb-2 gap-2 text-nowrap scrollbar-hidden"
+					style={{
+						scrollbarWidth: 'none',
 						msOverflowStyle: 'none',
 						WebkitOverflowScrolling: 'touch'
 					}}
@@ -30,7 +30,7 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 					>
 						<Layout size={16} /> Overview
 					</Button>
-					
+
 					<Button
 						variant={activeTab === 'materi' ? 'primary' : 'white'}
 						className={`rounded-pill px-3 py-2 fw-medium d-flex align-items-center gap-2 border ${activeTab === 'materi' ? 'shadow-sm text-white' : 'text-dark bg-white'}`}
@@ -64,10 +64,10 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 						onClick={() => setActiveTab('rewards')}
 						style={{ fontSize: '13px' }}
 					>
-						<Gift size={16} style={{ color: activeTab === 'rewards' ? '#fff' : '#0d9488' }} /> 
+						<Gift size={16} style={{ color: activeTab === 'rewards' ? '#fff' : '#0d9488' }} />
 						Tukar Reward
-						<Badge 
-							bg={activeTab === 'rewards' ? 'light' : 'primary-subtle'} 
+						<Badge
+							bg={activeTab === 'rewards' ? 'light' : 'primary-subtle'}
 							className={`${activeTab === 'rewards' ? 'text-dark' : 'text-primary'} rounded-pill border px-1.5 py-0.5`}
 							style={{ fontSize: '10px' }}
 						>
@@ -144,7 +144,7 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 								onClick={() => setActiveTab('rewards')}
 								style={{ transition: 'background-color 0.2s' }}
 							>
-								<Gift size={18} className="me-3" style={{ color: activeTab === 'rewards' ? '#fff' : '#0d9488' }} /> 
+								<Gift size={18} className="me-3" style={{ color: activeTab === 'rewards' ? '#fff' : '#0d9488' }} />
 								Tukar Local Reward
 								<Badge bg={activeTab === 'rewards' ? 'light' : 'primary-subtle'} className={`${activeTab === 'rewards' ? 'text-dark' : 'text-primary'} ms-auto rounded-pill border small font-bold px-2 py-1`}>
 									{memberPoints || 0} Pts
@@ -160,7 +160,7 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 										onClick={() => setActiveTab('sertifikat')}
 										style={{ transition: 'all 0.2s ease' }}
 									>
-										<Award size={18} className="me-3" /> Sertifikat & Ulasan
+										<Award size={18} className="me-3" /> Sertifikat
 										{alreadySubmitted ? (
 											<Badge
 												bg="success-subtle"

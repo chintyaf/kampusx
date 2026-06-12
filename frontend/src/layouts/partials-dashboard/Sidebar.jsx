@@ -10,6 +10,7 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 	// State menampung array berisi ID menu yang sedang terbuka
 	const [openMenus, setOpenMenus] = useState([]);
 	const [missingData, setMissingData] = useState([]);
+	const [eventStatus, setEventStatus] = useState('loading');
 	const location = useLocation();
 
 	// Mendapatkan eventId dari URL
@@ -28,8 +29,14 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 				if (response.data?.success || response.data?.status === 'success') {
 					setMissingData(response.data.data.missing_data || []);
 				}
+
+				const statusRes = await api.get(`/events/${currentEventId}/status`);
+				if (statusRes.data?.status === 'success') {
+					setEventStatus(statusRes.data.data.status);
+				}
 			} catch (err) {
 				console.error('Gagal memuat status kelayakan event:', err);
+				setEventStatus('draft');
 			}
 		};
 
@@ -47,22 +54,22 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 
 	// Menggunakan useMemo agar referensi currentMenu tidak berubah setiap kali render
 	const currentMenu = useMemo(() => {
-		return baseMenu.map((item) => ({
-			...item,
-			path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
-		}));
-	}, [baseMenu, currentEventId]);
+		return baseMenu
+			.filter((item) => !(eventStatus === 'draft' && item.hideWhenDraft))
+			.map((item) => ({
+				...item,
+				path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
+			}));
+	}, [baseMenu, currentEventId, eventStatus]);
 
 	const handleToggle = (id) => {
 		if (isSidebarCollapsed) {
-			// Lebarkan sidebar dan pastikan menu ini masuk ke daftar terbuka
+			// Lebarkan sidebar dan buka HANYA menu ini (Single-Expand)
 			setIsSidebarCollapsed(false);
-			setOpenMenus((prev) => (prev.includes(id) ? prev : [...prev, id]));
+			setOpenMenus([id]);
 		} else {
-			// Tambah atau hapus ID menu dari array openMenus
-			setOpenMenus((prev) =>
-				prev.includes(id) ? prev.filter((menuId) => menuId !== id) : [...prev, id],
-			);
+			// Jika menu sudah terbuka, tutup (kosongkan array). Jika belum, buka HANYA menu ini.
+			setOpenMenus((prev) => (prev.includes(id) ? [] : [id]));
 		}
 	};
 
@@ -76,11 +83,12 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 					return currentPath.startsWith(fullPath);
 				});
 
-				// Jika path aktif, pastikan ID menu masuk ke daftar terbuka
+				// Jika path aktif, jadikan menu ini satu-satunya yang terbuka
 				if (isActive) {
 					setOpenMenus((prev) => {
-						if (!prev.includes(item.id)) {
-							return [...prev, item.id];
+						// Cegah state update yang tidak perlu jika menu ini sudah menjadi satu-satunya yang terbuka
+						if (prev.length !== 1 || prev[0] !== item.id) {
+							return [item.id];
 						}
 						return prev;
 					});

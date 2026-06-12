@@ -35,6 +35,14 @@ class SurveyController extends Controller
             // Check if user is the organizer of the event or an admin
             $isOrganizerOrAdmin = ((int) $event->organizer_id === (int) $user->id || $user->role === 'admin');
 
+            if ($event->status === 'draft' && !$isOrganizerOrAdmin) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Event tidak ditemukan atau masih berupa draft.',
+                ], 404);
+            }
+
             // 1. Check if user has a ticket for this event
             $hasTicket = Ticket::where('participant_id', $user->id)
                 ->whereHas('orderItem.order', function ($query) use ($eventId) {
@@ -51,13 +59,27 @@ class SurveyController extends Controller
                 ], 403);
             }
 
-            // 2. Check if user has already submitted the survey
-            $response = SurveyResponse::where('user_id', $user->id)
-                ->where('event_id', $eventId)
-                ->with('answers.question')
+            // Get certificate template (if exists)
+            $template = CertificateTemplate::where('event_id', $eventId)
+                ->with('elements')
                 ->first();
 
-            $alreadySubmitted = !is_null($response);
+            if ($template) {
+                $template->background_url = url("/api/certificate/background/{$eventId}?v=" . ($template->updated_at ? $template->updated_at->timestamp : time()));
+            }
+
+            // Get ticket code
+            $ticket = null;
+            if ($hasTicket) {
+                $ticket = Ticket::where('participant_id', $user->id)
+                    ->whereHas('orderItem.order', function ($query) use ($eventId) {
+                        $query->where('event_id', $eventId);
+                    })
+                    ->first();
+            }
+
+            // 2. Check if user has already checked in and certificate template exists
+            $alreadySubmitted = ($ticket && $ticket->status === 'used' && !is_null($template));
 
             // Get the custom survey by event_id only (no is_active check)
             $customSurvey = Survey::where('event_id', $eventId)
@@ -69,38 +91,19 @@ class SurveyController extends Controller
                 $customSurvey = null;
             }
 
-            // 4. Get certificate template (if exists)
-            $template = CertificateTemplate::where('event_id', $eventId)
-                ->with('elements')
-                ->first();
-
-            if ($template) {
-                $template->background_url = Storage::disk('public')->url($template->background_path);
-            }
-
-            // 5. Get ticket code
-            $ticket = null;
-            if ($hasTicket) {
-                $ticket = Ticket::where('participant_id', $user->id)
-                    ->whereHas('orderItem.order', function ($query) use ($eventId) {
-                        $query->where('event_id', $eventId);
-                    })
-                    ->first();
-            }
-
             $canClaimCertificate = true;
             $claimDisabledReason = null;
 
             if (!$isOrganizerOrAdmin) {
                 if (!in_array($event->status, ['completed', 'post_event'])) {
                     $canClaimCertificate = false;
-                    $claimDisabledReason = 'Sertifikat dan evaluasi belum tersedia karena acara belum selesai.';
+                    $claimDisabledReason = 'Sertifikat belum tersedia karena acara belum selesai.';
                 } elseif (!$ticket || $ticket->status !== 'used') {
                     $canClaimCertificate = false;
-                    $claimDisabledReason = 'Sertifikat dan ulasan belum tersedia karena Anda belum tercatat hadir di acara ini.';
-                } elseif (!$template || !$customSurvey) {
+                    $claimDisabledReason = 'Sertifikat belum tersedia karena Anda belum tercatat hadir di acara ini.';
+                } elseif (!$template) {
                     $canClaimCertificate = false;
-                    $claimDisabledReason = 'Evaluasi dan Sertifikat belum disiapkan oleh Penyelenggara.';
+                    $claimDisabledReason = 'Sertifikat belum disiapkan oleh Penyelenggara.';
                 }
             }
 
@@ -112,7 +115,7 @@ class SurveyController extends Controller
                     'has_ticket' => $hasTicket,
                     'is_preview_only' => $isOrganizerOrAdmin,
                     'already_submitted' => $isOrganizerOrAdmin ? false : $alreadySubmitted,
-                    'survey_response' => $isOrganizerOrAdmin ? null : $response,
+                    'survey_response' => null,
                     'custom_survey' => $customSurvey,  // null if organizer hasn't built one
                     'certificate_template' => $template,
                     'participant_name' => $user->name,
@@ -253,7 +256,7 @@ class SurveyController extends Controller
             // Return certificate template
             $template = CertificateTemplate::where('event_id', $eventId)->with('elements')->first();
             if ($template) {
-                $template->background_url = Storage::disk('public')->url($template->background_path);
+                $template->background_url = url("/api/certificate/background/{$eventId}?v=" . ($template->updated_at ? $template->updated_at->timestamp : time()));
             }
 
             return response()->json([
@@ -432,14 +435,7 @@ class SurveyController extends Controller
                 $event = $ticket->orderItem->order->event;
                 if (!$event) continue;
 
-                // 2. Check if a survey response exists for this user and event
-                $surveyResponse = SurveyResponse::where('user_id', $user->id)
-                    ->where('event_id', $event->id)
-                    ->first();
-
-                $isUnlocked = !is_null($surveyResponse);
-
-                // 3. Get certificate template (if exists)
+                // Get certificate template (if exists)
                 $template = CertificateTemplate::where('event_id', $event->id)
                     ->with('elements')
                     ->first();
@@ -447,6 +443,9 @@ class SurveyController extends Controller
                 if ($template && $template->background_path) {
                     $template->background_url = url("/api/certificate/background/{$event->id}");
                 }
+
+                // Check if the ticket is checked-in and certificate template is created
+                $isUnlocked = ($ticket->status === 'used' && !is_null($template));
 
                 $locationText = 'TBA';
                 if ($event->locationDetail) {
@@ -459,6 +458,11 @@ class SurveyController extends Controller
 
                 $eventDate = $event->start_date ? $event->start_date->translatedFormat('d M Y') : '';
 
+                // Get the survey response if it exists for this user and event
+                $surveyResponse = SurveyResponse::where('user_id', $user->id)
+                    ->where('event_id', $event->id)
+                    ->first();
+
                 $certificates[] = [
                     'ticket_code' => $ticket->ticket_code,
                     'attendee_name' => $ticket->attendee_name,
@@ -468,7 +472,7 @@ class SurveyController extends Controller
                         'title' => $event->title,
                         'date' => $eventDate,
                         'location' => $locationText,
-                        'organizer_name' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
+                        'organizer_name' => $event->organizer->organization_name ?? ($event->organizer->name ?? ($event->institution->name ?? 'KampusX Organizer')),
                     ],
                     'is_unlocked' => $isUnlocked,
                     'survey_response' => $surveyResponse,

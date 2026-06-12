@@ -216,13 +216,13 @@ class EventSessionController extends Controller
         foreach ($sessions as $session) {
             // Gabungkan date + start_time menjadi full datetime
             if ($session->date && $session->start_time) {
-                $startDatetime = Carbon::parse($session->date . ' ' . $session->start_time);
+                $startDatetime = Carbon::parse($session->date . ' ' . $session->start_time, $event->timezone);
                 if (!$earliestStart || $startDatetime->lt($earliestStart)) {
                     $earliestStart = $startDatetime;
                 }
             } elseif ($session->date) {
                 // Fallback: jika start_time belum diisi, gunakan awal hari
-                $startDatetime = Carbon::parse($session->date)->startOfDay();
+                $startDatetime = Carbon::parse($session->date, $event->timezone)->startOfDay();
                 if (!$earliestStart || $startDatetime->lt($earliestStart)) {
                     $earliestStart = $startDatetime;
                 }
@@ -230,13 +230,13 @@ class EventSessionController extends Controller
 
             // Gabungkan date + end_time menjadi full datetime
             if ($session->date && $session->end_time) {
-                $endDatetime = Carbon::parse($session->date . ' ' . $session->end_time);
+                $endDatetime = Carbon::parse($session->date . ' ' . $session->end_time, $event->timezone);
                 if (!$latestEnd || $endDatetime->gt($latestEnd)) {
                     $latestEnd = $endDatetime;
                 }
             } elseif ($session->date) {
                 // Fallback: jika end_time belum diisi, gunakan akhir hari
-                $endDatetime = Carbon::parse($session->date)->endOfDay();
+                $endDatetime = Carbon::parse($session->date, $event->timezone)->endOfDay();
                 if (!$latestEnd || $endDatetime->gt($latestEnd)) {
                     $latestEnd = $endDatetime;
                 }

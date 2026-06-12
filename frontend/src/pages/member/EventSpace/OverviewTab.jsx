@@ -177,9 +177,7 @@ const OverviewTab = ({
 									className="mb-0 text-muted small"
 									style={{ fontSize: '12px' }}
 								>
-									Berikan penilaian/feedback kelas setelah menyelesaikan
-									seluruh rangkaian materi untuk mengklaim sertifikat
-									kelulusan.
+									Silakan menuju ke tab Sertifikat untuk melihat dan mengunduh sertifikat resmi Anda.
 								</p>
 							</div>
 						</div>
@@ -412,7 +410,7 @@ const OverviewTab = ({
 						</div>
 						<div>
 							<h6 className="fw-bold text-dark mb-0">
-								{event?.institution?.name || event?.organizer?.name || 'Penyelenggara KampusX'}
+								{event?.organizer?.organization_name || event?.organizer?.name || event?.institution?.name || 'Penyelenggara KampusX'}
 							</h6>
 							<p className="mb-0 text-muted small">Penyelenggara Utama</p>
 						</div>

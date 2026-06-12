@@ -52,7 +52,6 @@ const EventCard = ({ ev = {}, onClick }) => {
 		ev.isInPerson ||
 		ev.is_in_person ||
 		['offline', 'hybrid'].includes(eventLocation?.type || ev.location_type || '');
-	const isFeatured = ev.isFeatured || ev.is_featured;
 
 	const image =
 		ev.image ||
@@ -75,7 +74,6 @@ const EventCard = ({ ev = {}, onClick }) => {
 
 	// Warna konsisten sesuai desain
 	const colorTheme = '#1E40AF'; // Biru gelap untuk teks & icon
-	const colorFeatured = '#3B82F6'; // Biru terang untuk badge Featured
 
 	return (
 		<Card
@@ -149,20 +147,6 @@ const EventCard = ({ ev = {}, onClick }) => {
 						</span>
 					)}
 				</div>
-				{isFeatured && (
-					<span
-						style={{
-							fontSize: '12px',
-							background: colorFeatured,
-							color: '#FFFFFF',
-							borderRadius: '20px',
-							padding: '4px 14px',
-							fontWeight: 600,
-						}}
-					>
-						Featured
-					</span>
-				)}
 			</div>
 
 			{/* Gambar Inset */}

@@ -93,23 +93,16 @@ class EventGeneralInfoController extends Controller
                     'checkin_window_end'   => $validated['checkin_window_end'] ?? 0,
                 ];
 
-              // Di dalam method update(Request $request, $eventId)
                 if ($request->hasFile('banner')) {
                     // 1. Ambil data event untuk cek file lama
-                    // Pastikan menggunakan kolom yang konsisten (image_path)
                     if ($event->image_path && Storage::disk('public')->exists($event->image_path)) {
                         Storage::disk('public')->delete($event->image_path);
                     }
 
-                    // 2. Simpan file baru dengan path berdasarkan eventId
-                    // Opsi A: Folder berdasarkan eventId, nama file random (Direkomendasikan)
-                    // $path = $request->file('banner')->store("events/{$event->id}/banner", 'public');
-
-                    // /* Opsi B: Jika ingin nama filenya juga mengandung ID, misal: banner_123.jpg
+                    // 2. Simpan file baru di folder event-banners dengan nama ID event
                     $extension = $request->file('banner')->getClientOriginalExtension();
-                    $fileName = "banner_" . time() . "." . $extension;
-                    $path = $request->file('banner')->storeAs("events/{$event->id}", $fileName, 'public');
-
+                    $fileName = "{$event->id}.{$extension}";
+                    $path = $request->file('banner')->storeAs("event-banners", $fileName, 'public');
 
                     $updateData['image_path'] = $path;
                 }

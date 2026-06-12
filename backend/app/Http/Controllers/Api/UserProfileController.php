@@ -50,7 +50,7 @@ class UserProfileController extends Controller
         // Pastikan hanya order yang sudah dibayar (status = paid)
         $orders = Order::where('user_id', $id)
             ->where('status', 'paid')
-            ->with(['event.organizer', 'event.institution'])
+            ->with(['event.organizer.approvedOrganizerRequest', 'event.institution'])
             ->get();
 
         $upcomingEvents = [];
@@ -87,7 +87,7 @@ class UserProfileController extends Controller
         }
 
         // 6. Bangun list sertifikat dinamis dari tiket yang sudah di-klaim/di-unlock (lewat pengisian survei)
-        $tickets = Ticket::with(['orderItem.order.event.institution', 'orderItem.order.event.organizer', 'orderItem.order.event.certificateTemplate'])
+        $tickets = Ticket::with(['orderItem.order.event.institution', 'orderItem.order.event.organizer.approvedOrganizerRequest', 'orderItem.order.event.certificateTemplate.elements'])
             ->where('participant_id', $id)
             ->where(function($query) {
                 $query->where('status', 'used')
@@ -105,13 +105,12 @@ class UserProfileController extends Controller
             $event = $ticket->orderItem->order->event ?? null;
             if (!$event) continue;
 
-            // User mendapatkan sertifikat jika sudah mengisi kuesioner/survei event tersebut
-            $isUnlocked = SurveyResponse::where('user_id', $id)
-                ->where('event_id', $event->id)
-                ->exists();
+            $template = $event->certificateTemplate;
+
+            // User mendapatkan sertifikat jika sudah check-in dan template sertifikat sudah diterbitkan
+            $isUnlocked = ($ticket->status === 'used' && !is_null($template));
 
             if ($isUnlocked) {
-                $template = $event->certificateTemplate;
                 $imageUrl = 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'; // fallback
                 
                 if ($template && $template->background_path) {
@@ -122,12 +121,15 @@ class UserProfileController extends Controller
 
                 $certificates[] = [
                     'id' => 'CERT-' . $ticket->ticket_code,
+                    'ticket_code' => $ticket->ticket_code,
+                    'attendee_name' => $ticket->attendee_name,
                     'eventName' => $event->title,
                     'date' => $event->start_date ? Carbon::parse($event->start_date)->format('d M Y') : '',
-                    'organizer' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
+                    'organizer' => $event->organizer->organization_name ?? ($event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer')),
                     'status' => 'unlocked',
                     'image' => $imageUrl,
-                    'validation_url' => '/certificate/verify/' . $ticket->ticket_code
+                    'validation_url' => '/certificate/' . $ticket->ticket_code,
+                    'certificate_template' => $template,
                 ];
             }
         }
@@ -191,7 +193,7 @@ class UserProfileController extends Controller
         // 4. Ambil Histori Event yang diikuti user (Status paid)
         $orders = Order::where('user_id', $id)
             ->where('status', 'paid')
-            ->with(['event.organizer', 'event.institution'])
+            ->with(['event.organizer.approvedOrganizerRequest', 'event.institution'])
             ->get();
 
         $history = [];
@@ -200,7 +202,7 @@ class UserProfileController extends Controller
                 $event = $order->event;
                 $history[] = [
                     'title' => $event->title,
-                    'organizer' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
+                    'organizer' => $event->organizer->organization_name ?? ($event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer')),
                     'start_date' => $event->start_date ? Carbon::parse($event->start_date)->format('d M Y') : '',
                     'end_date' => $event->end_date ? Carbon::parse($event->end_date)->format('d M Y') : '',
                     'status' => Carbon::parse($event->end_date)->isPast() ? 'Selesai' : 'Mendatang'
@@ -209,7 +211,7 @@ class UserProfileController extends Controller
         }
 
         // 5. Ambil data sertifikat yang sudah diklaim (sudah mengisi kuesioner)
-        $tickets = Ticket::with(['orderItem.order.event.institution', 'orderItem.order.event.organizer'])
+        $tickets = Ticket::with(['orderItem.order.event.institution', 'orderItem.order.event.organizer.approvedOrganizerRequest'])
             ->where('participant_id', $id)
             ->where(function($query) {
                 $query->where('status', 'used')
@@ -227,10 +229,10 @@ class UserProfileController extends Controller
             $event = $ticket->orderItem->order->event ?? null;
             if (!$event) continue;
 
-            // Memastikan user sudah mengisi kuesioner / survei untuk event tersebut
-            $isUnlocked = SurveyResponse::where('user_id', $id)
-                ->where('event_id', $event->id)
-                ->exists();
+            $template = $event->certificateTemplate;
+
+            // Memastikan user sudah check-in dan template sertifikat sudah diterbitkan
+            $isUnlocked = ($ticket->status === 'used' && !is_null($template));
 
             if ($isUnlocked) {
                 $frontendUrl = rtrim(config('app.frontend_url'), '/');
@@ -238,8 +240,8 @@ class UserProfileController extends Controller
                     'id' => 'CERT-' . $ticket->ticket_code,
                     'eventName' => $event->title,
                     'date' => $event->start_date ? Carbon::parse($event->start_date)->format('d M Y') : '',
-                    'organizer' => $event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer'),
-                    'validation_url' => $frontendUrl . '/certificate/verify/' . $ticket->ticket_code
+                    'organizer' => $event->organizer->organization_name ?? ($event->institution->name ?? ($event->organizer->name ?? 'KampusX Organizer')),
+                    'validation_url' => $frontendUrl . '/certificate/' . $ticket->ticket_code
                 ];
             }
         }

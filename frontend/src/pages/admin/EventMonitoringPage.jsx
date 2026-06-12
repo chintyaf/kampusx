@@ -10,21 +10,19 @@ import Pagination from '@/features/users/components/Pagination';
 import api from '@/api/axios';
 
 const EventRow = ({ event, onToggleFeature }) => {
+	const [imageError, setImageError] = useState(false);
 	const canViewPublic = ['published', 'ongoing', 'post_event', 'completed'].includes(event.status);
 
 	return (
 		<tr>
 			<td>
 				<div className="user-cell">
-					{event.image_path ? (
+					{event.image_path && !imageError ? (
 						<img
 							src={`${STORAGE_URL}/${event.image_path}`}
 							alt={event.title}
 							style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }}
-							onError={(e) => {
-								e.target.onerror = null;
-								e.target.style.display = 'none';
-							}}
+							onError={() => setImageError(true)}
 						/>
 					) : (
 						<div className="user-avatar" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>

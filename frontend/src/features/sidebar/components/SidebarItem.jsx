@@ -34,6 +34,17 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		);
 	};
 
+	if (item.isHeader) {
+		if (isSidebarCollapsed) {
+			return <hr className="my-2 text-muted" />;
+		}
+		return (
+			<div className="menu-header text-muted fw-bold ms-2" style={{ fontSize: '0.75rem', marginTop: '1.5rem', marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+				{item.name}
+			</div>
+		);
+	}
+
 	if (!hasSubmenu) {
 		return (
 			<NavLink

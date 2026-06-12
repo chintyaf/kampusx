@@ -42,6 +42,7 @@ const EventSpace = () => {
 		event,
 		alreadySubmitted,
 		ticketCode,
+		qrToken,
 		participantName,
 		announcements,
 		memberPoints,
@@ -105,7 +106,7 @@ const EventSpace = () => {
 	}
 
 	const title = event?.title || 'Workshop & Kelas Pembelajaran Unggulan';
-	const organizer = event?.organizer?.name || event?.institution?.name || 'Penyelenggara KampusX';
+	const organizer = event?.organizer?.organization_name || event?.organizer?.name || event?.institution?.name || 'Penyelenggara KampusX';
 
 	const locationDetail = event?.location_detail || event?.locationDetail || {};
 	const locationType = locationDetail?.type || event?.location_type || 'offline';
@@ -114,8 +115,7 @@ const EventSpace = () => {
 	const canClaimCertificate = !!isPreviewOnly || (
 		ticketStatus === 'used' &&
 		(event?.status === 'completed' || event?.status === 'post_event') &&
-		!!certificateTemplate &&
-		!!customSurvey
+		!!certificateTemplate
 	);
 
 	const renderContent = () => {
@@ -155,6 +155,8 @@ const EventSpace = () => {
 						id={id}
 						alreadySubmitted={alreadySubmitted}
 						participantName={participantName}
+						ticketCode={ticketCode}
+						isPreviewOnly={isPreviewOnly}
 					/>
 				) : null;
 			case 'rewards':
@@ -175,7 +177,7 @@ const EventSpace = () => {
 	return (
 		<div className="bg-light min-vh-100 pb-5">
 			{/* HEADER MICRO LMS */}
-			<div className="bg-white border-bottom shadow-sm sticky-top" style={{ zIndex: 1020 }}>
+			<div className="bg-white border-bottom shadow-sm sticky-top" style={{ zIndex: 1000 }}>
 				<Container className="py-2 py-md-3">
 					<div className="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 gap-md-0">
 						<div className="d-flex align-items-center gap-2 gap-sm-3 w-100 w-md-auto">
@@ -204,8 +206,8 @@ const EventSpace = () => {
 						{/* TOMBOL CEPAT QR CODE DI HEADER & JOIN MEETING */}
 						<div className="d-flex gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
 							{(locationType === 'online' || locationType === 'hybrid') && meetingLink && (
-								<Button 
-									variant="success" 
+								<Button
+									variant="success"
 									className="rounded-pill px-3 px-md-4 py-2 d-flex align-items-center shadow-sm fw-medium gap-1.5 text-nowrap"
 									href={meetingLink}
 									target="_blank"
@@ -270,6 +272,7 @@ const EventSpace = () => {
 				show={showTicketModal}
 				onHide={() => setShowTicketModal(false)}
 				ticketCode={ticketCode}
+				qrToken={qrToken}
 			/>
 
 			{/* WARNING MODAL: ONLINE EVENT + PHYSICAL REWARD */}

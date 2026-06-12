@@ -11,7 +11,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (is_dir(base_path('../api'))) {
+            $this->app->usePublicPath(base_path('../api'));
+        }
     }
 
     /**
