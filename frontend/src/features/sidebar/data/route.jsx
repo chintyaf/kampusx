@@ -13,7 +13,7 @@ import {
 	UserRoundPen,
 	BookOpen,
 	Megaphone,
-Award,
+	Award,
 	ClipboardList,
 	MapPin,
 	CalendarDays,
@@ -132,6 +132,7 @@ export const MENU_ITEMS = {
 	],
 
 	event_detail: [
+		{ isHeader: true, id: 'header-utama', name: 'UTAMA' },
 		{
 			id: 'event-dashboard',
 			name: 'Dashboard',
@@ -139,7 +140,7 @@ export const MENU_ITEMS = {
 			path: '/organizer/:eventId/event-dashboard',
 		},
 
-		// --- SETUP EVENT ---
+		{ isHeader: true, id: 'header-persiapan', name: 'PERSIAPAN EVENT' },
 		{
 			id: 'detil-event',
 			name: 'Detail Event',
@@ -152,19 +153,14 @@ export const MENU_ITEMS = {
 				{ name: 'Tiket', path: 'tiket' },
 			],
 		},
-
-		// --- OPERASIONAL ---
 		{
-			id: 'manajemen-peserta',
-			name: 'Peserta & Poin',
-			icon: <UsersRound size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard',
-			submenu: [
-				{ name: 'Daftar & Poin', path: 'daftar-peserta' },
-				{ name: 'Katalog Reward', path: 'rewards' },
-				{ name: 'Log Redeem', path: 'redemptions' },
-			],
+			id: 'materi-acara',
+			name: 'Materi Acara',
+			icon: <BookOpen size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/materi-acara',
 		},
+
+		{ isHeader: true, id: 'header-pelaksanaan', name: 'PELAKSANAAN & INTERAKSI' },
 		{
 			id: 'check-in',
 			name: 'Scan Check-in',
@@ -177,26 +173,25 @@ export const MENU_ITEMS = {
 			icon: <Megaphone size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard/pengumuman',
 		},
-		// {
-		// 	id: 'kiosk-event',
-		// 	name: 'Kiosk Mode',
-		// 	icon: <Tv size={16} className="me-2" />,
-		// 	path: '/organizer/:eventId/event-dashboard/kiosk',
-		// },
 
-		// --- PASCA-ACARA ---
+		{ isHeader: true, id: 'header-pasca', name: 'PASCA EVENT' },
 		{
-			id: 'materi-acara',
-			name: 'Materi Acara',
-			icon: <BookOpen size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/materi-acara',
+			id: 'manajemen-peserta',
+			name: 'Peserta & Poin',
+			icon: <UsersRound size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard',
+			submenu: [
+				{ name: 'Daftar & Poin', path: 'daftar-peserta' },
+				{ name: 'Katalog Reward', path: 'rewards' },
+				{ name: 'Log Redeem', path: 'redemptions' },
+			],
 		},
-		{
-			id: 'survey-form',
-			name: 'Survei & Feedback',
-			icon: <ClipboardList size={16} className="me-2" />,
-			path: '/organizer/:eventId/event-dashboard/survey-form',
-		},
+		// {
+		// 	id: 'survey-form',
+		// 	name: 'Survei & Feedback',
+		// 	icon: <ClipboardList size={16} className="me-2" />,
+		// 	path: '/organizer/:eventId/event-dashboard/survey-form',
+		// },
 		{
 			id: 'sertifikat-event',
 			name: 'Sertifikat',

@@ -87,7 +87,6 @@ class EventTicketController extends Controller
         $tickets = EventTicket::where('event_id', $eventId)->get();
 
         // 4. Ambil array tipe tiket yang SUDAH ADA di database
-        // Asumsi: Model EventTicket punya kolom 'type' untuk membedakan online/offline
         $existingTypes = $tickets->pluck('type')->toArray();
 
         // 5. Cari tipe tiket yang DIBUTUHKAN tapi BELUM ADA (Missing types)
@@ -108,8 +107,6 @@ class EventTicketController extends Controller
             // Insert data ke database
             if (!empty($ticketsToInsert)) {
                 EventTicket::insert($ticketsToInsert);
-
-                // Ambil ulang data tiket yang baru saja ditambahkan agar up-to-date
                 $tickets = EventTicket::where('event_id', $eventId)->get();
             }
         }

@@ -64,7 +64,9 @@ export default function EventTicket() {
 				hasFetched.current = true;
 			} catch (err) {
 				console.error('Error fetching tickets:', err);
-				setError(err.response?.data || { message: 'Terjadi kesalahan saat memuat data tiket.' });
+				setError(
+					err.response?.data || { message: 'Terjadi kesalahan saat memuat data tiket.' },
+				);
 			} finally {
 				if (setIsPageLoading) setIsPageLoading(false);
 			}
@@ -180,7 +182,8 @@ export default function EventTicket() {
 			}
 		} catch (error) {
 			console.error('Gagal update data:', error.response?.data?.errors || error.message);
-			const errMsg = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan tiket.';
+			const errMsg =
+				error.response?.data?.message || 'Terjadi kesalahan saat menyimpan tiket.';
 			notify('error', 'Gagal!', errMsg);
 		}
 	};

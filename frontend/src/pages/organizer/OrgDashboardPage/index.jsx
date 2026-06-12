@@ -112,7 +112,7 @@ export default function OrgDashboardPage() {
 			<div className="flex-grow-1 d-flex flex-column min-w-0">
 				<div>
 					{/* Metrics */}
-					<StatCards stats={statsData} />
+					{/* <StatCards stats={statsData} /> */}
 
 					{/* Hero Card Highlight */}
 					<HeroCard heroEvent={heroEvent} />

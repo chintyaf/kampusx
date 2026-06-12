@@ -35,6 +35,14 @@ class SurveyController extends Controller
             // Check if user is the organizer of the event or an admin
             $isOrganizerOrAdmin = ((int) $event->organizer_id === (int) $user->id || $user->role === 'admin');
 
+            if ($event->status === 'draft' && !$isOrganizerOrAdmin) {
+                return response()->json([
+                    'success' => false,
+                    'status' => 'error',
+                    'message' => 'Event tidak ditemukan atau masih berupa draft.',
+                ], 404);
+            }
+
             // 1. Check if user has a ticket for this event
             $hasTicket = Ticket::where('participant_id', $user->id)
                 ->whereHas('orderItem.order', function ($query) use ($eventId) {

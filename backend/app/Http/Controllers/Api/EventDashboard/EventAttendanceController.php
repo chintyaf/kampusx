@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Ticket;
 use App\Models\AttendanceLog;
+use App\Models\AttendanceLink;
 use Carbon\Carbon;
 
 class EventAttendanceController extends Controller
@@ -75,9 +76,9 @@ class EventAttendanceController extends Controller
         // 5. Generate Short Code unik & Simpan ke tabel attendance_links
         do {
             $code = \Str::upper(\Str::random(8));
-        } while (\App\Models\AttendanceLink::where('code', $code)->exists());
+        } while (AttendanceLink::where('code', $code)->exists());
 
-        \App\Models\AttendanceLink::updateOrCreate(
+        AttendanceLink::updateOrCreate(
             [
                 'event_id' => $event->id,
                 'type' => $type,
@@ -130,7 +131,7 @@ class EventAttendanceController extends Controller
 
     public function resolveLink($code)
     {
-        $link = \App\Models\AttendanceLink::where('code', $code)->firstOrFail();
+        $link = AttendanceLink::where('code', $code)->firstOrFail();
 
         return response()->json([
             'success' => true,
@@ -144,64 +145,25 @@ class EventAttendanceController extends Controller
         ]);
     }
 
-    public function processAttendance(Request $request){
+    public function processAttendance(Request $request)
+    {
         // 1. Validasi format input dari frontend React
         $request->validate([
-            'event_id' => 'required|exists:events,id',
-            'type' => 'required|in:in,out,session_in,session_out',
+            'event_id'   => 'required|exists:events,id',
+            'type'       => 'required|in:in,out,session_in,session_out',
             'session_id' => 'required_if:type,session_in,session_out|exists:event_sessions,id',
-            'signature' => 'required|string',
-            'device_token' => 'required|string', // Berasal dari localStorage peserta
+            'signature'  => 'required|string',
             'expires_at' => 'nullable|date',
         ]);
 
-        $eventId = $request->event_id;
-        $type = $request->type;
-        $sessionId = $request->session_id;
-        $expiresAt = $request->expires_at;
-        $signature = $request->signature;
-        $deviceToken = $request->device_token;
-
-        // Asumsi peserta harus login untuk bisa absen
-        $userId = auth()->id();
-
-        // ---------------------------------------------------------
-        // LAYER 1: Verifikasi Integritas Link (Anti-Edit URL)
-        // ---------------------------------------------------------
-        if ($type === 'session_in' || $type === 'session_out') {
-            $payload = $eventId . '|' . $type . '|' . $sessionId . '|' . $expiresAt;
-        } else {
-            $payload = $eventId . '|' . $type . '|' . $expiresAt;
-        }
-        $expectedSignature = hash_hmac('sha256', $payload, config('app.key'));
-
-        if (!hash_equals($expectedSignature, $signature)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Link presensi tidak valid atau telah dimodifikasi.'
-            ], 403);
+        // 2. LAYER 1 & 2: Verifikasi Link (Fungsi Terpisah)
+        $linkError = $this->verifyLinkIntegrityAndExpiry($request);
+        if ($linkError) {
+            return $linkError;
         }
 
-        // ---------------------------------------------------------
-        // LAYER 2: Verifikasi Waktu Kedaluwarsa
-        // ---------------------------------------------------------
-        if ($expiresAt && Carbon::now()->greaterThan(Carbon::parse($expiresAt))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Waktu akses untuk link presensi ini sudah berakhir.'
-            ], 403);
-        }
-
-        // ---------------------------------------------------------
-        // LAYER 3: Verifikasi Status Peserta (via Ticket)
-        // ---------------------------------------------------------
-        $ticket = Ticket::where('participant_id', $userId)
-            ->where('status', 'active')
-            ->whereHas('orderItem.order', function ($query) use ($eventId) {
-                $query->where('event_id', $eventId);
-            })
-            ->first();
-
+        // 3. LAYER 3: Verifikasi Tiket Peserta (Fungsi Terpisah)
+        $ticket = $this->getActiveTicket(auth()->id(), $request->event_id);
         if (!$ticket) {
             return response()->json([
                 'success' => false,
@@ -209,186 +171,101 @@ class EventAttendanceController extends Controller
             ], 403);
         }
 
-        // ---------------------------------------------------------
-        // LAYER 4 & 5: Verifikasi Device Lock & Pencatatan Kehadiran
-        // ---------------------------------------------------------
-        if ($type === 'in') {
-            $attendance = AttendanceLog::firstOrNew([
-                'ticket_id' => $ticket->id,
-                'event_id'  => $eventId,
-                'session_id' => null,
-            ]);
-
-            $attendance->user_id = $userId;
-
-            if (is_null($attendance->device_id)) {
-                $attendance->device_id = $deviceToken;
-            } elseif ($attendance->device_id !== $deviceToken) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'
-                ], 403);
-            }
-
-            if ($attendance->scan_time) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda sudah melakukan Check-in masuk pas awal sebelumnya.'
-                ], 400);
-            }
-
-            $attendance->scan_time = Carbon::now();
-            $attendance->method = 'online_link';
-            $attendance->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Check-in awal berhasil dicatat!'
-            ]);
-
-        } elseif ($type === 'session_in') {
-            // Pastikan sudah melakukan check-in awal (bisa check-in event global, atau check-in sesi pertama di hari yang sama)
-            $session = \App\Models\EventSession::findOrFail($sessionId);
-            $sessionIdsOnSameDay = \App\Models\EventSession::where('event_id', $eventId)
-                ->where('day_number', $session->day_number)
-                ->pluck('id');
-
-            $initialAttendance = AttendanceLog::where('ticket_id', $ticket->id)
-                ->where('event_id', $eventId)
-                ->where(function ($query) use ($sessionIdsOnSameDay) {
-                    $query->whereNull('session_id')
-                          ->orWhereIn('session_id', $sessionIdsOnSameDay);
-                })
-                ->whereNotNull('scan_time')
-                ->first();
-
-            if (!$initialAttendance) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda belum melakukan Check-in masuk. Silakan lakukan Check-in masuk terlebih dahulu.'
-                ], 400);
-            }
-
-            // Pastikan device sesuai
-            if ($initialAttendance->device_id !== $deviceToken) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'
-                ], 403);
-            }
-
-            $attendance = AttendanceLog::firstOrNew([
-                'ticket_id' => $ticket->id,
-                'event_id'  => $eventId,
-                'session_id' => $sessionId,
-            ]);
-
-            $attendance->user_id = $userId;
-
-            if ($attendance->scan_time) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda sudah melakukan Check-in untuk sesi ini sebelumnya.'
-                ], 400);
-            }
-
-            $attendance->device_id = $deviceToken;
-            $attendance->scan_time = Carbon::now();
-            $attendance->method = 'online_link';
-            $attendance->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Check-in sesi berhasil dicatat!'
-            ]);
-
-        } elseif ($type === 'session_out') {
-            $session = \App\Models\EventSession::findOrFail($sessionId);
-
-            // Find all sessions on the same day
-            $sessionIdsOnSameDay = \App\Models\EventSession::where('event_id', $eventId)
-                ->where('day_number', $session->day_number)
-                ->pluck('id');
-
-            // Find checkin log on any of the sessions on the same day for this ticket/user
-            $initialAttendance = AttendanceLog::where('ticket_id', $ticket->id)
-                ->where('event_id', $eventId)
-                ->whereIn('session_id', $sessionIdsOnSameDay)
-                ->whereNotNull('scan_time')
-                ->first();
-
-            if (!$initialAttendance) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda belum melakukan Check-in masuk hari ini. Silakan lakukan Check-in masuk terlebih dahulu.'
-                ], 400);
-            }
-
-            // Pastikan device sesuai
-            if (is_null($initialAttendance->device_id)) {
-                $initialAttendance->device_id = $deviceToken;
-            } elseif ($initialAttendance->device_id !== $deviceToken) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'
-                ], 403);
-            }
-
-            if ($initialAttendance->checkout_time) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda sudah melakukan Check-out hari ini sebelumnya.'
-                ], 400);
-            }
-
-            $initialAttendance->checkout_time = Carbon::now();
-            $initialAttendance->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Check-out hari ini berhasil dicatat!'
-            ]);
-
-        } else { // type === 'out' (global event checkout)
-            // Pastikan sudah melakukan check-in awal
-            $initialAttendance = AttendanceLog::where('ticket_id', $ticket->id)
-                ->where('event_id', $eventId)
-                ->whereNull('session_id')
-                ->whereNotNull('scan_time')
-                ->first();
-
-            if (!$initialAttendance) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda belum melakukan Check-in masuk pas awal. Silakan lakukan Check-in masuk terlebih dahulu.'
-                ], 400);
-            }
-
-            // Pastikan device sesuai
-            if (is_null($initialAttendance->device_id)) {
-                $initialAttendance->device_id = $deviceToken;
-            } elseif ($initialAttendance->device_id !== $deviceToken) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Presensi ditolak. Anda harus menggunakan perangkat (HP/Laptop) yang sama dengan saat pertama kali Check-in.'
-                ], 403);
-            }
-
-            if ($initialAttendance->checkout_time) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda sudah melakukan Check-out sebelumnya.'
-                ], 400);
-            }
-
-            $initialAttendance->checkout_time = Carbon::now();
-            $initialAttendance->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Check-out berhasil dicatat!'
-            ]);
-        }
+        // 4. LAYER 4 & 5: Eksekusi Absensi (Fungsi Terpisah)
+        return $this->recordAttendanceLog($ticket, $request);
     }
 
+    // =========================================================================
+    // HELPER FUNCTIONS (UNTUK MENGHILANGKAN TUMPUKAN IF)
+    // =========================================================================
+
+    /**
+     * Memvalidasi keaslian signature hmac dan waktu expired link
+     */
+    private function verifyLinkIntegrityAndExpiry(Request $request)
+    {
+        // Ganti IF dengan ternary pendek untuk membuat array payload
+        $payloadParts = str_contains($request->type, 'session')
+            ? [$request->event_id, $request->type, $request->session_id, $request->expires_at]
+            : [$request->event_id, $request->type, $request->expires_at];
+
+        $expectedSignature = hash_hmac('sha256', implode('|', $payloadParts), config('app.key'));
+
+        if (!hash_equals($expectedSignature, $request->signature)) {
+            return response()->json(['success' => false, 'message' => 'Link presensi tidak valid atau telah dimodifikasi.'], 403);
+        }
+
+        if ($request->expires_at && Carbon::now()->greaterThan(Carbon::parse($request->expires_at))) {
+            return response()->json(['success' => false, 'message' => 'Waktu akses untuk link presensi ini sudah berakhir.'], 403);
+        }
+
+        return null; // Lolos validasi
+    }
+
+    /**
+     * Mengambil data tiket aktif peserta
+     */
+    private function getActiveTicket($userId, $eventId)
+    {
+        return Ticket::where('participant_id', $userId)
+            ->where('status', 'active')
+            ->whereHas('orderItem.order', function ($query) use ($eventId) {
+                $query->where('event_id', $eventId);
+            })
+            ->first();
+    }
+
+    /**
+     * Mencatat absen masuk/keluar secara dinamis tanpa if-else bercabang
+     */
+    private function recordAttendanceLog($ticket, Request $request)
+    {
+        $targetSessionId = str_contains($request->type, 'session') ? $request->session_id : null;
+
+        $attendance = AttendanceLog::firstOrNew([
+            'ticket_id'  => $ticket->id,
+            'event_id'   => $request->event_id,
+            'session_id' => $targetSessionId,
+        ]);
+
+        $attendance->user_id = auth()->id();
+        $attendance->method = 'online_link';
+
+        // MAPPING CONFIGURATION: Teknik sakti untuk membuang ribuan IF bercabang
+        $attendanceMap = [
+            'in' => [
+                'column'  => 'scan_time',
+                'already' => 'Anda sudah melakukan Check-in',
+                'success' => 'Check-in awal berhasil dicatat!'
+            ],
+            'session_in' => [
+                'column'  => 'scan_time',
+                'already' => 'Anda sudah melakukan Check-in untuk sesi ini sebelumnya.',
+                'success' => 'Check-in sesi berhasil dicatat!'
+            ],
+            'out' => [
+                'column'  => 'checkout_time',
+                'already' => 'Anda sudah melakukan Check-out sebelumnya.',
+                'success' => 'Check-out berhasil dicatat!'
+            ],
+            'session_out' => [
+                'column'  => 'checkout_time',
+                'already' => 'Anda sudah melakukan Check-out hari ini sebelumnya.',
+                'success' => 'Check-out hari ini berhasil dicatat!'
+            ],
+        ][$request->type];
+
+        $targetColumn = $attendanceMap['column'];
+
+        // Cek apakah kolom waktu (scan_time / checkout_time) sudah terisi
+        if ($attendance->$targetColumn) {
+            return response()->json(['success' => false, 'message' => $attendanceMap['already']], 400);
+        }
+
+        // Isi kolom secara dinamis dan simpan
+        $attendance->$targetColumn = Carbon::now();
+        $attendance->save();
+
+        return response()->json(['success' => true, 'message' => $attendanceMap['success']]);
+    }
 }
