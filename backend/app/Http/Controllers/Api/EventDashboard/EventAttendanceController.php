@@ -166,6 +166,7 @@ class EventAttendanceController extends Controller
         // 3. LAYER 3: Verifikasi Tiket Peserta (Fungsi Terpisah)
         $ticket = $this->getActiveTicket(auth()->id(), $request->event_id);
         if (!$ticket) {
+            \Illuminate\Support\Facades\Log::info('QR Ticket Failure', ['user_id' => auth()->id(), 'event_id' => $request->event_id]);
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak terdaftar sebagai peserta dalam acara ini atau tiket Anda tidak aktif.'
@@ -173,7 +174,9 @@ class EventAttendanceController extends Controller
         }
 
         // 4. LAYER 4 & 5: Eksekusi Absensi (Fungsi Terpisah)
-        return $this->recordAttendanceLog($ticket, $request);
+        $response = $this->recordAttendanceLog($ticket, $request);
+        \Illuminate\Support\Facades\Log::info('QR Final Response', ['response' => $response->getData(true)]);
+        return $response;
     }
 
     // =========================================================================
@@ -193,6 +196,13 @@ class EventAttendanceController extends Controller
             : [$request->event_id, $request->type, $normalizedExpiresAt];
 
         $expectedSignature = hash_hmac('sha256', implode('|', $payloadParts), config('app.key'));
+        \Illuminate\Support\Facades\Log::info('QR Verify Debug Extended', [
+            'request_data' => $request->all(),
+            'payloadParts' => $payloadParts,
+            'expectedSignature' => $expectedSignature,
+            'receivedSignature' => $request->signature,
+            'match' => hash_equals($expectedSignature, $request->signature)
+        ]);
 
         if (!hash_equals($expectedSignature, $request->signature)) {
             return response()->json(['success' => false, 'message' => 'Link presensi tidak valid atau telah dimodifikasi.'], 403);
@@ -223,13 +233,48 @@ class EventAttendanceController extends Controller
      */
     private function recordAttendanceLog($ticket, Request $request)
     {
-        $targetSessionId = str_contains($request->type, 'session') ? $request->session_id : null;
+        $type = $request->type;
+        $isCheckout = in_array($type, ['out', 'session_out']);
 
-        $attendance = AttendanceLog::firstOrNew([
-            'ticket_id'  => $ticket->id,
-            'event_id'   => $request->event_id,
-            'session_id' => $targetSessionId,
-        ]);
+        if ($isCheckout) {
+            // Cari log kehadiran terbaru untuk tiket ini pada event ini (apakah bertipe event in atau session_in)
+            $attendance = AttendanceLog::where('ticket_id', $ticket->id)
+                ->where('event_id', $request->event_id)
+                ->whereNotNull('scan_time')
+                ->latest('scan_time')
+                ->first();
+
+            if (!$attendance) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Check-out gagal. Anda belum tercatat melakukan Check-in.'
+                ], 400);
+            }
+
+            if ($attendance->checkout_time) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $type === 'out'
+                        ? 'Anda sudah melakukan Check-out sebelumnya.'
+                        : 'Anda sudah melakukan Check-out hari ini sebelumnya.'
+                ], 400);
+            }
+        } else {
+            $attendance = AttendanceLog::firstOrNew([
+                'ticket_id'  => $ticket->id,
+                'event_id'   => $request->event_id,
+                'session_id' => str_contains($type, 'session') ? $request->session_id : null,
+            ]);
+
+            if ($attendance->scan_time) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $type === 'in'
+                        ? 'Anda sudah melakukan Check-in'
+                        : 'Anda sudah melakukan Check-in untuk sesi ini sebelumnya.'
+                ], 400);
+            }
+        }
 
         $attendance->user_id = auth()->id();
         $attendance->method = 'online_link';
@@ -238,49 +283,16 @@ class EventAttendanceController extends Controller
             $attendance->device_id = $request->device_token;
         }
 
-        // MAPPING CONFIGURATION: Teknik sakti untuk membuang ribuan IF bercabang
-        $attendanceMap = [
-            'in' => [
-                'column'  => 'scan_time',
-                'already' => 'Anda sudah melakukan Check-in',
-                'success' => 'Check-in awal berhasil dicatat!'
-            ],
-            'session_in' => [
-                'column'  => 'scan_time',
-                'already' => 'Anda sudah melakukan Check-in untuk sesi ini sebelumnya.',
-                'success' => 'Check-in sesi berhasil dicatat!'
-            ],
-            'out' => [
-                'column'  => 'checkout_time',
-                'already' => 'Anda sudah melakukan Check-out sebelumnya.',
-                'success' => 'Check-out berhasil dicatat!'
-            ],
-            'session_out' => [
-                'column'  => 'checkout_time',
-                'already' => 'Anda sudah melakukan Check-out hari ini sebelumnya.',
-                'success' => 'Check-out hari ini berhasil dicatat!'
-            ],
-        ][$request->type];
-
-        $targetColumn = $attendanceMap['column'];
-
-        // Cek apakah kolom waktu (scan_time / checkout_time) sudah terisi
-        if ($attendance->$targetColumn) {
-            return response()->json(['success' => false, 'message' => $attendanceMap['already']], 400);
+        if ($isCheckout) {
+            $attendance->checkout_time = Carbon::now();
+            $msg = $type === 'out' ? 'Check-out berhasil dicatat!' : 'Check-out hari ini berhasil dicatat!';
+        } else {
+            $attendance->scan_time = Carbon::now();
+            $msg = $type === 'in' ? 'Check-in awal berhasil dicatat!' : 'Check-in sesi berhasil dicatat!';
         }
 
-        // Jika mencoba checkout tapi belum pernah check-in, tolak
-        if (($request->type === 'out' || $request->type === 'session_out') && !$attendance->scan_time) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Check-out gagal. Anda belum tercatat melakukan Check-in.'
-            ], 400);
-        }
-
-        // Isi kolom secara dinamis dan simpan
-        $attendance->$targetColumn = Carbon::now();
         $attendance->save();
 
-        return response()->json(['success' => true, 'message' => $attendanceMap['success']]);
+        return response()->json(['success' => true, 'message' => $msg]);
     }
 }

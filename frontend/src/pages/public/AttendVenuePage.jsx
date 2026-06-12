@@ -185,9 +185,9 @@ export default function AttendVenuePage() {
 							<Button
 								variant="dark"
 								className="w-100 rounded-2 px-4 shadow-none"
-								onClick={() => navigate('/my-tickets')}
+								onClick={() => navigate('/')}
 							>
-								Lihat Tiket Saya
+								Kembali ke Beranda
 							</Button>
 						</>
 					)}
@@ -206,7 +206,7 @@ export default function AttendVenuePage() {
 							<Button
 								variant="outline-dark"
 								className="w-100 rounded-2 px-4 shadow-none bg-white"
-								onClick={() => navigate('/events')}
+								onClick={() => navigate('/')}
 							>
 								Kembali ke Beranda
 							</Button>

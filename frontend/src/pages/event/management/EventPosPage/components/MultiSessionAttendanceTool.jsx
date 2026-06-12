@@ -418,6 +418,8 @@ const MultiSessionAttendanceTool = () => {
 		sessionsByDay[day].sort((a, b) => a.startTime.localeCompare(b.startTime));
 	});
 
+	const days = Object.keys(sessionsByDay).sort((a, b) => Number(a) - Number(b));
+
 	return (
 		<div className="bg-white border rounded-4 p-4 shadow-none">
 			<div className="mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -429,143 +431,56 @@ const MultiSessionAttendanceTool = () => {
 						Atur batas waktu pengisian dan bagikan tautan kehadiran peserta.
 					</p>
 				</div>
-
 			</div>
 
 			<div className="border rounded-3 overflow-hidden d-flex flex-column bg-white">
-				{Object.keys(sessionsByDay).length > 1 ? (
-					// Multi-day layout
-					Object.keys(sessionsByDay).sort((a, b) => Number(a) - Number(b)).map((day) => {
-						const daySessions = sessionsByDay[day];
-						return (
-							<div key={day} className="border-bottom last-border-0">
-								<div className="bg-light px-3 py-2 fw-bold text-dark border-bottom" style={{ fontSize: '0.85rem' }}>
-									Hari {day} {daySessions[0]?.date ? `(${daySessions[0].date})` : ''}
-								</div>
-								<div>
-									{daySessions.map((session, idx) => {
-										const isFirst = idx === 0;
-										const isLast = idx === daySessions.length - 1;
-										const isMiddle = !isFirst && !isLast;
+				{days.map((day) => {
+					const daySessions = sessionsByDay[day];
+					const firstSession = daySessions[0];
+					const lastSession = daySessions[daySessions.length - 1];
+					const dateStr = firstSession?.date ? `(${firstSession.date})` : '';
 
-										if (daySessions.length === 1) {
-											return (
-												<React.Fragment key={session.id}>
-													{renderActionRow(
-														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-														session.checkin,
-														<CheckCircle size={16} className="text-success" />,
-														session.id
-													)}
-													{renderActionRow(
-														'session_out',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-														session.checkout,
-														<CheckCircle size={16} className="text-danger" />,
-														session.id
-													)}
-												</React.Fragment>
-											);
-										}
+					const isFirstDay = day === '1';
+					const isLastDay = day === String(days.length);
 
-										if (isFirst) {
-											return (
-												<React.Fragment key={session.id}>
-													{renderActionRow(
-														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-														session.checkin,
-														<CheckCircle size={16} className="text-success" />,
-														session.id
-													)}
-												</React.Fragment>
-											);
-										}
+					const checkinType = isFirstDay ? 'in' : 'session_in';
+					const checkinSessionId = isFirstDay ? null : firstSession.id;
+					const checkinData = isFirstDay ? initialCheckIn : firstSession.checkin;
 
-										if (isMiddle) {
-											return (
-												<React.Fragment key={session.id}>
-													{renderActionRow(
-														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-														session.checkin,
-														<Calendar size={16} className="text-primary" />,
-														session.id
-													)}
-												</React.Fragment>
-											);
-										}
+					const checkoutType = isLastDay ? 'out' : 'session_out';
+					const checkoutSessionId = isLastDay ? null : lastSession.id;
+					const checkoutData = isLastDay ? finalCheckOut : lastSession.checkout;
 
-										if (isLast) {
-											return (
-												<React.Fragment key={session.id}>
-													{renderActionRow(
-														'session_in',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-														session.checkin,
-														<Calendar size={16} className="text-primary" />,
-														session.id
-													)}
-													{renderActionRow(
-														'session_out',
-														session.title,
-														`Sesi ${idx + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-														session.checkout,
-														<CheckCircle size={16} className="text-danger" />,
-														session.id
-													)}
-												</React.Fragment>
-											);
-										}
+					const timeRangeStr = firstSession && lastSession
+						? `${firstSession.startTime.substring(0, 5)} - ${lastSession.endTime.substring(0, 5)}`
+						: '';
 
-										return null;
-									})}
-								</div>
+					return (
+						<div key={day} className="border-bottom last-border-0">
+							<div className="bg-light px-3 py-2 fw-bold text-dark border-bottom" style={{ fontSize: '0.85rem' }}>
+								Hari {day} {dateStr}
 							</div>
-						);
-					})
-				) : (
-					// Single-day / original layout
-					<>
-						{/* 1. INITIAL CHECK-IN */}
-						{renderActionRow(
-							'in',
-							'Masuk Awal Event',
-							'Akses masuk utama & registrasi perangkat',
-							initialCheckIn,
-							<CheckCircle size={16} className="text-success" />
-						)}
-
-						{/* 2. SESSION CHECK-INS */}
-						{sessions.map((session, index) => {
-							if (session.isFirstSession) return null;
-
-							return renderActionRow(
-								'session_in',
-								session.title,
-								`Sesi ${index + 1} • ${session.startTime.substring(0, 5)} - ${session.endTime.substring(0, 5)}`,
-								session.checkin,
-								<Calendar size={16} className="text-primary" />,
-								session.id
-							);
-						})}
-
-						{/* 3. FINAL CHECK-OUT */}
-						{renderActionRow(
-							'out',
-							'Keluar Akhir Event',
-							'Akses keluar setelah seluruh sesi selesai',
-							finalCheckOut,
-							<CheckCircle size={16} className="text-danger" />
-						)}
-					</>
-				)}
+							<div>
+								{renderActionRow(
+									checkinType,
+									'Presensi Masuk',
+									`Akses masuk utama & registrasi kehadiran Hari ${day} • ${timeRangeStr}`,
+									checkinData,
+									<CheckCircle size={16} className="text-success" />,
+									checkinSessionId
+								)}
+								{renderActionRow(
+									checkoutType,
+									'Presensi Keluar',
+									`Akses keluar setelah seluruh sesi Hari ${day} selesai • ${timeRangeStr}`,
+									checkoutData,
+									<CheckCircle size={16} className="text-danger" />,
+									checkoutSessionId
+								)}
+							</div>
+						</div>
+					);
+				})}
 			</div>
 
 			{/* Modal QR Code */}

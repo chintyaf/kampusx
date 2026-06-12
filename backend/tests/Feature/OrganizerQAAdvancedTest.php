@@ -710,4 +710,88 @@ class OrganizerQAAdvancedTest extends TestCase
         // Verify that NO notification was sent to the participant
         $this->assertEquals(0, \DB::table('notifications')->where('notifiable_id', $participant->id)->count());
     }
+
+    public function test_multi_session_checkout_without_session2_checkin()
+    {
+        $event = $this->createDraftEvent();
+        $participant = User::factory()->create();
+        
+        $order = \App\Models\Order::create([
+            'user_id' => $participant->id,
+            'event_id' => $event->id,
+            'status' => 'completed',
+            'amount' => 0,
+            'total_price' => 0,
+            'order_id' => 'ORD-MS-123'
+        ]);
+
+        $orderItem = \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'quantity' => 1,
+            'price' => 0,
+        ]);
+
+        $ticket = \App\Models\Ticket::create([
+            'participant_id' => $participant->id,
+            'order_item_id' => $orderItem->id,
+            'status' => 'active',
+            'ticket_code' => 'TICKET-MS-123',
+            'qr_token' => 'QR-MS-123',
+            'attendee_name' => 'John Session',
+            'attendee_email' => 'john@session.com'
+        ]);
+
+        // Create 2 event sessions
+        $session1 = EventSession::create([
+            'event_id' => $event->id,
+            'title' => 'Sesi 1',
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+        $session2 = EventSession::create([
+            'event_id' => $event->id,
+            'title' => 'Sesi 2',
+            'start_time' => '13:00:00',
+            'end_time' => '16:00:00',
+            'date' => now()->format('Y-m-d'),
+        ]);
+
+        // 1. Simulate check-in for Sesi 1 (session_in)
+        $attendanceLog = \App\Models\AttendanceLog::create([
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'session_id' => $session1->id,
+            'scan_time' => now(),
+            'scanned_by' => $this->organizer->id,
+            'method' => 'online_link',
+            'device_id' => 'device-session-1',
+        ]);
+
+        // 2. Generate online checkout link signature for Sesi 2 (session_out)
+        $expiresAt = now()->addHour()->format('Y-m-d H:i:s');
+        $payload = $event->id . '|session_out|' . $session2->id . '|' . $expiresAt;
+        $signature = hash_hmac('sha256', $payload, config('app.key'));
+
+        // 3. Process online checkout (type = 'session_out')
+        $response = $this->actingAs($participant)->postJson("/api/attendance/process", [
+            'event_id' => $event->id,
+            'type' => 'session_out',
+            'session_id' => $session2->id,
+            'expires_at' => $expiresAt,
+            'signature' => $signature,
+            'device_token' => 'device-session-1'
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'message' => 'Check-out hari ini berhasil dicatat!'
+        ]);
+
+        // 4. Assert that checkout_time is recorded in the Session 1 attendance log (the latest check-in record)
+        $attendanceLog->refresh();
+        $this->assertNotNull($attendanceLog->checkout_time);
+    }
 }

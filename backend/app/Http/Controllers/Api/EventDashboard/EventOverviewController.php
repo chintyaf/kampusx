@@ -770,13 +770,16 @@ class EventOverviewController extends Controller
             $type = 'in';
         }
 
-        $expiresAt = $request->query('expires_at');
+        if ($request->query('dynamic') === 'true') {
+            $expiresAt = \Carbon\Carbon::now()->addMinutes(10)->format('Y-m-d H:i:s');
+        } else {
+            $expiresAt = $request->query('expires_at');
+        }
 
         $secretKey = config('app.key');
-        $stringToSign = "venue_{$type}_{$eventId}";
-        if ($expiresAt) {
-            $stringToSign .= "_{$expiresAt}";
-        }
+        // Match the signature format in EventAttendanceController: event_id|type|expires_at
+        $payloadParts = [$eventId, $type, $expiresAt];
+        $stringToSign = implode('|', $payloadParts);
         $signature = hash_hmac('sha256', $stringToSign, $secretKey);
 
         return response()->json([
