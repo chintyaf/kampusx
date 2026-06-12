@@ -72,12 +72,12 @@ export default function SurveyPage() {
 				setIsPreviewOnly(!!is_preview_only);
 
 				if (already_submitted && survey_response?.answers) {
- 					const existing = {};
- 					survey_response.answers.forEach((a) => {
- 						existing[a.question_id] = a.value || '';
- 					});
- 					setAnswers(existing);
- 				}
+					const existing = {};
+					survey_response.answers.forEach((a) => {
+						existing[a.question_id] = a.value || '';
+					});
+					setAnswers(existing);
+				}
 			}
 		} catch (err) {
 			setError(
@@ -701,9 +701,8 @@ export default function SurveyPage() {
 
 											<Button
 												type="submit"
-												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mt-4 ${
-													isPreviewOnly ? 'opacity-75' : ''
-												}`}
+												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mt-4 ${isPreviewOnly ? 'opacity-75' : ''
+													}`}
 												style={{
 													background: isPreviewOnly
 														? 'linear-gradient(135deg, #6c757d, #adb5bd)'
