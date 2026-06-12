@@ -167,13 +167,13 @@ class EventAnnouncementController extends Controller
      * Hapus pengumuman (Sisi Organizer)
      * DELETE /api/organizer/events/{eventId}/announcements/{id}
      */
-    public function destroy($eventId, $id)
+    public function destroy($eventId, $announcementId)
     {
         $event = Event::where('id', $eventId)
             ->orWhere('slug', $eventId)
             ->firstOrFail();
         $eventId = $event->id;
-        $announcement = EventAnnouncement::where('event_id', $eventId)->findOrFail($id);
+        $announcement = EventAnnouncement::where('event_id', $eventId)->findOrFail($announcementId);
 
         // Hapus berkas lampiran fisik jika ada
         if ($announcement->attachment_path && Storage::disk('public')->exists($announcement->attachment_path)) {

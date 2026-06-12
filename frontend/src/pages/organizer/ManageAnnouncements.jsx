@@ -277,7 +277,7 @@ const ManageAnnouncements = () => {
                                     <p className="small mb-0 text-muted">Mulai isi formulir di samping kiri untuk menyiarkan informasi terhangat bagi seluruh peserta Anda.</p>
                                 </div>
                             ) : (
-                                <div className="d-flex flex-column gap-3.5">
+                                <div className="d-flex flex-column gap-3">
                                     {announcements.map((ann) => {
                                         const badgeConfig = {
                                             announcement: {

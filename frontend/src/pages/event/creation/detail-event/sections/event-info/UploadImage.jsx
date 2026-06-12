@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Form, Modal, Button } from 'react-bootstrap';
 import Cropper from 'react-easy-crop';
 import { Image } from 'lucide-react';
@@ -14,6 +14,26 @@ const UploadImage = ({ formData, setFormData }) => {
 	const [crop, setCrop] = useState({ x: 0, y: 0 });
 	const [zoom, setZoom] = useState(1);
 	const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+	const [preview, setPreview] = useState(null);
+
+	useEffect(() => {
+		if (!formData?.banner) {
+			setPreview(null);
+			return;
+		}
+
+		if (formData.banner instanceof File) {
+			if (formData.banner.preview) {
+				setPreview(formData.banner.preview);
+				return;
+			}
+			const objectUrl = URL.createObjectURL(formData.banner);
+			setPreview(objectUrl);
+			return () => URL.revokeObjectURL(objectUrl);
+		} else {
+			setPreview(formData.banner);
+		}
+	}, [formData?.banner]);
 
 	// ==========================================
 	// HANDLER CROP & UPLOAD GAMBAR
@@ -31,6 +51,8 @@ const UploadImage = ({ formData, setFormData }) => {
 		reader.readAsDataURL(file);
 		reader.onload = () => {
 			setImageSrc(reader.result);
+			setCrop({ x: 0, y: 0 });
+			setZoom(1);
 			setShowCropModal(true); // Buka modal crop
 		};
 
@@ -107,12 +129,7 @@ const UploadImage = ({ formData, setFormData }) => {
 						{formData?.banner ? (
 							<div className="custom-banner-container w-100 h-100 position-relative">
 								<img
-									src={
-										formData.banner instanceof File
-											? URL.createObjectURL(formData.banner) ||
-											formData.banner.preview
-											: formData.banner
-									}
+									src={preview}
 									alt="Banner Preview"
 									style={{
 										width: '100%',

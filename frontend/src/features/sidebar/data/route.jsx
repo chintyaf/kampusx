@@ -181,7 +181,7 @@ export const MENU_ITEMS = {
 			icon: <UsersRound size={16} className="me-2" />,
 			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
-				{ name: 'Daftar & Poin', path: 'daftar-peserta' },
+				{ name: 'Daftar Peserta', path: 'daftar-peserta' },
 				{ name: 'Katalog Reward', path: 'rewards' },
 				{ name: 'Log Redeem', path: 'redemptions' },
 			],

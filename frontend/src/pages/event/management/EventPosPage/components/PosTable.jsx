@@ -62,8 +62,9 @@ const EmptyStateView = ({ setShowForm }) => {
 				Tambahkan pos pertama agar panitia bisa mulai menugaskan lokasi scan.
 			</div>
 			<Button
-				variant="dark"
-				className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
+				variant="primary"
+				className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-none border-0 text-white"
+				style={{ backgroundColor: 'var(--primary)' }}
 				onClick={() => setShowForm(true)}
 			>
 				<Plus size={16} /> Tambah Pos Baru
@@ -90,9 +91,9 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) =>
 	};
 
 	return (
-		<div className="bg-white border shadow-sm rounded-4 overflow-hidden mb-4">
+		<div className="participant-card mb-4">
 			{/* ── Table Toolbar / Header ── */}
-			<div className="p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 bg-white">
+			<div className="participant-toolbar bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
 				{/* Bagian Kiri: PIN Panitia terintegrasi di tabel */}
 				<div className="d-flex align-items-center border rounded-3 px-3 py-2 gap-2 w-fit" style={{ backgroundColor: '#fafbfc', borderColor: 'var(--border)' }}>
 					<ShieldCheck size={16} style={{ color: 'var(--warning-text)' }} />
@@ -211,25 +212,21 @@ const PosTable = ({ posList, handleDelete, handleEdit, setShowForm, posPin }) =>
 									</span>
 								</td>
 								<td className="py-3 align-middle">
-									<div className="d-flex align-items-center gap-2">
-										<Button
-											variant="light"
-											size="sm"
-											className="border d-flex align-items-center justify-content-center p-2 bg-white shadow-sm rounded-3"
+									<div className="action-wrap">
+										<button
+											className="act-btn edit"
 											onClick={() => handleEdit(pos)}
 											title="Edit"
 										>
-											<Pencil size={13} className="text-secondary" />
-										</Button>
-										<Button
-											variant="light"
-											size="sm"
-											className="border d-flex align-items-center justify-content-center p-2 bg-white shadow-sm rounded-3"
+											<Pencil size={13} />
+										</button>
+										<button
+											className="act-btn delete"
 											onClick={() => handleDelete(pos.id)}
-											title="Delete"
+											title="Hapus"
 										>
-											<Trash2 size={13} className="text-danger" />
-										</Button>
+											<Trash2 size={13} />
+										</button>
 									</div>
 								</td>
 							</tr>

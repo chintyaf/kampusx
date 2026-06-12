@@ -72,7 +72,7 @@ export const OrganizerRoutes = (
 			<Route path="tiket" element={<EventTicket />} />
 
 			{/* Modul Materi */}
-			<Route path="materi-acara" element={<EventMaterial />} />
+			<Route path="materi-acara" element={<EventPostMaterial />} />
 			<Route path="survey-form" element={<EventSurveyPage />} />
 			<Route path="sertifikat" element={<EventCertificatePage />} />
 			<Route path="pengumuman" element={<ManageAnnouncements />} />

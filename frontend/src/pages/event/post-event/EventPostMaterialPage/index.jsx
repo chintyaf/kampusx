@@ -445,15 +445,10 @@ const SessionCard = ({ session, sessionNumber, onUpdate, onRefresh }) => {
 						)}
 					</div>
 
-					{/* Footer action bar */}
 					<div
-						className="px-4 py-3 d-flex align-items-center justify-content-between flex-wrap gap-3"
+						className="px-4 py-3 d-flex align-items-center justify-content-end flex-wrap gap-3"
 						style={{ backgroundColor: '#f8fafc', borderTop: '1px solid #f1f5f9', borderBottomLeftRadius: '14px', borderBottomRightRadius: '14px' }}
 					>
-						<div className="d-flex align-items-center gap-2 text-secondary" style={{ fontSize: '12.5px' }}>
-							<CheckCircle size={14} className="text-success flex-shrink-0" />
-							<span>Materi otomatis tersedia bagi peserta yang hadir dan telah mengisi survei.</span>
-						</div>
 						<Button
 							onClick={handleTogglePublish}
 							disabled={isSaving}
@@ -579,8 +574,12 @@ const EventPostMaterialPage = () => {
 	}
 
 	return (
-		<div>
-
+		<div className="container-fluid p-0">
+			<FormHeading
+				title="Manajemen Materi Acara"
+				description="Kelola rekaman video replay, slide presentasi, dan dokumen pembelajaran yang dibagikan kepada peserta setelah sesi berakhir."
+				className="mb-4"
+			/>
 			{/* Stat Cards */}
 			{sessions.length > 0 && (
 				<div className="row g-3 mb-4">

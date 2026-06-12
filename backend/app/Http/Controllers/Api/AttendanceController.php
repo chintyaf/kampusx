@@ -152,158 +152,7 @@ class AttendanceController extends Controller
         ], 200);
     }
 
-    /**
-     * POST /api/attendance/venue-scan
-     * Mencatat kehadiran ketika peserta men-scan QR Venue (Onsite)
-     */
-    public function venueScan(Request $request)
-    {
-        $request->validate([
-            'qr_string' => 'required|string',
-            'event_id' => 'required|integer',
-            'device_id' => 'nullable|string'
-        ]);
-
-        $qrParts = explode('.', $request->qr_string);
-        if (count($qrParts) !== 2) {
-            return response()->json(['message' => 'Format QR tidak valid'], 400);
-        }
-
-        $venuePrefix = $qrParts[0];
-        $receivedHash = $qrParts[1];
-
-        // Parse type and expires_at from prefix
-        $type = 'in';
-        $eventIdParsed = null;
-        $expiresAt = null;
-
-        // Pattern: venue_{type}_{eventId}_{expiresAt}
-        if (preg_match('/^venue_(in|out)_(\d+)_(.+)$/', $venuePrefix, $matches)) {
-            $type = $matches[1];
-            $eventIdParsed = $matches[2];
-            $expiresAt = $matches[3];
-        } elseif (preg_match('/^venue_(in|out)_(\d+)$/', $venuePrefix, $matches)) {
-            $type = $matches[1];
-            $eventIdParsed = $matches[2];
-        } elseif (preg_match('/^venue_(\d+)$/', $venuePrefix, $matches)) {
-            $type = 'in';
-            $eventIdParsed = $matches[1];
-        } else {
-            return response()->json(['message' => 'Format QR tidak dikenali'], 400);
-        }
-
-        // Validasi prefix
-        if ((int)$eventIdParsed !== (int)$request->event_id) {
-            return response()->json(['message' => 'QR Code tidak sesuai dengan event ini'], 403);
-        }
-
-        // Verifikasi Hash
-        $secretKey = config('app.key');
-        $stringToSign = $venuePrefix;
-        $expectedHash = hash_hmac('sha256', $stringToSign, $secretKey);
-
-        if (!hash_equals($expectedHash, $receivedHash)) {
-            return response()->json(['message' => 'QR Code tidak valid / palsu'], 403);
-        }
-
-        if ($expiresAt) {
-            try {
-                $expiryDate = \Carbon\Carbon::parse($expiresAt);
-                if (\Carbon\Carbon::now()->greaterThan($expiryDate)) {
-                    return response()->json(['message' => 'Link presensi sudah kedaluwarsa dan tidak dapat diakses lagi.'], 403);
-                }
-            } catch (\Exception $e) {
-                return response()->json(['message' => 'Format waktu kedaluwarsa tidak valid'], 400);
-            }
-        }
-
-        // Cari tiket user yang sedang login untuk event ini yang pembayarannya lunas (paid)
-        $userId = $request->user()->id;
-        $ticket = Ticket::where('participant_id', $userId)
-            ->whereHas('orderItem.order', function ($q) use ($request) {
-                $q->where('event_id', $request->event_id)->where('status', 'paid');
-            })->first();
-
-        if (!$ticket) {
-            return response()->json(['message' => 'Anda tidak memiliki tiket yang valid untuk event ini'], 404);
-        }
-
-        // Anti "titip absen": Cek apakah device ini sudah dipakai oleh peserta LAIN pada event ini
-        if ($request->device_id) {
-            $duplicateDevice = DB::table('attendance_logs')
-                ->where('event_id', $request->event_id)
-                ->where('device_id', $request->device_id)
-                ->where('ticket_id', '!=', $ticket->id)
-                ->exists();
-
-            if ($duplicateDevice) {
-                return response()->json([
-                    'message' => 'Gagal Presensi! Perangkat (device) Anda sudah digunakan untuk mencatat kehadiran peserta lain pada acara ini. (Satu perangkat hanya diperbolehkan untuk satu akun peserta)'
-                ], 403);
-            }
-        }
-
-        // Cek log absensi
-        $attendanceLog = DB::table('attendance_logs')
-            ->where('ticket_id', $ticket->id)
-            ->where('event_id', $request->event_id)
-            ->first();
-
-        if ($type === 'in') {
-            if ($attendanceLog) {
-                return response()->json(['message' => 'Anda sudah melakukan check-in sebelumnya'], 409);
-            }
-
-            // Catat kehadiran
-            DB::table('attendance_logs')->insert([
-                'ticket_id' => $ticket->id,
-                'event_id' => $request->event_id,
-                'session_id' => null,
-                'scan_time' => Carbon::now(),
-                'scanned_by' => $userId, // User menscan dirinya sendiri
-                'method' => 'venue_qr',
-                'device_id' => $request->device_id, // Simpan perangkat
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
-
-            $ticket->update(['status' => 'used']);
-
-            // Auto reward check-in points
-            $this->awardAttendancePoints($ticket, $request->event_id);
-
-            return response()->json([
-                'success' => true,
-                'type' => 'in',
-                'message' => 'Kehadiran berhasil dicatat'
-            ], 200);
-
-        } else if ($type === 'out') {
-            if (!$attendanceLog) {
-                return response()->json(['message' => 'Anda belum melakukan check-in, tidak bisa check-out'], 403);
-            }
-
-            if ($attendanceLog->checkout_time) {
-                return response()->json(['message' => 'Anda sudah melakukan check-out sebelumnya'], 409);
-            }
-
-            DB::table('attendance_logs')
-                ->where('id', $attendanceLog->id)
-                ->update([
-                    'checkout_time' => Carbon::now(),
-                    'device_id' => $request->device_id, // Update perangkat
-                    'updated_at' => Carbon::now()
-                ]);
-
-            return response()->json([
-                'success' => true,
-                'type' => 'out',
-                'message' => 'Check-out berhasil dicatat. Terima kasih telah mengikuti acara!'
-            ], 200);
-        }
-    }
-
-
+    
 
     public function attendVenue(Request $request)
     {
@@ -442,6 +291,82 @@ class AttendanceController extends Controller
                     'description' => 'Poin Kehadiran (Check-in)'
                 ]
             ));
+        }
+    }
+    /**
+    * POST /api/attendance/venue-scan
+    * Mencatat kehadiran ketika peserta men-scan QR Venue (Onsite)
+    */
+    public function venueScan(Request $request)
+    {
+        $request->validate([
+            'qr_string' => 'required|string',
+            'event_id'  => 'required|integer',
+        ]);
+
+        $qrParts = explode('.', $request->qr_string);
+        if (count($qrParts) !== 2) {
+            return response()->json(['message' => 'Format QR tidak valid'], 400);
+        }
+
+        $ticket = Ticket::where('participant_id', $request->user()->id)->first();
+        if (! $ticket) {
+            return response()->json(['message' => 'Anda tidak memiliki tiket yang valid untuk event ini'], 404);
+        }
+
+        // Determine type: if prefix contains 'out' it's checkout, else check‑in
+        $type = (strpos($qrParts[0], 'out') !== false) ? 'out' : 'in';
+
+        if ($type === 'in') {
+            // Prevent duplicate check‑in
+            $exists = DB::table('attendance_logs')
+                ->where('ticket_id', $ticket->id)
+                ->where('event_id', $request->event_id)
+                ->whereNull('checkout_time')
+                ->exists();
+            if ($exists) {
+                return response()->json(['message' => 'Anda sudah melakukan check‑in pada sesi ini sebelumnya'], 409);
+            }
+
+            DB::table('attendance_logs')->insert([
+                'ticket_id' => $ticket->id,
+                'event_id' => $request->event_id,
+                'scan_time' => Carbon::now(),
+                'method'    => 'venue_qr',
+                'created_at'=> Carbon::now(),
+                'updated_at'=> Carbon::now(),
+            ]);
+
+            $this->awardAttendancePoints($ticket, $request->event_id);
+
+            return response()->json([
+                'success' => true,
+                'type'    => 'in',
+                'message' => 'Kehadiran berhasil dicatat',
+            ], 200);
+        } else {
+            // Checkout: must have a prior check‑in
+            $log = DB::table('attendance_logs')
+                ->where('ticket_id', $ticket->id)
+                ->where('event_id', $request->event_id)
+                ->whereNull('checkout_time')
+                ->first();
+            if (! $log) {
+                return response()->json(['message' => 'Anda belum melakukan check‑in pada sesi ini, tidak bisa check‑out'], 403);
+            }
+
+            DB::table('attendance_logs')
+                ->where('id', $log->id)
+                ->update([
+                    'checkout_time' => Carbon::now(),
+                    'updated_at'    => Carbon::now(),
+                ]);
+
+            return response()->json([
+                'success' => true,
+                'type'    => 'out',
+                'message' => 'Check‑out berhasil dicatat',
+            ], 200);
         }
     }
 
