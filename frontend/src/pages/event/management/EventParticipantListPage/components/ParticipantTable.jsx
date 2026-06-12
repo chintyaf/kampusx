@@ -8,13 +8,10 @@ import {
 	MoreVertical,
 	MessageCircle,
 	UserCheck,
-	LogIn,
-	LogOut,
 } from 'lucide-react';
 import {
 	maskEmail,
 	maskPhone,
-	getAttendanceStatus,
 	fmtTime,
 	getInitials,
 	getAvatarColor,
@@ -58,8 +55,8 @@ const ParticipantTable = ({
 					{/* <th>Email</th>
 					<th>Telepon</th> */}
 					<th className="text-center">Poin Lokal</th>
-					<th className="text-center">Kehadiran</th>
-					<th className="text-center">Persentase</th>
+					<th className="text-center">Check-in</th>
+					<th className="text-center">Check-out</th>
 					<th style={{ width: 48 }}></th>
 				</tr>
 			</thead>
@@ -82,7 +79,6 @@ const ParticipantTable = ({
 					);
 					const pointsBalance = localPointsRecord ? localPointsRecord.points_balance : 0;
 
-					const attendanceStatus = getAttendanceStatus(ticket);
 					const log = ticket.attendance_log;
 					const checkinTime = log?.scan_time ? fmtTime(log.scan_time) : null;
 					const checkoutTime = log?.checkout_time ? fmtTime(log.checkout_time) : null;
@@ -173,63 +169,22 @@ const ParticipantTable = ({
 								</span>
 							</td>
 							<td className="text-center">
-								<div className="attendance-cell">
-									<span className={attendanceStatus.className}>
-										{attendanceStatus.icon}
-										{attendanceStatus.label}
+								{checkinTime ? (
+									<span className="text-success fw-medium" style={{ fontSize: '13px' }}>
+										{checkinTime}
 									</span>
-									{checkinTime && (
-										<div className="attendance-time-row">
-											<LogIn
-												size={10}
-												className="attendance-time-icon attendance-time-icon--in"
-											/>
-											<span className="attendance-time-text">
-												{checkinTime}
-											</span>
-										</div>
-									)}
-									{checkoutTime && (
-										<div className="attendance-time-row">
-											<LogOut
-												size={10}
-												className="attendance-time-icon attendance-time-icon--out"
-											/>
-											<span className="attendance-time-text">
-												{checkoutTime}
-											</span>
-										</div>
-									)}
-								</div>
+								) : (
+									<span className="text-muted">-</span>
+								)}
 							</td>
 							<td className="text-center">
-								{(() => {
-									const completedAttendance =
-										(ticket.attendance_logs_count || 0) +
-										(ticket.checkouts_count || 0);
-									return (
-										<div className="attendance-cell">
-											<span className="fw-semibold text-dark">
-												{Math.min(
-													100,
-													Math.round(
-														(completedAttendance /
-															(summary?.total_attendance || 1)) *
-															100,
-													),
-												)}
-												%
-											</span>
-											<span
-												className="text-muted"
-												style={{ fontSize: '10px' }}
-											>
-												({completedAttendance}/
-												{summary?.total_attendance || 1})
-											</span>
-										</div>
-									);
-								})()}
+								{checkoutTime ? (
+									<span className="text-danger fw-medium" style={{ fontSize: '13px' }}>
+										{checkoutTime}
+									</span>
+								) : (
+									<span className="text-muted">-</span>
+								)}
 							</td>
 							<td>
 								<Dropdown align="end">

@@ -19,6 +19,8 @@ import {
 import FormHeading from '@/components/dashboard/FormHeading';
 import ConfirmationModal from '@/components/dashboard/ConfirmationModal';
 import api from '@/api/axios';
+import '@/assets/css/dashboard.css';
+import '@/assets/css/participant-list.css';
 
 import { PosForm, PosGuideCard, PosTable, PosStats } from './components';
 import { useLoading } from '@/context/LoadingContext';
@@ -125,19 +127,27 @@ const EventPosPage = () => {
 				{/* Card 1: Dynamic QR Screen */}
 				<Col md={6}>
 					<div
-						className="h-100 p-4 rounded-4 d-flex flex-column gap-3"
+						className="h-100 p-4 bg-white border rounded-4 d-flex flex-column gap-3 shadow-sm transition-all"
 						style={{
-							background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-							border: '1.5px solid #bbf7d0',
+							borderLeft: '4px solid #10b981',
+							transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.transform = 'translateY(-3px)';
+							e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.06)';
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.transform = '';
+							e.currentTarget.style.boxShadow = '';
 						}}
 					>
 						<div className="d-flex align-items-center gap-3">
 							<div
+								className="d-flex align-items-center justify-content-center flex-shrink-0"
 								style={{
-									width: '44px', height: '44px', borderRadius: '12px',
-									backgroundColor: '#22c55e',
-									display: 'flex', alignItems: 'center', justifyContent: 'center',
-									color: '#fff', flexShrink: 0,
+									width: '42px', height: '42px', borderRadius: '10px',
+									backgroundColor: '#dcfce7',
+									color: '#10b981',
 								}}
 							>
 								<Monitor size={20} />
@@ -152,18 +162,20 @@ const EventPosPage = () => {
 							</div>
 						</div>
 
-						<p className="mb-0 text-muted" style={{ fontSize: '0.82rem', lineHeight: '1.65' }}>
+						<p className="mb-0 text-muted flex-grow-1" style={{ fontSize: '0.82rem', lineHeight: '1.65' }}>
 							Buka halaman layar QR, lalu arahkan ke peserta. Mereka cukup scan menggunakan kamera HP untuk{' '}
 							<strong className="text-success">check-in</strong> atau{' '}
 							<strong style={{ color: '#db2777' }}>check-out</strong>.
 							QR diperbarui otomatis setiap <strong>5 menit</strong>.
 						</p>
 
-						<div className="d-flex gap-2 flex-wrap align-items-center">
+						<div className="d-flex gap-2 flex-wrap align-items-center mt-auto">
 							<Button
 								size="sm"
-								className="d-flex align-items-center gap-2 border-0 fw-bold px-3 py-2 rounded-3 shadow-none"
-								style={{ backgroundColor: '#22c55e', color: '#fff' }}
+								className="d-flex align-items-center gap-2 border-0 fw-bold px-3 py-2 rounded-3 shadow-none text-white"
+								style={{
+									background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+								}}
 								onClick={() => window.open(`/organizer/${eventId}/event-dashboard/venue-qr`, '_blank')}
 							>
 								<QrCode size={14} /> Buka Layar QR
@@ -189,19 +201,27 @@ const EventPosPage = () => {
 				{/* Card 2: Staff Scanner */}
 				<Col md={6}>
 					<div
-						className="h-100 p-4 rounded-4 d-flex flex-column gap-3"
+						className="h-100 p-4 bg-white border rounded-4 d-flex flex-column gap-3 shadow-sm transition-all"
 						style={{
-							background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-							border: '1.5px solid #e2e8f0',
+							borderLeft: '4px solid var(--primary)',
+							transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.transform = 'translateY(-3px)';
+							e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.06)';
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.transform = '';
+							e.currentTarget.style.boxShadow = '';
 						}}
 					>
 						<div className="d-flex align-items-center gap-3">
 							<div
+								className="d-flex align-items-center justify-content-center flex-shrink-0"
 								style={{
-									width: '44px', height: '44px', borderRadius: '12px',
-									backgroundColor: 'var(--primary, #4f46e5)',
-									display: 'flex', alignItems: 'center', justifyContent: 'center',
-									color: '#fff', flexShrink: 0,
+									width: '42px', height: '42px', borderRadius: '10px',
+									backgroundColor: 'var(--primary-light)',
+									color: 'var(--primary)',
 								}}
 							>
 								<Scan size={20} />
@@ -216,30 +236,32 @@ const EventPosPage = () => {
 							</div>
 						</div>
 
-						<p className="mb-0 text-muted" style={{ fontSize: '0.82rem', lineHeight: '1.65' }}>
+						<p className="mb-0 text-muted flex-grow-1" style={{ fontSize: '0.82rem', lineHeight: '1.65' }}>
 							Bagikan <strong>Link Login Staf</strong> ke panitia. PIN{' '}
 							<strong
 								className="font-monospace"
-								style={{ color: 'var(--primary, #4f46e5)', letterSpacing: '1px' }}
+								style={{ color: 'var(--primary)', letterSpacing: '1px' }}
 							>
 								{posPin}
 							</strong>{' '}
 							akan terisi otomatis sehingga staf bisa langsung scan QR tiket atau check-in manual.
 						</p>
 
-						<div className="d-flex gap-2 flex-wrap">
+						<div className="d-flex gap-2 flex-wrap mt-auto">
 							<Button
 								variant="light"
 								size="sm"
-								className="border d-flex align-items-center gap-1 px-3 py-2 rounded-3 shadow-none fw-semibold bg-white"
+								className="border d-flex align-items-center gap-1 px-3 py-2 rounded-3 shadow-none fw-semibold bg-white text-dark"
 								onClick={() => { navigator.clipboard.writeText(posPin); toast.success('PIN disalin!'); }}
 							>
 								<Copy size={13} /> PIN: {posPin}
 							</Button>
 							<Button
-								variant="dark"
 								size="sm"
-								className="d-flex align-items-center gap-1 px-3 py-2 rounded-3 shadow-none fw-semibold border-0"
+								className="d-flex align-items-center gap-1 px-3 py-2 rounded-3 shadow-none fw-semibold border-0 text-white"
+								style={{
+									background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%)'
+								}}
 								onClick={() => {
 									const url = `${window.location.origin}/staff/login?pin=${posPin}`;
 									navigator.clipboard.writeText(url)
@@ -257,23 +279,13 @@ const EventPosPage = () => {
 			{/* ── Scanner Stations Section ── */}
 			<div>
 				{/* Section heading row */}
-				<div className="d-flex justify-content-between align-items-center mb-3">
-					<div>
-						<h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.95rem' }}>
-							Pos Scanner QR
-						</h6>
-						<p className="mb-0 text-muted" style={{ fontSize: '0.8rem' }}>
-							Stasiun scan tiket peserta yang beroperasi di lokasi
-						</p>
-					</div>
-					<Button
-						size="sm"
-						className="d-flex align-items-center gap-2 border-0 fw-bold px-3 py-2 rounded-3 shadow-none"
-						style={{ backgroundColor: 'var(--primary, #4f46e5)', color: '#fff', fontSize: '0.83rem' }}
-						onClick={handleAdd}
-					>
-						<Plus size={14} /> Tambah Pos
-					</Button>
+				<div className="mb-3">
+					<h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.95rem' }}>
+						Pos Scanner QR
+					</h6>
+					<p className="mb-0 text-muted" style={{ fontSize: '0.8rem' }}>
+						Stasiun scan tiket peserta yang beroperasi di lokasi
+					</p>
 				</div>
 
 				{/* Stats */}
@@ -281,44 +293,14 @@ const EventPosPage = () => {
 					<PosStats posList={posList} />
 				</div>
 
-				{/* Table / Empty state */}
-				<div className="bg-white border rounded-4 overflow-hidden shadow-none">
-					{posList.length === 0 ? (
-						<div className="text-center py-5">
-							<div
-								style={{
-									width: 56, height: 56, borderRadius: '50%',
-									backgroundColor: '#f8f9fa',
-									display: 'flex', alignItems: 'center', justifyContent: 'center',
-									margin: '0 auto 16px',
-								}}
-							>
-								<MapPin size={24} className="text-muted" />
-							</div>
-							<div style={{ fontWeight: 500, color: '#212529', marginBottom: 4 }}>
-								Belum ada pos scanner
-							</div>
-							<div style={{ fontSize: '0.9rem', color: '#6c757d', marginBottom: 20 }}>
-								Tambahkan pos agar panitia bisa mulai menugaskan lokasi scan.
-							</div>
-							<Button
-								variant="dark"
-								className="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-none"
-								onClick={handleAdd}
-							>
-								<Plus size={16} /> Tambah Pos Baru
-							</Button>
-						</div>
-					) : (
-						<PosTable
-							posList={posList}
-							handleDelete={handleDeleteClick}
-							handleEdit={handleEdit}
-							setShowForm={handleAdd}
-							posPin={posPin}
-						/>
-					)}
-				</div>
+				{/* Table */}
+				<PosTable
+					posList={posList}
+					handleDelete={handleDeleteClick}
+					handleEdit={handleEdit}
+					setShowForm={handleAdd}
+					posPin={posPin}
+				/>
 			</div>
 
 			{/* ── Modals ── */}

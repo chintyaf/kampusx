@@ -54,7 +54,8 @@ const PosStats = ({ posList = [] }) => {
 					Icon={Ticket}
 					label="Total Scan"
 					value={`${totalScanCount}`}
-					type="purple"
+					iconBg="#ede9fe"
+					iconColor="#5b21b6"
 				/>
 			</Col>
 		</Row>
