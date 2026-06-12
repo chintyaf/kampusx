@@ -232,7 +232,12 @@ class EventCertificateController extends Controller
                 return response()->json(['message' => 'File not found on storage'], 404);
             }
 
-            return response()->file(Storage::disk('public')->path($path));
+            $headers = [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+                'Access-Control-Allow-Headers' => '*',
+            ];
+            return response()->file(Storage::disk('public')->path($path), $headers);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
@@ -276,7 +281,7 @@ class EventCertificateController extends Controller
                 ], 403);
             }
 
-            $organizerName = $event->institution?->name ?? ($event->organizer?->name ?? 'KampusX Organizer');
+            $organizerName = $event->organizer?->organization_name ?? ($event->organizer?->name ?? ($event->institution?->name ?? 'KampusX Organizer'));
 
             return response()->json([
                 'success' => true,
@@ -350,17 +355,10 @@ class EventCertificateController extends Controller
                 ], 404);
             }
 
-            $organizerName = $event->institution?->name ?? $event->organizer?->name;
+            $organizerName = $event->organizer?->organization_name ?? ($event->organizer?->name ?? $event->institution?->name);
             $template->background_url = url("/api/certificate/background/{$event->id}?v=" . ($template->updated_at ? $template->updated_at->timestamp : time()));
 
-            $surveyResponse = \App\Models\SurveyResponse::where('user_id', $ticket->participant_id)
-                ->where('event_id', $event->id)
-                ->first();
-
             $ticketStatus = $ticket->status;
-            if ($surveyResponse) {
-                $ticketStatus = 'used'; // Force used status to unlock on frontend
-            }
 
             // Map data element dari snake_case (DB) ke camelCase (Format Admin/Frontend)
             $formattedElements = $template->elements->map(function ($element) use ($ticketCode, $ticket, $event, $organizerName) {
@@ -451,7 +449,12 @@ class EventCertificateController extends Controller
                 return response()->json(['message' => 'File not found on storage'], 404);
             }
 
-            return response()->file(Storage::disk('public')->path($path));
+            $headers = [
+                'Access-Control-Allow-Origin' => '*',
+                'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+                'Access-Control-Allow-Headers' => '*',
+            ];
+            return response()->file(Storage::disk('public')->path($path), $headers);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }

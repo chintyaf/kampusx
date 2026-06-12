@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Card, Spinner, Button, Badge, Row, Col } from 'react-bootstrap';
 import { Share2, Download, CheckCircle, Award, Calendar, MapPin, Building, Check, ArrowLeft, ShieldCheck } from 'lucide-react';
@@ -16,6 +16,40 @@ const CertificatePublicView = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isDownloading, setIsDownloading] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
+
+    // Mapping properti data agar kompatibel dengan single-level verify API dan nested render API
+    const attendeeName = certData?.ticket?.attendee_name || certData?.attendee_name || 'Peserta KampusX';
+    const eventTitle = certData?.event?.title || certData?.event_title || 'Event KampusX';
+    const eventDate = certData?.event?.start_date ? formatDate(certData.event.start_date) : (certData?.event_date || 'Tanggal Event');
+    const organizerName = certData?.event?.organizer_name || certData?.organizer_name || 'KampusX Organizer';
+    const certificateNumber = certData?.ticket?.ticket_code || certData?.certificate_number || ticketCode;
+    const template = certData?.template || {};
+
+    const containerRef = useRef(null);
+    const [containerWidth, setContainerWidth] = useState(1120);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        
+        const updateWidth = () => {
+            if (containerRef.current) {
+                setContainerWidth(containerRef.current.clientWidth);
+            }
+        };
+        
+        updateWidth();
+        
+        const resizeObserver = new ResizeObserver(() => {
+            updateWidth();
+        });
+        resizeObserver.observe(containerRef.current);
+        
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [certData]);
+
+    const scale = containerWidth / (template.canvas_width || 1120);
 
     useEffect(() => {
         const fetchCertificate = async () => {
@@ -69,7 +103,43 @@ const CertificatePublicView = () => {
             margin: 0,
             filename: `Sertifikat_${eventTitle.replace(/\s+/g, '_') || 'Event'}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                onclone: (clonedDoc) => {
+                    const clonedArea = clonedDoc.getElementById('certificate-print-area');
+                    if (clonedArea) {
+                        clonedArea.style.width = `${canvasWidth}px`;
+                        clonedArea.style.height = `${canvasHeight}px`;
+                        
+                        // Set text font sizes to their design sizes
+                        const textElements = clonedArea.querySelectorAll('[data-design-font-size]');
+                        textElements.forEach((el) => {
+                            const designSize = el.getAttribute('data-design-font-size');
+                            if (designSize) {
+                                el.style.fontSize = `${designSize}px`;
+                            }
+                        });
+
+                        // Set QR code sizes to their design sizes
+                        const qrContainers = clonedArea.querySelectorAll('[data-design-qr-size]');
+                        qrContainers.forEach((container) => {
+                            const designQrSize = parseInt(container.getAttribute('data-design-qr-size') || '80', 10);
+                            container.style.width = `${designQrSize + 8}px`;
+                            container.style.height = `${designQrSize + 8}px`;
+                            
+                            const svg = container.querySelector('svg');
+                            if (svg) {
+                                svg.setAttribute('width', designQrSize.toString());
+                                svg.setAttribute('height', designQrSize.toString());
+                                svg.style.width = `${designQrSize}px`;
+                                svg.style.height = `${designQrSize}px`;
+                            }
+                        });
+                    }
+                }
+            },
             jsPDF: { unit: 'px', format: [canvasWidth, canvasHeight], orientation: 'landscape' },
         };
 
@@ -120,20 +190,12 @@ const CertificatePublicView = () => {
         );
     }
 
-    // Mapping properti data agar kompatibel dengan single-level verify API dan nested render API
-    const attendeeName = certData.ticket?.attendee_name || certData.attendee_name || 'Peserta KampusX';
-    const eventTitle = certData.event?.title || certData.event_title || 'Event KampusX';
-    const eventDate = certData.event?.start_date ? formatDate(certData.event.start_date) : (certData.event_date || 'Tanggal Event');
-    const organizerName = certData.event?.organizer_name || certData.organizer_name || 'KampusX Organizer';
-    const certificateNumber = certData.ticket?.ticket_code || certData.certificate_number || ticketCode;
-    const template = certData.template || {};
-
     return (
         <div className="bg-light min-vh-100 pb-5">
             {/* Sticky Header */}
             <div
                 className="bg-white border-bottom shadow-sm sticky-top mb-4"
-                style={{ zIndex: 1020 }}
+                style={{ zIndex: 1000 }}
             >
                 <Container className="py-3">
                     <div className="d-flex align-items-center gap-3">
@@ -208,26 +270,33 @@ const CertificatePublicView = () => {
                                         {template.background_url ? (
                                             <div
                                                 id="certificate-print-area"
+                                                ref={containerRef}
                                                 style={{
                                                     position: 'relative',
                                                     width: '100%',
                                                     aspectRatio: `${template.canvas_width || 1120}/${template.canvas_height || 792}`,
-                                                    backgroundImage: `url(${template.background_url})`,
-                                                    backgroundSize: 'cover',
-                                                    backgroundPosition: 'center',
                                                     overflow: 'hidden',
                                                     backgroundColor: '#fff',
                                                     borderRadius: '4px'
                                                 }}
                                             >
+                                                <img
+                                                    src={template.background_url}
+                                                    alt="Certificate Template"
+                                                    className="w-100 h-100"
+                                                    style={{ display: 'block', objectFit: 'fill', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+                                                    crossOrigin="anonymous"
+                                                />
                                                 {template.elements && template.elements.map((el) => {
-                                                    const xPct = (el.x / (template.canvas_width || 1120)) * 100;
-                                                    const yPct = (el.y / (template.canvas_height || 792)) * 100;
+                                                    const xPct = el.x;
+                                                    const yPct = el.y;
 
                                                     if (el.elementType === 'qr_code') {
+                                                        const qrSize = Math.max(30, Math.round((el.fontSize || 80) * scale));
                                                         return (
                                                             <div
                                                                 key={el.id}
+                                                                data-design-qr-size={el.fontSize || 80}
                                                                 style={{
                                                                     position: 'absolute',
                                                                     left: `${xPct}%`,
@@ -236,31 +305,41 @@ const CertificatePublicView = () => {
                                                                     background: 'white',
                                                                     padding: '4px',
                                                                     borderRadius: '4px',
+                                                                    zIndex: 2,
+                                                                    width: `${qrSize + 8}px`,
+                                                                    height: `${qrSize + 8}px`,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
                                                                 }}
                                                             >
                                                                     <QRCode
                                                                         value={el.label || `${window.location.origin}/certificate/verify/${certificateNumber}`}
-                                                                        size={50}
+                                                                        size={qrSize}
+                                                                        style={{ width: '100%', height: '100%' }}
                                                                     />
                                                             </div>
                                                         );
                                                     }
 
+                                                    const currentFontSize = Math.round((el.fontSize || 24) * scale);
                                                     return (
                                                         <div
                                                             key={el.id}
+                                                            data-design-font-size={el.fontSize || 24}
                                                             style={{
                                                                 position: 'absolute',
                                                                 left: `${xPct}%`,
                                                                 top: `${yPct}%`,
                                                                 transform: `translate(${el.textAlign === 'center' ? '-50%' : el.textAlign === 'right' ? '-100%' : '0%'}, -50%)`,
                                                                 textAlign: el.textAlign || 'center',
-                                                                fontSize: `calc(${el.fontSize || 24}px * (1vw / 12))`,
+                                                                fontSize: `${currentFontSize}px`,
                                                                 color: el.color || '#000',
                                                                 fontFamily: el.fontFamily || 'Georgia, serif',
                                                                 fontWeight: el.bold ? 'bold' : 'normal',
                                                                 pointerEvents: 'none',
                                                                 whiteSpace: 'nowrap',
+                                                                zIndex: 2,
                                                             }}
                                                         >
                                                             {el.label}

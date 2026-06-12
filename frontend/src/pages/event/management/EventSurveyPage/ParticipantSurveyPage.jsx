@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Button, Form, Spinner, Alert, Badge } from 'react-bootstrap';
 import {
 	ArrowLeft,
@@ -28,6 +28,32 @@ export default function ParticipantSurveyPage() {
 	const [surveyResponse, setSurveyResponse] = useState(null);
 	const [certificateTemplate, setCertificateTemplate] = useState(null);
 	const [customSurvey, setCustomSurvey] = useState(null);
+
+	const containerRef = useRef(null);
+	const [containerWidth, setContainerWidth] = useState(1120);
+
+	useEffect(() => {
+		if (!containerRef.current) return;
+		
+		const updateWidth = () => {
+			if (containerRef.current) {
+				setContainerWidth(containerRef.current.clientWidth);
+			}
+		};
+		
+		updateWidth();
+		
+		const resizeObserver = new ResizeObserver(() => {
+			updateWidth();
+		});
+		resizeObserver.observe(containerRef.current);
+		
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [certificateTemplate]);
+
+	const scale = containerWidth / (certificateTemplate?.canvas_width || 1120);
 
 	// Dynamic form answers: { [question_id]: value }
 	const [answers, setAnswers] = useState({});
@@ -168,7 +194,7 @@ export default function ParticipantSurveyPage() {
 		}
 	};
 
-	const handleDownloadPDF = () => {
+		const handleDownloadPDF = () => {
 		const element = document.getElementById('certificate-print-area');
 		if (!element) return;
 		const canvasWidth = certificateTemplate?.canvas_width || 1120;
@@ -177,7 +203,41 @@ export default function ParticipantSurveyPage() {
 			margin: 0,
 			filename: `Sertifikat_${event?.title?.replace(/\s+/g, '_') || 'Event'}.pdf`,
 			image: { type: 'jpeg', quality: 1.0 },
-			html2canvas: { scale: 2, useCORS: true, logging: false },
+			html2canvas: { 
+				scale: 2, 
+				useCORS: true, 
+				logging: false,
+				onclone: (clonedDoc) => {
+					const clonedArea = clonedDoc.getElementById('certificate-print-area');
+					if (clonedArea) {
+						clonedArea.style.width = `${canvasWidth}px`;
+						clonedArea.style.height = `${canvasHeight}px`;
+						
+						const textElements = clonedArea.querySelectorAll('[data-design-font-size]');
+						textElements.forEach((el) => {
+							const designSize = el.getAttribute('data-design-font-size');
+							if (designSize) {
+								el.style.fontSize = `${designSize}px`;
+							}
+						});
+
+						const qrContainers = clonedArea.querySelectorAll('[data-design-qr-size]');
+						qrContainers.forEach((container) => {
+							const designQrSize = parseInt(container.getAttribute('data-design-qr-size') || '80', 10);
+							container.style.width = `${designQrSize + 8}px`;
+							container.style.height = `${designQrSize + 8}px`;
+							
+							const svg = container.querySelector('svg');
+							if (svg) {
+								svg.setAttribute('width', designQrSize.toString());
+								svg.setAttribute('height', designQrSize.toString());
+								svg.style.width = `${designQrSize}px`;
+								svg.style.height = `${designQrSize}px`;
+							}
+						});
+					}
+				}
+			},
 			jsPDF: { unit: 'px', format: [canvasWidth, canvasHeight], orientation: 'landscape' },
 		};
 		const toast = document.createElement('div');
@@ -318,47 +378,55 @@ export default function ParticipantSurveyPage() {
 												{certificateTemplate ? (
 													<div
 														id="certificate-print-area"
+														ref={containerRef}
 														style={{
 															position: 'relative',
 															width: '100%',
 															aspectRatio: `${certificateTemplate.canvas_width}/${certificateTemplate.canvas_height}`,
-															backgroundImage: `url(${certificateTemplate.background_url})`,
-															backgroundSize: 'cover',
-															backgroundPosition: 'center',
 															overflow: 'hidden',
 															backgroundColor: '#fff',
 														}}
 													>
+														<img
+															src={certificateTemplate.background_url}
+															alt="Certificate Template"
+															className="w-100 h-100"
+															style={{ display: 'block', objectFit: 'fill', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+															crossOrigin="anonymous"
+														/>
 														{certificateTemplate.elements.map((el) => {
-															const xPct =
-																(el.position_x /
-																	certificateTemplate.canvas_width) *
-																100;
-															const yPct =
-																(el.position_y /
-																	certificateTemplate.canvas_height) *
-																100;
-															if (el.element_type === 'qr_code')
+															const xPct = el.position_x;
+															const yPct = el.position_y;
+															if (el.element_type === 'qr_code') {
+																const qrSize = Math.max(30, Math.round((el.font_size || 80) * scale));
 																return (
 																	<div
 																		key={el.id}
+																		data-design-qr-size={el.font_size || 80}
 																		style={{
 																			position: 'absolute',
 																			left: `${xPct}%`,
 																			top: `${yPct}%`,
-																			transform:
-																				'translate(-50%,-50%)',
+																			transform: 'translate(-50%,-50%)',
 																			background: 'white',
 																			padding: '4px',
 																			borderRadius: '4px',
+																			zIndex: 2,
+																			width: `${qrSize + 8}px`,
+																			height: `${qrSize + 8}px`,
+																			display: 'flex',
+																			alignItems: 'center',
+																			justifyContent: 'center',
 																		}}
 																	>
 																		<QRCode
 																			value={`https://kampusx.id/verify/${certId}`}
-																			size={50}
+																			size={qrSize}
+																			style={{ width: '100%', height: '100%' }}
 																		/>
 																	</div>
 																);
+															}
 															const content =
 																el.element_type === 'nama_peserta'
 																	? participantName
@@ -366,30 +434,27 @@ export default function ParticipantSurveyPage() {
 																		  'id_sertifikat'
 																		? certId
 																		: el.custom_value || '';
+															const currentFontSize = Math.round((el.font_size || 24) * scale);
 															return (
 																<div
 																	key={el.id}
+																	data-design-font-size={el.font_size || 24}
 																	style={{
 																		position: 'absolute',
 																		left: `${xPct}%`,
 																		top: `${yPct}%`,
 																		transform: `translate(${el.text_align === 'center' ? '-50%' : el.text_align === 'right' ? '-100%' : '0%'}, -50%)`,
-																		textAlign:
-																			el.text_align ||
-																			'center',
-																		fontSize: `calc(${el.font_size || 24}px * (1vw / 12))`,
-																		color:
-																			el.font_color || '#000',
-																		fontFamily:
-																			el.font_family ||
-																			'Georgia, serif',
+																		textAlign: el.text_align || 'center',
+																		fontSize: `${currentFontSize}px`,
+																		color: el.font_color || '#000',
+																		fontFamily: el.font_family || 'Georgia, serif',
 																		fontWeight:
-																			el.element_type ===
-																			'nama_peserta'
+																			el.element_type === 'nama_peserta'
 																				? 'bold'
 																				: 'normal',
 																		pointerEvents: 'none',
 																		whiteSpace: 'nowrap',
+																		zIndex: 2,
 																	}}
 																>
 																	{content}

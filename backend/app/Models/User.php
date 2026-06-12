@@ -39,6 +39,10 @@ class User extends Authenticatable
         'is_verified' => 'boolean',
     ];
 
+    protected $appends = [
+        'organization_name',
+    ];
+
     public function events()
     {
         return $this->hasMany(Event::class, 'organizer_id');
@@ -59,6 +63,19 @@ class User extends Authenticatable
     public function university(): BelongsTo
     {
         return $this->belongsTo(Institution::class, 'university_id');
+    }
+
+    public function approvedOrganizerRequest(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(OrganizerRequest::class, 'user_id')->where('status', 'approved');
+    }
+
+    public function getOrganizationNameAttribute()
+    {
+        if ($this->role === 'organizer') {
+            return $this->approvedOrganizerRequest?->organization_name;
+        }
+        return null;
     }
 
     // Event yang dibuat oleh user ini

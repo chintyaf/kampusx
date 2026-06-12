@@ -100,7 +100,7 @@ const PreviewModal = ({ show, onHide, templateFile, elements, previewData = {} }
 											? undefined
 											: 'anonymous'
 									}
-									style={{ display: 'block', objectFit: 'cover' }}
+									style={{ display: 'block', objectFit: 'fill' }}
 								/>
 
 								{elements.map((el) => {

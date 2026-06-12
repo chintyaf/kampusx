@@ -160,7 +160,7 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 										onClick={() => setActiveTab('sertifikat')}
 										style={{ transition: 'all 0.2s ease' }}
 									>
-										<Award size={18} className="me-3" /> Sertifikat & Ulasan
+										<Award size={18} className="me-3" /> Sertifikat
 										{alreadySubmitted ? (
 											<Badge
 												bg="success-subtle"

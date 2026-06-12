@@ -3,10 +3,12 @@ import { Card, Button, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Lock, Sparkles, Award, Download } from 'lucide-react';
 
-const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
+const CertificateTab = ({ id, alreadySubmitted, participantName, ticketCode, isPreviewOnly }) => {
+	const isUnlocked = alreadySubmitted || isPreviewOnly;
+
 	return (
 		<div className="fade-in text-center py-4">
-			{!alreadySubmitted ? (
+			{!isUnlocked ? (
 				<Card
 					className="border-0 shadow-sm rounded-4 d-inline-block text-start"
 					style={{ maxWidth: '500px', width: '100%' }}
@@ -18,18 +20,18 @@ const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
 						<h4 className="fw-bold mb-2">Sertifikat Belum Terbuka</h4>
 						<p className="text-muted small mb-4">
 							Sertifikat apresiasi kelulusan Anda saat ini masih terkunci.
-							Mohon berikan feedback/penilaian evaluasi singkat Anda
-							mengenai pelaksanaan event ini untuk membuka sertifikat.
+							Untuk membuka sertifikat, pastikan Anda telah tercatat hadir (check-in)
+							dan pihak Penyelenggara telah menerbitkan sertifikat resmi.
 						</p>
 						<Link
-							to={`/event-space/${id}/survey`}
+							to={`/event-space/${id}`}
 							className="w-100 text-decoration-none"
 						>
 							<Button
 								variant="primary"
 								className="w-100 rounded-pill py-2.5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow"
 							>
-								<Sparkles size={18} /> Mulai Isi Survei Feedback
+								Kembali ke Overview
 							</Button>
 						</Link>
 					</Card.Body>
@@ -45,8 +47,8 @@ const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
 						</div>
 						<h4 className="fw-bold mb-2">Sertifikat Anda Telah Siap!</h4>
 						<p className="text-muted small mb-4">
-							Terima kasih telah berpartisipasi dan mengirimkan ulasan
-							evaluasi. Anda dapat melihat preview sertifikat digital Anda
+							Terima kasih atas partisipasi aktif Anda dalam event ini.
+							Anda dapat melihat preview sertifikat digital Anda
 							secara instan dan mengunduhnya dalam format PDF berkualitas
 							tinggi.
 						</p>
@@ -57,7 +59,7 @@ const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
 									bg="success"
 									className="px-2.5 py-1.5 rounded-pill fw-semibold"
 								>
-									AKTIF & TERVERIFIKASI
+									{isPreviewOnly ? 'PREVIEW MODE' : 'AKTIF & TERVERIFIKASI'}
 								</Badge>
 							</div>
 							<div className="d-flex justify-content-between">
@@ -71,7 +73,7 @@ const CertificateTab = ({ id, alreadySubmitted, participantName }) => {
 							</div>
 						</div>
 						<Link
-							to={`/event-space/${id}/survey`}
+							to={`/certificate/${ticketCode}`}
 							className="w-100 text-decoration-none"
 						>
 							<Button

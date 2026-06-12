@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Button, Form, Spinner, Alert, Badge } from 'react-bootstrap';
 import {
 	ArrowLeft,
@@ -28,7 +28,34 @@ export default function SurveyPage() {
 	const [surveyResponse, setSurveyResponse] = useState(null);
 	const [certificateTemplate, setCertificateTemplate] = useState(null);
 	const [customSurvey, setCustomSurvey] = useState(null);
+
+	const containerRef = useRef(null);
+	const [containerWidth, setContainerWidth] = useState(1120);
+
+	useEffect(() => {
+		if (!containerRef.current) return;
+		
+		const updateWidth = () => {
+			if (containerRef.current) {
+				setContainerWidth(containerRef.current.clientWidth);
+			}
+		};
+		
+		updateWidth();
+		
+		const resizeObserver = new ResizeObserver(() => {
+			updateWidth();
+		});
+		resizeObserver.observe(containerRef.current);
+		
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [certificateTemplate]);
+
+	const scale = containerWidth / (certificateTemplate?.canvas_width || 1120);
 	const [isPreviewOnly, setIsPreviewOnly] = useState(false);
+	const [ticketStatus, setTicketStatus] = useState(null);
 
 	// Dynamic form answers: { [question_id]: value }
 	const [answers, setAnswers] = useState({});
@@ -53,15 +80,8 @@ export default function SurveyPage() {
 					participant_name,
 					custom_survey,
 					is_preview_only,
-					can_claim_certificate,
-					claim_disabled_reason,
+					ticket_status,
 				} = response.data.data;
-
-				if (!is_preview_only && !can_claim_certificate) {
-					setError(claim_disabled_reason || 'Akses ditolak: Anda tidak dapat mengisi survei pada saat ini.');
-					setIsLoading(false);
-					return;
-				}
 
 				setEvent(event);
 				setAlreadySubmitted(already_submitted);
@@ -70,6 +90,7 @@ export default function SurveyPage() {
 				setParticipantName(participant_name);
 				setCustomSurvey(custom_survey || null);
 				setIsPreviewOnly(!!is_preview_only);
+				setTicketStatus(ticket_status || null);
 
 				if (already_submitted && survey_response?.answers) {
  					const existing = {};
@@ -146,7 +167,41 @@ export default function SurveyPage() {
 			margin: 0,
 			filename: `Sertifikat_${event?.title?.replace(/\s+/g, '_') || 'Event'}.pdf`,
 			image: { type: 'jpeg', quality: 1.0 },
-			html2canvas: { scale: 2, useCORS: true, logging: false },
+			html2canvas: { 
+				scale: 2, 
+				useCORS: true, 
+				logging: false,
+				onclone: (clonedDoc) => {
+					const clonedArea = clonedDoc.getElementById('certificate-print-area');
+					if (clonedArea) {
+						clonedArea.style.width = `${canvasWidth}px`;
+						clonedArea.style.height = `${canvasHeight}px`;
+						
+						const textElements = clonedArea.querySelectorAll('[data-design-font-size]');
+						textElements.forEach((el) => {
+							const designSize = el.getAttribute('data-design-font-size');
+							if (designSize) {
+								el.style.fontSize = `${designSize}px`;
+							}
+						});
+
+						const qrContainers = clonedArea.querySelectorAll('[data-design-qr-size]');
+						qrContainers.forEach((container) => {
+							const designQrSize = parseInt(container.getAttribute('data-design-qr-size') || '80', 10);
+							container.style.width = `${designQrSize + 8}px`;
+							container.style.height = `${designQrSize + 8}px`;
+							
+							const svg = container.querySelector('svg');
+							if (svg) {
+								svg.setAttribute('width', designQrSize.toString());
+								svg.setAttribute('height', designQrSize.toString());
+								svg.style.width = `${designQrSize}px`;
+								svg.style.height = `${designQrSize}px`;
+							}
+						});
+					}
+				}
+			},
 			jsPDF: { unit: 'px', format: [canvasWidth, canvasHeight], orientation: 'landscape' },
 		};
 		const toast = document.createElement('div');
@@ -278,6 +333,7 @@ export default function SurveyPage() {
 												<Download size={18} /> Unduh PDF
 											</Button>
 										</div>
+// ... (rest of the code until certificate mapping)
 
 										<div
 											className="bg-dark rounded-4 p-3 d-flex align-items-center justify-content-center overflow-auto"
@@ -287,47 +343,55 @@ export default function SurveyPage() {
 												{certificateTemplate ? (
 													<div
 														id="certificate-print-area"
+														ref={containerRef}
 														style={{
 															position: 'relative',
 															width: '100%',
 															aspectRatio: `${certificateTemplate.canvas_width}/${certificateTemplate.canvas_height}`,
-															backgroundImage: `url(${certificateTemplate.background_url})`,
-															backgroundSize: 'cover',
-															backgroundPosition: 'center',
 															overflow: 'hidden',
 															backgroundColor: '#fff',
 														}}
 													>
+														<img
+															src={certificateTemplate.background_url}
+															alt="Certificate Template"
+															className="w-100 h-100"
+															style={{ display: 'block', objectFit: 'fill', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+															crossOrigin="anonymous"
+														/>
 														{certificateTemplate.elements.map((el) => {
-															const xPct =
-																(el.position_x /
-																	certificateTemplate.canvas_width) *
-																100;
-															const yPct =
-																(el.position_y /
-																	certificateTemplate.canvas_height) *
-																100;
-															if (el.element_type === 'qr_code')
+															const xPct = el.position_x;
+															const yPct = el.position_y;
+															if (el.element_type === 'qr_code') {
+																const qrSize = Math.max(30, Math.round((el.font_size || 80) * scale));
 																return (
 																	<div
 																		key={el.id}
+																		data-design-qr-size={el.font_size || 80}
 																		style={{
 																			position: 'absolute',
 																			left: `${xPct}%`,
 																			top: `${yPct}%`,
-																			transform:
-																				'translate(-50%,-50%)',
+																			transform: 'translate(-50%,-50%)',
 																			background: 'white',
 																			padding: '4px',
 																			borderRadius: '4px',
+																			zIndex: 2,
+																			width: `${qrSize + 8}px`,
+																			height: `${qrSize + 8}px`,
+																			display: 'flex',
+																			alignItems: 'center',
+																			justifyContent: 'center',
 																		}}
 																	>
 																		<QRCode
 																			value={`${window.location.origin}/certificate/verify/${certId}`}
-																			size={50}
+																			size={qrSize}
+																			style={{ width: '100%', height: '100%' }}
 																		/>
 																	</div>
 																);
+															}
 															const content =
 																el.element_type === 'nama_peserta'
 																	? participantName
@@ -335,23 +399,20 @@ export default function SurveyPage() {
 																		'id_sertifikat'
 																		? certId
 																		: el.custom_value || '';
+															const currentFontSize = Math.round((el.font_size || 24) * scale);
 															return (
 																<div
 																	key={el.id}
+																	data-design-font-size={el.font_size || 24}
 																	style={{
 																		position: 'absolute',
 																		left: `${xPct}%`,
 																		top: `${yPct}%`,
 																		transform: `translate(${el.text_align === 'center' ? '-50%' : el.text_align === 'right' ? '-100%' : '0%'}, -50%)`,
-																		textAlign:
-																			el.text_align ||
-																			'center',
-																		fontSize: `calc(${el.font_size || 24}px * (1vw / 12))`,
-																		color:
-																			el.font_color || '#000',
-																		fontFamily:
-																			el.font_family ||
-																			'Georgia, serif',
+																		textAlign: el.text_align || 'center',
+																		fontSize: `${currentFontSize}px`,
+																		color: el.font_color || '#000',
+																		fontFamily: el.font_family || 'Georgia, serif',
 																		fontWeight:
 																			el.element_type ===
 																				'nama_peserta'
@@ -359,6 +420,7 @@ export default function SurveyPage() {
 																				: 'normal',
 																		pointerEvents: 'none',
 																		whiteSpace: 'nowrap',
+																		zIndex: 2,
 																	}}
 																>
 																	{content}
@@ -436,9 +498,7 @@ export default function SurveyPage() {
 													className="text-muted small mx-auto"
 													style={{ maxWidth: '360px' }}
 												>
-													{customSurvey
-														? 'Isi formulir evaluasi di sebelah kanan untuk membuka sertifikat.'
-														: 'Berikan penilaian Anda untuk membuka sertifikat kelulusan.'}
+													Sertifikat akan terbuka jika Anda telah tercatat hadir (check-in) dan pihak Penyelenggara telah menerbitkan desain sertifikat resmi.
 												</p>
 											</div>
 										</div>
@@ -448,7 +508,7 @@ export default function SurveyPage() {
 						</Card>
 					</Col>
 
-					{/* ── RIGHT: Survey Form ── */}
+					{/* ── RIGHT: Claim Prerequisites ── */}
 					{!alreadySubmitted && (
 						<Col lg={5}>
 							<Card className="border-0 shadow-sm rounded-4 overflow-hidden">
@@ -456,292 +516,63 @@ export default function SurveyPage() {
 								<div
 									className="p-4 text-white"
 									style={{
-										background: 'linear-gradient(135deg, #3b82f6, #7c3aed)',
+										background: 'linear-gradient(135deg, #1a365d, #3b82f6)',
 									}}
 								>
 									<div className="d-flex align-items-center gap-3">
 										<div className="bg-white bg-opacity-20 rounded-circle p-2 d-flex">
-											<MessageSquare size={22} />
+											<ShieldCheck size={22} />
 										</div>
 										<div>
-											<h5 className="fw-bold mb-0">
-												{customSurvey
-													? customSurvey.title
-													: 'Formulir Evaluasi'}
-											</h5>
-											{customSurvey?.session && (
-												<Badge bg="light" text="dark" className="mt-1 small fw-semibold">
-													Sesi: {customSurvey.session}
-												</Badge>
-											)}
+											<h5 className="fw-bold mb-0">Persyaratan Klaim</h5>
 											<p
 												className="mb-0 small mt-1"
 												style={{ color: 'rgba(255,255,255,0.75)' }}
 											>
-												{customSurvey?.description ||
-													'Pendapat Anda sangat berharga bagi kami'}
+												Penuhi persyaratan berikut untuk mengunduh sertifikat
 											</p>
 										</div>
 									</div>
 								</div>
 
 								<Card.Body className="p-4">
-									{error && (
-										<Alert variant="danger" className="rounded-3 mb-4">
-											{error}
-										</Alert>
-									)}
-
-									{isPreviewOnly && (
-										<Alert variant="info" className="border-0 shadow-sm rounded-3 mb-4 p-3 d-flex align-items-start gap-2 bg-info-subtle text-info-emphasis">
-											<Sparkles size={20} className="text-info flex-shrink-0 mt-0.5" />
-											<div className="small">
-												<strong>Mode Pratinjau Penyelenggara</strong>
-												<br />
-												Anda adalah pembuat event ini. Anda dapat menguji formulir survei tetapi tidak dapat mengirimkan jawaban.
+									<div className="d-flex flex-column gap-4">
+										{/* Prasyarat 1: Check-in */}
+										<div className="d-flex align-items-start gap-3">
+											{ticketStatus === 'used' ? (
+												<CheckCircle className="text-success mt-1 flex-shrink-0" size={24} />
+											) : (
+												<Lock className="text-warning mt-1 flex-shrink-0" size={24} />
+											)}
+											<div>
+												<h6 className="fw-bold mb-1">Kehadiran (Check-in)</h6>
+												<p className="text-muted small mb-0">
+													{ticketStatus === 'used'
+														? 'Anda telah melakukan check-in kehadiran di lokasi event.'
+														: 'Anda belum tercatat hadir. Pastikan panitia telah melakukan scan E-Tiket Anda.'}
+												</p>
 											</div>
-										</Alert>
-									)}
-
-									{/* === CUSTOM DYNAMIC FORM === */}
-									{customSurvey && (
-										<Form onSubmit={handleSubmitCustomSurvey}>
-											<div className="d-flex flex-column gap-4">
-												{customSurvey.questions.map((q, idx) => (
-													<Form.Group key={q.id}>
-														<Form.Label className="fw-semibold text-dark mb-1">
-															{idx + 1}. {q.label}
-															{q.is_required && (
-																<span className="text-danger ms-1">
-																	*
-																</span>
-															)}
-														</Form.Label>
-
-														{/* Rating */}
-														{q.type === 'rating' && (
-															<div className="d-flex gap-2 align-items-center mt-2 flex-wrap">
-																{[1, 2, 3, 4, 5].map((s) => (
-																	<Star
-																		key={s}
-																		size={30}
-																		fill={
-																			parseInt(
-																				answers[q.id] || 0,
-																			) >= s
-																				? '#ffc107'
-																				: 'none'
-																		}
-																		color={
-																			parseInt(
-																				answers[q.id] || 0,
-																			) >= s
-																				? '#ffc107'
-																				: '#ced4da'
-																		}
-																		style={{
-																			cursor: 'pointer',
-																			transition: 'all 0.15s',
-																		}}
-																		onClick={() =>
-																			setAnswers({
-																				...answers,
-																				[q.id]: s.toString(),
-																			})
-																		}
-																	/>
-																))}
-																{answers[q.id] && (
-																	<Badge
-																		bg="warning-subtle"
-																		text="warning"
-																		className="ms-1 px-2 py-1 fw-semibold rounded"
-																	>
-																		{getRatingText(
-																			parseInt(answers[q.id]),
-																		)}
-																	</Badge>
-																)}
-															</div>
-														)}
-
-														{/* Select / Dropdown */}
-														{q.type === 'select' && (
-															<Form.Select
-																value={answers[q.id] || ''}
-																onChange={(e) =>
-																	setAnswers({
-																		...answers,
-																		[q.id]: e.target.value,
-																	})
-																}
-																className="rounded-3 mt-2"
-																required={q.is_required}
-															>
-																<option value="">Pilih salah satu...</option>
-																{(q.options || []).map((opt, i) => (
-																	<option key={i} value={opt}>
-																		{opt}
-																	</option>
-																))}
-															</Form.Select>
-														)}
-
-														{/* Text */}
-														{q.type === 'text' && (
-															<Form.Control
-																type="text"
-																value={answers[q.id] || ''}
-																onChange={(e) =>
-																	setAnswers({
-																		...answers,
-																		[q.id]: e.target.value,
-																	})
-																}
-																placeholder="Tulis jawaban Anda..."
-																className="rounded-3 mt-2"
-																required={q.is_required}
-															/>
-														)}
-
-														{/* Textarea */}
-														{q.type === 'textarea' && (
-															<Form.Control
-																as="textarea"
-																rows={3}
-																value={answers[q.id] || ''}
-																onChange={(e) =>
-																	setAnswers({
-																		...answers,
-																		[q.id]: e.target.value,
-																	})
-																}
-																placeholder="Tulis jawaban Anda..."
-																className="rounded-3 mt-2"
-																style={{
-																	resize: 'none',
-																	fontSize: '14px',
-																}}
-																required={q.is_required}
-															/>
-														)}
-
-														{/* Radio */}
-														{q.type === 'radio' && (
-															<div className="mt-2 d-flex flex-column gap-2">
-																{(q.options || []).map((opt, i) => (
-																	<Form.Check
-																		key={i}
-																		type="radio"
-																		id={`q${q.id}_opt${i}`}
-																		name={`q${q.id}`}
-																		label={opt}
-																		value={opt}
-																		checked={
-																			answers[q.id] === opt
-																		}
-																		onChange={() =>
-																			setAnswers({
-																				...answers,
-																				[q.id]: opt,
-																			})
-																		}
-																		className="small"
-																	/>
-																))}
-															</div>
-														)}
-
-														{/* Checkbox */}
-														{q.type === 'checkbox' && (
-															<div className="mt-2 d-flex flex-column gap-2">
-																{(q.options || []).map((opt, i) => {
-																	const selected = (
-																		answers[q.id] || ''
-																	)
-																		.split(',')
-																		.map((v) => v.trim())
-																		.filter(Boolean);
-																	return (
-																		<Form.Check
-																			key={i}
-																			type="checkbox"
-																			id={`q${q.id}_cb${i}`}
-																			label={opt}
-																			checked={selected.includes(
-																				opt,
-																			)}
-																			onChange={(e) => {
-																				const curr =
-																					selected;
-																				const updated = e
-																					.target.checked
-																					? [...curr, opt]
-																					: curr.filter(
-																						(v) =>
-																							v !==
-																							opt,
-																					);
-																				setAnswers({
-																					...answers,
-																					[q.id]: updated.join(
-																						', ',
-																					),
-																				});
-																			}}
-																			className="small"
-																		/>
-																	);
-																})}
-															</div>
-														)}
-													</Form.Group>
-												))}
-											</div>
-
-											<Button
-												type="submit"
-												className={`w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mt-4 ${
-													isPreviewOnly ? 'opacity-75' : ''
-												}`}
-												style={{
-													background: isPreviewOnly
-														? 'linear-gradient(135deg, #6c757d, #adb5bd)'
-														: 'linear-gradient(135deg,#3b82f6,#7c3aed)',
-													border: 'none',
-												}}
-												disabled={submitting || isPreviewOnly}
-											>
-												{isPreviewOnly ? (
-													<>
-														<Lock size={16} /> Hanya Pratinjau
-													</>
-												) : submitting ? (
-													<>
-														<Spinner animation="border" size="sm" />{' '}
-														Mengirim...
-													</>
-												) : (
-													<>
-														<Sparkles size={16} /> Kirim & Buka
-														Sertifikat
-													</>
-												)}
-											</Button>
-										</Form>
-									)}
-									{!customSurvey && (
-										<div className="text-center py-5 text-muted">
-											<MessageSquare size={44} className="mx-auto mb-3 text-muted opacity-50" />
-											<h6 className="fw-bold text-dark">Survei Belum Tersedia</h6>
-											<p className="mb-0 small text-secondary">
-												Penyelenggara belum membuat survei evaluasi untuk event ini.
-											</p>
-											<p className="text-secondary small mt-1">
-												Silakan hubungi penyelenggara acara untuk informasi lebih lanjut.
-											</p>
 										</div>
-									)}
+
+										<hr className="my-0 opacity-25" />
+
+										{/* Prasyarat 2: Template Ready */}
+										<div className="d-flex align-items-start gap-3">
+											{certificateTemplate ? (
+												<CheckCircle className="text-success mt-1 flex-shrink-0" size={24} />
+											) : (
+												<Lock className="text-warning mt-1 flex-shrink-0" size={24} />
+											)}
+											<div>
+												<h6 className="fw-bold mb-1">Penerbitan Sertifikat</h6>
+												<p className="text-muted small mb-0">
+													{certificateTemplate
+														? 'Desain sertifikat resmi telah diterbitkan oleh Penyelenggara.'
+														: 'Penyelenggara belum menerbitkan desain sertifikat resmi untuk event ini.'}
+												</p>
+											</div>
+										</div>
+									</div>
 								</Card.Body>
 							</Card>
 						</Col>
