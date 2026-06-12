@@ -148,8 +148,8 @@ export const MENU_ITEMS = {
 			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
 				{ name: 'Informasi Umum', path: 'info' },
-				{ name: 'Lokasi & Jadwal', path: 'tempat' },
-				{ name: 'Sesi', path: 'sesi' },
+				{ name: 'Lokasi', path: 'tempat' },
+				{ name: 'Jadwal', path: 'sesi' },
 				{ name: 'Tiket', path: 'tiket' },
 			],
 		},

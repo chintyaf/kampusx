@@ -59,7 +59,7 @@ class EventAttendanceController extends Controller
         $event = Event::findOrFail($eventId);
 
         $type = $request->type;
-        $expiresAt = $request->expires_at; // Format: YYYY-MM-DD HH:mm:ss
+        $expiresAt = $request->expires_at ? Carbon::parse($request->expires_at)->format('Y-m-d H:i:s') : null;
         $sessionId = $request->session_id;
 
         // 3. Membuat payload unik.
@@ -151,9 +151,10 @@ class EventAttendanceController extends Controller
         $request->validate([
             'event_id'   => 'required|exists:events,id',
             'type'       => 'required|in:in,out,session_in,session_out',
-            'session_id' => 'required_if:type,session_in,session_out|exists:event_sessions,id',
+            'session_id' => 'required_if:type,session_in,session_out|nullable|exists:event_sessions,id',
             'signature'  => 'required|string',
             'expires_at' => 'nullable|date',
+            'device_token' => 'nullable|string',
         ]);
 
         // 2. LAYER 1 & 2: Verifikasi Link (Fungsi Terpisah)
@@ -184,10 +185,12 @@ class EventAttendanceController extends Controller
      */
     private function verifyLinkIntegrityAndExpiry(Request $request)
     {
+        $normalizedExpiresAt = $request->expires_at ? Carbon::parse($request->expires_at)->format('Y-m-d H:i:s') : null;
+
         // Ganti IF dengan ternary pendek untuk membuat array payload
         $payloadParts = str_contains($request->type, 'session')
-            ? [$request->event_id, $request->type, $request->session_id, $request->expires_at]
-            : [$request->event_id, $request->type, $request->expires_at];
+            ? [$request->event_id, $request->type, $request->session_id, $normalizedExpiresAt]
+            : [$request->event_id, $request->type, $normalizedExpiresAt];
 
         $expectedSignature = hash_hmac('sha256', implode('|', $payloadParts), config('app.key'));
 
@@ -195,7 +198,7 @@ class EventAttendanceController extends Controller
             return response()->json(['success' => false, 'message' => 'Link presensi tidak valid atau telah dimodifikasi.'], 403);
         }
 
-        if ($request->expires_at && Carbon::now()->greaterThan(Carbon::parse($request->expires_at))) {
+        if ($normalizedExpiresAt && Carbon::now()->greaterThan(Carbon::parse($normalizedExpiresAt))) {
             return response()->json(['success' => false, 'message' => 'Waktu akses untuk link presensi ini sudah berakhir.'], 403);
         }
 
@@ -231,6 +234,10 @@ class EventAttendanceController extends Controller
         $attendance->user_id = auth()->id();
         $attendance->method = 'online_link';
 
+        if ($request->device_token) {
+            $attendance->device_id = $request->device_token;
+        }
+
         // MAPPING CONFIGURATION: Teknik sakti untuk membuang ribuan IF bercabang
         $attendanceMap = [
             'in' => [
@@ -260,6 +267,14 @@ class EventAttendanceController extends Controller
         // Cek apakah kolom waktu (scan_time / checkout_time) sudah terisi
         if ($attendance->$targetColumn) {
             return response()->json(['success' => false, 'message' => $attendanceMap['already']], 400);
+        }
+
+        // Jika mencoba checkout tapi belum pernah check-in, tolak
+        if (($request->type === 'out' || $request->type === 'session_out') && !$attendance->scan_time) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Check-out gagal. Anda belum tercatat melakukan Check-in.'
+            ], 400);
         }
 
         // Isi kolom secara dinamis dan simpan
