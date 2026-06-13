@@ -77,7 +77,7 @@ const NotificationDropdown = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const markAsRead = async (id, eventId, type) => {
+    const markAsRead = async (id, eventId, type, eventSlug = null) => {
         try {
             await api.post(`notifications/${id}/read`);
 
@@ -92,6 +92,8 @@ const NotificationDropdown = () => {
                 navigate('/organizer/dashboard');
             } else if (type === 'organizer_rejected') {
                 navigate('/apply-organizer', { state: { autoResubmit: true } });
+            } else if (type === 'event_recommendation') {
+                navigate(`/event/${eventSlug || eventId}`);
             } else if (eventId) {
                 const isOrganizerPath = window.location.pathname.startsWith('/organizer');
                 if (isOrganizerPath) {
@@ -279,7 +281,7 @@ const NotificationDropdown = () => {
                                 return (
                                     <div
                                         key={notif.id}
-                                        onClick={() => markAsRead(notif.id, data.event_id, data.type)}
+                                        onClick={() => markAsRead(notif.id, data.event_id, data.type, data.event_slug)}
                                         className="d-flex p-3 border-bottom text-wrap align-items-start notification-item"
                                         style={{
                                             whiteSpace: "normal",

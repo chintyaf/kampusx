@@ -48,7 +48,7 @@ const NotificationsPage = () => {
         fetchNotifications();
     }, []);
 
-    const markAsRead = async (e, id, eventId, type) => {
+    const markAsRead = async (e, id, eventId, type, eventSlug = null) => {
         // Mencegah trigger click parent jika user klik tombol centang kecil saja
         if (e) e.stopPropagation();
 
@@ -67,6 +67,8 @@ const NotificationsPage = () => {
                     navigate('/organizer/dashboard');
                 } else if (type === 'organizer_rejected') {
                     navigate('/apply-organizer', { state: { autoResubmit: true } });
+                } else if (type === 'event_recommendation') {
+                    navigate(`/event/${eventSlug || eventId}`);
                 } else if (eventId) {
                     const isOrganizerPath = window.location.pathname.startsWith('/organizer');
                     if (isOrganizerPath) {
@@ -312,7 +314,7 @@ const NotificationsPage = () => {
                                     return (
                                         <Card 
                                             key={notif.id}
-                                            onClick={() => markAsRead(null, notif.id, data.event_id, data.type)}
+                                            onClick={() => markAsRead(null, notif.id, data.event_id, data.type, data.event_slug)}
                                             className="border-0 rounded-4 shadow-sm overflow-hidden"
                                             style={{
                                                 cursor: "pointer",
@@ -393,7 +395,7 @@ const NotificationsPage = () => {
                                                             variant="light"
                                                             className="rounded-circle p-1.5 border d-flex align-items-center justify-content-center hover-bg-success text-success"
                                                             style={{ width: "28px", height: "28px", backgroundColor: '#FFFFFF' }}
-                                                            onClick={(e) => markAsRead(e, notif.id, data.event_id, data.type)}
+                                                            onClick={(e) => markAsRead(e, notif.id, data.event_id, data.type, data.event_slug)}
                                                             title="Tandai telah dibaca"
                                                         >
                                                             <Check size={14} strokeWidth={3} />

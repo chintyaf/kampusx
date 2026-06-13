@@ -165,7 +165,10 @@ class EventStatusController extends Controller
                     "Rekomendasi Event Baru!",
                     "Event baru '{$event->title}' telah dipublikasikan dan cocok dengan minat kategori Anda.",
                     "event_recommendation",
-                    ['event_id' => $event->id]
+                    [
+                        'event_id' => $event->id,
+                        'event_slug' => $event->slug
+                    ]
                 ));
             }
         }

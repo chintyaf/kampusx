@@ -276,15 +276,37 @@ const TicketDetail = () => {
                 variant="outline-secondary"
                 onClick={handleShare}
                 className="flex-fill flex-md-grow-0"
-                style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", justifySpace: "center", gap: 6, padding: "10px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)" }}
+                style={{
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: "var(--font-sm)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  padding: "10px 18px",
+                  opacity: ticket.status === 'cancelled' ? 0.5 : 1,
+                  cursor: ticket.status === 'cancelled' ? 'not-allowed' : 'pointer'
+                }}
               >
                 <Share2 size={16} /> Bagikan
               </Button>
               <Button
                 variant="outline-secondary"
                 disabled={ticket.status === 'cancelled'}
-                className="flex-fill flex-md-grow-0"
-                style={{ borderRadius: 8, fontWeight: 600, fontSize: "var(--font-sm)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 18px", borderColor: "var(--color-border)", color: "var(--color-secondary)", opacity: ticket.status === 'cancelled' ? 0.5 : 1, cursor: ticket.status === 'cancelled' ? 'not-allowed' : 'pointer' }}
+                className="btn-custom-outline flex-fill flex-md-grow-0"
+                style={{
+                  borderRadius: 8,
+                  fontWeight: 600,
+                  fontSize: "var(--font-sm)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  padding: "10px 18px",
+                  opacity: ticket.status === 'cancelled' ? 0.5 : 1,
+                  cursor: ticket.status === 'cancelled' ? 'not-allowed' : 'pointer'
+                }}
               >
                 <Download size={16} /> Unduh PDF
               </Button>
