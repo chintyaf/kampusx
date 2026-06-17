@@ -247,30 +247,27 @@ class UserProfileController extends Controller
             }
         }
 
-        // 6. Pastikan direktori penyimpanan yang dibutuhkan DomPDF tersedia dan writable
-        $fontDir = storage_path('fonts');
-        if (!file_exists($fontDir)) {
-            @mkdir($fontDir, 0775, true);
+        try {
+            // 6. Render HTML ke PDF dan langsung download (tidak disimpan di server disk)
+            $pdf = Pdf::loadView('pdf.portfolio', [
+                'user' => $user,
+                'interests' => $interests,
+                'history' => $history,
+                'certificates' => $certificates,
+                // 'generated_at' => Carbon::now()->format('d F Y H:i')
+                'generated_at' => Carbon::now('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB'
+            ]);
+
+            $filename = 'cv_' . strtolower(str_replace(' ', '_', $user->name)) . '.pdf';
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat PDF: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
-
-        $tempDir = storage_path('app/temp');
-        if (!file_exists($tempDir)) {
-            @mkdir($tempDir, 0775, true);
-        }
-
-        // 7. Render HTML ke PDF dan langsung download (tidak disimpan di server disk)
-        $pdf = Pdf::loadView('pdf.portfolio', [
-            'user' => $user,
-            'interests' => $interests,
-            'history' => $history,
-            'certificates' => $certificates,
-            // 'generated_at' => Carbon::now()->format('d F Y H:i')
-            'generated_at' => Carbon::now('Asia/Jakarta')->translatedFormat('d F Y H:i') . ' WIB'
-
-            
-        ]);
-
-        $filename = 'cv_' . strtolower(str_replace(' ', '_', $user->name)) . '.pdf';
-        return $pdf->download($filename);
     }
 }
