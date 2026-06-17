@@ -31,7 +31,7 @@ const ActiveTicketsSection = ({ activeTickets }) => {
           Belum ada event aktif.{' '}
           <span
             style={{ color: clr.primary, fontWeight: 600, cursor: 'pointer' }}
-            onClick={() => navigate('/explore')}>
+            onClick={() => navigate('/explore-events')}>
             Cari event →
           </span>
         </div>

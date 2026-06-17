@@ -163,6 +163,8 @@ class SendEventReminders extends Command
                 'status' => 'completed',
                 'is_finished_reminded' => true
             ]);
+
+            \App\Services\CertificateNotificationHelper::checkAndNotify($event->id);
         }
 
         // 4. Post-Event (Upload Materi & Sertifikat - H+1)
@@ -193,6 +195,8 @@ class SendEventReminders extends Command
                 }
             }
             $event->update(['is_post_event_reminded' => true]);
+
+            \App\Services\CertificateNotificationHelper::checkAndNotify($event->id);
         }
         
         $this->info("Event reminders processed successfully.");

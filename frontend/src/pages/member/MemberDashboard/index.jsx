@@ -367,7 +367,7 @@ const MemberDashboard = () => {
 					<EventListSection
 						title="Untuk Kamu"
 						events={personalizedEvents}
-						seeAllUrl="/explore"
+						seeAllUrl="/explore-events"
 						style={{ marginBottom: 36 }}
 					/>
 				)}
@@ -375,7 +375,7 @@ const MemberDashboard = () => {
 				<EventListSection
 					title="Event Terbaru"
 					events={eventTerbaru}
-					seeAllUrl="/explore?sort=newest"
+					seeAllUrl="/explore-events?sort=newest"
 				/>
 			</Container>
 		</div>

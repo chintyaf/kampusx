@@ -261,13 +261,11 @@ const LandingPage = () => {
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terpopuler</h2>
               <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Paling banyak diminati minggu ini</p>
             </div>
-            <button
-              as={Link}
+            <Link
               to="/explore-events?sort=popular"
-              // onClick={() => navigate("/explore-events?sort=popular")}
-              style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+              style={{ textDecoration: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
               Lihat Semua <ChevronRight size={14} />
-            </button>
+            </Link>
           </div>
 
           {isLoading ? (
@@ -296,12 +294,11 @@ const LandingPage = () => {
               <h2 style={{ fontSize: "var(--font-xl)", fontWeight: 800, color: "var(--color-text)", margin: 0 }}>Event Terbaru</h2>
               <p style={{ color: "var(--color-secondary)", fontSize: "var(--font-sm)", margin: "4px 0 0" }}>Baru saja ditambahkan</p>
             </div>
-            <button
-              as={Link}
+            <Link
               to="/explore-events?sort=newest"
-              style={{ background: "none", border: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+              style={{ textDecoration: "none", color: "var(--color-primary)", fontSize: "var(--font-sm)", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
               Lihat Semua <ChevronRight size={14} />
-            </button>
+            </Link>
           </div>
           <Row className="g-4">
             {isLoading

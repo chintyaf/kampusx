@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dropdown, Badge } from "react-bootstrap";
 import {
@@ -7,6 +7,11 @@ import {
     AlertTriangle,
     Info,
     AlertCircle,
+    Sparkles,
+    CreditCard,
+    Clock,
+    XCircle,
+    Award
 } from "lucide-react";
 import api from "../api/axios";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -16,13 +21,41 @@ const NotificationDropdown = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const seenNotificationIds = useRef(new Set());
 
     const fetchNotifications = async () => {
         try {
             const response = await api.get("notifications");
             if (response.data && response.data.success) {
-                setNotifications(response.data.data);
-                setUnreadCount(response.data.unread_count);
+                const fetched = response.data.data;
+                const currentUnreadCount = response.data.unread_count;
+
+                // Request desktop push alerts if user consented
+                if (seenNotificationIds.current.size > 0) {
+                    fetched.forEach(notif => {
+                        if (!seenNotificationIds.current.has(notif.id) && !notif.read_at) {
+                            const data = typeof notif.data === "string" ? JSON.parse(notif.data) : (notif.data || {});
+                            
+                            // Trigger native browser notification
+                            if ('Notification' in window && Notification.permission === 'granted') {
+                                try {
+                                    new Notification(data.title || "Notifikasi Baru", {
+                                        body: data.message || "",
+                                        icon: window.location.origin + '/Logo_KampusX_NoText_192.png'
+                                    });
+                                } catch (e) {
+                                    console.error("Gagal menembakkan browser notification:", e);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Populate ref with current notification IDs
+                fetched.forEach(notif => seenNotificationIds.current.add(notif.id));
+
+                setNotifications(fetched);
+                setUnreadCount(currentUnreadCount);
             }
         } catch (error) {
             console.error("Gagal memuat notifikasi:", error);
@@ -34,12 +67,17 @@ const NotificationDropdown = () => {
     useEffect(() => {
         fetchNotifications();
 
-        // Polling setiap 4 detik untuk real-time update
+        // Request browser permission dynamically
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Polling setiap 1 menit untuk real-time update
         const interval = setInterval(fetchNotifications, 60000);
         return () => clearInterval(interval);
     }, []);
 
-    const markAsRead = async (id, eventId, type) => {
+    const markAsRead = async (id, eventId, type, eventSlug = null) => {
         try {
             await api.post(`notifications/${id}/read`);
 
@@ -54,6 +92,8 @@ const NotificationDropdown = () => {
                 navigate('/organizer/dashboard');
             } else if (type === 'organizer_rejected') {
                 navigate('/apply-organizer', { state: { autoResubmit: true } });
+            } else if (type === 'event_recommendation') {
+                navigate(`/event/${eventSlug || eventId}`);
             } else if (eventId) {
                 const isOrganizerPath = window.location.pathname.startsWith('/organizer');
                 if (isOrganizerPath) {
@@ -132,6 +172,31 @@ const NotificationDropdown = () => {
                 return {
                     icon: <AlertCircle size={20} className="text-danger" />,
                     bg: "bg-danger",
+                };
+            case "event_recommendation":
+                return {
+                    icon: <Sparkles size={20} className="text-warning" />,
+                    bg: "bg-warning",
+                };
+            case "payment_success":
+                return {
+                    icon: <CheckCircle2 size={20} className="text-success" />,
+                    bg: "bg-success",
+                };
+            case "payment_pending":
+                return {
+                    icon: <Clock size={20} className="text-warning" />,
+                    bg: "bg-warning",
+                };
+            case "payment_failed":
+                return {
+                    icon: <XCircle size={20} className="text-danger" />,
+                    bg: "bg-danger",
+                };
+            case "certificate_available":
+                return {
+                    icon: <Award size={20} className="text-primary" />,
+                    bg: "bg-primary",
                 };
             default:
                 return {
@@ -216,7 +281,7 @@ const NotificationDropdown = () => {
                                 return (
                                     <div
                                         key={notif.id}
-                                        onClick={() => markAsRead(notif.id, data.event_id, data.type)}
+                                        onClick={() => markAsRead(notif.id, data.event_id, data.type, data.event_slug)}
                                         className="d-flex p-3 border-bottom text-wrap align-items-start notification-item"
                                         style={{
                                             whiteSpace: "normal",

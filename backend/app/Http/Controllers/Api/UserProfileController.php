@@ -10,7 +10,6 @@ use App\Models\Ticket;
 use App\Models\SurveyResponse;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
-\Carbon\Carbon::setLocale('id');
 
 
 class UserProfileController extends Controller
@@ -21,6 +20,7 @@ class UserProfileController extends Controller
      */
     public function show($id)
     {
+        Carbon::setLocale('id');
         // 1. Ambil data user dasar
         $user = User::with('categories')->find($id);
 
@@ -166,6 +166,7 @@ class UserProfileController extends Controller
      */
     public function generateCv($id)
     {
+        Carbon::setLocale('id');
         // 1. Cek kepemilikan profil (Hanya pemilik profil yang bisa mendownload)
         $authUser = auth('sanctum')->user();
         if (!$authUser || $authUser->id != $id) {
@@ -246,7 +247,18 @@ class UserProfileController extends Controller
             }
         }
 
-        // 6. Render HTML ke PDF dan langsung download (tidak disimpan di server disk)
+        // 6. Pastikan direktori penyimpanan yang dibutuhkan DomPDF tersedia dan writable
+        $fontDir = storage_path('fonts');
+        if (!file_exists($fontDir)) {
+            @mkdir($fontDir, 0775, true);
+        }
+
+        $tempDir = storage_path('app/temp');
+        if (!file_exists($tempDir)) {
+            @mkdir($tempDir, 0775, true);
+        }
+
+        // 7. Render HTML ke PDF dan langsung download (tidak disimpan di server disk)
         $pdf = Pdf::loadView('pdf.portfolio', [
             'user' => $user,
             'interests' => $interests,
