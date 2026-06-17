@@ -49,12 +49,11 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 			<Card className="border-0 shadow-sm h-100 overflow-hidden rounded-4 border border-secondary border-opacity-10 d-flex flex-column" style={{ opacity: hasTemplate ? 1 : 0.75 }}>
 				{/* Certificate Image Header */}
 				{hasTemplate && cert.is_unlocked ? (
-					<Link to={`/certificate/${cert.ticket_code || cert.ticket?.ticket_code}`}>
+					<Link to={`/certificate/${cert.ticket_code || cert.ticket?.ticket_code}`} className="w-100 d-block">
 						<div
-							className="position-relative bg-secondary bg-opacity-25"
+							className="position-relative bg-secondary bg-opacity-25 w-100"
 							ref={containerRef}
 							style={{
-								height: '170px',
 								overflow: 'hidden',
 								cursor: 'pointer',
 								aspectRatio: `${cert.certificate_template.canvas_width || 1120}/${cert.certificate_template.canvas_height || 792}`
@@ -134,11 +133,10 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 					</Link>
 				) : (
 					<div
-						className="position-relative bg-secondary bg-opacity-25"
+						className="position-relative bg-secondary bg-opacity-25 w-100"
 						style={{
-							height: '170px',
 							overflow: 'hidden',
-							aspectRatio: hasTemplate ? `${cert.certificate_template.canvas_width || 1120}/${cert.certificate_template.canvas_height || 792}` : undefined
+							aspectRatio: hasTemplate ? `${cert.certificate_template.canvas_width || 1120}/${cert.certificate_template.canvas_height || 792}` : '1120/792'
 						}}
 					>
 						<img
@@ -160,6 +158,7 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 							}}
 							crossOrigin="anonymous"
 						/>
+
 						{!hasTemplate ? (
 							<div
 								className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white"
