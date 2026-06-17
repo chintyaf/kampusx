@@ -5,6 +5,8 @@ import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import QRCode from "react-qr-code";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
+import html2pdf from "html2pdf.js";
 
 const TicketDetail = () => {
   const { ticketCode } = useParams();
@@ -56,11 +58,43 @@ const TicketDetail = () => {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(window.location.href);
-        alert("Link tiket berhasil disalin ke clipboard!");
+        toast.success("Link tiket berhasil disalin ke clipboard!");
       }
     } catch (err) {
       console.log("Error sharing:", err);
+      toast.error("Gagal membagikan tiket.");
     }
+  };
+
+  // Logika untuk Unduh PDF Tiket
+  const handleDownloadPDF = () => {
+    const element = document.getElementById("ticket-card");
+    if (!element) {
+      toast.error("Gagal mendeteksi area tiket.");
+      return;
+    }
+
+    const opt = {
+      margin:       12,
+      filename:     `tiket_${ticket?.ticket_code || 'detail'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true,
+        logging: false
+      },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    toast.promise(
+      html2pdf().from(element).set(opt).save(),
+      {
+        loading: 'Sedang menyiapkan PDF tiket...',
+        success: 'Tiket berhasil diunduh sebagai PDF!',
+        error: 'Gagal mengunduh PDF tiket.',
+      }
+    );
   };
 
   if (isLoading) return (
@@ -131,7 +165,7 @@ const TicketDetail = () => {
           )}
 
           {/* ── Ticket card ───────────────────────────────────────────────── */}
-          <Card style={{ border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,105,158,0.08)" }}>
+          <Card id="ticket-card" style={{ border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,105,158,0.08)" }}>
             <Row className="g-0">
 
               {/* LEFT: Event info */}
@@ -272,9 +306,10 @@ const TicketDetail = () => {
 
             {/* Secondary Actions */}
             <div className="d-flex gap-2 w-100 w-md-auto">
-              <Button
+              {/* <Button
                 variant="outline-secondary"
                 onClick={handleShare}
+                disabled={ticket.status === 'cancelled'}
                 className="flex-fill flex-md-grow-0"
                 style={{
                   borderRadius: 8,
@@ -290,9 +325,10 @@ const TicketDetail = () => {
                 }}
               >
                 <Share2 size={16} /> Bagikan
-              </Button>
+              </Button> */}
               <Button
                 variant="outline-secondary"
+                onClick={handleDownloadPDF}
                 disabled={ticket.status === 'cancelled'}
                 className="btn-custom-outline flex-fill flex-md-grow-0"
                 style={{
