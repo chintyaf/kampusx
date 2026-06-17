@@ -30,6 +30,7 @@ import KioskModePage from '../pages/organizer/KioskModePage';
 // 🟡 KOMPONEN DIAKTIFKAN KEMBALI
 // ==========================================
 import EventMaterial from '@/pages/event/management/EventMaterialPage/index';
+import EventAnalyticsPage from '@/pages/event/management/EventAnalyticsPage/index';
 
 // ==========================================
 // 🔴 KOMPONEN TIDAK DIPAKAI / DISIMPAN SEMENTARA
@@ -43,8 +44,6 @@ import OrganizerMaterialsManagePage from '@/pages/event/management/OrganizerMate
 import EventStatistics from '@/pages/event/management/EventStatisticsPage/index';
 import EventPromotion from '@/pages/event/management/EventPromotionPage/index';
 import PostEventContentUploadPage from '@/pages/event/post-event/PostEventContentUploadPage/index';
-import EventWalletSplitPage from '@/pages/event/management/EventWalletSplitPage/index';
-import EventAnalyticsPage from '@/pages/event/management/EventAnalyticsPage/index';
 */
 
 export const OrganizerRoutes = (
@@ -86,6 +85,9 @@ export const OrganizerRoutes = (
 
 			<Route path="kiosk" element={<KioskModePage />} />
 
+			{/* Transaksi Pembayaran */}
+			<Route path="transaksi" element={<EventAnalyticsPage />} />
+
 			{/* ========================================== */}
 			{/* ROUTE TIDAK DIPAKAI / HIDDEN DARI MENU     */}
 			{/* ========================================== */}
@@ -93,8 +95,6 @@ export const OrganizerRoutes = (
 			<Route path="scanner" element={<ScannerPage />} />
 			<Route path="kuis" element={<EventQuiz />} />
 			<Route path="statistik" element={<EventStatistics />} />
-			<Route path="wallet-split" element={<EventWalletSplitPage />} />
-			<Route path="revenue-analytic" element={<EventAnalyticsPage />} />
 			<Route path="promosi" element={<EventPromotion />} />
 			<Route path="event-location-test" element={<EventLocationTest />} />
 			*/}

@@ -6,7 +6,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 	const hasSubmenu = !!item.submenu;
 
 	const isChildActive = item.submenu?.some((sub) => {
-		const fullPath = `${item.path}${sub.path}`.replace(/\/+/g, '/');
+		const fullPath = `${item.path}/${sub.path}`.replace(/\/+/g, '/');
 		return location.pathname.startsWith(fullPath);
 	});
 

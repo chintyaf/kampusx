@@ -25,7 +25,9 @@ class OrganizerEventController extends Controller
                 })->count();
 
                 // Calculate total revenue for this event
-                $revenue = Order::where('event_id', $event->id)->sum('total_price');
+                $revenue = Order::where('event_id', $event->id)
+                    ->where('status', 'paid')
+                    ->sum('amount');
 
                 // Determine if event needs attention
                 $needsAttention = false;
