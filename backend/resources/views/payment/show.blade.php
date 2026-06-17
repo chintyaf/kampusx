@@ -63,6 +63,18 @@
                     </div>
 
                     @if($transaction->isPending())
+                        <div class="alert alert-warning border-0 shadow-sm mb-4" style="background-color: #fffbeb; border-left: 4px solid #f59e0b !important;">
+                            <div class="d-flex align-items-start">
+                                <span class="fs-4 me-2">⚠️</span>
+                                <div>
+                                    <h6 class="alert-heading fw-bold mb-1" style="color: #b45309;">Simulasi Pembayaran</h6>
+                                    <p class="mb-0 small" style="color: #d97706; line-height: 1.45;">
+                                        Ini adalah halaman simulasi pembayaran. Anda <strong>tidak perlu melakukan transfer uang riil</strong> atau memindai kode QR secara nyata. Silakan langsung klik tombol <strong>"Bayar Sekarang"</strong> di bawah untuk menyelesaikan transaksi simulasi ini.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row g-2 mb-4">
                             <div class="col-4">
                                 <button type="button" onclick="selectMethod('qris', this)" class="method-btn btn btn-outline-dark w-100 fw-semibold active">QRIS</button>

@@ -314,20 +314,6 @@ const NavbarPublic = () => {
                             <Button 
                                 as={Link} 
                                 to="/login" 
-                                variant="light" 
-                                onClick={handleClose}
-                                style={{
-                                    fontSize: '14px', fontWeight: 600, background: '#fff', color: 'var(--color-text)',
-                                    border: '1px solid var(--color-border)', borderRadius: 8, padding: '10px 0',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
-                                }}
-                            >
-                                <LogIn size={16} />
-                                <span>Masuk</span>
-                            </Button>
-                            <Button 
-                                as={Link} 
-                                to="/register" 
                                 variant="dark" 
                                 onClick={handleClose}
                                 style={{
@@ -335,7 +321,21 @@ const NavbarPublic = () => {
                                     border: 'none', borderRadius: 8, padding: '10px 0',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
                                 }}
-                            >
+                                >
+                                <LogIn size={16} />
+                                <span>Masuk</span>
+                            </Button>
+                            <Button 
+                                as={Link} 
+                                to="/register" 
+                                variant="light" 
+                                onClick={handleClose}
+                                style={{
+                                    fontSize: '14px', fontWeight: 600, background: '#fff', color: 'var(--color-text)',
+                                    border: '1px solid var(--color-border)', borderRadius: 8, padding: '10px 0',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
+                                }}
+                                >
                                 <UserPlus size={16} />
                                 <span>Daftar</span>
                             </Button>
