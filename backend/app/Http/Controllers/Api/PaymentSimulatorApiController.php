@@ -29,6 +29,7 @@ class PaymentSimulatorApiController extends Controller
         ]);
 
         $user = $request->user();
+        $event = \App\Models\Event::find($request->event_id);
 
         DB::beginTransaction();
         try {
@@ -62,7 +63,6 @@ class PaymentSimulatorApiController extends Controller
                     'status'         => 'pending',
                 ]);
 
-                $event = \App\Models\Event::find($request->event_id);
                 $token = 'TKN-' . strtoupper(Str::random(16));
                 $expiredAt = now()->addMinutes(15);
                 
@@ -118,6 +118,14 @@ class PaymentSimulatorApiController extends Controller
                     'qr_token'       => (string) Str::uuid(),
                     'status'         => 'active', // Langsung aktif
                 ]);
+
+                // Sync event categories to user personalization
+                if ($event) {
+                    $categoryIds = $event->categories()->pluck('categories.id')->toArray();
+                    if (!empty($categoryIds)) {
+                        $user->categories()->syncWithoutDetaching($categoryIds);
+                    }
+                }
 
                 DB::commit();
 
@@ -177,6 +185,14 @@ class PaymentSimulatorApiController extends Controller
                         "payment_success",
                         ['event_id' => $order->event_id]
                     ));
+
+                    // Sync event categories to user personalization
+                    if ($order->event) {
+                        $categoryIds = $order->event->categories()->pluck('categories.id')->toArray();
+                        if (!empty($categoryIds)) {
+                            $order->user->categories()->syncWithoutDetaching($categoryIds);
+                        }
+                    }
                 }
 
                 $message = 'Pembayaran lunas berhasil disimulasikan.';

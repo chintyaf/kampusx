@@ -427,7 +427,7 @@ const ExploreEvents = () => {
                                     </h3>
                                 </div>
                                 <Row className="g-4">
-                                    {personalizedEvents.slice(0, 3).map((ev) => (
+                                    {personalizedEvents.map((ev) => (
                                         <Col xs={12} md={6} xl={4} key={`pers-${ev.id}`}>
                                             <EventCard ev={ev} onClick={() => navigate(`/event/${ev.slug || ev.id}`)} />
                                         </Col>

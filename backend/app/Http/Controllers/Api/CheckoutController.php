@@ -72,6 +72,7 @@ class CheckoutController extends Controller
                     'user_id'     => $user->id,
                     'amount'      => 0,
                     'total_price' => 0,
+                    'status'      => 'paid',
                     'paid_at'     => now(), // Langsung lunas
                 ]);
 
@@ -100,6 +101,12 @@ class CheckoutController extends Controller
                     "payment_success",
                     ['event_id' => $event->id]
                 ));
+
+                // Sync event categories to user personalization
+                $categoryIds = $event->categories()->pluck('categories.id')->toArray();
+                if (!empty($categoryIds)) {
+                    $user->categories()->syncWithoutDetaching($categoryIds);
+                }
 
                 DB::commit();
 

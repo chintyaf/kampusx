@@ -152,4 +152,70 @@ class MemberPesertaQATest extends TestCase
         $response = $this->actingAs($this->user)->getJson('/api/notifications');
         $response->assertStatus(200);
     }
+
+    public function test_checkout_gratis_syncs_personalization()
+    {
+        // 1. Create a category
+        $category = \App\Models\Category::create([
+            'name' => 'Sports & Wellness',
+            'slug' => 'sports-wellness',
+        ]);
+
+        // 2. Associate category with event
+        $this->event->categories()->attach($category->id);
+
+        // 3. Ensure user does not have this category in preferences
+        $this->assertFalse($this->user->categories()->where('categories.id', $category->id)->exists());
+
+        // 4. Perform checkout
+        $response = $this->actingAs($this->user)->postJson('/api/checkout', [
+            'event_id' => $this->event->id,
+            'quantity' => 1,
+            'name' => 'Budi',
+            'email' => 'budi@test.com',
+            'phone' => '08123456789'
+        ]);
+        
+        $response->assertStatus(201);
+
+        // 5. Assert that user's categories now include the event's category
+        $this->assertTrue($this->user->categories()->where('categories.id', $category->id)->exists());
+    }
+
+    public function test_simulator_payment_callback_syncs_personalization()
+    {
+        // 1. Create a category
+        $category = \App\Models\Category::create([
+            'name' => 'Music & Arts',
+            'slug' => 'music-arts',
+        ]);
+
+        // 2. Associate category with event
+        $this->event->categories()->attach($category->id);
+
+        // 3. Create a pending order for the user
+        $order = Order::create([
+            'order_id' => 'ORD-SIM-TEST-123',
+            'user_id' => $this->user->id,
+            'event_id' => $this->event->id,
+            'amount' => 50000,
+            'total_price' => 50000,
+            'status' => 'pending',
+        ]);
+
+        // Ensure user does not have this category in preferences
+        $this->assertFalse($this->user->categories()->where('categories.id', $category->id)->exists());
+
+        // 4. Trigger simulator webhook success callback
+        $response = $this->postJson('/api/v1/payment/callback', [
+            'order_id' => $order->order_id,
+            'status' => 'success',
+        ]);
+
+        $response->assertStatus(200);
+
+        // 5. Assert that the order is paid and categories are synced
+        $this->assertEquals('paid', $order->fresh()->status);
+        $this->assertTrue($this->user->categories()->where('categories.id', $category->id)->exists());
+    }
 }
