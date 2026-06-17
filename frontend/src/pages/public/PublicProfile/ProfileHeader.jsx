@@ -58,6 +58,7 @@ const ProfileHeader = ({ profile = {}, interests = [], isOwnProfile = false }) =
 						console.error('Detailed Server Error:', errorJson);
 						alert(`Gagal mendownload Transkrip: ${errorJson.message || 'Error internal server'}`);
 					} catch (e) {
+						console.error('Raw Server Error Response:', reader.result);
 						alert('Gagal mendownload Transkrip. Silakan coba kembali.');
 					}
 				};

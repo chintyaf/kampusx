@@ -75,7 +75,7 @@ const ParticipantTable = ({
 					const localPointsList =
 						ticket.participant?.local_points || ticket.participant?.localPoints || [];
 					const localPointsRecord = localPointsList.find(
-						(lp) => lp.event_id === parseInt(eventId),
+						(lp) => parseInt(lp.event_id) === parseInt(eventId),
 					);
 					const pointsBalance = localPointsRecord ? localPointsRecord.points_balance : 0;
 
