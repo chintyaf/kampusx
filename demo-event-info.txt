@@ -1,0 +1,120 @@
+============================================================
+  INFORMASI LENGKAP UNTUK DEMO VIDEO - PEMBUATAN EVENT KAMPUSX
+  Event: Unlock the Power of Artificial Intelligence
+============================================================
+
+Semua field (termasuk opsional) telah disesuaikan dengan tema poster "AI Learning Workshop".
+
+1. INFORMASI UMUM EVENT (Event Info)
+------------------------------------------------------------
+[Wajib]
+Nama Event: Unlock the Power of Artificial Intelligence
+
+Deskripsi Lengkap:
+Join our hands-on AI Learning Workshop and transform your skills in the world of AI! Workshop interaktif ini diselenggarakan oleh Wardiere Inc. dan dirancang khusus bagi Anda yang ingin menguasai kecerdasan buatan dari nol (No Prior Coding Experience Required). Kita akan mempelajari Introduction to Artificial Intelligence, melakukan Practical AI Projects and Demos secara langsung, dan mengeksplorasi Real-world Applications of AI di berbagai industri. Siapkan diri Anda untuk mengadopsi teknologi masa depan!
+
+Tipe Event: Workshop
+Kategori Event: Teknologi, Edukasi
+Zona Waktu: Asia/Jakarta (WIB - GMT+7)
+
+Banner/Poster: (Upload gambar banner robot AI dari Wardiere Inc.)
+
+
+2. TANGGAL & WAKTU EVENT
+------------------------------------------------------------
+[Wajib]
+Tanggal Mulai  : 10 September 2026
+Tanggal Selesai: 10 September 2026
+
+
+3. LOKASI EVENT (Lokasi)
+------------------------------------------------------------
+Tipe Lokasi: Hybrid
+
+-- Informasi Online --
+[Wajib] Platform: Zoom Meeting
+[Opsional] Tautan Pertemuan (Meeting Link): https://zoom.us/j/aiworkshop2026
+[Opsional] Instruksi Tambahan (Online): Pastikan Anda menginstal aplikasi Zoom terbaru. Kami sangat menyarankan menggunakan laptop/PC untuk mengikuti sesi praktik (demo) dengan lebih nyaman.
+
+-- Informasi Offline --
+[Wajib] Nama Tempat    : Wardiere Tech Hub
+[Opsional] Detail Lokasi: Innovation Room, Lantai 2
+[Wajib] Provinsi       : Jawa Barat
+[Wajib] Kota           : Bandung
+[Wajib] Alamat Lengkap : Jl. Ir. H. Juanda No. 150, Lebakgede, Kecamatan Coblong
+[Wajib] Google Maps URL: https://maps.app.goo.gl/example
+[Opsional] Instruksi Akses (Offline): Area parkir tersedia di basement. Silakan tunjukkan e-ticket Anda di meja registrasi lantai dasar untuk mendapatkan nametag peserta.
+
+
+4. SESI / JADWAL (Sesi)
+------------------------------------------------------------
+--- Sesi 1 ---
+[Wajib] Judul Sesi   : Introduction to Artificial Intelligence
+[Opsional] Deskripsi Sesi: Pengenalan konsep dasar AI, Machine Learning, dan Deep Learning dengan bahasa yang mudah dipahami oleh pemula.
+[Wajib] Tanggal      : 10 September 2026
+[Wajib] Waktu Mulai  : 09:00
+[Wajib] Waktu Selesai: 10:30
+
+--- Sesi 2 ---
+[Wajib] Judul Sesi   : Practical AI Projects and Demos
+[Opsional] Deskripsi Sesi: Sesi hands-on di mana peserta akan mencoba langsung menggunakan tools AI untuk menyelesaikan studi kasus dunia nyata (Real-world Applications).
+[Wajib] Tanggal      : 10 September 2026
+[Wajib] Waktu Mulai  : 10:45
+[Wajib] Waktu Selesai: 12:30
+
+
+5. PEMBICARA (Speaker)
+------------------------------------------------------------
+--- Pembicara 1 ---
+[Wajib] Nama       : Alex Wardiere, M.Cs.
+[Wajib] Jabatan    : Lead AI Researcher
+[Opsional] Institusi: Wardiere Inc.
+[Opsional] Bio Singkat: Alex adalah pakar AI yang telah memimpin berbagai proyek implementasi kecerdasan buatan untuk perusahaan multinasional. Ia sangat bersemangat mendemokratisasi akses edukasi AI untuk semua kalangan.
+[Opsional] Keahlian (Expertise): Artificial Intelligence, Machine Learning, Python
+[Opsional] Sosial Media:
+   - LinkedIn: https://linkedin.com/in/alexwardiere
+   - Website: https://reallygreatsite.com
+
+
+6. TIKET (Harga & Kapasitas)
+------------------------------------------------------------
+--- Tiket 1 ---
+[Wajib] Nama Tiket : Workshop Pass (Hybrid)
+[Opsional] Deskripsi Tiket: Akses untuk mengikuti workshop baik secara online maupun offline, sudah termasuk sertifikat digital.
+[Wajib] Jenis Harga: Gratis (Harga: 0)
+[Wajib] Kapasitas  : Terbatas (200)
+[Wajib] Mulai Pendaftaran : 01 Agustus 2026 09:00
+[Wajib] Akhir Pendaftaran : 09 September 2026 23:59
+
+
+7. FORMULIR PENDAFTARAN (Custom Checkout Questions) - Opsional
+------------------------------------------------------------
+(Bisa ditambahkan jika ingin meminta data ekstra dari peserta saat checkout)
+
+--- Pertanyaan 1 ---
+Pertanyaan (Label): Apakah Anda memiliki pengalaman coding sebelumnya?
+Tipe Jawaban      : Dropdown
+Pilihan Jawaban   : Belum Ada / Tingkat Dasar / Mahir
+Wajib Diisi (Required): Ya
+
+--- Pertanyaan 2 ---
+Pertanyaan (Label): Apa motivasi utama Anda mempelajari AI?
+Tipe Jawaban      : Text
+Wajib Diisi (Required): Tidak (Opsional)
+
+
+8. CHECKLIST SEBELUM PUBLISH
+------------------------------------------------------------
+[ ] Judul event terisi
+[ ] Deskripsi terisi (minimal 50 karakter)
+[ ] Banner/poster terunggah
+[ ] Tanggal mulai & selesai terisi
+[ ] Zona waktu terisi
+[ ] Minimal 1 kategori dipilih
+[ ] Minimal 1 tipe event dipilih
+[ ] Lokasi diatur dengan detail lengkap
+[ ] Minimal 1 tiket dibuat
+[ ] Minimal 1 sesi/jadwal dibuat dengan waktu lengkap
+[ ] Setiap sesi memiliki pembicara
+
+============================================================
