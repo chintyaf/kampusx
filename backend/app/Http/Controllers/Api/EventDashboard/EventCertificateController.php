@@ -129,6 +129,8 @@ class EventCertificateController extends Controller
 
             DB::commit();
 
+            \App\Services\CertificateNotificationHelper::checkAndNotify($validated['event_id']);
+
             return response()->json(['message' => 'Template Sertifikat berhasil disimpan!']);
 
         } catch (\Exception $e) {

@@ -143,6 +143,8 @@ class StaffController extends Controller
             // Perbarui status tiket menjadi used
             $ticket->update(['status' => 'used']);
 
+            \App\Services\CertificateNotificationHelper::checkAndNotify($event->id, $ticket->participant_id);
+
             // Auto reward check-in points
             $this->awardAttendancePoints($ticket, $event->id);
 
@@ -260,6 +262,8 @@ class StaffController extends Controller
 
             // Perbarui status tiket menjadi used
             $ticket->update(['status' => 'used']);
+
+            \App\Services\CertificateNotificationHelper::checkAndNotify($event->id, $ticket->participant_id);
 
             // Auto reward check-in points
             $this->awardAttendancePoints($ticket, $event->id);

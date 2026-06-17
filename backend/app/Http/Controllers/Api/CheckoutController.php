@@ -72,6 +72,7 @@ class CheckoutController extends Controller
                     'user_id'     => $user->id,
                     'amount'      => 0,
                     'total_price' => 0,
+                    'status'      => 'paid',
                     'paid_at'     => now(), // Langsung lunas
                 ]);
 
@@ -92,6 +93,19 @@ class CheckoutController extends Controller
                         'qr_token'       => Str::uuid()->toString(),
                         'status'         => 'active', // Tiket langsung aktif
                     ]);
+                }
+
+                $user->notify(new \App\Notifications\OperationalNotification(
+                    "Pendaftaran Berhasil!",
+                    "Selamat! Tiket gratis Anda untuk event '{$event->title}' berhasil didaftarkan.",
+                    "payment_success",
+                    ['event_id' => $event->id]
+                ));
+
+                // Sync event categories to user personalization
+                $categoryIds = $event->categories()->pluck('categories.id')->toArray();
+                if (!empty($categoryIds)) {
+                    $user->categories()->syncWithoutDetaching($categoryIds);
                 }
 
                 DB::commit();
@@ -153,6 +167,13 @@ class CheckoutController extends Controller
                 ];
 
                 $snapToken = Snap::getSnapToken($params);
+
+                $user->notify(new \App\Notifications\OperationalNotification(
+                    "Menunggu Pembayaran",
+                    "Tiket Anda untuk event '{$event->title}' berhasil dipesan. Selesaikan pembayaran Anda sebelum kedaluwarsa.",
+                    "payment_pending",
+                    ['event_id' => $event->id]
+                ));
 
                 DB::commit();
 

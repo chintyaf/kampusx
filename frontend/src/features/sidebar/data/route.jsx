@@ -186,6 +186,12 @@ export const MENU_ITEMS = {
 				{ name: 'Log Redeem', path: 'redemptions' },
 			],
 		},
+		{
+			id: 'transaksi-event',
+			name: 'Transaksi',
+			icon: <Wallet size={16} className="me-2" />,
+			path: '/organizer/:eventId/event-dashboard/transaksi',
+		},
 		// {
 		// 	id: 'survey-form',
 		// 	name: 'Survei & Feedback',

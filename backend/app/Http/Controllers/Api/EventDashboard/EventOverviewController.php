@@ -168,8 +168,8 @@ class EventOverviewController extends Controller
 
         $revenue = \DB::table('orders')
             ->where('event_id', $eventId)
-            ->whereNotNull('paid_at')
-            ->sum('total_price') ?: 0;
+            ->where('status', 'paid')
+            ->sum('amount') ?: 0;
 
         if ($revenue >= 1000000) {
             $revenueText = 'Rp ' . number_format($revenue / 1000000, 1, ',', '.') . 'jt';
@@ -717,7 +717,6 @@ class EventOverviewController extends Controller
                 'tickets.created_at as date'
             )
             ->orderBy('tickets.created_at', 'desc')
-            ->limit(10)
             ->get();
 
         $transactions = $transactionsRaw->map(function ($tx) {
@@ -725,10 +724,10 @@ class EventOverviewController extends Controller
                 'code' => $tx->code,
                 'name' => $tx->name,
                 'email' => $tx->email,
-                'tier' => 'Ticket', // Should join with event_tickets properly if available
+                'tier' => 'Ticket', 
                 'qty' => 1,
                 'total' => $tx->total,
-                'status' => $tx->ticket_status === 'cancelled' ? 'Refunded' : ($tx->order_status === 'paid' ? 'Paid' : 'Pending'),
+                'status' => $tx->order_status === 'paid' ? 'Paid' : 'Pending',
                 'date' => \Carbon\Carbon::parse($tx->date)->format('Y-m-d')
             ];
         });

@@ -11,6 +11,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import EventCard from '../components/event/EventCard';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 // ── Shared chip style ─────────────────────────────────────────────────────────
 const chipStyle = {
@@ -164,6 +165,7 @@ const FilterSidebar = ({ filters, onChange, onReset, dbCategories = [], dbEventT
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const ExploreEvents = () => {
+    const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     
@@ -269,10 +271,12 @@ const ExploreEvents = () => {
                     api.get('/events', { params }),
                     api.get('/categories'),
                     api.get('/event-types'),
-                    api.get('/events/personalized').catch((err) => {
-                        console.error('Gagal memuat event personalisasi:', err);
-                        return { data: { data: [] } };
-                    })
+                    isAuthenticated
+                        ? api.get('/events/personalized').catch((err) => {
+                            console.error('Gagal memuat event personalisasi:', err);
+                            return { data: { data: [] } };
+                          })
+                        : Promise.resolve({ data: { data: [] } })
                 ]);
 
                 const result = eventsRes.data;
@@ -418,7 +422,7 @@ const ExploreEvents = () => {
                     {/* ── Content Area ────────────────────────────────────────────── */}
                     <Col lg={9}>
                         {/* Section 1: Personalized Events */}
-                        {!isLoading && activeCount === 0 && !filters.search && personalizedEvents.length > 0 && (
+                        {!isLoading && isAuthenticated && activeCount === 0 && !filters.search && personalizedEvents.length > 0 && (
                             <div style={{ marginBottom: 40 }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
                                     {/* <Sparkles size={18} color="var(--color-primary)" /> */}
@@ -427,7 +431,7 @@ const ExploreEvents = () => {
                                     </h3>
                                 </div>
                                 <Row className="g-4">
-                                    {personalizedEvents.slice(0, 3).map((ev) => (
+                                    {personalizedEvents.map((ev) => (
                                         <Col xs={12} md={6} xl={4} key={`pers-${ev.id}`}>
                                             <EventCard ev={ev} onClick={() => navigate(`/event/${ev.slug || ev.id}`)} />
                                         </Col>
