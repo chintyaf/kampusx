@@ -11,9 +11,12 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 	});
 
 	// Gunakan justify-content-between agar dot terdorong ke kanan
-	const navLinkClass = ({ isActive }) =>
-		`nav-link custom-menu-item d-flex align-items-center border-0 ${
-			isActive || isChildActive ? 'active' : ''
+	const parentNavLinkClass = ({ isActive }) =>
+		`nav-link custom-menu-item d-flex align-items-center border-0 ${isActive || isChildActive ? 'active' : ''
+		} ${isSidebarCollapsed ? 'justify-content-center' : 'justify-content-between'}`;
+
+	const childNavLinkClass = ({ isActive }) =>
+		`nav-link custom-menu-item d-flex align-items-center border-0 ${isActive ? 'active' : ''
 		} ${isSidebarCollapsed ? 'justify-content-center' : 'justify-content-between'}`;
 
 	// --- Helper Lingkaran Status (Hanya render jika isCompleted didefinisikan) ---
@@ -49,7 +52,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		return (
 			<NavLink
 				to={item.path}
-				className={navLinkClass}
+				className={parentNavLinkClass}
 				end
 				title={isSidebarCollapsed ? item.name : ''}
 			>
@@ -68,7 +71,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		<>
 			<button
 				onClick={() => toggle(item.id)}
-				className={`${navLinkClass({ isActive: isChildActive })} w-100`}
+				className={`${parentNavLinkClass({ isActive: isChildActive })} w-100`}
 				title={isSidebarCollapsed ? item.name : ''}
 				style={{
 					textAlign: 'left',
@@ -102,7 +105,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 									<li key={idx}>
 										<NavLink
 											to={`${item.path}/${sub.path}`}
-											className={navLinkClass}
+											className={childNavLinkClass}
 										>
 											<span className="d-flex align-items-center">
 												{sub.name}

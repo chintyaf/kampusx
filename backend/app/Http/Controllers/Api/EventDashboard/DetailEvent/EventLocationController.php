@@ -105,37 +105,4 @@ class EventLocationController extends Controller
         }
     }
 
-    /**
-     * Private Helper untuk Auto-Generate Tiket
-     */
-    // private function autoGenerateTickets($eventId, $eventType)
-    // {
-    //     // 1. Handle Tiket Online (Buat jika event online/hybrid, hapus jika event offline)
-    //     if (in_array($eventType, ['online', 'hybrid'])) {
-    //         EventTicket::firstOrCreate(
-    //             ['event_id' => $eventId, 'type' => 'online'],
-    //             [
-    //                 'name'    => 'Tiket Akses Online',
-    //                 'is_free' => true,
-    //                 'price'   => 0,
-    //             ]
-    //         );
-    //     } else {
-    //         EventTicket::where('event_id', $eventId)->where('type', 'online')->delete();
-    //     }
-
-    //     // 2. Handle Tiket Offline (Buat jika event offline/hybrid, hapus jika event online)
-    //     if (in_array($eventType, ['offline', 'hybrid'])) {
-    //         EventTicket::firstOrCreate(
-    //             ['event_id' => $eventId, 'type' => 'offline'],
-    //             [
-    //                 'name'    => 'Tiket Akses Offline',
-    //                 'is_free' => true,
-    //                 'price'   => 0,
-    //             ]
-    //         );
-    //     } else {
-    //         EventTicket::where('event_id', $eventId)->where('type', 'offline')->delete();
-    //     }
-    // }
 }

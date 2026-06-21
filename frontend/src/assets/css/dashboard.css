@@ -100,6 +100,12 @@ main {
 	border-radius: 0 12px 12px 0 !important;
 }
 
+/* Fix untuk sub-menu yang aktif agar tidak memiliki garis kiri (karena parent sudah punya) dan memiliki rounded yang full */
+.submenu-collapse .custom-menu-item.active {
+	border-left: none !important;
+	border-radius: 8px !important;
+}
+
 .custom-menu-item.active,
 .custom-menu-item.active .menu-text,
 .custom-menu-item.active .menu-icon {

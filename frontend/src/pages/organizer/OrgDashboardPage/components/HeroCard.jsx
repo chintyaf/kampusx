@@ -61,7 +61,7 @@ export const HeroCard = ({ heroEvent }) => {
 					</Link>
 					<Link
 						to={`/organizer/${heroEvent.id}/event-pos`}
-						className="btn btn-outline-dark px-4 py-2 fw-medium fs-4 rounded-2"
+						className="btn btn-outline-dark px-4 py-2 fw-medium fs-4 rounded-2 d-none"
 					>
 						Buka Scanner
 					</Link>

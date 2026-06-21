@@ -12,9 +12,9 @@ class EventTicketController extends Controller
 {
     public function index(int $eventId)
     {
-        // 1. Ambil data event beserta relasi lokasinya
         $event = Event::with('locationDetail')->findOrFail($eventId);
 
+        // Cek apakah ada informasi yang belum diisi
         $missingSteps = [];
         if ($event->eventTypes()->count() === 0) {
             $missingSteps[] = 'tipe_event';
@@ -68,7 +68,6 @@ class EventTicketController extends Controller
         }
 
         // Ambil tipe lokasi (default ke offline jika null)
-        // Note: Saya sesuaikan pemanggilan relasinya ke 'locationDetail' sesuai dengan query 'with' di atas
         $locationType = $event->locationDetail->type ?? 'offline';
 
         // 3. Tentukan tipe tiket yang DIBUTUHKAN berdasarkan tipe lokasi event

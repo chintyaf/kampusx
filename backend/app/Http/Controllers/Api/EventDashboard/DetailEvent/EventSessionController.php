@@ -195,11 +195,6 @@ class EventSessionController extends Controller
 
     }
 
-    /**
-     * Sinkronisasi start_date & end_date Event berdasarkan data sesi yang ada.
-     * Menggabungkan date + start_time/end_time dari sesi untuk mendapatkan
-     * datetime yang akurat di level event.
-     */
     private function syncEventDatesFromSessions(Event $event): void
     {
         $sessions = $event->sessions()

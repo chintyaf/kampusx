@@ -108,7 +108,12 @@ const EventDetail = () => {
 		}
 
 		navigate(`/checkout/${eventDetails?.id}?ticketId=${selectedTicket}`);
-		console.log('Navigasi ke halaman checkout dengan ID event:', eventDetails?.id, 'ticketId:', selectedTicket);
+		console.log(
+			'Navigasi ke halaman checkout dengan ID event:',
+			eventDetails?.id,
+			'ticketId:',
+			selectedTicket,
+		);
 	};
 
 	const handleToggleBookmark = async () => {
@@ -175,9 +180,9 @@ const EventDetail = () => {
 			'Asia/Jakarta': 'WIB',
 			'Asia/Makassar': 'WITA',
 			'Asia/Jayapura': 'WIT',
-			'WIB': 'WIB',
-			'WITA': 'WITA',
-			'WIT': 'WIT',
+			WIB: 'WIB',
+			WITA: 'WITA',
+			WIT: 'WIT',
 		};
 		return mapping[tz] || tz;
 	};

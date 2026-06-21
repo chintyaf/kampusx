@@ -13,3 +13,4 @@ frontend/.env
 # /frontend
 frontend/dist.zip
 *.zip
+backend/app/Http/Controllers/Api/EventDashboard/DetailEvent/EventTicketController.php
