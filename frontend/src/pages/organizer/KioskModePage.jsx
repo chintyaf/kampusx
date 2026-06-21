@@ -129,7 +129,7 @@ export default function KioskModePage({ isStaff = false }) {
 				if (res.data.success) {
 					const mapped = res.data.data.map(ticket => {
 						const pointsList = ticket.participant?.local_points || ticket.participant?.localPoints || [];
-						const pointsRecord = pointsList.find(lp => lp.event_id === parseInt(eventId));
+						const pointsRecord = pointsList.find(lp => parseInt(lp.event_id) === parseInt(eventId));
 						return {
 							ticket_code: ticket.ticket_code,
 							name: ticket.attendee_name,

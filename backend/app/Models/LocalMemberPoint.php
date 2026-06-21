@@ -20,6 +20,12 @@ class LocalMemberPoint extends Model
         'points_balance',  // Saldo poin saat ini
     ];
 
+    protected $casts = [
+        'user_id' => 'integer',
+        'event_id' => 'integer',
+        'points_balance' => 'integer',
+    ];
+
     /**
      * Relasi ke User pemilik poin.
      */

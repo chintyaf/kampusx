@@ -50,7 +50,22 @@ const ProfileHeader = ({ profile = {}, interests = [], isOwnProfile = false }) =
 			window.URL.revokeObjectURL(downloadUrl);
 		} catch (error) {
 			console.error('Error generating Transkrip PDF:', error);
-			alert('Gagal mendownload Transkrip. Silakan coba kembali.');
+			if (error.response && error.response.data instanceof Blob) {
+				const reader = new FileReader();
+				reader.onload = () => {
+					try {
+						const errorJson = JSON.parse(reader.result);
+						console.error('Detailed Server Error:', errorJson);
+						alert(`Gagal mendownload Transkrip: ${errorJson.message || 'Error internal server'}`);
+					} catch (e) {
+						console.error('Raw Server Error Response:', reader.result);
+						alert('Gagal mendownload Transkrip. Silakan coba kembali.');
+					}
+				};
+				reader.readAsText(error.response.data);
+			} else {
+				alert('Gagal mendownload Transkrip. Silakan coba kembali.');
+			}
 		} finally {
 			setIsGeneratingCV(false);
 		}
