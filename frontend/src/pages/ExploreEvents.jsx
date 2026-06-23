@@ -41,9 +41,9 @@ const FilterSidebar = ({ filters, onChange, onReset, dbCategories = [], dbEventT
 
         <div style={{ padding: '20px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}>
             <Form>
-                {/* Tipe Lokasi */}
+                {/* Tipe Lokasi -> Format Event */}
                 <Form.Group style={{ marginBottom: 24 }}>
-                    <Form.Label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 12 }}>Tipe Lokasi</Form.Label>
+                    <Form.Label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-text)', marginBottom: 12 }}>Format Event</Form.Label>
                     {['Online', 'In-Person'].map((type) => (
                         <Form.Check
                             key={type}
