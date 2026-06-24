@@ -212,10 +212,18 @@ class EventController extends Controller
             'eventTypes',
             'eventTickets',
             'speakers',
-            'sessions' => function($q) {
-                $q->orderBy('day_number', 'asc')
-                  ->orderBy('start_time', 'asc')
-                  ->with('speakers');
+            'sessions' => function($q) use ($event) {
+                $authUser = auth('sanctum')->user();
+                if ($authUser && (int) $event->organizer_id === (int) $authUser->id) {
+                    $q->orderBy('day_number', 'asc')
+                      ->orderBy('start_time', 'asc')
+                      ->with('speakers');
+                } else {
+                    $q->where('is_published', true)
+                      ->orderBy('day_number', 'asc')
+                      ->orderBy('start_time', 'asc')
+                      ->with('speakers');
+                }
             }
         ]);
 

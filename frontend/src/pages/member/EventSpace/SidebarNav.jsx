@@ -127,12 +127,12 @@ const SidebarNav = ({ activeTab, setActiveTab, memberPoints, alreadySubmitted, c
 							>
 								<BookOpen size={18} className="me-3" /> Materi Pembelajaran
 							</Nav.Link>
-							<Nav.Link
+							{/* <Nav.Link
 								className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'diskusi' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
 								onClick={() => setActiveTab('diskusi')}
 							>
 								<MessageCircle size={18} className="me-3" /> Forum Diskusi
-							</Nav.Link>
+							</Nav.Link> */}
 							<Nav.Link
 								className={`d-flex align-items-center px-3 py-2.5 rounded-3 fw-medium ${activeTab === 'pengumuman' ? 'bg-primary text-white shadow-sm' : 'text-dark hover-bg-light'}`}
 								onClick={() => setActiveTab('pengumuman')}
