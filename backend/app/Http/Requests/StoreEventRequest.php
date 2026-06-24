@@ -25,7 +25,7 @@ class StoreEventRequest extends FormRequest
         // Rule dasar (hanya title yang wajib)
         $rules = [
             'title' => 'required|string|max:200',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
             'kategori_ids' => 'nullable|array',
             'kategori_ids.*' => 'nullable|exists:categories,id',
             'event_type_ids' => 'nullable|array',
@@ -35,7 +35,7 @@ class StoreEventRequest extends FormRequest
 
         // Jika user ingin langsung 'published', paksa field lain jadi 'required'
         if ($this->status === 'published') {
-            $rules['description'] = 'required|string';
+            $rules['description'] = 'required|string|max:1000';
             $rules['location_type'] = 'required|in:offline,online,hybrid';
             $rules['start_date'] = 'required|date';
             $rules['end_date'] = 'required|date|after_or_equal:start_date';

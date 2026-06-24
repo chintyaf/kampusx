@@ -28,7 +28,7 @@ class EventPublishRequest extends FormRequest
             // ==========================================
             'institution_id' => ['required', 'exists:institutions,id'],
             'title'          => ['required', 'string', 'max:200'],
-            'description'    => ['required', 'string'],
+            'description'    => ['required', 'string', 'max:1000'],
             // Diasumsikan dikirim sebagai file, akan disimpan dan path-nya masuk DB
             'image_path'          => ['required', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'start_date'     => ['required', 'date', 'before:end_date'],

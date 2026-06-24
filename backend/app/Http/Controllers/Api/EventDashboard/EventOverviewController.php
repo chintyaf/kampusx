@@ -44,7 +44,7 @@ class EventOverviewController extends Controller
         $validated = $request->validate([
             'title'       => 'required|string|max:255',
             'slug'        => 'nullable|string|max:255|unique:events,slug,' . $eventId,
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
             'categories'  => 'nullable|array',
             'categories.*'=> 'exists:categories,id'
         ]);
@@ -492,27 +492,6 @@ class EventOverviewController extends Controller
                 'hint'      => 'Diperlukan agar peserta online bisa bergabung ke sesi.'
             ],
 
-            // Item 2: Link Presensi Online — hanya relevan untuk event online/hybrid
-            // Selesai jika KEDUA link (check-in & check-out) sudah dibuat
-            [
-                'id'        => 'online_attendance',
-                'label'     => 'Buat Link Presensi Online (Check-in & Check-out)',
-                'completed' => $hasOnlineLinks,
-                'required'  => $isOnlineOrHybrid,
-                'link'      => "/organizer/{$eventId}/event-dashboard/check-in",
-                'hint'      => 'Peserta online menggunakan magic link untuk konfirmasi kehadiran mereka.'
-            ],
-
-            // Item 3: Scanner/POS Station — hanya relevan untuk event offline/hybrid
-            [
-                'id'        => 'pos',
-                'label'     => 'Atur Stasiun Scanner / Pos Check-in (QR)',
-                'completed' => $hasStations,
-                'required'  => $isOfflineOrHybrid,
-                'link'      => "/organizer/{$eventId}/event-dashboard/check-in",
-                'hint'      => 'Panitia akan men-scan QR tiket peserta di lokasi menggunakan pos ini.'
-            ],
-
             // Item 4: Sertifikat
             [
                 'id'        => 'certificate',
@@ -770,7 +749,7 @@ class EventOverviewController extends Controller
         }
 
         if ($request->query('dynamic') === 'true') {
-            $expiresAt = \Carbon\Carbon::now()->addMinutes(10)->format('Y-m-d H:i:s');
+            $expiresAt = \Carbon\Carbon::now()->addMinutes(2)->format('Y-m-d H:i:s');
         } else {
             $expiresAt = $request->query('expires_at');
         }

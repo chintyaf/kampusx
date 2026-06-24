@@ -10,8 +10,9 @@ import TicketPrerequisitesWarning from './sections/event-location/TicketPrerequi
 
 // Helper: Ekstrak logika parsing harga
 const parsePriceNum = (val) => {
-	if (!val) return 0;
-	return parseInt(String(val).replace(/\D/g, ''), 10) || 0;
+	if (val === undefined || val === null || val === '') return 0;
+	const cleanVal = String(val).split('.')[0];
+	return parseInt(cleanVal.replace(/\D/g, ''), 10) || 0;
 };
 
 // Helper: Dapatkan string ISO lokal (YYYY-MM-DDTHH:mm)

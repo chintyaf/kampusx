@@ -42,7 +42,7 @@ class EventLocationController extends Controller
 
             // Field Online
             'platform'            => 'nullable|string',
-            'meeting_link'        => 'required_if:type,online,hybrid|nullable|url',
+            'meeting_link'        => 'nullable|url',
             'online_instruction'  => 'nullable|string',
 
             // Field Offline (Perhatikan: di DB nama kolomnya 'location_name', bukan 'location')

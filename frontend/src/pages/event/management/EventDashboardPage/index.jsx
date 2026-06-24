@@ -325,13 +325,13 @@ export default function EventDashboardPage() {
 				</Card>
 			)}
 
-			{/* Kelola Link Presensi Online */}
-			{['published', 'ongoing', 'paused', 'post_event'].includes(eventStatus) &&
+			{/* Kelola Link Presensi Online (Di-hide) */}
+			{/* {['published', 'ongoing', 'paused', 'post_event'].includes(eventStatus) &&
 				['online', 'hybrid'].includes(eventData.location_type || 'offline') && (
 					<div className="mb-4">
 						<MultiSessionAttendanceTool />
 					</div>
-				)}
+				)} */}
 
 			{/* Sesi & Pembicara */}
 			<Row className="g-3 mb-4">

@@ -146,7 +146,7 @@ const EventSpace = () => {
 			case 'pengumuman':
 				return (
 					<div className="fade-in">
-						<EventAnnouncementsTab eventId={id} />
+						<EventAnnouncementsTab eventId={event?.id || id} />
 					</div>
 				);
 			case 'sertifikat':

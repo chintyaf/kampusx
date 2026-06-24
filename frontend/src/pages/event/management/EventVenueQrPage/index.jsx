@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import api from '@/api/axios';
 
-const REFRESH_INTERVAL = 300000; // 5 menit
+const REFRESH_INTERVAL = 15000; // 15 detik (normal dynamic QR)
 
 export default function EventVenueQrPage() {
 	const { eventId } = useParams();
@@ -43,7 +43,7 @@ export default function EventVenueQrPage() {
 					setEventTitle(res.data.data.name);
 				}
 			})
-			.catch(() => {});
+			.catch(() => { });
 	}, [eventId]);
 
 	// Fetch QR data
@@ -118,27 +118,27 @@ export default function EventVenueQrPage() {
 	// Color palette per mode
 	const theme = isCheckin
 		? {
-				bg: '#f8fafc',
-				accent: '#16a34a',
-				accentDim: '#dcfce7',
-				accentBorder: '#bbf7d0',
-				badge: '#dcfce7',
-				badgeText: '#14532d',
-				label: 'CHECK-IN',
-				icon: CheckCircle2,
-				pulse: '#22c55e',
-			}
+			bg: '#f8fafc',
+			accent: '#16a34a',
+			accentDim: '#dcfce7',
+			accentBorder: '#bbf7d0',
+			badge: '#dcfce7',
+			badgeText: '#14532d',
+			label: 'CHECK-IN',
+			icon: CheckCircle2,
+			pulse: '#22c55e',
+		}
 		: {
-				bg: '#f8fafc',
-				accent: '#ec4899',
-				accentDim: '#fce7f3',
-				accentBorder: '#fbcfe8',
-				badge: '#fce7f3',
-				badgeText: '#831843',
-				label: 'CHECK-OUT',
-				icon: LogOut,
-				pulse: '#f472b6',
-			};
+			bg: '#f8fafc',
+			accent: '#ec4899',
+			accentDim: '#fce7f3',
+			accentBorder: '#fbcfe8',
+			badge: '#fce7f3',
+			badgeText: '#831843',
+			label: 'CHECK-OUT',
+			icon: LogOut,
+			pulse: '#f472b6',
+		};
 
 	const ModeIcon = theme.icon;
 
@@ -467,7 +467,7 @@ export default function EventVenueQrPage() {
 									QR diperbarui setiap
 								</div>
 								<div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: '600' }}>
-									5 menit otomatis
+									15 detik otomatis
 								</div>
 							</div>
 						</div>

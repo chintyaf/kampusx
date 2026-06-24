@@ -135,6 +135,50 @@ class MemberPesertaQATest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_b8_event_space_post_event_sessions_hides_drafts()
+    {
+        // Beri user tiket agar bisa akses materials
+        $order = Order::create([
+            'order_id' => 'ORD-TEST-MAT-2',
+            'user_id' => $this->user->id,
+            'event_id' => $this->event->id,
+            'amount' => 0,
+            'total_price' => 0,
+            'status' => 'paid',
+        ]);
+        $item = OrderItem::create(['order_id' => $order->id, 'quantity' => 1, 'price' => 0]);
+        Ticket::create([
+            'participant_id' => $this->user->id,
+            'order_item_id' => $item->id,
+            'attendee_name' => 'Budi',
+            'attendee_email' => 'budi@test.com',
+            'ticket_code' => 'TCK-MAT-2',
+            'qr_token' => \Illuminate\Support\Str::uuid()->toString(),
+        ]);
+
+        // Buat 1 sesi published dan 1 sesi draft
+        $publishedSession = \App\Models\EventSession::create([
+            'event_id' => $this->event->id,
+            'title' => 'Published Session Title',
+            'description' => 'Published Session Desc',
+            'is_published' => true,
+        ]);
+
+        $draftSession = \App\Models\EventSession::create([
+            'event_id' => $this->event->id,
+            'title' => 'Draft Session Title',
+            'description' => 'Draft Session Desc',
+            'is_published' => false,
+        ]);
+
+        $response = $this->actingAs($this->user)->getJson("/api/events/{$this->event->id}/post-event/sessions");
+        $response->assertStatus(200);
+
+        $data = $response->json('data');
+        $this->assertCount(1, $data);
+        $this->assertEquals('Published Session Title', $data[0]['title']);
+    }
+
     // B9: Bookmarks
     public function test_b9_toggle_bookmark()
     {

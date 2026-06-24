@@ -318,7 +318,6 @@ export const useEventSession = (eventId) => {
 			return newDays;
 		});
 		setSelectedRow(updatedSession);
-		notify('success', 'Berhasil!', 'Sesi berhasil diperbarui.');
 		handleSave(false, nextDays);
 	};
 

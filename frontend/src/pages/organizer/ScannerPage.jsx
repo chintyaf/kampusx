@@ -213,7 +213,7 @@ const ScannerPage = () => {
 							<div className="p-4 bg-light min-vh-50 d-flex flex-column align-items-center justify-content-center text-center">
 								<h5 className="fw-bold mb-3">Presensi Online (Link Temporer)</h5>
 								<p className="text-muted mb-4 px-3">
-									Buat "Magic Link" unik yang bisa dibagikan kepada peserta online (misal via Zoom Chat). 
+									Buat "Magic Link" unik yang bisa dibagikan kepada peserta online (misal via Zoom Chat).
 									Peserta hanya perlu mengklik link tersebut untuk mencatat kehadiran mereka.
 								</p>
 
@@ -225,11 +225,11 @@ const ScannerPage = () => {
 										Check-out (Keluar)
 									</ToggleButton>
 								</ToggleButtonGroup>
-								
+
 								{!onlineLink ? (
-									<Button 
-										variant="primary" 
-										size="lg" 
+									<Button
+										variant="primary"
+										size="lg"
 										className="rounded-pill px-4 fw-semibold shadow-sm"
 										onClick={handleGenerateLink}
 										disabled={loadingLink}
@@ -252,8 +252,8 @@ const ScannerPage = () => {
 												<Copy size={18} />
 											</Button>
 										</InputGroup>
-										<Button 
-											variant="light" 
+										<Button
+											variant="light"
 											className="mt-2"
 											onClick={handleGenerateLink}
 											disabled={loadingLink}

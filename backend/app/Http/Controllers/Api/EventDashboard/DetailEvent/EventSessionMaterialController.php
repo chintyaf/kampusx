@@ -99,6 +99,7 @@ class EventSessionMaterialController extends Controller
                     $query->orderBy('sort_order', 'asc');
                 }])
                 ->where('event_id', $event->id)
+                ->where('is_published', true)
                 ->orderBy('date', 'asc')
                 ->orderBy('start_time', 'asc')
                 ->get();

@@ -50,8 +50,9 @@ function TicketCard({
 	};
 
 	const formatRp = (val) => {
-		if (!val) return '';
-		const n = parseInt(String(val).replace(/\D/g, ''), 10);
+		if (val === undefined || val === null || val === '') return '';
+		const cleanVal = String(val).split('.')[0];
+		const n = parseInt(cleanVal.replace(/\D/g, ''), 10);
 		return isNaN(n) ? '' : n.toLocaleString('id-ID').replace(/,/g, '.');
 	};
 
@@ -88,7 +89,8 @@ function TicketCard({
 	let priceWarning = '';
 	// Jika tiket berbayar (tidak gratis) tapi harga kosong atau 0
 	if (!ticket.isFree) {
-		const numericPrice = parseInt(String(ticket.price || '0').replace(/\D/g, ''), 10);
+		const cleanPrice = String(ticket.price || '0').split('.')[0];
+		const numericPrice = parseInt(cleanPrice.replace(/\D/g, ''), 10);
 		if (isNaN(numericPrice) || numericPrice <= 0) {
 			priceWarning = 'Harga tiket wajib diisi dan harus lebih dari 0.';
 		}

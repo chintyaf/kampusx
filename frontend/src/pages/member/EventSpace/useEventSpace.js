@@ -221,7 +221,7 @@ export const useEventSpace = () => {
 										: notif.data || {};
 
 								const notifEventId = notifData.event_id;
-								const matchesEvent = String(notifEventId) === String(id);
+								const matchesEvent = String(notifEventId) === String(eventData.id || id);
 
 								const relevantTypes = ['event_updated', 'H-24', 'H-1', 'M-15'];
 								const matchesType = relevantTypes.includes(notifData.type);

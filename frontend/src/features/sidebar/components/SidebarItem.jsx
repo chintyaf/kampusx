@@ -15,8 +15,16 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		`nav-link custom-menu-item d-flex align-items-center border-0 ${isActive || isChildActive ? 'active' : ''
 		} ${isSidebarCollapsed ? 'justify-content-center' : 'justify-content-between'}`;
 
+	// Kelas khusus untuk parent yang memiliki submenu:
+	// - 'expanded-active' jika child aktif (tidak ada border kiri biru, hanya indikator terbuka)
+	// - 'active' hanya jika parent itu sendiri yang aktif
+	const parentWithSubmenuClass = () =>
+		`nav-link custom-menu-item d-flex align-items-center border-0 ${
+			isChildActive ? 'expanded-active' : ''
+		} ${isSidebarCollapsed ? 'justify-content-center' : 'justify-content-between'}`;
+
 	const childNavLinkClass = ({ isActive }) =>
-		`nav-link custom-menu-item d-flex align-items-center border-0 ${isActive ? 'active' : ''
+		`nav-link custom-menu-item custom-submenu-item d-flex align-items-center border-0 ${isActive ? 'active' : ''
 		} ${isSidebarCollapsed ? 'justify-content-center' : 'justify-content-between'}`;
 
 	// --- Helper Lingkaran Status (Hanya render jika isCompleted didefinisikan) ---
@@ -71,7 +79,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		<>
 			<button
 				onClick={() => toggle(item.id)}
-				className={`${parentNavLinkClass({ isActive: isChildActive })} w-100`}
+				className={`${parentWithSubmenuClass()} w-100`}
 				title={isSidebarCollapsed ? item.name : ''}
 				style={{
 					textAlign: 'left',

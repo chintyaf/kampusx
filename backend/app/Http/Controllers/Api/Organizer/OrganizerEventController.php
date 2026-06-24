@@ -29,6 +29,19 @@ class OrganizerEventController extends Controller
                     ->where('status', 'paid')
                     ->sum('amount');
 
+                // Calculate total ticket capacity
+                $capacity = (int) \DB::table('event_tickets')
+                    ->where('event_id', $event->id)
+                    ->sum('capacity');
+
+                // Calculate total check-ins (attendance logs)
+                $checkInsCount = 0;
+                if (\Illuminate\Support\Facades\Schema::hasTable('attendance_logs')) {
+                    $checkInsCount = \DB::table('attendance_logs')
+                        ->where('event_id', $event->id)
+                        ->count();
+                }
+
                 // Determine if event needs attention
                 $needsAttention = false;
                 $attentionMessage = null;
@@ -47,6 +60,8 @@ class OrganizerEventController extends Controller
                 // Append custom fields
                 $event->attendees = $attendeesCount;
                 $event->revenue = $revenue;
+                $event->capacity = $capacity;
+                $event->check_ins = $checkInsCount;
                 $event->needsAttention = $needsAttention;
                 $event->attentionMessage = $attentionMessage;
 

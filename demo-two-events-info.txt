@@ -1,0 +1,173 @@
+============================================================
+  INFORMASI DUMMY EVENT 1 (Berdasarkan Poster Cyber Monday)
+  Event: Cyber Security Awareness & Ethical Hacking Webinar
+============================================================
+
+1. INFORMASI UMUM EVENT (Event Info)
+------------------------------------------------------------
+[Wajib]
+Nama Event: Cyber Security Awareness & Ethical Hacking Webinar
+
+Deskripsi Lengkap:
+Sesi edukasi interaktif mengenai keamanan siber dan perlindungan data pribadi di era digital. Melalui webinar ini, peserta akan mendapatkan wawasan mendalam tentang jenis-jenis serangan siber terbaru, praktik terbaik dalam mengamankan akun digital, serta demo langsung (live demo) teknik hacking etis (ethical hacking) guna memahami celah keamanan sistem dari sudut pandang profesional keamanan informasi. Acara ini sangat cocok untuk mahasiswa, profesional IT, maupun pengguna internet umum yang peduli akan privasi data.
+
+Tipe Event: Seminar (Webinar)
+Kategori Event: Teknologi, Edukasi
+Zona Waktu: Asia/Jakarta (WIB - GMT+7)
+
+Banner/Poster: (Gunakan gambar dengan tema siber dengan aksen warna ungu, merah muda neon, dan pola sirkuit teknologi futuristik bertuliskan "Cyber Monday")
+
+
+2. TANGGAL & WAKTU EVENT
+------------------------------------------------------------
+[Wajib]
+Tanggal Mulai  : 15 November 2026
+Tanggal Selesai: 15 November 2026
+
+
+3. LOKASI EVENT (Lokasi)
+------------------------------------------------------------
+Tipe Lokasi: Online
+
+-- Informasi Online --
+[Wajib] Platform: Zoom Meeting
+[Opsional] Tautan Pertemuan (Meeting Link): https://zoom.us/j/cybersecurity2026
+[Opsional] Instruksi Tambahan (Online): Tautan Zoom aktif 15 menit sebelum acara dimulai. Harap gunakan nama asli saat bergabung di ruang Zoom untuk mempermudah verifikasi kehadiran.
+
+
+4. SESI / JADWAL (Sesi)
+------------------------------------------------------------
+--- Sesi 1 ---
+[Wajib] Judul Sesi   : Understanding Cyber Threats in the Modern Era
+[Opsional] Deskripsi Sesi: Membahas jenis-jenis ancaman siber modern seperti phishing, ransomware, social engineering, serta cara mengenali dan melindungi diri dari ancaman tersebut.
+[Wajib] Tanggal      : 15 November 2026
+[Wajib] Waktu Mulai  : 09:00
+[Wajib] Waktu Selesai: 10:30
+
+--- Sesi 2 ---
+[Wajib] Judul Sesi   : Introduction to Ethical Hacking and Penetration Testing
+[Opsional] Deskripsi Sesi: Sesi demonstrasi langsung (live hacking demo) di mana pembicara menunjukkan cara mendeteksi kerentanan pada sistem dan menutup celah tersebut secara etis.
+[Wajib] Tanggal      : 15 November 2026
+[Wajib] Waktu Mulai  : 10:45
+[Wajib] Waktu Selesai: 12:30
+
+
+5. PEMBICARA (Speaker)
+------------------------------------------------------------
+--- Pembicara 1 ---
+[Wajib] Nama       : Pratama Sanjaya, CISA, CEH
+[Wajib] Jabatan    : Senior Cyber Security Consultant
+[Opsional] Institusi: CyberGuard Indonesia
+[Opsional] Bio Singkat: Pratama adalah pakar keamanan siber bersertifikasi internasional dengan pengalaman lebih dari 10 tahun melakukan audit keamanan sistem informasi di berbagai korporasi fintech nasional.
+[Opsional] Keahlian (Expertise): Cyber Security, Ethical Hacking, Network Defense
+[Opsional] Sosial Media:
+   - LinkedIn: https://linkedin.com/in/pratamasanjaya
+
+
+6. TIKET (Harga & Kapasitas)
+------------------------------------------------------------
+--- Tiket 1 ---
+[Wajib] Nama Tiket : Free Access Pass (Online)
+[Opsional] Deskripsi Tiket: Akses penuh ke webinar online melalui tautan Zoom dan mendapatkan e-certificate kehadiran setelah mengisi survei pasca-acara.
+[Wajib] Jenis Harga: Gratis (Harga: 0)
+[Wajib] Kapasitas  : Terbatas (500)
+[Wajib] Mulai Pendaftaran : 01 November 2026 09:00
+[Wajib] Akhir Pendaftaran : 14 November 2026 23:59
+
+
+7. FORMULIR PENDAFTARAN (Custom Checkout Questions) - Opsional
+------------------------------------------------------------
+--- Pertanyaan 1 ---
+Pertanyaan (Label): Apakah Anda sedang bekerja di bidang IT / Cyber Security?
+Tipe Jawaban      : Dropdown
+Pilihan Jawaban   : Ya / Tidak / Sedang Belajar
+Wajib Diisi (Required): Ya
+
+
+============================================================
+  INFORMASI DUMMY EVENT 2 (Berdasarkan Desain Sertifikat Robot AI)
+  Event: Artificial Intelligence & Robotics National Competition
+============================================================
+
+1. INFORMASI UMUM EVENT (Event Info)
+------------------------------------------------------------
+[Wajib]
+Nama Event: Artificial Intelligence & Robotics National Competition
+
+Deskripsi Lengkap:
+Kompetisi inovasi teknologi tingkat nasional yang menantang kreativitas dan keahlian Anda di bidang Kecerdasan Buatan (AI) dan Robotika. Melalui ajang ini, peserta (tim) diharapkan dapat merancang solusi pintar untuk menjawab berbagai permasalahan industri maupun kehidupan sehari-hari dengan memanfaatkan teknologi machine learning, autonomous system, dan integrasi robot cerdas. Tunjukkan karya terbaik tim Anda dan raih total hadiah jutaan rupiah beserta trofi penghargaan bergengsi!
+
+Tipe Event: Kompetisi (Competition)
+Kategori Event: Teknologi, Sains, Kompetisi
+Zona Waktu: Asia/Jakarta (WIB - GMT+7)
+
+Banner/Poster: (Gunakan gambar dengan tema putih bersih, aksen heksagonal hijau, dan maskot robot putih lucu memegang piala emas, selaras dengan desain sertifikat "Participation Certificate")
+
+
+2. TANGGAL & WAKTU EVENT
+------------------------------------------------------------
+[Wajib]
+Tanggal Mulai  : 20 Desember 2026
+Tanggal Selesai: 22 Desember 2026
+
+
+3. LOKASI EVENT (Lokasi)
+------------------------------------------------------------
+Tipe Lokasi: Offline
+
+-- Informasi Offline --
+[Wajib] Nama Tempat    : Kampus X Grand Ballroom
+[Opsional] Detail Lokasi: Gedung Rektorat Lantai 3, Aula Utama
+[Wajib] Provinsi       : DKI Jakarta
+[Wajib] Kota           : Jakarta Selatan
+[Wajib] Alamat Lengkap : Jl. Jenderal Sudirman Kav. 21, Senayan, Kebayoran Baru
+[Wajib] Google Maps URL: https://maps.app.goo.gl/example
+[Opsional] Instruksi Akses (Offline): Lokasi dekat stasiun MRT Senayan. Silakan lakukan registrasi ulang dan tunjukkan kartu identitas anggota tim di meja panitia yang berada di lobi utama Gedung Rektorat.
+
+
+4. SESI / JADWAL (Sesi)
+------------------------------------------------------------
+--- Sesi 1 ---
+[Wajib] Judul Sesi   : Technical Briefing & Opening Ceremony
+[Opsional] Deskripsi Sesi: Pembukaan resmi kompetisi, penyampaian regulasi penilaian, dan pengenalan dewan juri ahli.
+[Wajib] Tanggal      : 20 Desember 2026
+[Wajib] Waktu Mulai  : 09:00
+[Wajib] Waktu Selesai: 11:30
+
+--- Sesi 2 ---
+[Wajib] Judul Sesi   : AI & Robotics Innovation Showcase
+[Opsional] Deskripsi Sesi: Sesi penilaian utama di mana finalis mempresentasikan prototipe robot atau model AI mereka secara langsung di hadapan dewan juri.
+[Wajib] Tanggal      : 21 Desember 2026
+[Wajib] Waktu Mulai  : 10:00
+[Wajib] Waktu Selesai: 16:00
+
+
+5. PEMBICARA (Dewan Juri)
+------------------------------------------------------------
+--- Pembicara 1 ---
+[Wajib] Nama       : Prof. Budi Hartono, Ph.D.
+[Wajib] Jabatan    : Head of AI & Robotics Laboratory
+[Opsional] Institusi: National Technology Institute
+[Opsional] Bio Singkat: Prof. Budi adalah peneliti senior di bidang kecerdasan buatan dan automasi industri, aktif mempublikasikan berbagai jurnal internasional terakreditasi mengenai Machine Learning dan Sensor Pintar.
+[Opsional] Keahlian (Expertise): Artificial Intelligence, Robotics, Computer Vision
+[Opsional] Sosial Media:
+   - LinkedIn: https://linkedin.com/in/budihartono
+
+
+6. TIKET (Harga & Kapasitas)
+------------------------------------------------------------
+--- Tiket 1 ---
+[Wajib] Nama Tiket : Team Registration Pass (Offline)
+[Opsional] Deskripsi Tiket: Akses pendaftaran untuk 1 tim kompetisi (maksimal 3 orang anggota), termasuk konsumsi (makan siang), merchandise eksklusif, serta sertifikat partisipasi fisik dan digital.
+[Wajib] Jenis Harga: Berbayar (Harga: 150000)
+[Wajib] Kapasitas  : Terbatas (50)
+[Wajib] Mulai Pendaftaran : 01 November 2026 09:00
+[Wajib] Akhir Pendaftaran : 10 Desember 2026 23:59
+
+
+7. FORMULIR PENDAFTARAN (Custom Checkout Questions) - Opsional
+------------------------------------------------------------
+--- Pertanyaan 1 ---
+Pertanyaan (Label): Tuliskan link portofolio / proposal singkat rancangan inovasi tim Anda!
+Tipe Jawaban      : Text
+Wajib Diisi (Required): Ya

@@ -166,7 +166,7 @@ const EventPosPage = () => {
 							Buka halaman layar QR, lalu arahkan ke peserta. Mereka cukup scan menggunakan kamera HP untuk{' '}
 							<strong className="text-success">check-in</strong> atau{' '}
 							<strong style={{ color: '#db2777' }}>check-out</strong>.
-							QR diperbarui otomatis setiap <strong>5 menit</strong>.
+							QR diperbarui otomatis setiap <strong>15 detik</strong>.
 						</p>
 
 						<div className="d-flex gap-2 flex-wrap align-items-center mt-auto">

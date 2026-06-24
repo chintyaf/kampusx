@@ -47,11 +47,11 @@ export default function VenueQrModal({ show, onHide, eventId, eventTitle }) {
     };
 
     return (
-        <Modal 
-            show={show} 
-            onHide={onHide} 
-            size={fullScreen ? "xl" : "lg"} 
-            centered 
+        <Modal
+            show={show}
+            onHide={onHide}
+            size={fullScreen ? "xl" : "lg"}
+            centered
             fullscreen={fullScreen}
             contentClassName={fullScreen ? "bg-dark text-white" : ""}
         >
@@ -77,7 +77,7 @@ export default function VenueQrModal({ show, onHide, eventId, eventTitle }) {
                             <p className={fullScreen ? "text-light fs-4" : "text-muted"}>
                                 Gunakan kamera HP Anda untuk scan QR Code di bawah ini.
                             </p>
-                            
+
                             {!fullScreen && (
                                 <ToggleButtonGroup type="radio" name="qrLinkType" value={linkType} onChange={(val) => setLinkType(val)} className="mt-2 shadow-sm">
                                     <ToggleButton id="qr-tbg-btn-1" value="in" variant={linkType === 'in' ? 'primary' : 'outline-primary'} className="fw-semibold px-3">
@@ -89,7 +89,7 @@ export default function VenueQrModal({ show, onHide, eventId, eventTitle }) {
                                 </ToggleButtonGroup>
                             )}
                         </div>
-                        
+
                         <div className="bg-white p-4 rounded-4 shadow-sm" style={{ display: 'inline-block' }}>
                             <QRCode
                                 value={qrData}
@@ -99,9 +99,9 @@ export default function VenueQrModal({ show, onHide, eventId, eventTitle }) {
                         </div>
 
                         {fullScreen && (
-                            <Button 
-                                variant="outline-light" 
-                                size="lg" 
+                            <Button
+                                variant="outline-light"
+                                size="lg"
                                 className="mt-5 rounded-pill px-4"
                                 onClick={handleFullScreen}
                             >

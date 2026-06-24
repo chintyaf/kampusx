@@ -4,15 +4,17 @@ import { ProgressBar } from 'react-bootstrap';
 
 // Helper for currency formatting
 const formatRp = (val) => {
-	if (!val) return '';
-	const n = parseInt(String(val).replace(/\D/g, ''), 10);
+	if (val === undefined || val === null || val === '') return '';
+	const cleanVal = String(val).split('.')[0];
+	const n = parseInt(cleanVal.replace(/\D/g, ''), 10);
 	return isNaN(n) ? '' : n.toLocaleString('id-ID');
 };
 
 // Helper to get raw number from string
 function parsePriceNum(val) {
-	if (!val) return 0;
-	return parseInt(String(val).replace(/\D/g, ''), 10) || 0;
+	if (val === undefined || val === null || val === '') return 0;
+	const cleanVal = String(val).split('.')[0];
+	return parseInt(cleanVal.replace(/\D/g, ''), 10) || 0;
 }
 
 const TicketSummary = ({ tickets = [] }) => {

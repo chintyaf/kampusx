@@ -86,7 +86,7 @@ class EventController extends Controller
             // 1. Validasi
             $validated = $request->validate([
                 'title'              => 'required|string|max:255',
-                'description'        => 'nullable|string',
+                'description'        => 'nullable|string|max:1000',
                 'kategori_ids'       => 'nullable|array',
                 'kategori_ids.*'     => 'nullable|exists:categories,id',
                 'event_type_ids'     => 'nullable|array',

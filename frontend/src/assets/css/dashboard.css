@@ -94,21 +94,51 @@ main {
 	color: #333;
 }
 
+/* ── State: ACTIVE (item langsung aktif, tanpa submenu) ── */
 .custom-menu-item.active {
 	background-color: #f1f5f9 !important;
 	border-left: 4px solid var(--bahama-blue-600) !important;
 	border-radius: 0 12px 12px 0 !important;
 }
 
-/* Fix untuk sub-menu yang aktif agar tidak memiliki garis kiri (karena parent sudah punya) dan memiliki rounded yang full */
-.submenu-collapse .custom-menu-item.active {
-	border-left: none !important;
-	border-radius: 8px !important;
-}
-
 .custom-menu-item.active,
 .custom-menu-item.active .menu-text,
 .custom-menu-item.active .menu-icon {
+	color: var(--bahama-blue-700) !important;
+	font-weight: 600;
+}
+
+/* ── State: EXPANDED-ACTIVE (parent terbuka karena child aktif) ── */
+/* Tidak ada border kiri biru — hanya tampilan terbuka yang subtle */
+.custom-menu-item.expanded-active {
+	background-color: transparent !important;
+	border-left: none !important;
+	border-radius: 12px !important;
+}
+
+.custom-menu-item.expanded-active,
+.custom-menu-item.expanded-active .sidebar-parent-menu {
+	color: var(--color-text) !important;
+	font-weight: 600;
+}
+
+.custom-menu-item.expanded-active:hover {
+	background-color: #f8f9fa !important;
+}
+
+/* ── State: SUBMENU CHILD ACTIVE ── */
+/* Latar belakang biru muda yang bersih dan flat (tanpa outline/border) */
+.submenu-collapse .custom-menu-item.active {
+	background-color: rgba(0, 137, 203, 0.08) !important;
+	border-left: none !important;
+	border-radius: 8px !important;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.submenu-collapse .custom-menu-item.active,
+.submenu-collapse .custom-menu-item.active span {
 	color: var(--bahama-blue-700) !important;
 	font-weight: 600;
 }

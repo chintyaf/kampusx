@@ -95,6 +95,7 @@ const EventForm = ({ formData, setFormData, touched, handleBlur, handleTextChang
 						value={formData.description}
 						onChange={handleTextChange}
 						onBlur={() => handleBlur('description')}
+						maxLength={1000}
 						placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
 						isInvalid={
 							touched.description &&

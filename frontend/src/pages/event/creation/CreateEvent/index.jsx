@@ -240,6 +240,7 @@ const CreateEvent = () => {
 												value={formData.description}
 												onChange={handleTextChange}
 												onBlur={() => handleBlur('description')}
+												maxLength={1000}
 												placeholder="Jelaskan mengenai tujuan, agenda, dan informasi penting lainnya dari event ini."
 												isInvalid={
 													touched.description &&
@@ -270,7 +271,7 @@ const CreateEvent = () => {
 														) : null)}
 												</div>
 												<Form.Text className="text-muted small text-end">
-													{formData.description.length} / 500 karakter
+													{formData.description.length} / 1000 karakter
 													{formData.description.length < 50 &&
 														' (Minimal 50 karakter)'}
 												</Form.Text>
