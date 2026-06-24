@@ -115,9 +115,14 @@ const TicketDetail = () => {
   );
 
   const event = ticket?.order_item?.order?.event ?? {};
-  const locationDetail = event?.location_detail || event?.locationDetail || {};
+  const locationDetail = event?.location_detail || event?.locationDetail;
   const locationType = locationDetail?.type || event?.location_type || 'offline';
   const meetingLink = locationDetail?.meeting_link || event?.meeting_link;
+  const locationText = locationDetail
+    ? locationDetail.type === 'online'
+      ? `Online (${locationDetail.platform || 'Platform'})`
+      : locationDetail.location_name || locationDetail.city || 'Offline Venue'
+    : null;
 
   const statusMap = {
     active:    { label: "E-TICKET AKTIF",  bg: "#10B981" },
@@ -187,11 +192,11 @@ const TicketDetail = () => {
                       {fmtDate(event.start_date)}
                     </span>
                   </div>
-                  {event.location && (
+                  {locationText && (
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                       <MapPin size={18} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: 2 }} />
                       <span style={{ fontSize: "var(--font-sm)", fontWeight: 600, color: "var(--color-text)" }}>
-                        {event.location}
+                        {locationText}
                       </span>
                     </div>
                   )}

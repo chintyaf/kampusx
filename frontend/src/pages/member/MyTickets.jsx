@@ -10,6 +10,13 @@ const TicketCard = ({ ticket, isActive }) => {
     const event = ticket.order_item?.order?.event;
     if (!event) return null;
 
+    const locationDetail = event.location_detail || event.locationDetail;
+    const locationText = locationDetail
+        ? locationDetail.type === 'online'
+            ? `Online (${locationDetail.platform || 'Platform'})`
+            : locationDetail.location_name || locationDetail.city || 'Offline Venue'
+        : 'TBA';
+
     return (
         <Card className="shadow-sm border-0 rounded-3 mb-4">
             <Card.Header className="bg-light border-bottom-0 py-2 text-muted d-flex justify-content-between" style={{ fontSize: "14px" }}>
@@ -28,7 +35,7 @@ const TicketCard = ({ ticket, isActive }) => {
                     </div>
                     <div className="d-flex align-items-center gap-2">
                         <MapPin size={16} className="text-primary" />
-                        <span>{event.location}</span>
+                        <span>{locationText}</span>
                     </div>
                     {ticket.local_points !== undefined && ticket.local_points > 0 && (
                         <div className="d-flex align-items-center gap-1.5 px-2.5 py-1 rounded shadow-sm" style={{ fontSize: '13px', backgroundColor: '#f0fdfa', border: '1px solid rgba(13,148,136,0.15)' }}>

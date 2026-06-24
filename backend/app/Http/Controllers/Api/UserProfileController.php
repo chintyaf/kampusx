@@ -33,6 +33,9 @@ class UserProfileController extends Controller
 
         // 2. Data Avatar (Inisial dari UI Avatars jika tidak ada foto)
         $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=random&color=fff&size=150';
+        if ($user->avatar_path) {
+            $avatarUrl = asset('storage/' . $user->avatar_path);
+        }
         
         // Mock data institusi (karena belum dilink ke User untuk Profil Publik)
         $institutionName = 'KampusX Member'; 

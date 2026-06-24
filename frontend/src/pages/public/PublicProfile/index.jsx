@@ -65,7 +65,7 @@ const UserProfile = () => {
 		<div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100vh' }}>
 			<Container className="py-5">
 				<ProfileHeader profile={profile} interests={interests} isOwnProfile={is_own_profile} />
-				<ProfileStats stats={profile} />
+				<ProfileStats stats={profile} onEventClick={() => setActiveTab('history')} />
 				<ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
 				{activeTab === 'certificates' ? (

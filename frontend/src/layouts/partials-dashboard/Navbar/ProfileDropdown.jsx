@@ -31,11 +31,14 @@ const CustomToggle = React.forwardRef(({ children, onClick, isOpen }, ref) => (
 
 const ProfileDropdown = () => {
 	const { user, logout } = useAuth();
+	
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const [imgError, setImgError] = useState(false);
 	const [isClosing, setIsClosing] = useState(false);
 
+	const backendstorageUrl = import.meta.env.VITE_STORAGE_URL;
+	const avatarUrl = user?.avatar_path ? `${backendstorageUrl}/${user.avatar_path}` : null;
 	// Fungsi custom untuk mengatur jeda penutupan
 	const handleToggle = (nextOpen) => {
 		if (nextOpen) {
@@ -53,11 +56,11 @@ const ProfileDropdown = () => {
 	};
 
 	const handleLogout = async () => {
-		handleToggle(false); // Gunakan fungsi toggle untuk efek animasi
+		handleToggle(false); 
 		setTimeout(async () => {
 			await logout();
 			navigate('/');
-		}, 150); // Tunggu animasi selesai baru redirect
+		}, 150); 
 	};
 
 	if (!user) return null;
@@ -137,7 +140,9 @@ const ProfileDropdown = () => {
 			<Dropdown.Toggle as={CustomToggle} isOpen={open} id="dropdown-profile">
 				{!imgError ? (
 					<img
-						src={userImg}
+						src={avatarUrl || userImg}
+                        // src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'User')}&background=random&color=fff&size=200`}
+						
 						alt="User"
 						onError={() => setImgError(true)}
 						className="profile-avatar profile-avatar-sm"
@@ -204,7 +209,7 @@ const ProfileDropdown = () => {
 					>
 						{!imgError ? (
 							<img
-								src={userImg}
+								src={avatarUrl || userImg}
 								alt="User"
 								onError={() => setImgError(true)}
 								className="profile-avatar profile-avatar-md"
