@@ -1,6 +1,7 @@
 {
   "devDependencies": {
-    "@types/node": "^25.6.0"
+    "@types/node": "^25.6.0",
+    "autocannon": "^8.0.0"
   },
   "dependencies": {
     "react-easy-crop": "^5.5.7"
