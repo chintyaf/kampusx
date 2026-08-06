@@ -7,8 +7,42 @@ import { clr } from '../constants';
 import { STORAGE_URL } from '@/api/storage';
 import { formatDate } from '@/utils/dateUtils';
 
-const ActiveTicketsSection = ({ activeTickets }) => {
+const ActiveTicketsSection = ({ activeTickets, isLoading }) => {
   const navigate = useNavigate();
+
+  if (isLoading) {
+    return (
+      <section style={{ marginBottom: 36 }}>
+        <SectionHeader
+          title="Event Aktif Saya"
+          onSeeAll={() => navigate('/my-tickets')}
+        />
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }} className="placeholder-glow">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                flexShrink: 0,
+                width: 236,
+                background: 'var(--color-white)',
+                borderRadius: 12,
+                overflow: 'hidden',
+                boxShadow: clr.shadow,
+                paddingBottom: 12
+              }}
+            >
+              <div className="placeholder" style={{ width: '100%', height: 108, display: 'block', backgroundColor: '#e2e8f0' }} />
+              <div style={{ padding: '10px 12px 0' }}>
+                <span className="placeholder col-4" style={{ height: 16, borderRadius: 4, display: 'block', marginBottom: 8 }} />
+                <span className="placeholder col-10" style={{ height: 18, borderRadius: 4, display: 'block', marginBottom: 6 }} />
+                <span className="placeholder col-6" style={{ height: 12, borderRadius: 4, display: 'block' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section style={{ marginBottom: 36 }}>

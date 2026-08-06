@@ -8,12 +8,11 @@ import { useAuth } from '../../../context/AuthContext';
 import { clr } from './constants';
 import { haversine } from './utils';
 
-import CarouselSection from './sections/CarouselSection';
+import HeroSection from './sections/HeroSection';
 import QuickStatsSection from './sections/QuickStatsSection';
 import ActiveTicketsSection from './sections/ActiveTicketsSection';
 import NearbyEventsSection from './sections/NearbyEventsSection';
 import EventListSection from './sections/EventListSection';
-import PointSummarySection from './sections/PointSummarySection';
 import { STORAGE_URL } from '@/api/storage';
 
 const MemberDashboard = () => {
@@ -49,187 +48,166 @@ const MemberDashboard = () => {
 		},
 	];
 
-	// Fetch all events
+	// Fetch all dashboard data concurrently to prevent layout shifts and sequential flashing
 	useEffect(() => {
-		(async () => {
-			try {
-				const res = await api.get('events');
-				const data = res.data?.data ?? res.data;
-				setAllEvents(
-					data.map((ev) => {
-						const loc = ev.location_detail || ev.locationDetail || {};
-						const eventType = loc.type || ev.location_type || "offline";
-						const display = eventType === "online"
-							? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
-							: (loc.location_name || loc.city || "Offline Venue");
-						const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
-						const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
-						const lat = isNaN(rawLat) ? null : rawLat;
-						const lng = isNaN(rawLng) ? null : rawLng;
-						return {
-							...ev,
-							id: ev.id,
-							slug: ev.slug,
-							title: ev.title,
-							org: ev.organizer?.name ?? "Unknown",
-							image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
-							date: ev.start_date
-								? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-								: "Tanggal Belum Ditentukan",
-							price: ev.price,
-							location: display,
-							isOnline: ["online", "hybrid"].includes(eventType),
-							isInPerson: ["offline", "hybrid"].includes(eventType),
-							isFeatured: ev.id % 2 === 0,
-							lat,
-							lng,
-						};
-					})
-					// data.map((ev) => ({
-					// 	id: ev.id,
-					// 	title: ev.title,
-					// 	org: ev.organizer?.name ?? 'Unknown',
-					// 	image: ev.image_path
-					// 		? `${STORAGE_URL}/${ev.image_path}`
-					// 		: `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
-					// 	date: ev.start_date
-					// 		? new Date(ev.start_date).toLocaleDateString('id-ID', {
-					// 				day: 'numeric',
-					// 				month: 'short',
-					// 				year: 'numeric',
-					// 			})
-					// 		: 'TBD',
-					// 	location:
-					// 		ev.location_type === 'online' ? 'Online' : (ev.venue ?? 'Offline'),
-					// 	lat: ev.latitude ?? null,
-					// 	lng: ev.longitude ?? null,
-					// 	isOnline: ['online', 'hybrid'].includes(ev.location_type),
-					// 	isInPerson: ['offline', 'hybrid'].includes(ev.location_type),
-					// 	isFeatured: ev.id % 2 === 0,
-					// 	price: ev.price,
-					// 		// ? `Rp ${Number(ev.price).toLocaleString('id-ID')}`
-					// 		// : 'Gratis',
-					// })),
-				);
-			} catch (err) {
-				console.error('Gagal fetch events:', err);
-			} finally {
-				setIsLoading(false);
-			}
-		})();
-	}, []);
+		let isMounted = true;
 
-	// Fetch personalized events (Untuk Kamu)
-	useEffect(() => {
-		(async () => {
-			try {
-				const res = await api.get('events/personalized');
-				const data = res.data?.data ?? res.data ?? [];
-				setPersonalizedEvents(
-					data.map((ev) => {
-						const loc = ev.location_detail || ev.locationDetail || {};
-						const eventType = loc.type || ev.location_type || "offline";
-						const display = eventType === "online"
-							? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
-							: (loc.location_name || loc.city || "Offline Venue");
-						const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
-						const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
-						const lat = isNaN(rawLat) ? null : rawLat;
-						const lng = isNaN(rawLng) ? null : rawLng;
-						return {
-							...ev,
-							id: ev.id,
-							slug: ev.slug,
-							title: ev.title,
-							org: ev.organizer?.name ?? "Unknown",
-							image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
-							date: ev.start_date
-								? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-								: "Tanggal Belum Ditentukan",
-							price: ev.price,
-							location: display,
-							isOnline: ["online", "hybrid"].includes(eventType),
-							isInPerson: ["offline", "hybrid"].includes(eventType),
-							isFeatured: ev.id % 2 === 0,
-							lat,
-							lng,
-						};
-					})
-				);
-			} catch (err) {
-				console.error('Gagal fetch personalized events:', err);
-			} finally {
-				setLoadingPersonalized(false);
-			}
-		})();
-	}, [token]);
+		const fetchDashboardData = async () => {
+			setIsLoading(true);
+			setLoadingPersonalized(true);
 
-	// Fetch my tickets
-	useEffect(() => {
-		(async () => {
 			try {
-				if (!token) {
-					setIsLoading(false);
-					return;
-				}
-				const res = await api.get('my-tickets', {
-					headers: { Authorization: `Bearer ${token}` },
-				});
-				setTickets(res.data.data);
-			} catch {
-				setTickets([
-					{
-						id: 1,
-						ticket_code: 'TKT-001',
-						status: 'active',
-						order_item: {
-							order: {
-								event: {
-									id: 101,
-									title: 'Workshop UI/UX Design',
-									start_date: '10 April 2026',
-									location: 'Bandung, ID',
-									image: 'https://placehold.co/600x300/dff3ff/00699e?text=Workshop',
-								},
-							},
-						},
-					},
-					{
-						id: 2,
-						ticket_code: 'TKT-002',
-						status: 'used',
-						order_item: {
-							order: {
-								event: {
-									id: 102,
-									title: 'Tech Startup Conference 2026',
-									start_date: '15 Mei 2026',
-									location: 'Zoom',
-									image: 'https://placehold.co/600x300/f1f5f9/64748b?text=Conference',
-								},
-							},
-						},
-					},
+				// 1. Fetch public events (always fetched)
+				const eventsPromise = api.get('events');
+
+				// 2. Fetch authenticated data if token exists
+				const ticketsPromise = token ? api.get('my-tickets', { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve(null);
+				const pointsPromise = token ? api.get('/member/points/balance') : Promise.resolve(null);
+				const personalizedPromise = token ? api.get('events/personalized') : Promise.resolve(null);
+
+				// Resolve all in parallel
+				const [eventsRes, ticketsRes, pointsRes, personalizedRes] = await Promise.all([
+					eventsPromise,
+					ticketsPromise,
+					pointsPromise,
+					personalizedPromise
 				]);
-			} finally {
-				setIsLoading(false);
-			}
-		})();
-	}, [token]);
 
-	// Fetch points balance
-	useEffect(() => {
-		(async () => {
-			try {
-				if (!token) return;
-				const res = await api.get('/member/points/balance');
-				if (res.data && res.data.data) {
-					setPointsData(res.data.data);
+				if (!isMounted) return;
+
+				// Process Events
+				if (eventsRes) {
+					const evData = eventsRes.data?.data ?? eventsRes.data ?? [];
+					setAllEvents(
+						evData.map((ev) => {
+							const loc = ev.location_detail || ev.locationDetail || {};
+							const eventType = loc.type || ev.location_type || "offline";
+							const display = eventType === "online"
+								? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
+								: (loc.location_name || loc.city || "Offline Venue");
+							const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
+							const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
+							return {
+								...ev,
+								id: ev.id,
+								slug: ev.slug,
+								title: ev.title,
+								org: ev.organizer?.name ?? "Unknown",
+								image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
+								date: ev.start_date
+									? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+									: "Tanggal Belum Ditentukan",
+								price: ev.price,
+								location: display,
+								isOnline: ["online", "hybrid"].includes(eventType),
+								isInPerson: ["offline", "hybrid"].includes(eventType),
+								isFeatured: ev.id % 2 === 0,
+								lat: isNaN(rawLat) ? null : rawLat,
+								lng: isNaN(rawLng) ? null : rawLng,
+							};
+						})
+					);
+				}
+
+				// Process Tickets
+				if (ticketsRes) {
+					setTickets(ticketsRes.data.data);
+				} else {
+					setTickets([]);
+				}
+
+				// Process Points
+				if (pointsRes && pointsRes.data && pointsRes.data.data) {
+					setPointsData(pointsRes.data.data);
+				}
+
+				// Process Personalized Events
+				if (personalizedRes) {
+					const persData = personalizedRes.data?.data ?? personalizedRes.data ?? [];
+					setPersonalizedEvents(
+						persData.map((ev) => {
+							const loc = ev.location_detail || ev.locationDetail || {};
+							const eventType = loc.type || ev.location_type || "offline";
+							const display = eventType === "online"
+								? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
+								: (loc.location_name || loc.city || "Offline Venue");
+							const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
+							const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
+							return {
+								...ev,
+								id: ev.id,
+								slug: ev.slug,
+								title: ev.title,
+								org: ev.organizer?.name ?? "Unknown",
+								image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
+								date: ev.start_date
+									? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
+									: "Tanggal Belum Ditentukan",
+								price: ev.price,
+								location: display,
+								isOnline: ["online", "hybrid"].includes(eventType),
+								isInPerson: ["offline", "hybrid"].includes(eventType),
+								isFeatured: ev.id % 2 === 0,
+								lat: isNaN(rawLat) ? null : rawLat,
+								lng: isNaN(rawLng) ? null : rawLng,
+							};
+						})
+					);
 				}
 			} catch (err) {
-				console.error('Gagal fetch points balance:', err);
+				console.error('Error fetching dashboard data:', err);
+				// If tickets request fails, set demo fallback
+				if (token) {
+					setTickets([
+						{
+							id: 1,
+							ticket_code: 'TKT-001',
+							status: 'active',
+							order_item: {
+								order: {
+									status: 'paid',
+									event: {
+										id: 101,
+										title: 'Workshop UI/UX Design',
+										start_date: '10 April 2026',
+										location: 'Bandung, ID',
+										image: 'https://placehold.co/600x300/dff3ff/00699e?text=Workshop',
+									},
+								},
+							},
+						},
+						{
+							id: 2,
+							ticket_code: 'TKT-002',
+							status: 'used',
+							order_item: {
+								order: {
+									status: 'paid',
+									event: {
+										id: 102,
+										title: 'Tech Startup Conference 2026',
+										start_date: '15 Mei 2026',
+										location: 'Zoom',
+										image: 'https://placehold.co/600x300/f1f5f9/64748b?text=Conference',
+									},
+								},
+							},
+						},
+					]);
+				}
+			} finally {
+				if (isMounted) {
+					setIsLoading(false);
+					setLoadingPersonalized(false);
+				}
 			}
-		})();
+		};
+
+		fetchDashboardData();
+
+		return () => {
+			isMounted = false;
+		};
 	}, [token]);
 
 	// Request geolocation
@@ -287,71 +265,25 @@ const MemberDashboard = () => {
 	const eventTerbaru = [...allEvents].sort((a, b) => b.id - a.id).slice(0, 8);
 	// const eventTerpopuler = allEvents.filter((ev) => ev.isFeatured).slice(0, 8);
 
-	if (isLoading)
-		return (
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					minHeight: '60vh',
-				}}
-			>
-				<Spinner animation="border" style={{ color: clr.primaryHex }} />
-			</div>
-		);
-
 	return (
 		<div style={{ background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: 48 }}>
-			<CarouselSection banners={banners} />
+			<HeroSection
+				userName={user?.name}
+				searchKeyword={searchKeyword}
+				onSearchChange={(e) => setSearchKeyword(e.target.value)}
+				onSearchSubmit={handleSearch}
+			/>
 
 			<Container style={{ paddingTop: 24 }}>
-				<div style={{ marginBottom: 24 }}>
-					<p
-						style={{
-							margin: 0,
-							fontSize: 'var(--font-xs)',
-							color: 'var(--color-secondary)',
-						}}
-					>
-						Selamat datang kembali
-						{/* {user?.name ? `, ${user.name.split(' ')[0]}` : ''}! */}
-					</p>
-					<h1
-						style={{
-							margin: 0,
-							fontSize: 'var(--font-xl)',
-							fontWeight: 800,
-							color: 'var(--color-text)',
-						}}
-					>
-						{user?.name ?? 'Member'}
-					</h1>
-				</div>
-
-				<Form onSubmit={handleSearch} style={{ marginBottom: 24 }}>
-					<InputGroup style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--color-border)' }}>
-						<InputGroup.Text style={{ background: '#fff', borderRight: 'none', borderColor: 'transparent', paddingLeft: 16 }}>
-							<Search size={18} color="var(--color-secondary)" />
-						</InputGroup.Text>
-						<Form.Control
-							type="text"
-							placeholder="Cari nama event atau organizer..."
-							value={searchKeyword}
-							onChange={(e) => setSearchKeyword(e.target.value)}
-							style={{ borderLeft: 'none', border: 'none', padding: '12px 16px 12px 0', fontSize: 'var(--font-sm)', outline: 'none', boxShadow: 'none' }}
-						/>
-					</InputGroup>
-				</Form>
 
 				<QuickStatsSection
 					activeTicketsCount={activeTickets.length}
 					totalTicketsCount={totalPaidTicketsCount}
+					pointsData={pointsData}
+					isLoading={isLoading}
 				/>
 
-				<PointSummarySection pointsData={pointsData} isLoading={isLoading} />
-
-				<ActiveTicketsSection activeTickets={activeTickets} />
+				<ActiveTicketsSection activeTickets={activeTickets} isLoading={isLoading} />
 
 				<NearbyEventsSection
 					locationStatus={locationStatus}
@@ -359,23 +291,19 @@ const MemberDashboard = () => {
 					requestLocation={requestLocation}
 				/>
 
-				{loadingPersonalized ? (
-					<div style={{ textAlign: 'center', padding: '24px 0', marginBottom: 36 }}>
-						<Spinner animation="border" style={{ color: clr.primaryHex }} />
-					</div>
-				) : (
-					<EventListSection
-						title="Untuk Kamu"
-						events={personalizedEvents}
-						seeAllUrl="/explore-events"
-						style={{ marginBottom: 36 }}
-					/>
-				)}
+				<EventListSection
+					title="Untuk Kamu"
+					events={personalizedEvents}
+					seeAllUrl="/explore-events"
+					style={{ marginBottom: 36 }}
+					isLoading={loadingPersonalized}
+				/>
 
 				<EventListSection
 					title="Event Terbaru"
 					events={eventTerbaru}
 					seeAllUrl="/explore-events?sort=newest"
+					isLoading={isLoading}
 				/>
 			</Container>
 		</div>

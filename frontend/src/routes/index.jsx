@@ -15,6 +15,7 @@ import ProtectedRoute from './ProtectedRoute';
 import visitorRoutes from './PublicRoutes';
 import AdminRoutes from './AdminRoutes';
 import { OrganizerRoutes } from './OrganizerRoutes';
+import LmsRoutes from './LmsRoutes';
 
 // Pages: Auth & Public
 import LoginPage from '../pages/auth/LoginPage';
@@ -162,7 +163,10 @@ const AppRoutes = () => {
 				<Route path="/staff/attendees" element={<StaffAttendees />} />
 				<Route path="/staff/kiosk" element={<KioskModePage isStaff={true} />} />
 
-				{/* 8. 404 NOT FOUND */}
+				{/* 8. LMS & SRL WIREFRAME ROUTES */}
+				{LmsRoutes}
+
+				{/* 9. 404 NOT FOUND */}
 				<Route path="*" element={<NotFound />} />
 			</Routes>
 		</Suspense>
