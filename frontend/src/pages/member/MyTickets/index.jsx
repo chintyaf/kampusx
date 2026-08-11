@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge, Spinner, Button, Alert } from 'react-
 import { Calendar, MapPin, QrCode, ArrowRight, Ticket, History, MoreHorizontal, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import api from '../../api/axios'; 
+import api from '@/api/axios'; 
 import { formatDate } from '@/utils/dateUtils';
 
 const TicketCard = ({ ticket, isActive }) => {

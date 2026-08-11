@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
-import { clr } from './constants';
+import { clr } from '../constants';
 
 const SectionHeader = ({ title, onSeeAll }) => (
 	<div

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Spinner } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
-import api from '../../../api/axios';
-import { useAuth } from '../../../context/AuthContext';
+import api from '@/api/axios';
+import { useAuth } from '@/context/AuthContext';
 
 // Import sub-components
 import OrganizerForm from './components/OrganizerForm';

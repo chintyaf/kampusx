@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation, Calendar } from 'lucide-react';
 import { Spinner as BootstrapSpinner } from 'react-bootstrap';
-import SectionHeader from '../SectionHeader';
+import SectionHeader from '../components/SectionHeader';
 import { clr } from '../constants';
 
 const NearbyEventsSection = ({ locationStatus, nearbyEvents, requestLocation }) => {

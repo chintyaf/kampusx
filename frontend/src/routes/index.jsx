@@ -28,14 +28,14 @@ import NearestEventTest from '../pages/public/NearestEventTest';
 import AttendVenuePage from '../pages/public/AttendVenuePage';
 
 // Pages: Member
-import MemberDashboard from '../pages/member/MemberDashboard/index.jsx';
-import MyTickets from '../pages/member/MyTickets';
-import BookmarkPage from '../pages/member/BookmarkPage';
-import ProfileSettings from '../pages/member/ProfileSettings';
-import NotificationsPage from '../pages/member/NotificationsPage';
-import ApplyOrganizerPage from '../pages/member/ApplyOrganizerPage/ApplyOrganizerPage.jsx';
-import EventSpace from '../pages/member/EventSpace';
-import PostEventMaterialsPage from '../pages/member/PostEventMaterialsPage';
+import MemberDashboard from '@/pages/member/MemberDashboard';
+import MyTickets from '@/pages/member/MyTickets';
+import BookmarkPage from '@/pages/member/BookmarkPage';
+import ProfileSettings from '@/pages/member/ProfileSettings';
+import NotificationsPage from '@/pages/member/NotificationsPage';
+import ApplyOrganizerPage from '@/pages/member/ApplyOrganizerPage';
+import EventSpace from '@/pages/member/EventSpace';
+import PostEventMaterialsPage from '@/pages/member/PostEventMaterialsPage';
 import MemberCertificatePage from '@/pages/member/MemberCertificatePage';
 import GlobalRewardCatalog from '@/pages/member/GlobalRewardCatalog';
 import LocalRewardCatalog from '@/pages/member/LocalRewardCatalog';

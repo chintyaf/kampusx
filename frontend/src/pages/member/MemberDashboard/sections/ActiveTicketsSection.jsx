@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin } from 'lucide-react';
-import SectionHeader from '../SectionHeader';
-import StatusPill from '../StatusPill';
+import SectionHeader from '../components/SectionHeader';
+import StatusPill from '../components/StatusPill';
 import { clr } from '../constants';
 import { STORAGE_URL } from '@/api/storage';
 import { formatDate } from '@/utils/dateUtils';
@@ -17,7 +17,16 @@ const ActiveTicketsSection = ({ activeTickets, isLoading }) => {
           title="Event Aktif Saya"
           onSeeAll={() => navigate('/my-tickets')}
         />
-        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }} className="placeholder-glow">
+        <div style={{
+            display: 'flex',
+            gap: 12,
+            overflowX: 'auto',
+            paddingBottom: 8,
+            paddingLeft: 16,
+            paddingRight: 16,
+            marginLeft: -16,
+            marginRight: -16,
+          }} className="placeholder-glow no-scrollbar">
           {[1, 2].map((i) => (
             <div
               key={i}
@@ -71,11 +80,16 @@ const ActiveTicketsSection = ({ activeTickets, isLoading }) => {
         </div>
       ) : (
         <div
+          className="no-scrollbar"
           style={{
             display: 'flex',
             gap: 12,
             overflowX: 'auto',
             paddingBottom: 8,
+            paddingLeft: 16,
+            paddingRight: 16,
+            marginLeft: -16,
+            marginRight: -16,
           }}>
           {activeTickets.map((t) => {
             const ev = t.order_item?.order?.event;

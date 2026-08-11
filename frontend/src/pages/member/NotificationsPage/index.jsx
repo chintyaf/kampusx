@@ -17,7 +17,7 @@ import {
     Award
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../api/axios';
+import api from '@/api/axios';
 
 const NotificationsPage = () => {
     const navigate = useNavigate();

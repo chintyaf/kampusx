@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import SectionHeader from '../SectionHeader';
+import SectionHeader from '../components/SectionHeader';
 import EventCard from '@/components/event/EventCard';
 
 const EventListSection = ({ title, events, seeAllUrl, style, isLoading }) => {
@@ -10,7 +10,7 @@ const EventListSection = ({ title, events, seeAllUrl, style, isLoading }) => {
 		return (
 			<section style={style}>
 				<SectionHeader title={title} onSeeAll={() => navigate(seeAllUrl)} />
-				<div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }} className="placeholder-glow">
+				<div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, paddingLeft: 16, paddingRight: 16, marginLeft: -16, marginRight: -16 }} className="placeholder-glow no-scrollbar">
 					{[1, 2].map((i) => (
 						<div key={i} style={{ width: '280px', flexShrink: 0, background: '#fff', borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', paddingBottom: 12 }}>
 							<div className="placeholder" style={{ width: '100%', height: 140, display: 'block', backgroundColor: '#e2e8f0' }} />
@@ -29,7 +29,7 @@ const EventListSection = ({ title, events, seeAllUrl, style, isLoading }) => {
 	return (
 		<section style={style}>
 			<SectionHeader title={title} onSeeAll={() => navigate(seeAllUrl)} />
-			<div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }}>
+			<div className="no-scrollbar" style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, paddingLeft: 16, paddingRight: 16, marginLeft: -16, marginRight: -16 }}>
 				{events.map((ev) => (
 					<div key={ev.id} style={{ width: '280px', flexShrink: 0 }}>
 						<EventCard

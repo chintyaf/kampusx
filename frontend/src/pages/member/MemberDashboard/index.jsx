@@ -6,10 +6,11 @@ import api from '../../../api/axios';
 import { useAuth } from '../../../context/AuthContext';
 
 import { clr } from './constants';
-import { haversine } from './utils';
+import { haversine, transformEventData } from './utils';
 
 import HeroSection from './sections/HeroSection';
 import QuickStatsSection from './sections/QuickStatsSection';
+import MicrolearningSection from './sections/MicrolearningSection';
 import ActiveTicketsSection from './sections/ActiveTicketsSection';
 import NearbyEventsSection from './sections/NearbyEventsSection';
 import EventListSection from './sections/EventListSection';
@@ -78,35 +79,7 @@ const MemberDashboard = () => {
 				// Process Events
 				if (eventsRes) {
 					const evData = eventsRes.data?.data ?? eventsRes.data ?? [];
-					setAllEvents(
-						evData.map((ev) => {
-							const loc = ev.location_detail || ev.locationDetail || {};
-							const eventType = loc.type || ev.location_type || "offline";
-							const display = eventType === "online"
-								? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
-								: (loc.location_name || loc.city || "Offline Venue");
-							const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
-							const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
-							return {
-								...ev,
-								id: ev.id,
-								slug: ev.slug,
-								title: ev.title,
-								org: ev.organizer?.name ?? "Unknown",
-								image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
-								date: ev.start_date
-									? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-									: "Tanggal Belum Ditentukan",
-								price: ev.price,
-								location: display,
-								isOnline: ["online", "hybrid"].includes(eventType),
-								isInPerson: ["offline", "hybrid"].includes(eventType),
-								isFeatured: ev.id % 2 === 0,
-								lat: isNaN(rawLat) ? null : rawLat,
-								lng: isNaN(rawLng) ? null : rawLng,
-							};
-						})
-					);
+					setAllEvents(evData.map(transformEventData));
 				}
 
 				// Process Tickets
@@ -124,35 +97,7 @@ const MemberDashboard = () => {
 				// Process Personalized Events
 				if (personalizedRes) {
 					const persData = personalizedRes.data?.data ?? personalizedRes.data ?? [];
-					setPersonalizedEvents(
-						persData.map((ev) => {
-							const loc = ev.location_detail || ev.locationDetail || {};
-							const eventType = loc.type || ev.location_type || "offline";
-							const display = eventType === "online"
-								? (loc.platform ? `Online (${loc.platform})` : "Online Meeting")
-								: (loc.location_name || loc.city || "Offline Venue");
-							const rawLat = eventType !== "online" ? parseFloat(loc.latitude) : NaN;
-							const rawLng = eventType !== "online" ? parseFloat(loc.longitude) : NaN;
-							return {
-								...ev,
-								id: ev.id,
-								slug: ev.slug,
-								title: ev.title,
-								org: ev.organizer?.name ?? "Unknown",
-								image: ev.image_path ? `${STORAGE_URL}/${ev.image_path}` : `${STORAGE_URL}/event-banners/${ev.id}.jpg`,
-								date: ev.start_date
-									? new Date(ev.start_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })
-									: "Tanggal Belum Ditentukan",
-								price: ev.price,
-								location: display,
-								isOnline: ["online", "hybrid"].includes(eventType),
-								isInPerson: ["offline", "hybrid"].includes(eventType),
-								isFeatured: ev.id % 2 === 0,
-								lat: isNaN(rawLat) ? null : rawLat,
-								lng: isNaN(rawLng) ? null : rawLng,
-							};
-						})
-					);
+					setPersonalizedEvents(persData.map(transformEventData));
 				}
 			} catch (err) {
 				console.error('Error fetching dashboard data:', err);
@@ -274,7 +219,7 @@ const MemberDashboard = () => {
 				onSearchSubmit={handleSearch}
 			/>
 
-			<Container style={{ paddingTop: 24 }}>
+			<Container style={{ paddingTop: 24, overflow: 'visible' }}>
 
 				<QuickStatsSection
 					activeTicketsCount={activeTickets.length}
@@ -282,6 +227,8 @@ const MemberDashboard = () => {
 					pointsData={pointsData}
 					isLoading={isLoading}
 				/>
+
+				<MicrolearningSection />
 
 				<ActiveTicketsSection activeTickets={activeTickets} isLoading={isLoading} />
 

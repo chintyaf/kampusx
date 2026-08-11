@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Nav, Form, Button, Alert, Spinner, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { User, Lock, Tag, Upload, Trash2, Camera } from 'lucide-react';
-import api from '../../api/axios';
-import { useAuth } from '../../context/AuthContext';
+import api from '@/api/axios';
+import { useAuth } from '@/context/AuthContext';
 
 const ProfileSettings = () => {
     // const [authUser, setAuthUser] = useAuth();
