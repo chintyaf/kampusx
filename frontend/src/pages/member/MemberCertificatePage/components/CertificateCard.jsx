@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Row, Col, Card, Badge, Button, Spinner, Alert } from 'react-bootstrap';
+import { Card, Badge, Button, Form } from 'react-bootstrap';
 import {
 	Award,
 	QrCode,
@@ -7,16 +7,32 @@ import {
 	Building,
 	Lock,
 	Sparkles,
-	AlertCircle,
 	ArrowRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import toast, { Toaster } from 'react-hot-toast';
-import api from '@/api/axios';
+import toast from 'react-hot-toast';
 import QRCode from 'react-qr-code';
 
 const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 	const hasTemplate = cert.has_template !== false && cert.certificate_template !== null && cert.certificate_template !== undefined;
+
+	const [inPortfolio, setInPortfolio] = useState(() => {
+		const key = `cert-portfolio-${cert.id || cert.ticket_code || cert.ticket?.ticket_code}`;
+		return localStorage.getItem(key) === 'true';
+	});
+
+	const handleTogglePortfolio = (e) => {
+		e.stopPropagation();
+		const nextVal = !inPortfolio;
+		setInPortfolio(nextVal);
+		const key = `cert-portfolio-${cert.id || cert.ticket_code || cert.ticket?.ticket_code}`;
+		localStorage.setItem(key, nextVal.toString());
+		if (nextVal) {
+			toast.success('Sertifikat ditambahkan ke portofolio publik!');
+		} else {
+			toast.success('Sertifikat dihapus dari portofolio publik.');
+		}
+	};
 
 	const containerRef = useRef(null);
 	const [containerWidth, setContainerWidth] = useState(300);
@@ -133,65 +149,33 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 					</Link>
 				) : (
 					<div
-						className="position-relative bg-secondary bg-opacity-25 w-100"
+						className="position-relative d-flex flex-column justify-content-center align-items-center w-100"
 						style={{
-							overflow: 'hidden',
-							aspectRatio: hasTemplate ? `${cert.certificate_template.canvas_width || 1120}/${cert.certificate_template.canvas_height || 792}` : '1120/792'
+							backgroundColor: '#F9FAFB',
+							borderBottom: '1px solid #E2E8F0',
+							aspectRatio: hasTemplate ? `${cert.certificate_template.canvas_width || 1120}/${cert.certificate_template.canvas_height || 792}` : '1120/792',
+							color: '#94A3B8'
 						}}
 					>
-						<img
-							src={hasTemplate && cert.certificate_template?.background_url
-								? cert.certificate_template.background_url
-								: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-							}
-							alt="Certificate Locked"
-							className="w-100 h-100"
-							style={{
-								display: 'block',
-								objectFit: 'fill',
-								position: 'absolute',
-								top: 0,
-								left: 0,
-								zIndex: 1,
-								filter: 'blur(5px) grayscale(100%)',
-								transition: 'all 0.4s ease',
-							}}
-							crossOrigin="anonymous"
-						/>
-
-						{!hasTemplate ? (
-							<div
-								className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white"
-								style={{
-									background: 'rgba(30, 41, 59, 0.75)',
-									backdropFilter: 'blur(3px)',
-									zIndex: 2,
+						<div 
+							className="d-flex flex-column align-items-center justify-content-center"
+							style={{ padding: '24px' }}
+						>
+							<div 
+								className="rounded-circle d-flex align-items-center justify-content-center mb-3 border border-secondary border-opacity-10 shadow-sm"
+								style={{ 
+									width: '54px', 
+									height: '54px', 
+									backgroundColor: '#FFFFFF',
+									color: !hasTemplate ? '#94A3B8' : '#F59E0B'
 								}}
 							>
-								<div className="bg-secondary bg-opacity-20 text-light p-2 rounded-circle border border-light border-opacity-25 mb-2">
-									<Lock size={20} />
-								</div>
-								<span className="fw-bold small text-center px-3" style={{ fontSize: '12px', letterSpacing: '0.5px' }}>
-									Belum Tersedia
-								</span>
+								<Lock size={22} />
 							</div>
-						) : (
-							<div
-								className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center text-white"
-								style={{
-									background: 'rgba(30, 41, 59, 0.7)',
-									backdropFilter: 'blur(2px)',
-									zIndex: 2,
-								}}
-							>
-								<div className="bg-warning bg-opacity-20 text-warning p-2 rounded-circle border border-warning border-opacity-25 mb-2">
-									<Lock size={20} className="animate-bounce" />
-								</div>
-								<span className="fw-bold small letter-spacing-1">
-									Sertifikat Terkunci
-								</span>
-							</div>
-						)}
+							<span className="fw-bold small text-center" style={{ fontSize: '12.5px', color: '#64748B', letterSpacing: '0.3px' }}>
+								{!hasTemplate ? 'Sertifikat Belum Tersedia' : 'Sertifikat Terkunci'}
+							</span>
+						</div>
 					</div>
 				)}
 
@@ -230,7 +214,7 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 					</Card.Title>
 				)}
 
-				<div className="text-muted small mb-4 mt-auto">
+				<div className="text-muted small mb-3">
 					<div className="d-flex align-items-center gap-2 mb-2">
 						<Building size={14} className="text-secondary" />
 						<span className="text-truncate" style={{ maxWidth: '240px' }}>
@@ -242,16 +226,36 @@ const CertificateCard = ({ cert, certId, handleShowPreview, handleShowQR }) => {
 					</div>
 				</div>
 
+				{/* Portfolio Integration Toggle */}
+				{cert.is_unlocked && (
+					<div 
+						className="d-flex justify-content-between align-items-center mb-3 mt-auto pt-2 border-top"
+						style={{ borderTop: '1px dashed #e2e8f0' }}
+					>
+						<span className="text-muted" style={{ fontSize: '12.5px', fontWeight: 500 }}>
+							Tampilkan di Profil Publik
+						</span>
+						<Form.Check 
+							type="switch"
+							id={`portfolio-switch-${cert.id || cert.ticket_code || cert.ticket?.ticket_code}`}
+							checked={inPortfolio}
+							onChange={handleTogglePortfolio}
+							onClick={(e) => e.stopPropagation()}
+							style={{ cursor: 'pointer' }}
+						/>
+					</div>
+				)}
+
 				{/* Action Buttons */}
-				<div className="d-flex gap-2 w-100">
+				<div className={`d-flex gap-2 w-100 ${!cert.is_unlocked ? 'mt-auto' : ''}`}>
 					{!hasTemplate ? (
 						<Button
 							variant="secondary"
 							disabled
 							className="w-100 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2"
-							style={{ cursor: 'not-allowed', fontSize: '12px', padding: '10px 12px' }}
+							style={{ cursor: 'not-allowed', fontSize: '13px', padding: '10px 12px', backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', color: '#94A3B8' }}
 						>
-							Sertifikat Belum Tersedia / Menunggu Organizer
+							Menunggu Organizer
 						</Button>
 					) : cert.is_unlocked ? (
 						<>

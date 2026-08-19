@@ -40,6 +40,8 @@ import MemberCertificatePage from '@/pages/member/MemberCertificatePage';
 import GlobalRewardCatalog from '@/pages/member/GlobalRewardCatalog';
 import LocalRewardCatalog from '@/pages/member/LocalRewardCatalog';
 import PointHistory from '@/pages/member/PointHistory';
+import LearningPathsCatalog from '@/pages/member/LearningPathsCatalog';
+import LearningPathDetail from '@/pages/member/LearningPathDetail';
 
 // Pages: Event Management & Checkout
 import Checkout from '../pages/event/public/Checkout/index';
@@ -121,6 +123,8 @@ const AppRoutes = () => {
 						<Route path="/rewards" element={<GlobalRewardCatalog />} />
 						<Route path="/event-space/:id/rewards" element={<LocalRewardCatalog />} />
 						<Route path="/member/points/history" element={<PointHistory />} />
+						<Route path="/learning-paths" element={<LearningPathsCatalog />} />
+						<Route path="/learning-paths/:slug" element={<LearningPathDetail />} />
 					</Route>
 				</Route>
 

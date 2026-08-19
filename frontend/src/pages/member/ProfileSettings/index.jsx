@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Nav, Form, Button, Alert, Spinner, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { User, Lock, Tag, Upload, Trash2, Camera } from 'lucide-react';
+import { User, Lock, Tag, Upload, Trash2, Camera, Brain } from 'lucide-react';
 import api from '@/api/axios';
 import { useAuth } from '@/context/AuthContext';
+import PreferencesSection from './components/PreferencesSection';
 
 const ProfileSettings = () => {
     // const [authUser, setAuthUser] = useAuth();
@@ -39,6 +40,35 @@ const ProfileSettings = () => {
         new_password_confirmation: ''
     });
 
+    const isInitialLoaded = useRef(false);
+    const [backendSaveStatus, setBackendSaveStatus] = useState('saved'); // 'saved' | 'saving' | 'error'
+
+    // Debounced auto-save for backend fields (university_id, categories)
+    useEffect(() => {
+        if (!isInitialLoaded.current) return;
+
+        setBackendSaveStatus('saving');
+        const timer = setTimeout(async () => {
+            try {
+                const formData = new FormData();
+                formData.append('name', profileData.name);
+                if (profileData.phone) formData.append('phone', profileData.phone);
+                if (profileData.university_id) formData.append('university_id', profileData.university_id);
+                // Append categories
+                const categoryIds = profileData.categories.map(c => c.id);
+                formData.append('category_ids', JSON.stringify(categoryIds));
+
+                await api.post('/user/settings', formData);
+                setBackendSaveStatus('saved');
+            } catch (err) {
+                console.error('Failed to auto-save settings:', err);
+                setBackendSaveStatus('error');
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [profileData.university_id, profileData.categories]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -72,6 +102,9 @@ const ProfileSettings = () => {
                 setMessage({ type: 'danger', text: 'Gagal memuat data profil.' });
             } finally {
                 setLoading(false);
+                setTimeout(() => {
+                    isInitialLoaded.current = true;
+                }, 100);
             }
         };
 
@@ -223,11 +256,11 @@ const ProfileSettings = () => {
                                     <User size={18} className="me-3" /> Informasi Pribadi
                                 </Nav.Link>
                                 <Nav.Link 
-                                    active={activeTab === 'interests'} 
-                                    onClick={() => setActiveTab('interests')}
+                                    active={activeTab === 'preferences'} 
+                                    onClick={() => setActiveTab('preferences')}
                                     className="d-flex align-items-center py-3 px-4 border-bottom"
                                 >
-                                    <Tag size={18} className="me-3" /> Minat & Kategori
+                                    <Tag size={18} className="me-3" /> Preferensi Saya
                                 </Nav.Link>
                                 <Nav.Link 
                                     active={activeTab === 'security'} 
@@ -343,61 +376,15 @@ const ProfileSettings = () => {
                                 </Form>
                             )}
 
-                            {/* TAB: INTERESTS */}
-                            {activeTab === 'interests' && (
-                                <div>
-                                    <h5 className="fw-bold mb-4">Pengaturan Minat (Interest Tagging)</h5>
-                                    <p className="text-muted mb-4">Pilih topik dan kategori event yang Anda sukai. Ini membantu kami merekomendasikan event yang sesuai.</p>
-                                    
-                                    <div className="mb-4 p-4 bg-light rounded-3">
-                                        <h6 className="fw-semibold mb-3">Minat Saya Saat Ini:</h6>
-                                        {profileData.categories.length > 0 ? (
-                                            <div className="d-flex flex-wrap gap-2">
-                                                {profileData.categories.map(cat => (
-                                                    <Badge 
-                                                        key={cat.id} 
-                                                        bg="primary" 
-                                                        className="px-3 py-2 rounded-pill fw-normal cursor-pointer d-flex align-items-center"
-                                                        onClick={() => toggleInterest(cat.id)}
-                                                        style={{ cursor: 'pointer' }}
-                                                    >
-                                                        #{cat.name} <Trash2 size={14} className="ms-2 opacity-75" />
-                                                    </Badge>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-muted small mb-0">Belum ada minat yang dipilih.</p>
-                                        )}
-                                    </div>
-
-                                    <h6 className="fw-semibold mb-3">Kategori Tersedia:</h6>
-                                    <div className="d-flex flex-wrap gap-2 mb-4">
-                                        {allCategories.map(cat => {
-                                            const isSelected = profileData.categories.some(c => c.id === cat.id);
-                                            if (isSelected) return null; // Sembunyikan yang sudah dipilih
-                                            
-                                            return (
-                                                <Badge 
-                                                    key={cat.id} 
-                                                    bg="white" 
-                                                    text="dark"
-                                                    border="secondary"
-                                                    className="px-3 py-2 border rounded-pill fw-normal shadow-sm"
-                                                    onClick={() => toggleInterest(cat.id)}
-                                                    style={{ cursor: 'pointer', borderColor: '#dee2e6' }}
-                                                >
-                                                    + {cat.name}
-                                                </Badge>
-                                            )
-                                        })}
-                                    </div>
-
-                                    <div className="d-flex justify-content-end mt-4 pt-3 border-top">
-                                        <Button variant="primary" onClick={submitProfile} disabled={saving} className="rounded-pill px-4">
-                                            {saving ? 'Menyimpan...' : 'Simpan Minat'}
-                                        </Button>
-                                    </div>
-                                </div>
+                            {/* TAB: PREFERENCES */}
+                            {activeTab === 'preferences' && (
+                                <PreferencesSection 
+                                    profileData={profileData}
+                                    setProfileData={setProfileData}
+                                    allCategories={allCategories}
+                                    institutions={institutions}
+                                    backendSaveStatus={backendSaveStatus}
+                                />
                             )}
 
                             {/* TAB: SECURITY */}
@@ -449,6 +436,7 @@ const ProfileSettings = () => {
                                     </div>
                                 </Form>
                             )}
+
 
                         </Card.Body>
                     </Card>
