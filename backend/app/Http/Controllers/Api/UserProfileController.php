@@ -10,6 +10,7 @@ use App\Models\Ticket;
 use App\Models\SurveyResponse;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 
 class UserProfileController extends Controller
@@ -137,7 +138,54 @@ class UserProfileController extends Controller
             }
         }
 
-        // 7. Return data JSON
+        // 7. Hitung progress micro-learning
+        $completedLessonsCount = DB::table('user_lesson_completions')->where('user_id', $id)->count();
+        $completedModulesCount = DB::table('user_learning_paths')->where('user_id', $id)->where('status', 'completed')->count();
+        $inProgressModulesCount = DB::table('user_learning_paths')->where('user_id', $id)->where('status', 'in_progress')->count();
+
+        // Ambil daftar learning paths yang diikuti user
+        $learningPaths = DB::table('user_learning_paths')
+            ->join('learning_paths', 'user_learning_paths.learning_path_id', '=', 'learning_paths.id')
+            ->where('user_learning_paths.user_id', $id)
+            ->select(
+                'learning_paths.id',
+                'learning_paths.title',
+                'learning_paths.thumbnail',
+                'learning_paths.category',
+                'learning_paths.difficulty_level',
+                'user_learning_paths.status',
+                'user_learning_paths.progress_percentage'
+            )
+            ->get();
+
+        $learningPathsFormatted = [];
+        foreach ($learningPaths as $path) {
+            $totalLessons = DB::table('lessons')
+                ->join('modules', 'lessons.module_id', '=', 'modules.id')
+                ->where('modules.learning_path_id', $path->id)
+                ->count();
+
+            $completedLessons = DB::table('user_lesson_completions')
+                ->join('lessons', 'user_lesson_completions.lesson_id', '=', 'lessons.id')
+                ->join('modules', 'lessons.module_id', '=', 'modules.id')
+                ->where('user_lesson_completions.user_id', $id)
+                ->where('modules.learning_path_id', $path->id)
+                ->count();
+
+            $learningPathsFormatted[] = [
+                'id' => $path->id,
+                'title' => $path->title,
+                'thumbnail' => $path->thumbnail,
+                'category' => $path->category,
+                'difficulty_level' => $path->difficulty_level,
+                'status' => $path->status,
+                'progress_percentage' => $path->progress_percentage,
+                'total_lessons' => $totalLessons,
+                'completed_lessons' => $completedLessons,
+            ];
+        }
+
+        // 8. Return data JSON
         return response()->json([
             'success' => true,
             'data' => [
@@ -151,6 +199,9 @@ class UserProfileController extends Controller
                     'points' => $points,
                     'level' => $level,
                     'total_events' => count($orders),
+                    'completed_lessons' => $completedLessonsCount,
+                    'completed_modules' => $completedModulesCount,
+                    'in_progress_modules' => $inProgressModulesCount,
                 ],
                 'interests' => $interests,
                 'certificates' => $certificates,
@@ -158,6 +209,7 @@ class UserProfileController extends Controller
                     'upcoming' => $upcomingEvents,
                     'past' => $pastEvents
                 ],
+                'learning_paths' => $learningPathsFormatted,
                 'is_own_profile' => $isOwnProfile
             ]
         ], 200);

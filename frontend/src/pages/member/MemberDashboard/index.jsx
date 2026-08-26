@@ -10,10 +10,10 @@ import { haversine, transformEventData } from './utils';
 
 import HeroSection from './sections/HeroSection';
 import QuickStatsSection from './sections/QuickStatsSection';
-import MicrolearningSection from './sections/MicrolearningSection';
-import ActiveTicketsSection from './sections/ActiveTicketsSection';
+import MyActivitySection from './sections/MyActivitySection';
 import NearbyEventsSection from './sections/NearbyEventsSection';
 import EventListSection from './sections/EventListSection';
+import RecommendedMicrolearningSection from './sections/RecommendedMicrolearningSection';
 import { STORAGE_URL } from '@/api/storage';
 
 const MemberDashboard = () => {
@@ -30,10 +30,14 @@ const MemberDashboard = () => {
 	const [pointsData, setPointsData] = useState({ current_local_points: 0, current_global_points: 0 });
 	const [searchKeyword, setSearchKeyword] = useState('');
 
-	const handleSearch = (e) => {
+	const handleSearch = (e, filterType = 'all') => {
 		e.preventDefault();
 		if (searchKeyword.trim()) {
-			navigate('/explore-events?search=' + encodeURIComponent(searchKeyword.trim()));
+			if (filterType === 'learning') {
+				navigate('/learner/catalog?search=' + encodeURIComponent(searchKeyword.trim()));
+			} else {
+				navigate('/explore-events?search=' + encodeURIComponent(searchKeyword.trim()));
+			}
 		}
 	};
 
@@ -228,22 +232,14 @@ const MemberDashboard = () => {
 					isLoading={isLoading}
 				/>
 
-				<MicrolearningSection />
+				<MyActivitySection activeTickets={activeTickets} isLoading={isLoading} />
 
-				<ActiveTicketsSection activeTickets={activeTickets} isLoading={isLoading} />
+				<RecommendedMicrolearningSection />
 
 				<NearbyEventsSection
 					locationStatus={locationStatus}
 					nearbyEvents={nearbyEvents}
 					requestLocation={requestLocation}
-				/>
-
-				<EventListSection
-					title="Untuk Kamu"
-					events={personalizedEvents}
-					seeAllUrl="/explore-events"
-					style={{ marginBottom: 36 }}
-					isLoading={loadingPersonalized}
 				/>
 
 				<EventListSection

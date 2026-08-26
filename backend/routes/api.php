@@ -111,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $user = $request->user();
         if ($user) {
             $user->checkAndDemoteIfExpired();
+            $user->load('categories');
         }
         return $user;
     });
@@ -138,6 +139,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/member/points/history', [\App\Http\Controllers\Api\Member\PointTransactionController::class, 'history']);
     Route::post('/global-rewards/redeem', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'redeemGlobalReward']);
     Route::get('/global-rewards', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'globalRewardsList']);
+    
+    // SRL Microlearning
+    Route::get('/srl/progress', [\App\Http\Controllers\Api\Member\SrlApiController::class, 'getProgress']);
+    Route::get('/srl/status/{moduleId}', [\App\Http\Controllers\Api\Member\SrlApiController::class, 'getStatus']);
+    Route::post('/srl/forethought', [\App\Http\Controllers\Api\Member\SrlApiController::class, 'saveForethought']);
+    Route::post('/srl/reflection', [\App\Http\Controllers\Api\Member\SrlApiController::class, 'saveReflection']);
     
     // Member Local Rewards Catalog & Redemption
     Route::get('/events/{event_id}/local-rewards', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'getLocalRewards']);

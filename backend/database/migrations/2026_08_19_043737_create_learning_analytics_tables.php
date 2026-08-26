@@ -20,7 +20,7 @@ return new class extends Migration
             
             $table->enum('status', ['in_progress', 'completed'])->default('in_progress');
             
-            // Total waktu yang dihabiskan user di materi ini (penting untuk analitik)
+            // Total waktu yang dihabiskan user di materi ini (penting untuk analitik)w
             $table->integer('time_spent_seconds')->default(0);
             
             // Kapan terakhir kali user membuka materi ini

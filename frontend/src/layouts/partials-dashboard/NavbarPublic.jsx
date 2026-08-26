@@ -22,6 +22,7 @@ import {
 	ShieldCheck,
 	LogOut,
 	Gift,
+	BookOpen,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import NotificationDropdown from "../../components/NotificationDropdown";
@@ -129,6 +130,9 @@ const NavbarPublic = () => {
 							<NavLink to="/bookmarks" style={linkStyle}>
 								Bookmark
 							</NavLink>
+							<NavLink to="/learner/catalog" style={linkStyle}>
+								Micro-learning
+							</NavLink>
 							<NavLink to="/my-tickets" style={linkStyle}>
 								Tiket Saya
 							</NavLink>
@@ -167,17 +171,23 @@ const NavbarPublic = () => {
 					)}
 				</div>
 
-				{/* Mobile Controls (Only Bell Lonceng and Hamburger Menu) */}
+				{/* Mobile Controls (Bell & Profile Picture Dropdown) */}
 				<div className="d-flex d-lg-none align-items-center gap-2">
-					{user && <NotificationDropdown />}
-					<Button 
-						variant="light" 
-						onClick={handleShow} 
-						className="border-0 p-1" 
-						style={{ background: 'transparent' }}
-					>
-						<Menu size={24} className="text-dark" />
-					</Button>
+					{user ? (
+						<>
+							<NotificationDropdown />
+							<ProfileDropdown />
+						</>
+					) : (
+						<Button 
+							variant="light" 
+							onClick={handleShow} 
+							className="border-0 p-1" 
+							style={{ background: 'transparent' }}
+						>
+							<Menu size={24} className="text-dark" />
+						</Button>
+					)}
 				</div>
 
 				{/* === CONDITIONAL RENDERING AUTH (Desktop) ===
@@ -226,6 +236,10 @@ const NavbarPublic = () => {
                                     <NavLink to="/bookmarks" style={mobileLinkStyle} onClick={handleClose}>
                                         <Heart size={18} />
                                         <span>Bookmark</span>
+                                    </NavLink>
+                                    <NavLink to="/learner/catalog" style={mobileLinkStyle} onClick={handleClose}>
+                                        <BookOpen size={18} />
+                                        <span>Micro-learning</span>
                                     </NavLink>
                                     <NavLink to="/my-tickets" style={mobileLinkStyle} onClick={handleClose}>
                                         <Ticket size={18} />

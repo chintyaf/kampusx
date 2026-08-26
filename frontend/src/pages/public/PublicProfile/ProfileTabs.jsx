@@ -1,6 +1,6 @@
 import React from 'react';
 import { Nav } from 'react-bootstrap';
-import { Award, Calendar as CalendarIcon } from 'lucide-react';
+import { Award, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
 
 const ProfileTabs = ({ activeTab, onTabChange }) => {
 	return (
@@ -18,6 +18,21 @@ const ProfileTabs = ({ activeTab, onTabChange }) => {
 					}}
 				>
 					<Award size={16} className="me-2" /> Sertifikat
+				</Nav.Link>
+			</Nav.Item>
+			<Nav.Item>
+				<Nav.Link 
+					onClick={() => onTabChange('learning')}
+					className={`px-0 py-3 fw-bold text-uppercase d-flex align-items-center ${activeTab === 'learning' ? 'active' : ''}`}
+					style={{ 
+						fontSize: '13px', 
+						color: activeTab === 'learning' ? 'var(--color-primary)' : 'var(--color-secondary)',
+						borderBottom: activeTab === 'learning' ? '3px solid var(--color-primary)' : '3px solid transparent',
+						background: 'transparent',
+						cursor: 'pointer'
+					}}
+				>
+					<BookOpen size={16} className="me-2" /> Progress Belajar
 				</Nav.Link>
 			</Nav.Item>
 			<Nav.Item>

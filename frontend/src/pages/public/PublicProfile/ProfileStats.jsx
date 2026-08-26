@@ -1,15 +1,28 @@
 import React from 'react';
 import { Row, Col } from 'react-bootstrap';
-import { Award, Zap, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Coins, BookOpen, CheckCircle } from 'lucide-react';
 
 const ProfileStats = ({ stats = {}, onEventClick }) => {
 	const items = [
-		// { label: 'Total Point', value: stats.points ?? 0, icon: <Zap size={20} style={{ color: '#ffb020' }} className="mb-1" /> },
-		// { label: 'Level', value: stats.level ?? 1, icon: <Award size={20} style={{ color: 'var(--color-primary)' }} className="mb-1" /> },
+		{ 
+			label: 'Poin Saya', 
+			value: stats.points ?? 0, 
+			icon: <Coins size={20} style={{ color: '#eab308' }} className="mb-1" /> 
+		},
+		{ 
+			label: 'Modul Selesai', 
+			value: stats.completed_modules ?? 0, 
+			icon: <BookOpen size={20} style={{ color: '#7c3aed' }} className="mb-1" /> 
+		},
+		{ 
+			label: 'Pelajaran Selesai', 
+			value: stats.completed_lessons ?? 0, 
+			icon: <CheckCircle size={20} style={{ color: '#16a34a' }} className="mb-1" /> 
+		},
 		{ 
 			label: 'Event Diikuti', 
 			value: stats.total_events ?? 0, 
-			icon: <CalendarIcon size={20} style={{ color: '#10b981' }} className="mb-1" />,
+			icon: <CalendarIcon size={20} style={{ color: '#00699e' }} className="mb-1" />,
 			onClick: onEventClick
 		},
 	];
@@ -17,7 +30,7 @@ const ProfileStats = ({ stats = {}, onEventClick }) => {
 	return (
 		<Row className="justify-content-center mb-4">
 			<Col xs={12} md={10} lg={8}>
-				<div className="d-flex justify-content-between bg-white rounded-4 py-3 px-4" style={{ borderColor: 'var(--color-border)'}}>
+				<div className="d-flex justify-content-between bg-white rounded-4 py-3 px-4" style={{ borderColor: 'var(--color-border)', border: '1px solid #e8ecf0', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
 					{items.map((item, idx) => (
 						<div 
 							key={idx} 
@@ -32,12 +45,14 @@ const ProfileStats = ({ stats = {}, onEventClick }) => {
 							onMouseEnter={(e) => { if (item.onClick) e.currentTarget.style.opacity = '0.7'; }}
 							onMouseLeave={(e) => { if (item.onClick) e.currentTarget.style.opacity = '1'; }}
 						>
-							{item.icon}
-							<div className="fw-bold text-uppercase mt-1" style={{ fontSize: '10px', letterSpacing: '0.5px', color: 'var(--color-secondary)' }}>
-								{item.label}
-							</div>
-							<div className="fw-bold" style={{ fontSize: '1.25rem', color: 'var(--color-text)' }}>
-								{item.value}
+							<div className="d-flex flex-column align-items-center">
+								{item.icon}
+								<div className="fw-bold text-uppercase mt-1" style={{ fontSize: '9px', letterSpacing: '0.5px', color: 'var(--color-secondary)' }}>
+									{item.label}
+								</div>
+								<div className="fw-bold" style={{ fontSize: '1.2rem', color: 'var(--color-text)', marginTop: 2 }}>
+									{typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
+								</div>
 							</div>
 						</div>
 					))}

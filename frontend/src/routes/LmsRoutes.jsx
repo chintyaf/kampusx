@@ -5,11 +5,11 @@ import { Route } from 'react-router-dom';
 import OnboardingPage from '@/pages/lms/learner/onboarding/OnboardingPage';
 import CatalogPage from '@/pages/lms/learner/catalog/CatalogPage';
 import ModuleDetailPage from '@/pages/lms/learner/modules/ModuleDetailPage';
-import ForethoughtPage from '@/pages/lms/learner/modules/forethought/ForethoughtPage';
+import GoalSettingPage from '@/pages/lms/learner/modules/goals/GoalSettingPage';
 import QuizPage from '@/pages/lms/learner/modules/quiz/QuizPage';
-import ReflectionPage from '@/pages/lms/learner/modules/reflection/ReflectionPage';
+import SelfAssessmentPage from '@/pages/lms/learner/modules/assessment/SelfAssessmentPage';
 import AnalyticsPage from '@/pages/lms/learner/analytics/AnalyticsPage';
-import BadgesPage from '@/pages/lms/learner/badges/BadgesPage';
+import AchievementsPage from '@/pages/lms/learner/achievements/AchievementsPage';
 import SettingsPage from '@/pages/lms/learner/settings/SettingsPage';
 
 // Organizer Pages
@@ -19,29 +19,39 @@ import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
 import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
 import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
-import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
+import ActivityLogsPage from '@/pages/lms/organizer/activity-logs/ActivityLogsPage';
 
-export const LmsRoutes = [
-  // Learner Domain Routes
-  <Route key="lms-learner-onboarding" path="/learner/onboarding" element={<OnboardingPage />} />,
-  <Route key="lms-learner-catalog" path="/learner/catalog" element={<CatalogPage />} />,
-  <Route key="lms-learner-module-detail" path="/learner/modules/:moduleId" element={<ModuleDetailPage />} />,
-  <Route key="lms-learner-forethought" path="/learner/modules/:moduleId/forethought" element={<ForethoughtPage />} />,
-  <Route key="lms-learner-quiz" path="/learner/modules/:moduleId/quiz" element={<QuizPage />} />,
-  <Route key="lms-learner-reflection" path="/learner/modules/:moduleId/reflection" element={<ReflectionPage />} />,
-  <Route key="lms-learner-analytics" path="/learner/analytics" element={<AnalyticsPage />} />,
-  <Route key="lms-learner-badges" path="/learner/badges" element={<BadgesPage />} />,
-  <Route key="lms-learner-settings" path="/learner/settings" element={<SettingsPage />} />,
+export const LearnerLmsRoutes = (
+  <Route path="/learner">
+    <Route path="onboarding" element={<OnboardingPage />} />
+    <Route path="catalog" element={<CatalogPage />} />
+    <Route path="analytics" element={<AnalyticsPage />} />
+    <Route path="achievements" element={<AchievementsPage />} />
+    <Route path="settings" element={<SettingsPage />} />
+    
+    {/* Module Nested Routing */}
+    <Route path="modules/:moduleId">
+      <Route index element={<ModuleDetailPage />} />
+      <Route path="goals" element={<GoalSettingPage />} />
+      <Route path="quiz" element={<QuizPage />} />
+      <Route path="assessment" element={<SelfAssessmentPage />} />
+    </Route>
+  </Route>
+);
 
-  // Organizer Domain Routes
-  // Map `/organizer/dashboard` to LMS Dashboard as well as other organizer pages
-  <Route key="lms-organizer-dashboard" path="/organizer/dashboard" element={<DashboardPage />} />,
-  <Route key="lms-organizer-content" path="/organizer/content" element={<ContentPage />} />,
-  <Route key="lms-organizer-upload" path="/organizer/ai-studio/upload" element={<UploadPage />} />,
-  <Route key="lms-organizer-review" path="/organizer/ai-studio/review" element={<ReviewPage />} />,
-  <Route key="lms-organizer-learning-paths" path="/organizer/learning-paths" element={<LearningPathsPage />} />,
-  <Route key="lms-organizer-badges" path="/organizer/badges" element={<OrganizerBadgesPage />} />,
-  <Route key="lms-organizer-logs" path="/organizer/logs" element={<LogsPage />} />,
-];
+export const OrganizerLmsRoutes = (
+  <Route path="/organizer">
+    <Route path="dashboard" element={<DashboardPage />} />
+    <Route path="content" element={<ContentPage />} />
+    <Route path="learning-paths" element={<LearningPathsPage />} />
+    <Route path="badges" element={<OrganizerBadgesPage />} />
+    <Route path="activity-logs" element={<ActivityLogsPage />} />
+    
+    {/* AI Studio Nested Routing */}
+    <Route path="ai-studio">
+      <Route path="upload" element={<UploadPage />} />
+      <Route path="review" element={<ReviewPage />} />
+    </Route>
+  </Route>
+);
 
-export default LmsRoutes;

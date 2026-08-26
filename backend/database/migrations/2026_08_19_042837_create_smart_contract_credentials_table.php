@@ -22,7 +22,7 @@ return new class extends Migration
             
 
             // Integrasi Modul Blockchain & Smart Contract
-           
+    
             $table->string('wallet_address')->nullable();  // Alamat dompet kripto (Web3) milik pengguna
             $table->string('transaction_hash')->unique()->nullable(); // Bukti (hash) transaksi pencetakan sertifikat di jaringan blockchain
             $table->string('token_id')->nullable(); // ID unik dari sertifikat digital (Soulbound Token) yang diterbitkan

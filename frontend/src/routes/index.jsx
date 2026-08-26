@@ -15,7 +15,7 @@ import ProtectedRoute from './ProtectedRoute';
 import visitorRoutes from './PublicRoutes';
 import AdminRoutes from './AdminRoutes';
 import { OrganizerRoutes } from './OrganizerRoutes';
-import LmsRoutes from './LmsRoutes';
+import { LearnerLmsRoutes, OrganizerLmsRoutes } from './LmsRoutes';
 
 // Pages: Auth & Public
 import LoginPage from '../pages/auth/LoginPage';
@@ -72,9 +72,15 @@ const AppRoutes = () => {
 
 	// Membersihkan orphaned Bootstrap modal backdrop saat pindah halaman
 	useEffect(() => {
-		document.body.classList.remove('modal-open');
-		const backdrops = document.querySelectorAll('.modal-backdrop');
-		backdrops.forEach((b) => b.remove());
+		return () => {
+			document.body.classList.remove('modal-open');
+			const backdrops = document.querySelectorAll('.modal-backdrop');
+			backdrops.forEach((b) => {
+				// Menghindari crash React 19 (NotFoundError pada removeChild) saat modal di-unmount
+				// dengan menyembunyikannya secara visual/interaktif alih-alih menghapusnya dari DOM secara paksa.
+				b.style.display = 'none';
+			});
+		};
 	}, [location.pathname]);
 
 	if (loading) {
@@ -128,12 +134,12 @@ const AppRoutes = () => {
 					</Route>
 				</Route>
 
-				{/* 3. MEMBER LAYOUT GROUP (Halaman Khusus Bertipe Member Dashboard) */}
 				<Route element={<ProtectedRoute />}>
 					<Route element={<MemberLayout />}>
 						<Route path="/my-tickets" element={<MyTickets />} />
 						<Route path="/certificates" element={<MemberCertificatePage />} />
 						<Route path="/apply-organizer" element={<ApplyOrganizerPage />} />
+						{LearnerLmsRoutes}
 					</Route>
 				</Route>
 
@@ -148,7 +154,10 @@ const AppRoutes = () => {
 				{/* 5. DASHBOARD LAYOUT GROUP (Admin & Organizer) */}
 				<Route element={<DashboardLayout />}>
 					<Route element={<ProtectedRoute allowedRole={['admin']} />}>{AdminRoutes}</Route>
-					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>{OrganizerRoutes}</Route>
+					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
+						{OrganizerRoutes}
+						{OrganizerLmsRoutes}
+					</Route>
 				</Route>
 
 				{/* 6. STANDALONE ORGANIZER PREVIEW (Protected but outside DashboardLayout) */}
@@ -167,8 +176,7 @@ const AppRoutes = () => {
 				<Route path="/staff/attendees" element={<StaffAttendees />} />
 				<Route path="/staff/kiosk" element={<KioskModePage isStaff={true} />} />
 
-				{/* 8. LMS & SRL WIREFRAME ROUTES */}
-				{LmsRoutes}
+
 
 				{/* 9. 404 NOT FOUND */}
 				<Route path="*" element={<NotFound />} />
