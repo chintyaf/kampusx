@@ -103,35 +103,69 @@ const QuizPage = () => {
         <Container className="mt-4">
           <Row className="justify-content-center">
             <Col lg={8}>
-              {/* Readiness Score Card */}
-              <Card className="border-0 shadow-sm rounded-4 p-4 mb-4 text-center" style={{ background: '#fff' }}>
-                <h5 className="fw-bold mb-3" style={{ color: '#0f172a' }}>Skor Kesiapan Belajar (Readiness Score)</h5>
+              {/* Readiness Score Card (Redesigned to 2-Column layout) */}
+              <Card className="border-0 shadow-sm rounded-4 p-4 mb-4" style={{ background: '#fff' }}>
+                <h5 className="fw-bold mb-4 text-center text-md-start" style={{ color: '#0f172a' }}>Skor Kesiapan Belajar (Readiness Score)</h5>
                 
-                <div className="d-inline-flex flex-column align-items-center justify-content-center my-3" style={{
-                  width: 140,
-                  height: 140,
-                  borderRadius: '50%',
-                  background: isReady ? '#f0fdf4' : '#fef2f2',
-                  border: isReady ? '5px solid #16a34a' : '5px solid #dc2626'
-                }}>
-                  <h1 className="fw-extrabold mb-0" style={{ color: isReady ? '#16a34a' : '#dc2626', fontSize: 36 }}>
-                    {score}%
-                  </h1>
-                  <span className="small fw-bold text-muted">Kesiapan</span>
-                </div>
+                <Row className="align-items-center">
+                  {/* Left Column: Circle & Status */}
+                  <Col md={5} className="text-center pb-3 pb-md-0" style={{ borderRight: '1px solid #f1f5f9' }}>
+                    <div className="d-inline-flex flex-column align-items-center justify-content-center my-2" style={{
+                      width: 130,
+                      height: 130,
+                      borderRadius: '50%',
+                      background: isReady ? '#f0fdf4' : '#fffbeb',
+                      border: isReady ? '10px solid #16a34a' : '10px solid #d97706'
+                    }}>
+                      <h1 className="fw-extrabold mb-0" style={{ color: isReady ? '#16a34a' : '#d97706', fontSize: 32 }}>
+                        {score}%
+                      </h1>
+                      <span className="small fw-bold text-muted" style={{ fontSize: '10px' }}>Kesiapan</span>
+                    </div>
 
-                <div className="mt-2">
-                  <Badge bg={isReady ? 'success' : 'danger'} className="py-2 px-4 rounded-pill" style={{ fontSize: 12, fontWeight: 700 }}>
-                    {isReady ? 'SIAP / SIAP LANJUT' : 'PERLU REMEDIAL'}
-                  </Badge>
-                </div>
+                    <div className="mt-2">
+                      {isReady ? (
+                        <Badge bg="success" className="py-2 px-4 rounded-pill" style={{ fontSize: 11, fontWeight: 700 }}>
+                          SIAP LANJUT
+                        </Badge>
+                      ) : (
+                        <Badge className="py-2 px-4 rounded-pill text-dark" style={{ fontSize: 11, fontWeight: 700, backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
+                          PERLU REMEDIAL
+                        </Badge>
+                      )}
+                    </div>
+                  </Col>
 
-                <p className="text-muted small mt-3 mx-auto" style={{ maxWidth: 450 }}>
-                  {isReady 
-                    ? 'Luar biasa! Pemahaman konsep materi Anda dinilai sangat siap untuk menerapkan keahlian ini di lingkup tugas nyata.'
-                    : 'Skor kesiapan Anda masih di bawah standar minimal 70%. Silakan ulas kembali materi yang direkomendasikan AI.'
-                  }
-                </p>
+                  {/* Right Column: Mastery Breakdown / Remedial Details */}
+                  <Col md={7} className="ps-md-4 mt-3 mt-md-0">
+                    {isReady ? (
+                      <div>
+                        <h6 className="fw-bold text-success mb-2" style={{ fontSize: 13 }}>Topik Berhasil Dikuasai</h6>
+                        <p className="text-muted small mb-0">
+                          Selamat! Anda dinilai sangat siap untuk menerapkan keahlian **{learningPath.title}** di lingkup tugas nyata.
+                        </p>
+                        <ul className="text-muted small mt-2 ps-3 mb-0" style={{ fontSize: 12 }}>
+                          <li>Pemahaman konsep & teori dasar (100% Benar)</li>
+                          <li>Analisis kasus studi (Menguasai)</li>
+                          <li>Penyelesaian masalah praktis</li>
+                        </ul>
+                      </div>
+                    ) : (
+                      <div>
+                        <h6 className="fw-bold text-warning mb-2" style={{ fontSize: 13, color: '#d97706' }}>Topik Yang Perlu Perbaikan (Remedial)</h6>
+                        <p className="text-muted small mb-2" style={{ fontSize: 12 }}>
+                          Skor Anda berada di bawah kriteria minimum kelulusan 70%. Berikut materi rekomendasi Anda:
+                        </p>
+                        <div className="bg-light p-2.5 rounded-3 border border-light">
+                          <ul className="text-dark small mb-0 ps-3 fw-medium" style={{ fontSize: 12, lineHeight: '1.6' }}>
+                            <li style={{ color: '#c2410c' }}>Lesson 2: Membuat Empathy Map</li>
+                            <li className="text-secondary">Lesson 3: Validasi User Persona</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </Col>
+                </Row>
               </Card>
 
               {/* AI Feedback Recommendations Banner */}
@@ -152,14 +186,37 @@ const QuizPage = () => {
                   }
                 </p>
                 <div className="d-flex gap-2">
-                  <Button 
-                    variant="outline-purple" 
-                    size="sm" 
-                    onClick={() => navigate('/learner/catalog')}
-                    style={{ fontSize: 11, fontWeight: 700, borderRadius: 8, color: '#7e22ce', borderColor: '#d8b4fe' }}
-                  >
-                    Buka Rekomendasi Event
-                  </Button>
+                  {isReady ? (
+                    <Button 
+                      onClick={() => navigate('/learner/catalog')}
+                      className="py-1 px-3 rounded-pill text-purple fw-bold border text-xs"
+                      style={{ 
+                        fontSize: 11, 
+                        fontWeight: 700, 
+                        borderRadius: 20, 
+                        color: '#7e22ce', 
+                        borderColor: '#d8b4fe',
+                        backgroundColor: '#f3e8ff'
+                      }}
+                    >
+                      Buka Rekomendasi Event
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => navigate(`/learner/modules/${moduleId}`)}
+                      className="py-1 px-3 rounded-pill text-purple fw-bold border text-xs"
+                      style={{ 
+                        fontSize: 11, 
+                        fontWeight: 700, 
+                        borderRadius: 20, 
+                        color: '#7e22ce', 
+                        borderColor: '#d8b4fe',
+                        backgroundColor: '#f3e8ff'
+                      }}
+                    >
+                      Buka Materi Lesson 2
+                    </Button>
+                  )}
                 </div>
               </Card>
 
@@ -197,9 +254,21 @@ const QuizPage = () => {
                   <div className="d-flex flex-column gap-2">
                     <div className="d-flex gap-3">
                       <Button
-                        variant="outline-danger"
                         onClick={() => navigate(`/learner/modules/${moduleId}`)}
-                        style={{ flex: 1, borderRadius: 10, padding: '12px', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{ 
+                          flex: 1, 
+                          borderRadius: 10, 
+                          padding: '12px', 
+                          fontWeight: 700, 
+                          fontSize: 13, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          gap: 6,
+                          background: '#d97706',
+                          border: 'none',
+                          color: '#fff'
+                        }}
                       >
                         Tinjau Materi Remedial
                       </Button>
@@ -214,8 +283,8 @@ const QuizPage = () => {
                     <Button
                       onClick={handleProceedToReflection}
                       variant="link"
-                      className="text-danger small mt-1 fw-bold text-center"
-                      style={{ textDecoration: 'none' }}
+                      className="text-muted small mt-2 fw-semibold text-center"
+                      style={{ textDecoration: 'none', color: '#64748b', fontSize: '11px' }}
                     >
                       Lanjut ke Refleksi Tanpa Lulus &rarr;
                     </Button>

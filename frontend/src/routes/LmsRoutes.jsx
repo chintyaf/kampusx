@@ -12,15 +12,6 @@ import AnalyticsPage from '@/pages/lms/learner/analytics/AnalyticsPage';
 import AchievementsPage from '@/pages/lms/learner/achievements/AchievementsPage';
 import SettingsPage from '@/pages/lms/learner/settings/SettingsPage';
 
-// Organizer Pages
-import DashboardPage from '@/pages/lms/organizer/dashboard/DashboardPage';
-import ContentPage from '@/pages/lms/organizer/content/ContentPage';
-import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
-import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
-import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
-import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
-import ActivityLogsPage from '@/pages/lms/organizer/activity-logs/ActivityLogsPage';
-
 export const LearnerLmsRoutes = (
   <Route path="/learner">
     <Route path="onboarding" element={<OnboardingPage />} />
@@ -38,20 +29,3 @@ export const LearnerLmsRoutes = (
     </Route>
   </Route>
 );
-
-export const OrganizerLmsRoutes = (
-  <Route path="/organizer">
-    <Route path="dashboard" element={<DashboardPage />} />
-    <Route path="content" element={<ContentPage />} />
-    <Route path="learning-paths" element={<LearningPathsPage />} />
-    <Route path="badges" element={<OrganizerBadgesPage />} />
-    <Route path="activity-logs" element={<ActivityLogsPage />} />
-    
-    {/* AI Studio Nested Routing */}
-    <Route path="ai-studio">
-      <Route path="upload" element={<UploadPage />} />
-      <Route path="review" element={<ReviewPage />} />
-    </Route>
-  </Route>
-);
-

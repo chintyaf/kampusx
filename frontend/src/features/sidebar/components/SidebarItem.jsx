@@ -10,10 +10,22 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		return location.pathname.startsWith(fullPath);
 	});
 
+	const isParentActive = () => {
+		const cleanedPath = ('/' + item.path).replace(/\/+/g, '/');
+		if (cleanedPath === '/organizer/dashboard') {
+			return location.pathname.startsWith('/organizer') && 
+				!location.pathname.includes('/event-dashboard') && 
+				!location.pathname.includes('/organizer/daftar-acara');
+		}
+		return location.pathname === cleanedPath;
+	};
+
 	// Gunakan justify-content-between agar dot terdorong ke kanan
-	const parentNavLinkClass = ({ isActive }) =>
-		`nav-link custom-menu-item d-flex align-items-center border-0 ${isActive || isChildActive ? 'active' : ''
+	const parentNavLinkClass = ({ isActive }) => {
+		const active = isActive || isChildActive || isParentActive();
+		return `nav-link custom-menu-item d-flex align-items-center border-0 ${active ? 'active' : ''
 		} ${isSidebarCollapsed ? 'justify-content-center' : 'justify-content-between'}`;
+	};
 
 	// Kelas khusus untuk parent yang memiliki submenu:
 	// - 'expanded-active' jika child aktif (tidak ada border kiri biru, hanya indikator terbuka)

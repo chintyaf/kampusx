@@ -275,3 +275,166 @@
 	font-weight: 700;
 	color: var(--color-text);
 }
+
+/* ========================================================================= */
+/* COMMAND CENTER DASHBOARD & MINIMALIST LAYOUT                              */
+/* ========================================================================= */
+
+.org-metric-card {
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	border-color: #f1f5f9 !important;
+}
+
+.org-metric-card:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02) !important;
+}
+
+.uppercase-label {
+	letter-spacing: 0.05em;
+	font-size: 10px;
+}
+
+.metric-icon-box {
+	width: 38px;
+	height: 38px;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+/* Accent Color Variations for Boxes - Softer backgrounds */
+.bg-blue-light { background-color: #f8fafc; }
+.text-blue-dark { color: #64748b; }
+
+.bg-green-light { background-color: #f8fafc; }
+.text-green-dark { color: #64748b; }
+
+.bg-purple-light { background-color: #f8fafc; }
+.text-purple-dark { color: #64748b; }
+
+.bg-amber-light { background-color: #f8fafc; }
+.text-amber-dark { color: #64748b; }
+
+/* Split Command Panel Column Layout */
+.org-command-column-card {
+	border-color: #f1f5f9 !important;
+	min-height: 400px;
+}
+
+.org-list-item-row {
+	background-color: #ffffff !important;
+	border: 1px solid #f1f5f9 !important;
+	transition: all 0.15s ease;
+}
+
+.org-list-item-row:hover {
+	background-color: #fafafa !important;
+	border-color: #e2e8f0 !important;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
+}
+
+/* Text utility classes */
+.text-xs {
+	font-size: 12px;
+}
+
+.text-xxs {
+	font-size: 11px;
+}
+
+/* Quick Action link boxes */
+.quick-action-link-box {
+	transition: all 0.2s ease;
+	border-color: #e2e8f0 !important;
+	min-height: 105px;
+}
+
+.quick-action-link-box:hover {
+	background-color: #f1f5f9 !important;
+	border-color: #94a3b8 !important;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+
+/* Activity logs markers */
+.activity-feed-item {
+	position: relative;
+}
+
+.activity-marker-circle {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: #94a3b8;
+}
+
+.activity-feed-item:hover .activity-marker-circle {
+	background-color: #475569;
+}
+
+/* Grid wrappers */
+.hover-card-wrapper {
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	border-color: #e2e8f0 !important;
+}
+
+.hover-card-wrapper:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04) !important;
+	border-color: #cbd5e1 !important;
+}
+
+/* General placeholders */
+.banner-placeholder {
+	background-color: #f8fafc;
+	overflow: hidden;
+}
+
+.banner-placeholder img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.line-clamp-2 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* Layout views custom buttons */
+.btn-white {
+	background-color: #ffffff;
+	border: 1px solid #e2e8f0;
+	color: #0f172a;
+}
+
+/* Badge colors standardization override */
+.org-status-badge.status-draft {
+	background-color: #f1f5f9;
+	color: #475569;
+}
+
+.org-status-badge.status-published {
+	background-color: #f3e8ff;
+	color: #6b21a8;
+}
+
+.org-status-badge.status-ongoing {
+	background-color: #dcfce7;
+	color: #15803d;
+}
+
+.org-status-badge.status-completed {
+	background-color: #dbeafe;
+	color: #1d4ed8;
+}
+
+.org-status-badge.status-cancelled {
+	background-color: #fee2e2;
+	color: #b91c1c;
+}

@@ -15,7 +15,7 @@ import ProtectedRoute from './ProtectedRoute';
 import visitorRoutes from './PublicRoutes';
 import AdminRoutes from './AdminRoutes';
 import { OrganizerRoutes } from './OrganizerRoutes';
-import { LearnerLmsRoutes, OrganizerLmsRoutes } from './LmsRoutes';
+import { LearnerLmsRoutes } from './LmsRoutes';
 
 // Pages: Auth & Public
 import LoginPage from '../pages/auth/LoginPage';
@@ -156,7 +156,6 @@ const AppRoutes = () => {
 					<Route element={<ProtectedRoute allowedRole={['admin']} />}>{AdminRoutes}</Route>
 					<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
 						{OrganizerRoutes}
-						{OrganizerLmsRoutes}
 					</Route>
 				</Route>
 

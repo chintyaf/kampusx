@@ -17,15 +17,6 @@ const DevNavVisualizer = () => {
       { name: 'Analytics', path: '/learner/analytics' },
       { name: 'Badges', path: '/learner/badges' },
       { name: 'Settings', path: '/learner/settings' },
-    ],
-    organizer: [
-      { name: 'LMS Dashboard', path: '/organizer/dashboard' },
-      { name: 'Content Management', path: '/organizer/content' },
-      { name: 'AI Studio: Upload', path: '/organizer/ai-studio/upload' },
-      { name: 'AI Studio: Review', path: '/organizer/ai-studio/review' },
-      { name: 'Learning Paths config', path: '/organizer/learning-paths' },
-      { name: 'Organizer Badges', path: '/organizer/badges' },
-      { name: 'Logs & Integrations', path: '/organizer/logs' },
     ]
   };
 
@@ -140,23 +131,7 @@ const DevNavVisualizer = () => {
             })}
           </ul>
 
-          <div style={styles.sectionTitle}>Organizer Domain</div>
-          <ul style={styles.list}>
-            {routes.organizer.map((route) => {
-              const isActive = location.pathname === route.path;
-              return (
-                <li key={route.path}>
-                  <Link 
-                    to={route.path} 
-                    style={styles.link(isActive)}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {route.name} <code style={{ fontSize: '10px', float: 'right', opacity: 0.7 }}>{route.path}</code>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+
         </div>
       )}
     </>
