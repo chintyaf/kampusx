@@ -1,0 +1,694 @@
+/**
+ * learningDashboard.css
+ * Custom styles for KampusX Microlearning Dashboard.
+ * Integrates with Bootstrap 5 utilities, adding modern cards, sleek gradients,
+ * radial gauges, micro-interactions, and custom tabs.
+ */
+
+:root {
+  --primary-purple: #6c5ce7;
+  --primary-purple-dark: #5846db;
+  --primary-purple-light: #8e7bf5;
+  --primary-purple-bg: #f5f3ff;
+  --primary-purple-subtle: #ede9fe;
+  --primary-purple-border: #ddd6fe;
+
+  --accent-cyan: #00cec9;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+  --accent-indigo: #4f46e5;
+
+  --surface-card: #ffffff;
+  --surface-bg: #f8fafc;
+  --text-dark: #0f172a;
+  --text-muted-custom: #64748b;
+  --border-light: #e2e8f0;
+
+  --radius-card: 16px;
+  --radius-card-sm: 12px;
+
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 12px 28px -4px rgba(108, 92, 231, 0.14), 0 4px 10px -2px rgba(15, 23, 42, 0.06);
+}
+
+/* Page Container */
+.learning-dashboard-wrapper {
+  background-color: #f8fafc;
+  min-height: calc(100vh - 70px);
+  padding-bottom: 4rem;
+}
+
+/* Base Card Styling */
+.learning-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.learning-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+/* ==========================================================================
+   A. Header Styling
+   ========================================================================== */
+.learning-header {
+  padding: 1.5rem 0 1.25rem 0;
+}
+
+.learning-header .greeting-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+
+.learning-header .date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted-custom);
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.learning-header .motivation-quote {
+  font-size: 0.9375rem;
+  color: var(--text-muted-custom);
+  margin-top: 0.35rem;
+  line-height: 1.5;
+}
+
+.streak-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border: 1px solid #fed7aa;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #c2410c;
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.08);
+}
+
+.xp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #1d4ed8;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.08);
+}
+
+/* ==========================================================================
+   B. Weekly Goal Card Styling
+   ========================================================================== */
+.weekly-goal-card {
+  position: relative;
+  background: linear-gradient(135deg, #6c5ce7 0%, #7c5dfa 60%, #8e7bf5 100%);
+  border: none;
+  border-radius: var(--radius-card);
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(108, 92, 231, 0.35), 0 8px 10px -6px rgba(108, 92, 231, 0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.weekly-goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -4px rgba(108, 92, 231, 0.45);
+}
+
+/* Ambient glow blobs behind the card */
+.weekly-goal-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.weekly-goal-card::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: 20%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(0, 206, 201, 0.2) 0%, rgba(0, 206, 201, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.weekly-goal-card .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.weekly-goal-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.weekly-stat-box {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.weekly-stat-box:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.weekly-stat-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.weekly-stat-label {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+.weekly-progress-bar-container {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+  height: 10px;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.weekly-progress-bar {
+  background: linear-gradient(90deg, #ffffff 0%, #00cec9 100%);
+  border-radius: 9999px;
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(0, 206, 201, 0.6);
+}
+
+.day-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.day-circle.completed {
+  background: #ffffff;
+  color: var(--primary-purple);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.day-circle.pending {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ==========================================================================
+   C. Continue Learning Card Styling
+   ========================================================================== */
+.continue-card {
+  border-left: 4px solid var(--primary-purple);
+}
+
+.continue-card-img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  border-radius: var(--radius-card-sm);
+  transition: transform 0.3s ease;
+}
+
+.continue-card:hover .continue-card-img {
+  transform: scale(1.02);
+}
+
+.continue-card-img-wrapper {
+  overflow: hidden;
+  border-radius: var(--radius-card-sm);
+  position: relative;
+}
+
+.continue-card-play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.continue-card:hover .continue-card-play-overlay {
+  opacity: 1;
+}
+
+.play-circle-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--primary-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: scale(0.9);
+  transition: transform 0.2s ease;
+}
+
+.continue-card:hover .play-circle-btn {
+  transform: scale(1);
+}
+
+.btn-primary-purple {
+  background: var(--primary-purple);
+  border-color: var(--primary-purple);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 0.65rem 1.4rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.25);
+}
+
+.btn-primary-purple:hover,
+.btn-primary-purple:focus {
+  background: var(--primary-purple-dark);
+  border-color: var(--primary-purple-dark);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35);
+}
+
+/* ==========================================================================
+   D. Recommended Modules Styling
+   ========================================================================== */
+.module-thumb-wrapper {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  border-top-left-radius: var(--radius-card);
+  border-top-right-radius: var(--radius-card);
+  background: #f1f5f9;
+}
+
+.module-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.module-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid var(--border-light);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-purple-border);
+}
+
+.module-card:hover .module-thumb-img {
+  transform: scale(1.06);
+}
+
+.badge-floating {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  letter-spacing: 0.02em;
+}
+
+.module-meta-pill {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted-custom);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* ==========================================================================
+   E. Enrolled Modules Styling & Custom Tabs
+   ========================================================================== */
+.enrolled-filter-tabs {
+  border-bottom: 2px solid var(--border-light);
+  gap: 0.5rem;
+}
+
+.enrolled-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted-custom);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+}
+
+.enrolled-tab-btn:hover {
+  color: var(--primary-purple);
+}
+
+.enrolled-tab-btn.active {
+  color: var(--primary-purple);
+  border-bottom-color: var(--primary-purple);
+}
+
+.enrolled-tab-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: var(--text-muted-custom);
+  transition: all 0.2s ease;
+}
+
+.enrolled-tab-btn.active .enrolled-tab-badge {
+  background: var(--primary-purple-subtle);
+  color: var(--primary-purple);
+}
+
+.enrolled-item-card {
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.enrolled-item-card:hover {
+  border-color: var(--primary-purple-border);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.enrolled-thumb {
+  width: 90px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   F. Learning Readiness Gauge & Widget
+   ========================================================================== */
+.readiness-gauge-wrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+}
+
+.readiness-gauge-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.readiness-gauge-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 10;
+}
+
+.readiness-gauge-meter {
+  fill: none;
+  stroke: url(#readinessGradient);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.readiness-score-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.readiness-score-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+.readiness-score-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-emerald);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+.sub-dimension-row {
+  font-size: 0.82rem;
+}
+
+.sub-dimension-progress {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.sub-dimension-bar {
+  border-radius: 9999px;
+  transition: width 0.6s ease;
+}
+
+/* ==========================================================================
+   G. Quiz Feedback Widget Styling
+   ========================================================================== */
+.quiz-feedback-card {
+  position: relative;
+}
+
+.quiz-score-badge {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.quiz-feedback-box {
+  background: #f8fafc;
+  border-left: 3px solid var(--primary-purple);
+  padding: 0.75rem 1rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.strength-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #334155;
+  margin-bottom: 0.4rem;
+}
+
+.tip-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.8125rem;
+  color: #92400e;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   H. Badges & Credentials Widget Styling
+   ========================================================================== */
+.badge-avatar-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badge-item-row {
+  padding: 0.6rem;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.badge-item-row:hover {
+  background-color: #f8fafc;
+}
+
+.badge-item-row:hover .badge-avatar-box {
+  transform: scale(1.08) rotate(3deg);
+}
+
+.credential-pill-card {
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.credential-pill-card:hover {
+  border-color: var(--primary-purple-border);
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.1);
+}
+
+/* Responsive Tweaks */
+@media (max-width: 991.98px) {
+  .learning-header .greeting-title {
+    font-size: 1.45rem;
+  }
+  .weekly-stat-value {
+    font-size: 1.25rem;
+  }
+  .continue-card-img {
+    height: 160px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .learning-dashboard-wrapper {
+    padding-bottom: 2.5rem;
+  }
+  .learning-card {
+    border-radius: var(--radius-card-sm);
+    padding: 1.15rem !important;
+  }
+  .weekly-goal-card {
+    padding: 1.25rem !important;
+  }
+  .weekly-stat-box {
+    padding: 0.75rem 0.85rem;
+  }
+  .weekly-stat-value {
+    font-size: 1.15rem;
+  }
+  .day-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 0.7rem;
+  }
+  .continue-card-img {
+    height: 180px;
+    margin-bottom: 0.5rem;
+  }
+  .enrolled-filter-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .enrolled-filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .enrolled-item-card {
+    padding: 0.85rem;
+  }
+  .enrolled-thumb {
+    width: 75px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .learning-header .greeting-title {
+    font-size: 1.3rem;
+  }
+  .learning-header .motivation-quote {
+    font-size: 0.85rem;
+  }
+  .streak-pill,
+  .xp-pill {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+  }
+  .btn-primary-purple {
+    width: 100%;
+    justify-content: center;
+  }
+  .readiness-gauge-wrapper {
+    width: 130px;
+    height: 130px;
+  }
+  .readiness-score-number {
+    font-size: 1.8rem;
+  }
+}

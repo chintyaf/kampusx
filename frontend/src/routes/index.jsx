@@ -40,6 +40,11 @@ import MemberCertificatePage from '@/pages/member/MemberCertificatePage';
 import GlobalRewardCatalog from '@/pages/member/GlobalRewardCatalog';
 import LocalRewardCatalog from '@/pages/member/LocalRewardCatalog';
 import PointHistory from '@/pages/member/PointHistory';
+import LearningDashboard from '../pages/LearningDashboard';
+import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPage';
+import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
+import ModuleDetailPage from '@/pages/lms/learner/ModuleDetailPage';
+import LessonViewerPage from '@/pages/lms/learner/LessonViewerPage';
 
 // Pages: Event Management & Checkout
 import Checkout from '../pages/event/public/Checkout/index';
@@ -124,7 +129,7 @@ const AppRoutes = () => {
 					</Route>
 				</Route>
 
-				{/* 3. MEMBER LAYOUT GROUP (Halaman Khusus Bertipe Member Dashboard) */}
+
 				<Route element={<ProtectedRoute />}>
 					<Route element={<MemberLayout />}>
 						<Route path="/my-tickets" element={<MyTickets />} />

@@ -13,6 +13,7 @@ import {
 	Award,
 	Ticket,
 	Settings,
+	GraduationCap,
 } from 'lucide-react';
 
 // Komponen kustom untuk Trigger/Tombol Dropdown
@@ -103,6 +104,15 @@ const ProfileDropdown = () => {
 			iconBg: '#f5f3ff',
 			iconBorder: '#ddd6fe',
 			iconColor: '#7c3aed',
+			show: true,
+		},
+		{
+			icon: GraduationCap,
+			label: 'Learning Dashboard',
+			to: '/learning',
+			iconBg: '#ede9fe',
+			iconBorder: '#c4b5fd',
+			iconColor: '#6c5ce7',
 			show: true,
 		},
 		{
