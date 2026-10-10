@@ -49,11 +49,25 @@ const LearningDashboard = () => {
 				{/* Main Grid: col-lg-8 (Main Content) and col-lg-4 (Right Sidebar) */}
 				<Row className="g-4">
 					{/* =============================================================
+              C. Right Sidebar Area (Bootstrap col-lg-4)
+             ============================================================= */}
+					{/* <Col lg={3}> */}
+						{/* 1. Learning Readiness Widget (SRL Circular Radial Gauge) */}
+						{/* <LearningReadinessWidget readiness={mockLearningReadiness} /> */}
+
+						{/* 2. Recent Quiz Feedback Widget */}
+						{/* <QuizFeedbackWidget feedback={mockQuizFeedback} /> */}
+
+						{/* 3. Badges & Credentials Widget */}
+						{/* <BadgesWidget data={mockBadgesAndCredentials} /> */}
+					{/* </Col> */}
+
+					{/* =============================================================
               B. Main Content Area (Bootstrap col-lg-8)
              ============================================================= */}
-					<Col lg={8}>
-						{/* 1. Weekly Goal Card */}
-						<WeeklyGoalCard data={mockWeeklyGoal} />
+					<Col lg={12}>
+						{/* 1. Weekly Goal Card
+						<WeeklyGoalCard data={mockWeeklyGoal} /> */}
 
 						{/* 2. Continue Learning Card */}
 						<ContinueLearningCard module={mockContinueLearning} />
@@ -63,20 +77,6 @@ const LearningDashboard = () => {
 
 						{/* 4. My Enrolled Modules with Tabs */}
 						<EnrolledModules modules={mockEnrolledModules} />
-					</Col>
-
-					{/* =============================================================
-              C. Right Sidebar Area (Bootstrap col-lg-4)
-             ============================================================= */}
-					<Col lg={4}>
-						{/* 1. Learning Readiness Widget (SRL Circular Radial Gauge) */}
-						<LearningReadinessWidget readiness={mockLearningReadiness} />
-
-						{/* 2. Recent Quiz Feedback Widget */}
-						<QuizFeedbackWidget feedback={mockQuizFeedback} />
-
-						{/* 3. Badges & Credentials Widget */}
-						<BadgesWidget data={mockBadgesAndCredentials} />
 					</Col>
 				</Row>
 			</Container>
