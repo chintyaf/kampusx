@@ -40,11 +40,6 @@ import MemberCertificatePage from '@/pages/member/MemberCertificatePage';
 import GlobalRewardCatalog from '@/pages/member/GlobalRewardCatalog';
 import LocalRewardCatalog from '@/pages/member/LocalRewardCatalog';
 import PointHistory from '@/pages/member/PointHistory';
-import LearningDashboard from '../pages/LearningDashboard';
-import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPage';
-import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
-import ModuleDetailPage from '@/pages/lms/learner/ModuleDetailPage';
-import LessonViewerPage from '@/pages/lms/learner/LessonViewerPage';
 
 // Pages: Event Management & Checkout
 import Checkout from '../pages/event/public/Checkout/index';
@@ -104,9 +99,6 @@ const AppRoutes = () => {
 					})}
 
 					{/* Test & Public Profile Pages */}
-					{/* ! HAPUSS */}
-					{/* <Route path="/test-chin/sertifikat" element={<CertificateVaultPage />} />
-					<Route path="/test-chin/sertifikat/:id" element={<CertificateDetailPage />} /> */}
 
 					<Route path="/profile/:id" element={<PublicProfile />} />
 
@@ -128,7 +120,6 @@ const AppRoutes = () => {
 						<Route path="/member/points/history" element={<PointHistory />} />
 					</Route>
 				</Route>
-
 
 				<Route element={<ProtectedRoute />}>
 					<Route element={<MemberLayout />}>
@@ -168,8 +159,8 @@ const AppRoutes = () => {
 				<Route path="/staff/attendees" element={<StaffAttendees />} />
 				<Route path="/staff/kiosk" element={<KioskModePage isStaff={true} />} />
 
-				{/* 8. LMS & SRL WIREFRAME ROUTES */}
-				{LmsRoutes}
+				{/* 8. Microlearning */}
+				<Route path="/*" element={<LmsRoutes />} />
 
 				{/* 9. 404 NOT FOUND */}
 				<Route path="*" element={<NotFound />} />

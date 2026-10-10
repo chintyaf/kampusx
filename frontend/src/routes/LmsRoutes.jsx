@@ -2,10 +2,10 @@ import React from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 
 // Layouts
-import MemberLayout from '@/layouts/MemberLayout'; // Sesuaikan path layout Anda
+import MemberLayout from '@/layouts/MemberLayout';
 
 // Learner Pages
-import LearningDashboard from '@/pages/lms/learner/LearningDashboard'; // Sesuaikan path jika berbeda
+import LearningDashboard from '@/pages/lms/learner/LearningDashboard';
 import OnboardingPage from '@/pages/lms/learner/onboarding/OnboardingPage';
 import CatalogPage from '@/pages/lms/learner/catalog/CatalogPage';
 import ModuleDetailPage from '@/pages/lms/learner/ModuleDetailPage';
@@ -31,39 +31,42 @@ import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
 export const LmsRoutes = () => {
 	return (
 		<Routes>
-			{/* 1. LEARNER DOMAIN (Menggunakan MemberLayout) */}
+			{/* 1. LEARNER DOMAIN */}
 			<Route element={<MemberLayout />}>
+				{/* Top-Level Shortcuts */}
+				<Route path="/explore-microlearning" element={<ExploreMicrolearningPage />} />
 				<Route path="/learning" element={<LearningDashboard />} />
-				<Route path="/learner/dashboard" element={<Navigate to="/learning" replace />} />
 
-				<Route path="/learner/onboarding" element={<OnboardingPage />} />
-				<Route path="/learner/catalog" element={<CatalogPage />} />
-				<Route path="/learner/explore" element={<ExploreMicrolearningPage />} />
+				{/* Group Prefix: /learner */}
+				<Route path="/learner">
+					<Route path="explore" element={<ExploreMicrolearningPage />} />
+					<Route path="dashboard" element={<Navigate to="/learning" replace />} />
+					<Route path="onboarding" element={<OnboardingPage />} />
+					<Route path="catalog" element={<CatalogPage />} />
 
-				{/* Learning Paths */}
-				<Route path="/learner/learning-paths" element={<LearningPathDetail />} />
-				<Route path="/learner/learning-paths/:pathId" element={<LearningPathDetail />} />
+					{/* Group Prefix: /learner/learning-paths */}
+					<Route path="learning-paths">
+						<Route index element={<LearningPathDetail />} />
+						<Route path=":pathId" element={<LearningPathDetail />} />
+					</Route>
 
-				{/* Modules & Lessons */}
-				<Route path="/learner/modules/:moduleId" element={<ModuleDetailPage />} />
-				<Route
-					path="/learner/modules/:moduleId/forethought"
-					element={<ForethoughtPage />}
-				/>
-				<Route path="/learner/modules/:moduleId/quiz" element={<QuizPage />} />
-				<Route path="/learner/modules/:moduleId/reflection" element={<ReflectionPage />} />
-				<Route
-					path="/learner/modules/:moduleId/lessons/:lessonId"
-					element={<LessonViewerPage />}
-				/>
+					{/* Group Prefix: /learner/modules/:moduleId */}
+					<Route path="modules/:moduleId">
+						<Route index element={<ModuleDetailPage />} />
+						<Route path="forethought" element={<ForethoughtPage />} />
+						<Route path="quiz" element={<QuizPage />} />
+						<Route path="reflection" element={<ReflectionPage />} />
+						<Route path="lessons/:lessonId" element={<LessonViewerPage />} />
+					</Route>
 
-				{/* Shortcut Direct Lesson Access */}
-				<Route path="/learner/lessons/:lessonId" element={<LessonViewerPage />} />
+					{/* Direct Lesson Shortcut */}
+					<Route path="lessons/:lessonId" element={<LessonViewerPage />} />
 
-				{/* User Profile & Settings */}
-				<Route path="/learner/analytics" element={<AnalyticsPage />} />
-				<Route path="/learner/badges" element={<BadgesPage />} />
-				<Route path="/learner/settings" element={<SettingsPage />} />
+					{/* Learner Profile & Settings */}
+					<Route path="analytics" element={<AnalyticsPage />} />
+					<Route path="badges" element={<BadgesPage />} />
+					<Route path="settings" element={<SettingsPage />} />
+				</Route>
 			</Route>
 
 			{/* 2. ORGANIZER DOMAIN */}
@@ -74,9 +77,11 @@ export const LmsRoutes = () => {
 				<Route path="badges" element={<OrganizerBadgesPage />} />
 				<Route path="logs" element={<LogsPage />} />
 
-				{/* AI Studio Sub-routes */}
-				<Route path="ai-studio/upload" element={<UploadPage />} />
-				<Route path="ai-studio/review" element={<ReviewPage />} />
+				{/* Group Prefix: /organizer/ai-studio */}
+				<Route path="ai-studio">
+					<Route path="upload" element={<UploadPage />} />
+					<Route path="review" element={<ReviewPage />} />
+				</Route>
 			</Route>
 		</Routes>
 	);

@@ -11,114 +11,124 @@ Animasi global (seperti logo React yang berputar).
 	margin: 14px 0;
 }
 
-
 /* Animasi popup untuk Alert Message */
 /* Definisikan Keyframes Animasi Popup (Masuk) */
 @keyframes hotToastEnter {
-    0% {
-        transform: scale(0.6); /* Mulai dari kecil */
-        opacity: 0;
-    }
-    70% {
-        transform: scale(1.1); /* Sedikit membesar (efek pop) */
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1); /* Kembali ke ukuran normal */
-    }
+	0% {
+		transform: scale(0.6); /* Mulai dari kecil */
+		opacity: 0;
+	}
+	70% {
+		transform: scale(1.1); /* Sedikit membesar (efek pop) */
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1); /* Kembali ke ukuran normal */
+	}
 }
 
 /* Definisikan Keyframes Animasi Keluar (Pudar & Mengecil) */
 @keyframes hotToastLeave {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0.8); /* Mengecil sedikit */
-        opacity: 0; /* Pudar */
-    }
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(0.8); /* Mengecil sedikit */
+		opacity: 0; /* Pudar */
+	}
 }
 
 /* Class untuk animasi masuk */
 .animate-popup-enter {
-    animation: hotToastEnter 0.25s ease-out forwards;
+	animation: hotToastEnter 0.25s ease-out forwards;
 }
 
 /* Class untuk animasi keluar */
 .animate-popup-leave {
-    animation: hotToastLeave 0.25s ease-in forwards;
+	animation: hotToastLeave 0.25s ease-in forwards;
 }
 
 /* Pastikan container toast tidak memotong animasi scale */
 .toast-container {
-    overflow: visible !important;
+	overflow: visible !important;
 }
 
 /* Kelas animasi fade-in dan slide-up */
 .fade-in-down {
-    animation: fadeInDown 0.2s ease-out forwards;
+	animation: fadeInDown 0.2s ease-out forwards;
 }
 
 @keyframes fadeInDown {
-    from {
-        opacity: 1;
-        transform: translateY(-15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+	from {
+		opacity: 1;
+		transform: translateY(-15px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .pop-down,
 .show .dropdown-menu.pop-down {
-    animation: popDown 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+	animation: popDown 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 /* Animasi Keluar */
 .pop-out,
 .show .dropdown-menu.pop-out {
-    animation: popOut 0.2s ease-in forwards;
+	animation: popOut 0.2s ease-in forwards;
 }
 
 @keyframes popDown {
-    from {
-        opacity: 0;
-        /* Start higher up for a more dramatic drop */
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+	from {
+		opacity: 0;
+		/* Start higher up for a more dramatic drop */
+		transform: translateY(-30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 @keyframes popOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
 }
 
 /* Input Time Iocn */
 /* Menghapus ikon jam di Chrome, Safari, dan Edge */
 .no-clock::-webkit-calendar-picker-indicator {
-    display: none !important;
-    -webkit-appearance: none;
+	display: none !important;
+	-webkit-appearance: none;
 }
 
 /* Menghapus ikon di Firefox */
 .no-clock::-moz-calendar-picker-indicator {
-    display: none !important;
+	display: none !important;
 }
 
 /* Tambahan jika ingin menghilangkan "inner spin buttons" (panah atas-bawah) */
 .no-clock::-webkit-inner-spin-button {
-    display: none;
-    -webkit-appearance: none;
+	display: none;
+	-webkit-appearance: none;
+}
+
+.filter-sidebar-sticky {
+	position: sticky;
+	top: 60px; /* Jarak dari atas viewport (sesuaikan dengan tinggi Header/Navbar Anda) */
+	align-self: flex-start; /* Penting untuk Grid/Flexbox agar tinggi parent tidak merusak sticky */
+
+	/* Opsional: Jika isi filter lebih panjang dari tinggi layar HP/Laptop */
+	max-height: calc(100vh - 110px);
+	overflow-y: auto;
+	padding-right: 4px; /* Agar scrollbar tidak menutupi isi */
 }

@@ -437,11 +437,10 @@ const LearningPathDetail = () => {
                     <button
                       key={hrs}
                       type="button"
-                      className={`btn btn-sm rounded-3 px-3 py-1 fw-semibold ${
-                        selectedHours === hrs
+                      className={`btn btn-sm rounded-3 px-3 py-1 fw-semibold ${selectedHours === hrs
                           ? 'btn-primary text-white shadow-sm'
                           : 'btn-outline-secondary border bg-light text-dark'
-                      }`}
+                        }`}
                       style={
                         selectedHours === hrs
                           ? { backgroundColor: '#028090', borderColor: '#028090', transition: 'all 0.2s ease' }
@@ -468,11 +467,10 @@ const LearningPathDetail = () => {
                     <button
                       key={wks}
                       type="button"
-                      className={`btn btn-sm rounded-3 px-3 py-1 fw-semibold ${
-                        selectedWeeks === wks
+                      className={`btn btn-sm rounded-3 px-3 py-1 fw-semibold ${selectedWeeks === wks
                           ? 'btn-primary text-white shadow-sm'
                           : 'btn-outline-secondary border bg-light text-dark'
-                      }`}
+                        }`}
                       style={
                         selectedWeeks === wks
                           ? { backgroundColor: '#028090', borderColor: '#028090', transition: 'all 0.2s ease' }
@@ -571,20 +569,19 @@ const LearningPathDetail = () => {
                               backgroundColor: isCompleted
                                 ? '#ECFDF5'
                                 : isInProgress
-                                ? '#E0F2FE'
-                                : '#F1F5F9',
+                                  ? '#E0F2FE'
+                                  : '#F1F5F9',
                               color: isCompleted
                                 ? '#059669'
                                 : isInProgress
-                                ? '#028090'
-                                : '#94A3B8',
-                              border: `1.5px solid ${
-                                isCompleted
+                                  ? '#028090'
+                                  : '#94A3B8',
+                              border: `1.5px solid ${isCompleted
                                   ? '#A7F3D0'
                                   : isInProgress
-                                  ? '#BAE6FD'
-                                  : '#E2E8F0'
-                              }`,
+                                    ? '#BAE6FD'
+                                    : '#E2E8F0'
+                                }`,
                               fontSize: '0.9rem',
                             }}
                           >

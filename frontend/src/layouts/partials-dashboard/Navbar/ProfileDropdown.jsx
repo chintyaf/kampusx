@@ -32,7 +32,7 @@ const CustomToggle = React.forwardRef(({ children, onClick, isOpen }, ref) => (
 
 const ProfileDropdown = () => {
 	const { user, logout } = useAuth();
-	
+
 	const navigate = useNavigate();
 	const [open, setOpen] = useState(false);
 	const [imgError, setImgError] = useState(false);
@@ -57,11 +57,11 @@ const ProfileDropdown = () => {
 	};
 
 	const handleLogout = async () => {
-		handleToggle(false); 
+		handleToggle(false);
 		setTimeout(async () => {
 			await logout();
 			navigate('/');
-		}, 150); 
+		}, 150);
 	};
 
 	if (!user) return null;
@@ -108,7 +108,7 @@ const ProfileDropdown = () => {
 		},
 		{
 			icon: GraduationCap,
-			label: 'Learning Dashboard',
+			label: 'Progres Belajar',
 			to: '/learning',
 			iconBg: '#ede9fe',
 			iconBorder: '#c4b5fd',
@@ -151,8 +151,8 @@ const ProfileDropdown = () => {
 				{!imgError ? (
 					<img
 						src={avatarUrl || userImg}
-                        // src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'User')}&background=random&color=fff&size=200`}
-						
+						// src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || 'User')}&background=random&color=fff&size=200`}
+
 						alt="User"
 						onError={() => setImgError(true)}
 						className="profile-avatar profile-avatar-sm"
@@ -190,7 +190,12 @@ const ProfileDropdown = () => {
 			{/* Panel Menu */}
 			<Dropdown.Menu
 				className="p-0 border-0 mt-2"
-				style={{ borderRadius: 7, shadowColor: 'none', backgroundColor: 'transparent', zIndex: 99999 }}
+				style={{
+					borderRadius: 7,
+					shadowColor: 'none',
+					backgroundColor: 'transparent',
+					zIndex: 99999,
+				}}
 			>
 				<div
 					className={`shadow-sm pop-down ${isClosing ? 'pop-out' : 'pop-down'}`}

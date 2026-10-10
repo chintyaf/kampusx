@@ -1,0 +1,374 @@
+/*
+ * LMS - Explore Microlearning Page Styles
+ * Menggunakan design token global dari :root.
+ */
+
+/* =========================================================
+   PAGE WRAPPER
+   ========================================================= */
+
+.explore-page-wrapper {
+	min-height: 100vh;
+	padding-block: 1.5rem;
+	background-color: var(--color-bg, #f4f5f7);
+}
+
+@media (min-width: 992px) {
+	.explore-page-wrapper {
+		padding-block: 3rem;
+	}
+}
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.explore-sidebar-card {
+	position: sticky !important;
+	top: 100px !important;
+	z-index: 10;
+}
+
+/* =========================================================
+   SHARED COMPONENTS
+   ========================================================= */
+
+.explore-empty-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 64px;
+	height: 64px;
+	margin-inline: auto;
+	color: var(--color-primary);
+	background-color: var(--primary-light);
+	border-radius: var(--radius-full);
+}
+
+.btn-lms-primary {
+	color: var(--color-white) !important;
+	background-color: var(--color-primary) !important;
+	border-color: var(--color-primary) !important;
+}
+
+.btn-lms-primary:hover,
+.btn-lms-primary:focus-visible {
+	color: var(--color-white) !important;
+	background-color: var(--bahama-blue-800) !important;
+	border-color: var(--bahama-blue-800) !important;
+}
+
+.btn-lms-outline {
+	color: var(--color-primary) !important;
+	background-color: transparent !important;
+	border-color: var(--color-primary) !important;
+}
+
+.btn-lms-outline:hover,
+.btn-lms-outline:focus-visible {
+	color: var(--color-primary) !important;
+	background-color: var(--primary-light) !important;
+}
+
+/* =========================================================
+   EXPLORE HEADER
+   ========================================================= */
+
+.explore-header-wrapper {
+	margin-inline: auto;
+}
+
+.explore-catalog-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.25rem 0.75rem;
+	color: var(--color-primary);
+	background-color: var(--primary-light);
+	border: 1px solid var(--primary-border);
+	border-radius: var(--radius-full);
+	font-size: var(--font-sm);
+	font-weight: 600;
+}
+
+.explore-page-title {
+	font-size: clamp(1.4rem, 4vw, 2.1rem);
+	letter-spacing: -0.02em;
+	color: var(--text);
+}
+
+.explore-page-desc {
+	color: var(--text-muted);
+	font-size: 0.92rem;
+	line-height: 1.5;
+}
+
+.explore-search-bar {
+	border-radius: var(--radius-lg) !important;
+	transition:
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		background-color 0.2s ease;
+}
+
+.explore-search-bar:focus-within {
+	background-color: var(--card, #fff) !important;
+	border-color: var(--color-primary) !important;
+	box-shadow: 0 0 0 3px rgb(0 105 158 / 12%) !important;
+}
+
+.explore-search-input {
+	font-size: var(--font-sm);
+}
+
+.explore-search-clear-btn:hover {
+	color: var(--text) !important;
+	background-color: rgb(15 23 42 / 6%);
+}
+
+.explore-filter-btn-mobile {
+	color: var(--color-primary) !important;
+	border-color: var(--primary-border) !important;
+	font-size: 0.82rem;
+}
+
+.explore-filter-btn-mobile:hover {
+	background-color: var(--primary-light);
+	border-color: var(--color-primary) !important;
+}
+
+.explore-filter-badge {
+	padding: 0.2rem 0.45rem;
+	font-size: 0.68rem;
+}
+
+.explore-tabs-scroll {
+	overflow-x: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+	-webkit-overflow-scrolling: touch;
+}
+
+.explore-tabs-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+.explore-tab-btn {
+	transition:
+		color 0.2s ease,
+		background-color 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.explore-tab-btn.active-lms {
+	color: var(--color-white) !important;
+	background-color: var(--color-primary) !important;
+	border-color: var(--color-primary) !important;
+}
+
+/* =========================================================
+   FILTER SIDEBAR
+   ========================================================= */
+
+.explore-filter-heading {
+	color: var(--text-muted);
+	font-size: var(--font-xs);
+	letter-spacing: 0.03em;
+}
+
+.explore-filter-title {
+	color: var(--text);
+	font-size: var(--font-md);
+}
+
+.explore-ai-switch-box {
+	background-color: var(--primary-light);
+	border: 1px solid var(--primary-border);
+	border-radius: var(--radius-md);
+}
+
+.explore-ai-switch-box .form-check-input:checked {
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+/* =========================================================
+   EXPLORE TOP BAR
+   ========================================================= */
+
+.explore-result-count {
+	color: var(--text-muted);
+	font-size: var(--font-sm);
+}
+
+.explore-query-truncate {
+	max-width: 180px;
+}
+
+.explore-sort-select {
+	min-width: 135px;
+	font-size: 0.82rem;
+}
+
+.explore-chip {
+	font-size: 0.78rem;
+	cursor: default;
+}
+
+.explore-chip-remove {
+	cursor: pointer;
+}
+
+/* =========================================================
+   EXPLORE GRID CARD
+   ========================================================= */
+
+.explore-grid-card {
+	cursor: pointer;
+	transition:
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		transform 0.2s ease;
+}
+
+.explore-grid-card:hover {
+	border-color: var(--primary-border);
+	box-shadow: 0 8px 24px rgb(0 105 158 / 12%);
+	transform: translateY(-2px);
+}
+
+.explore-card-thumb {
+	height: 160px;
+}
+
+.explore-bookmark-btn {
+	width: 34px;
+	height: 34px;
+}
+
+.explore-clamp-2,
+.text-clamp-2 {
+	display: -webkit-box;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.explore-progress-bar {
+	height: 5px;
+}
+
+/* =========================================================
+   SHARED UTILITIES
+   ========================================================= */
+
+.cursor-pointer {
+	cursor: pointer;
+}
+
+.transition-all {
+	transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-shadow {
+	transition:
+		border-color 0.2s ease,
+		box-shadow 0.2s ease,
+		transform 0.2s ease;
+}
+
+.hover-shadow:hover {
+	border-color: var(--color-primary, #00699e) !important;
+	box-shadow: 0 8px 24px rgb(0 105 158 / 12%) !important;
+	transform: translateY(-2px);
+}
+
+.hover-shadow:hover .card-title-hover {
+	color: var(--color-primary) !important;
+}
+
+.hover-shadow:hover .card-img-hover {
+	transform: scale(1.04);
+}
+
+.card-img-hover {
+	transition: transform 0.3s ease;
+}
+
+.fill-warning {
+	fill: currentColor;
+}
+
+/* =========================================================
+   MINIMALIST PAGINATION
+   ========================================================= */
+
+.pagination-info {
+	color: var(--text-muted);
+	font-family: var(--font);
+	font-size: var(--font-xs);
+}
+
+.custom-pagination {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.custom-pagination .page-item .page-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	height: 36px;
+	padding: 6px 12px;
+	color: var(--color-secondary);
+	background-color: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-md) !important;
+	box-shadow: none !important;
+	font-family: var(--font);
+	font-size: var(--font-sm);
+	font-weight: 500;
+	transition:
+		color 0.2s ease,
+		background-color 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.custom-pagination .page-item:not(.active):not(.disabled) .page-link:hover {
+	color: var(--bahama-blue-800);
+	background-color: var(--bahama-blue-50);
+	border-color: var(--bahama-blue-200);
+}
+
+.custom-pagination .page-item.active .page-link {
+	color: var(--color-white);
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+	box-shadow: 0 2px 8px rgb(0 105 158 / 20%) !important;
+	font-weight: 600;
+}
+
+.custom-pagination .page-item.disabled .page-link {
+	color: var(--muted);
+	background-color: transparent;
+	border-color: transparent;
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.custom-pagination .page-item:first-child .page-link,
+.custom-pagination .page-item:last-child .page-link {
+	background-color: var(--color-bg-light);
+	border: 1px solid var(--neutral-border);
+	border-radius: var(--radius-md) !important;
+}
+
+.custom-pagination .page-item:first-child:not(.disabled) .page-link:hover,
+.custom-pagination .page-item:last-child:not(.disabled) .page-link:hover {
+	color: var(--bahama-blue-800);
+	background-color: var(--bahama-blue-50);
+	border-color: var(--bahama-blue-200);
+}
