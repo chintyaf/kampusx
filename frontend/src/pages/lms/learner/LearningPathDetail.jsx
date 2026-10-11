@@ -91,7 +91,7 @@ const LearningPathDetail = () => {
 			{/* ====================================================================
             2. MAIN CONTENT & SIDEBAR SECTION (col-lg-8 & col-lg-4)
             ==================================================================== */}
-			<Container className="mt-5" >
+			<Container className="mt-5">
 				<Row>
 					{/* ================================================================
                     A. KOLOM UTAMA (col-lg-8)

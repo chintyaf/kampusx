@@ -41,8 +41,9 @@ export const LmsRoutes = () => {
 				<Route path="/learner">
 					<Route path="explore" element={<ExploreMicrolearningPage />} />
 					<Route path="dashboard" element={<Navigate to="/learning" replace />} />
-					<Route path="onboarding" element={<OnboardingPage />} />
-					<Route path="catalog" element={<CatalogPage />} />
+
+					{/* <Route path="onboarding" element={<OnboardingPage />} /> */}
+					{/* <Route path="catalog" element={<CatalogPage />} /> */}
 
 					{/* Group Prefix: /learner/learning-paths */}
 					<Route path="learning-paths">
@@ -56,9 +57,9 @@ export const LmsRoutes = () => {
 						<Route path="forethought" element={<ForethoughtPage />} />
 						<Route path="quiz" element={<QuizPage />} />
 						<Route path="reflection" element={<ReflectionPage />} />
-						<Route path="lessons/:lessonId" element={<LessonViewerPage />} />
 					</Route>
 
+					<Route path=":moduleId/:lessonId" element={<LessonViewerPage />} />
 					{/* Direct Lesson Shortcut */}
 					<Route path="lessons/:lessonId" element={<LessonViewerPage />} />
 

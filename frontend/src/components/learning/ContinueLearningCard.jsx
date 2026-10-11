@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, Row, Col, Badge, Button, ProgressBar } from 'react-bootstrap';
-import { Play, Clock, BookOpen, ChevronRight, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, Row, Col, Badge, Button } from 'react-bootstrap';
+import { Play, Clock, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { mockContinueLearning } from '../../data/learningMockData';
 
 /**
@@ -10,23 +10,20 @@ import { mockContinueLearning } from '../../data/learningMockData';
  * current lesson status, progress indicator, and action CTA.
  */
 const ContinueLearningCard = ({ module = mockContinueLearning }) => {
-	const navigate = useNavigate();
-
 	const {
-		id = 'mod-1',
+		id = 'mod-arch-101',
+		lessonId = 'lesson-4',
 		title = 'Web Application Architecture & REST API Design',
 		category = 'System Architecture',
 		thumbnail,
 		currentLesson = 'Lesson 4 of 8: Scalable Endpoints & Idempotency',
 		progressPercent = 65,
 		timeRemaining = '15 min remaining',
-		instructor = 'Ir. Hendra Pratama, M.T.',
 	} = module;
 
-	const handleContinue = () => {
-		// Navigate to module lesson or interactive player
-		navigate(`/learner/modules/${id}`);
-	};
+	// Generates /learner/mod-arch-101/lesson-4
+	const continueUrl = `/learner/${id}/${lessonId}`;
+	const catalogUrl = '/learner/catalog';
 
 	return (
 		<Card className="learning-card continue-card p-2 p-md-4 mb-4">
@@ -52,12 +49,11 @@ const ContinueLearningCard = ({ module = mockContinueLearning }) => {
 			</div>
 
 			<Row className="g-3 align-items-center">
-				{/* Left: Thumbnail with Play Hover */}
+				{/* Thumbnail Link */}
 				<Col md={3}>
-					<div
-						className="continue-card-img-wrapper"
-						onClick={handleContinue}
-						style={{ cursor: 'pointer' }}
+					<Link
+						to={continueUrl}
+						className="continue-card-img-wrapper d-block text-decoration-none"
 					>
 						<img
 							src={
@@ -72,10 +68,10 @@ const ContinueLearningCard = ({ module = mockContinueLearning }) => {
 								<Play size={20} fill="currentColor" />
 							</div>
 						</div>
-					</div>
+					</Link>
 				</Col>
 
-				{/* Right: Module Details & Action */}
+				{/* Content & Actions */}
 				<Col md={9}>
 					<div className="d-flex flex-column h-100 justify-content-between">
 						<div className="mb-3">
@@ -91,14 +87,10 @@ const ContinueLearningCard = ({ module = mockContinueLearning }) => {
 							>
 								{currentLesson}
 							</p>
-							{/* <div className="small text-muted mb-3">
-								Instructor:{' '}
-								<span className="fw-medium text-dark">{instructor}</span>
-							</div> */}
 						</div>
 
 						<div>
-							{/* Progress and percentage */}
+							{/* Progress bar */}
 							<div className="d-flex align-items-center justify-content-between mb-1 small">
 								<span className="text-muted fw-medium" style={{ fontSize: '12px' }}>
 									Module Progress
@@ -129,29 +121,29 @@ const ContinueLearningCard = ({ module = mockContinueLearning }) => {
 								/>
 							</div>
 
-							{/* Action Button */}
+							{/* Actions */}
 							<div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
 								<Button
+									as={Link}
+									to={continueUrl}
 									variant="primary"
-									className="btn btn-primary d-inline-flex align-items-center gap-2 fw-semibold px-4 py-2 rounded-3 shadow-sm"
+									className="d-inline-flex align-items-center gap-2 fw-semibold px-4 py-2 rounded-3 shadow-sm text-decoration-none"
 									style={{
 										backgroundColor: 'var(--primary-purple)',
 										borderColor: 'var(--primary-purple)',
 									}}
-									onClick={handleContinue}
 								>
 									<Play size={16} fill="currentColor" />
 									<span>Continue Learning</span>
 								</Button>
 
-								<button
-									type="button"
-									className="btn btn-link text-decoration-none text-muted p-0 small fw-semibold d-inline-flex align-items-center gap-1"
-									onClick={() => navigate('/explore-microlearning')}
+								<Link
+									to={catalogUrl}
+									className="text-decoration-none text-muted small fw-semibold d-inline-flex align-items-center gap-1"
 								>
 									<span>View All Modules</span>
 									<ChevronRight size={14} />
-								</button>
+								</Link>
 							</div>
 						</div>
 					</div>
