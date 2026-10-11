@@ -40,7 +40,7 @@ export const MOCK_EXPLORE_ITEMS = [
     durationMinutes: 210,
     durationLabel: '3.5 Jam',
     durationRange: '> 3 Jam',
-    mediaType: 'Interactive Coding',
+  mediaType: 'Interactive Coding',
     mediaIcon: Code,
     moduleCount: 3,
     lessonCount: 14,

@@ -112,10 +112,7 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	--warning-bg: #fffbeb;
 	--warning-border: #d9c266;
 	--warning-heading: #92400e;
-	--warning-text: #a16207;
-	/* Warning Overrides (dari priority extension) */
-	--warning-bg: #fef3c7; /* Overrides original warning-bg if used as --warning-bg */
-	--warning-text: #92400e; /* Overrides original warning-text if used as --warning-text */
+	--warning-text: #b86f0a;
 
 	/* --- INFO --- */
 	--info-bg: #dff3ff;
@@ -128,9 +125,9 @@ Variable Global: Warna-warna utama (Primary, Secondary) yang akan dipakai di ban
 	--neutral-text: #64748b;
 
 	/* --- PURPLE --- */
-	--purple-bg: #ede9fe;
-	--purple-border-color: #ddd6fe;
-	--purple-text: #5b21b6;
+	--purple-bg: #f5f0ff; /* Latar belakang ungu pastel lembut */
+	--purple-border-color: #e9d5ff; /* Garis tepi ungu pastel */
+	--purple-text: #7c3aed; /* Teks & ikon ungu pastel terang */
 
 	/* --- PINK --- */
 	--pink-bg: #fce7f3;

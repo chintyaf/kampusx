@@ -229,14 +229,18 @@ const ExploreHeader = ({
 				>
 					<Zap
 						size={15}
-						style={{ color: activeTab === 'lesson' ? '#ffffff' : '#d97706' }}
+						style={{
+							color: activeTab === 'lesson' ? '#ffffff' : 'var(--warning-text)',
+						}}
 					/>
 					<span>Microlearning / Lesson</span>
 					<span
 						className="badge rounded-pill"
 						style={{
 							backgroundColor:
-								activeTab === 'lesson' ? 'rgba(255, 255, 255, 0.25)' : '#fde68a',
+								activeTab === 'lesson'
+									? 'rgba(255, 255, 255, 0.25)'
+									: 'var(--warning-border)',
 							color: activeTab === 'lesson' ? '#ffffff' : 'var(--warning-text)',
 						}}
 					>
