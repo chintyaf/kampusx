@@ -8,6 +8,7 @@ import EventOrganizerGuard from '@/components/guards/EventOrganizerGuard';
 import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
 import ManageAnnouncements from '../pages/organizer/ManageAnnouncements';
+import ContentPage from '@/pages/lms/organizer/content/ContentPage';
 
 import CreateEvent from '@/pages/event/creation/CreateEvent/CreateEvent';
 import EventGeneralInfo from '@/pages/event/creation/detail-event/EventGeneralInfo';
@@ -50,6 +51,7 @@ export const OrganizerRoutes = (
 	<Route path="organizer">
 		{/* Main Organizer Routes */}
 		<Route path="dashboard" element={<OrgDashboardPage />} />
+		<Route path="content" element={<ContentPage />} />
 		<Route path="kelola-tim-institusi" element={<ManageInstitutionTeamPage />} />
 		<Route path="daftar-acara" element={<CreateEvent />} />
 		<Route path="buat-acara" element={<CreateEvent />} />
@@ -80,7 +82,7 @@ export const OrganizerRoutes = (
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
 			<Route path="redemptions" element={<ManageRedemptionsPage />} />
 			<Route path="rewards" element={<ManageRewardsPage />} />
-			
+
 			<Route path="check-in" element={<EventPosPage />} />
 
 			<Route path="kiosk" element={<KioskModePage />} />

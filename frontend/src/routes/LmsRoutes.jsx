@@ -28,6 +28,10 @@ import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPath
 import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
 import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
 
+import DashboardLayout from '@/layouts/DashboardLayout';
+import ProtectedRoute from './ProtectedRoute';
+
+
 export const LmsRoutes = () => {
 	return (
 		<Routes>
@@ -66,20 +70,28 @@ export const LmsRoutes = () => {
 				</Route>
 			</Route>
 
-			{/* 2. ORGANIZER DOMAIN */}
-			<Route path="/organizer">
-				<Route path="dashboard" element={<DashboardPage />} />
-				<Route path="content" element={<ContentPage />} />
-				<Route path="learning-paths" element={<LearningPathsPage />} />
-				<Route path="badges" element={<OrganizerBadgesPage />} />
-				<Route path="logs" element={<LogsPage />} />
+			{/* 5. DASHBOARD LAYOUT GROUP (Admin & Organizer) */}
+			<Route element={<DashboardLayout />}>
+				<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
+					{/* 2. ORGANIZER DOMAIN */}
+					<Route path="/organizer">
+						<Route path="dashboard" element={<DashboardPage />} />
+						<Route path="content" element={<ContentPage />} />
+						<Route path="microlearning" element={<DashboardPage />} />
+						<Route path="learning-paths" element={<LearningPathsPage />} />
+						<Route path="badges" element={<OrganizerBadgesPage />} />
+						<Route path="logs" element={<LogsPage />} />
 
-				{/* Group Prefix: /organizer/ai-studio */}
-				<Route path="ai-studio">
-					<Route path="upload" element={<UploadPage />} />
-					<Route path="review" element={<ReviewPage />} />
+						{/* Group Prefix: /organizer/ai-studio */}
+						<Route path="ai-studio">
+							<Route path="upload" element={<UploadPage />} />
+							<Route path="review" element={<ReviewPage />} />
+						</Route>
+					</Route>
 				</Route>
 			</Route>
+
+
 
 			<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
 			{/* Direct Lesson Shortcut */}

@@ -53,7 +53,7 @@ const ModuleHeader = ({ moduleData, handleNavigateToLesson, isBookmarked, setIsB
 								}}
 							>
 								<Layers size={12} />
-								<span>MODUL MICROLEARNING</span>
+								<span>Modul</span>
 							</span>
 
 							<span

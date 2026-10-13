@@ -62,9 +62,9 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 						}}
 					>
 						{isCompleted ? (
-							<CheckCircle2 size={17} style={{ color: 'var(--success-text)' }} />
+							<CheckCircle2 size={18} style={{ color: 'var(--success-text)' }} />
 						) : isCurrent ? (
-							<RotateCcw size={16} style={{ color: 'var(--primary)' }} />
+							<PlayCircle size={18} style={{ color: 'var(--primary)' }} />
 						) : (
 							<Play size={14} style={{ color: 'var(--text-muted)' }} />
 						)}
@@ -74,7 +74,7 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 						{/* Meta Badges */}
 						<div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
 							<span
-								className="badge px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1"
+								className="px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1"
 								style={{
 									backgroundColor: formatInfo.bg,
 									color: formatInfo.color,
@@ -86,21 +86,32 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 								<span>{formatInfo.label}</span>
 							</span>
 
-							<span
-								className="d-flex align-items-center gap-1"
-								style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}
-							>
-								<Clock size={11} />
-								<span>{item.duration}</span>
-							</span>
+							{item.duration && (
+								<span
+									className="d-flex align-items-center gap-1"
+									style={{
+										fontSize: 'var(--font-xs)',
+										color: 'var(--text-muted)',
+									}}
+								>
+									<Clock size={11} />
+									<span>{item.duration}</span>
+								</span>
+							)}
 
-							<span
-								style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}
-							>
-								+{item.xp} XP
-							</span>
+							{item.xp && (
+								<span
+									style={{
+										fontSize: 'var(--font-xs)',
+										color: 'var(--text-muted)',
+									}}
+								>
+									+{item.xp} XP
+								</span>
+							)}
 
-							{isCompleted && (
+							{/* Skor Kuis (Hanya tampil jika ada nilai kuis, tanpa badge status 'Selesai' yang menumpuk) */}
+							{item.score && (
 								<span
 									className="badge fw-bold px-2 py-1"
 									style={{
@@ -111,21 +122,7 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 										border: '1px solid var(--success-border-color)',
 									}}
 								>
-									Selesai {item.score && `(${item.score})`}
-								</span>
-							)}
-
-							{isCurrent && (
-								<span
-									className="badge fw-bold px-2 py-1"
-									style={{
-										backgroundColor: 'var(--primary)',
-										color: 'var(--color-white)',
-										fontSize: 'var(--font-xs)',
-										borderRadius: 'var(--radius-full)',
-									}}
-								>
-									Sedang Dipelajari
+									Skor: {item.score}
 								</span>
 							)}
 						</div>
@@ -193,7 +190,7 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 							onClick={(e) => e.stopPropagation()}
 						>
 							<Play size={13} fill="currentColor" />
-							<span>Buka Lesson</span>
+							<span>Buka Unit</span>
 						</Button>
 					) : (
 						<Button

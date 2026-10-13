@@ -24,7 +24,7 @@ const ModuleDetailPage = () => {
 	const [lessonFilter, setLessonFilter] = useState('all'); // 'all' | 'uncompleted'
 
 	const handleNavigateToLesson = (lessonId) => {
-		navigate(`/learner/modules/${moduleId}/lesson/${lessonId}`);
+		navigate(`/learner/lesson/${lessonId}`);
 	};
 
 	const filteredLessons = moduleData.lessons.filter((les) => {
@@ -48,7 +48,7 @@ const ModuleDetailPage = () => {
 			<Container className="" style={{ marginTop: '1.5rem' }}>
 				<Row className="g-4">
 					{/* A. MAIN CONTENT AREA (col-lg-8) */}
-					<Col lg={8}>
+					<Col lg={12}>
 						{/* 2. DAFTAR UNIT PEMBELAJARAN (LESSON ROADMAP) */}
 						<ModuleLesson
 							moduleData={moduleData}
@@ -64,7 +64,7 @@ const ModuleDetailPage = () => {
 					{/* B. SIDEBAR AREA (col-lg-4) */}
 					<Col lg={4}>
 						{/* 1. WIDGET SRL: FASE 1 - FORETHOUGHT & PLANNING */}
-						<ModuleSRL />
+						{/* <ModuleSRL /> */}
 						{/* 1. INSTRUKTUR KELAS */}
 
 						{/* 2. DIGITAL BADGE & SERTIFIKASI CHECKPOINT */}

@@ -121,13 +121,19 @@ export const MENU_ITEMS = {
 			id: '1',
 			name: 'Dashboard',
 			icon: <LayoutDashboard size={16} className="me-2" />,
-			path: 'organizer/dashboard',
+			path: '/organizer/dashboard',
 		},
 		{
 			id: '2',
+			name: 'Manajemen Microlearning',
+			icon: <BookOpen size={16} className="me-2" />,
+			path: '/organizer/microlearning',
+		},
+		{
+			id: '3',
 			name: 'Daftar Acara',
-			icon: <LayoutDashboard size={16} className="me-2" />,
-			path: 'organizer/daftar-acara',
+			icon: <CalendarDays size={16} className="me-2" />,
+			path: '/organizer/daftar-acara',
 		},
 	],
 

@@ -35,7 +35,13 @@ const LessonFooter = () => {
 	};
 
 	return (
-		<footer className="border-top bg-white py-2 px-3">
+		<footer
+			className="border-top py-2 px-3"
+			style={{
+				backgroundColor: 'var(--card)',
+				borderColor: 'var(--border)',
+			}}
+		>
 			<div className="d-flex align-items-center justify-content-between">
 				{/* Tombol Sebelumnya */}
 				<Button
@@ -44,40 +50,24 @@ const LessonFooter = () => {
 					className="d-inline-flex align-items-center gap-1 rounded-3 fw-semibold"
 					disabled={currentIndex === 0}
 					onClick={handlePrev}
+					style={{
+						color: 'var(--text-muted)',
+						borderColor: 'var(--neutral-border)',
+					}}
 				>
 					<ChevronLeft size={16} />
 					<span className="d-none d-sm-inline">Lesson Sebelumnya</span>
 					<span className="d-sm-none">Prev</span>
 				</Button>
 
-				{/* Indicator Progres */}
-				<div className="d-flex align-items-center gap-2">
-					<span className="text-muted small fw-medium d-none d-md-inline">
-						Progres Membaca
-					</span>
-					<div
-						className="bg-light rounded-pill overflow-hidden"
-						style={{ width: 'clamp(80px, 15vw, 150px)', height: '6px' }}
-					>
-						<div
-							className="bg-info h-100 rounded-pill"
-							style={{
-								width: `${progressPercent}%`,
-								transition: 'width 0.3s ease',
-							}}
-						/>
-					</div>
-					<span className="text-muted small fw-bold font-monospace">
-						{progressPercent}%
-					</span>
-				</div>
-
 				{/* Tombol Selanjutnya / Selesai */}
 				<Button
-					variant={isLastLesson ? 'success' : 'dark'}
 					size="sm"
-					className="d-inline-flex align-items-center gap-1 rounded-3 fw-bold text-white shadow-sm"
+					className="d-inline-flex align-items-center gap-1 rounded-3 fw-bold text-white shadow-sm border-0"
 					onClick={handleNext}
+					style={{
+						backgroundColor: isLastLesson ? 'var(--success-text)' : 'var(--primary)',
+					}}
 				>
 					{isLastLesson ? (
 						<>
