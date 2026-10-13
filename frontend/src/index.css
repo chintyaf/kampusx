@@ -149,7 +149,8 @@ html {
 
 /* 1. The width of the entire scrollbar */
 ::-webkit-scrollbar {
-	width: 10px;
+	width: 8px;
+	outline: none;
 }
 
 /* 2. The Track (the background) */
@@ -167,7 +168,7 @@ html {
 
 /* 4. Hover effect on the thumb */
 ::-webkit-scrollbar-thumb:hover {
-	background: #0c4a6e;
+	background: #acacac;
 }
 
 ::selection {

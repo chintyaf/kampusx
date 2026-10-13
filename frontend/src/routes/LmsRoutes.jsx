@@ -59,10 +59,6 @@ export const LmsRoutes = () => {
 						<Route path="reflection" element={<ReflectionPage />} />
 					</Route>
 
-					<Route path=":moduleId/:lessonId" element={<LessonViewerPage />} />
-					{/* Direct Lesson Shortcut */}
-					<Route path="lessons/:lessonId" element={<LessonViewerPage />} />
-
 					{/* Learner Profile & Settings */}
 					<Route path="analytics" element={<AnalyticsPage />} />
 					<Route path="badges" element={<BadgesPage />} />
@@ -84,6 +80,10 @@ export const LmsRoutes = () => {
 					<Route path="review" element={<ReviewPage />} />
 				</Route>
 			</Route>
+
+			<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
+			{/* Direct Lesson Shortcut */}
+			<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
 		</Routes>
 	);
 };

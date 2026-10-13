@@ -82,7 +82,7 @@ const NavbarPublic = () => {
 
 	// === STYLING ===
 	const linkStyle = ({ isActive }) => ({
-		fontSize: '14px',
+		fontSize: '12px',
 		fontWeight: isActive ? 700 : 500,
 		color: isActive ? 'var(--color-primary, #00699E)' : 'var(--color-text, #0f172a)',
 		borderBottom: isActive
@@ -112,7 +112,7 @@ const NavbarPublic = () => {
 			<Container className="px-4 d-flex align-items-center justify-content-between">
 				{/* Brand Logo */}
 				<Navbar.Brand as={Link} to="/" className="d-flex align-items-center me-0">
-					<img src={LogoKampusX} alt="KampusX" style={{ width: '130px' }} />
+					<img src={LogoKampusX} alt="KampusX" style={{ width: '100px' }} />
 				</Navbar.Brand>
 
 				{/* Desktop Navigation Links */}
@@ -153,7 +153,7 @@ const NavbarPublic = () => {
 								to="/register"
 								variant="light"
 								style={{
-									fontSize: '13px',
+									fontSize: '12px',
 									fontWeight: 600,
 									background: '#fff',
 									color: 'var(--color-text)',
@@ -169,7 +169,7 @@ const NavbarPublic = () => {
 								to="/login"
 								variant="dark"
 								style={{
-									fontSize: '13px',
+									fontSize: '12px',
 									fontWeight: 600,
 									backgroundColor: 'var(--color-text)',
 									border: 'none',
@@ -305,7 +305,7 @@ const NavbarPublic = () => {
 									<div style={{ minWidth: 0 }}>
 										<div
 											className="fw-bold text-truncate"
-											style={{ fontSize: '14px', color: 'var(--color-text)' }}
+											style={{ fontSize: '12px', color: 'var(--color-text)' }}
 										>
 											{user.name || 'Member'}
 										</div>
@@ -400,7 +400,7 @@ const NavbarPublic = () => {
 								variant="light"
 								onClick={handleClose}
 								style={{
-									fontSize: '14px',
+									fontSize: '12px',
 									fontWeight: 600,
 									background: '#fff',
 									color: 'var(--color-text)',
@@ -422,7 +422,7 @@ const NavbarPublic = () => {
 								variant="dark"
 								onClick={handleClose}
 								style={{
-									fontSize: '14px',
+									fontSize: '12px',
 									fontWeight: 600,
 									backgroundColor: 'var(--color-text)',
 									border: 'none',

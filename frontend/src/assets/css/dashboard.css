@@ -200,7 +200,7 @@ main {
 	padding: 0px;
 	border-bottom: 1px var(--color-border) solid;
 
-	min-height: 65px;
+	min-height: 55px;
 }
 
 .nav-dropdown {
