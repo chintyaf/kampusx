@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, Link } from 'react-router-dom';
 
 // Layouts
 import MemberLayout from '@/layouts/MemberLayout';
@@ -20,17 +20,22 @@ import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPa
 import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
 
 // Organizer Pages
+import OrgMicrolearning from '../pages/lms/organizer/OrgMicrolearning';
 import DashboardPage from '@/pages/lms/organizer/dashboard/DashboardPage';
 import ContentPage from '@/pages/lms/organizer/content/ContentPage';
 import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
 import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
+import ManageLearningPathPage from '../pages/lms/ManageLearningPathPage';
 import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
 import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
+import CreateLearningPage from '../pages/lms/organizer/create-microlearning/CreateLearningPage';
 
 import DashboardLayout from '@/layouts/DashboardLayout';
+import OrgLearningLayout from '@/layouts/OrgLearningLayout';
 import ProtectedRoute from './ProtectedRoute';
-
+import EditModulePage from '../pages/lms/organizer/create-microlearning/EditModulePage';
+import EditLessonPage from '../pages/lms/organizer/create-microlearning/EditLessonPage';
 
 export const LmsRoutes = () => {
 	return (
@@ -71,14 +76,24 @@ export const LmsRoutes = () => {
 			</Route>
 
 			{/* 5. DASHBOARD LAYOUT GROUP (Admin & Organizer) */}
-			<Route element={<DashboardLayout />}>
+			<Route element={<OrgLearningLayout />}>
 				<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
 					{/* 2. ORGANIZER DOMAIN */}
 					<Route path="/organizer">
-						<Route path="dashboard" element={<DashboardPage />} />
-						<Route path="content" element={<ContentPage />} />
-						<Route path="microlearning" element={<DashboardPage />} />
+						<Route path="microlearning" element={<OrgMicrolearning />} />
+
+						<Route path="learning-path/add" element={<CreateLearningPage />} />
+						<Route
+							path="learning-path/:learningId"
+							element={<ManageLearningPathPage />}
+						/>
+						<Route path="learning-path/:learningId/edit-module/:moduleId" element={<EditModulePage />} />
+						<Route path="learning-path/:learningId/edit-module/:moduleId/:lessonId" element={<EditLessonPage />} />
+
+
 						<Route path="learning-paths" element={<LearningPathsPage />} />
+
+						<Route path="content" element={<ContentPage />} />
 						<Route path="badges" element={<OrganizerBadgesPage />} />
 						<Route path="logs" element={<LogsPage />} />
 
@@ -90,8 +105,6 @@ export const LmsRoutes = () => {
 					</Route>
 				</Route>
 			</Route>
-
-
 
 			<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
 			{/* Direct Lesson Shortcut */}

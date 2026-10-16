@@ -65,7 +65,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 		}
 		return (
 			<div
-				className="menu-header text-muted fw-bold ms-2 text-truncate"
+				className="menu-header text-muted fw-bold text-truncate"
 				style={{
 					fontSize: '0.75rem',
 					marginTop: '1.5rem',
@@ -93,7 +93,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 				>
 					<span style={{ flexShrink: 0 }}>{item.icon}</span>
 					{!isSidebarCollapsed && (
-						<span className="menu-text ms-2 text-truncate" title={item.name}>
+						<span className="menu-text text-truncate" title={item.name}>
 							{item.name}
 						</span>
 					)}
@@ -125,7 +125,7 @@ const SidebarItem = ({ item, isOpen, toggle, isSidebarCollapsed }) => {
 				>
 					<span style={{ flexShrink: 0 }}>{item.icon}</span>
 					{!isSidebarCollapsed && (
-						<span className="ms-2 text-truncate" title={item.name}>
+						<span className="data text-truncate" title={item.name}>
 							{item.name}
 						</span>
 					)}
