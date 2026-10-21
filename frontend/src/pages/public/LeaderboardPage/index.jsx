@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Container, Row, Col, Badge } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import {
   Trophy,
   Crown,
@@ -20,6 +21,7 @@ import {
   Brain,
   Info
 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 import './LeaderboardPage.css';
 
 // === DUMMY DATA LENGKAP & REALISTIS UNTUK BERBAGAI PERIODE ===
@@ -44,6 +46,7 @@ const MOCK_LEADERBOARD_DATA = {
     },
     topThree: [
       {
+        id: 2,
         rank: 2,
         name: 'Rian Hidayat',
         initials: 'RI',
@@ -54,6 +57,7 @@ const MOCK_LEADERBOARD_DATA = {
         sbtVerified: true
       },
       {
+        id: 1,
         rank: 1,
         name: 'Ahmad Fauzi',
         initials: 'AH',
@@ -64,6 +68,7 @@ const MOCK_LEADERBOARD_DATA = {
         sbtVerified: true
       },
       {
+        id: 4,
         rank: 3,
         name: 'Siti Rahma',
         initials: 'SI',
@@ -75,18 +80,18 @@ const MOCK_LEADERBOARD_DATA = {
       }
     ],
     tableRanks: [
-      { rank: 4, name: 'Dian Sastro', initials: 'DI', points: 3920, eventsAttended: 12, trend: 'up', tier: 'Gold', campus: 'Universitas Indonesia' },
-      { rank: 5, name: 'Budi Santoso', initials: 'BU', points: 3680, eventsAttended: 9, trend: 'up', tier: 'Gold', campus: 'Institut Teknologi Sepuluh Nopember' },
-      { rank: 6, name: 'Citra Kirana', initials: 'CI', points: 3410, eventsAttended: 11, trend: 'down', tier: 'Gold', campus: 'Universitas Padjadjaran' },
-      { rank: 7, name: 'Eko Prasetyo', initials: 'EK', points: 3150, eventsAttended: 8, trend: 'up', tier: 'Gold', campus: 'Universitas Diponegoro' },
-      { rank: 8, name: 'Fahri Alamsyah', initials: 'FA', points: 2990, eventsAttended: 7, trend: 'down', tier: 'Gold', campus: 'Universitas Airlangga' },
-      { rank: 9, name: 'Gita Gutawa', initials: 'GI', points: 2750, eventsAttended: 6, trend: 'up', tier: 'Gold', campus: 'Universitas Sebelas Maret' },
-      { rank: 10, name: 'Hendra Wijaya', initials: 'HE', points: 2560, eventsAttended: 7, trend: 'down', tier: 'Gold', campus: 'Binus University' },
-      { rank: 11, name: 'Kevin Anggara', initials: 'KA', points: 2500, eventsAttended: 6, trend: 'neutral', tier: 'Silver', campus: 'Universitas Telkom' },
-      { rank: 12, name: 'Kamu (Budi Pratama)', initials: 'KM', points: 2450, eventsAttended: 5, trend: 'up', tier: 'Silver', campus: 'Universitas Indonesia', isCurrentUser: true },
-      { rank: 13, name: 'Nadin Amizah', initials: 'ND', points: 2380, eventsAttended: 5, trend: 'down', tier: 'Silver', campus: 'Universitas Pelita Harapan' },
-      { rank: 14, name: 'Raditya Dika', initials: 'RA', points: 2210, eventsAttended: 4, trend: 'up', tier: 'Silver', campus: 'Universitas Prasetya Mulya' },
-      { rank: 15, name: 'Tara Basro', initials: 'TA', points: 2090, eventsAttended: 4, trend: 'neutral', tier: 'Silver', campus: 'Universitas Bina Nusantara' }
+      { id: 3, rank: 4, name: 'Dian Sastro', initials: 'DI', points: 3920, eventsAttended: 12, trend: 'up', tier: 'Gold', campus: 'Universitas Indonesia' },
+      { id: 5, rank: 5, name: 'Budi Santoso', initials: 'BU', points: 3680, eventsAttended: 9, trend: 'up', tier: 'Gold', campus: 'Institut Teknologi Sepuluh Nopember' },
+      { id: 6, rank: 6, name: 'Citra Kirana', initials: 'CI', points: 3410, eventsAttended: 11, trend: 'down', tier: 'Gold', campus: 'Universitas Padjadjaran' },
+      { id: 7, rank: 7, name: 'Eko Prasetyo', initials: 'EK', points: 3150, eventsAttended: 8, trend: 'up', tier: 'Gold', campus: 'Universitas Diponegoro' },
+      { id: 8, rank: 8, name: 'Fahri Alamsyah', initials: 'FA', points: 2990, eventsAttended: 7, trend: 'down', tier: 'Gold', campus: 'Universitas Airlangga' },
+      { id: 9, rank: 9, name: 'Gita Gutawa', initials: 'GI', points: 2750, eventsAttended: 6, trend: 'up', tier: 'Gold', campus: 'Universitas Sebelas Maret' },
+      { id: 10, rank: 10, name: 'Hendra Wijaya', initials: 'HE', points: 2560, eventsAttended: 7, trend: 'down', tier: 'Gold', campus: 'Binus University' },
+      { id: 11, rank: 11, name: 'Kevin Anggara', initials: 'KA', points: 2500, eventsAttended: 6, trend: 'neutral', tier: 'Silver', campus: 'Universitas Telkom' },
+      { id: 'current-user', rank: 12, name: 'Budi Pratama', initials: 'BP', points: 2450, eventsAttended: 5, trend: 'up', tier: 'Silver', campus: 'Universitas Indonesia', isCurrentUser: true },
+      { id: 13, rank: 13, name: 'Nadin Amizah', initials: 'ND', points: 2380, eventsAttended: 5, trend: 'down', tier: 'Silver', campus: 'Universitas Pelita Harapan' },
+      { id: 14, rank: 14, name: 'Raditya Dika', initials: 'RA', points: 2210, eventsAttended: 4, trend: 'up', tier: 'Silver', campus: 'Universitas Prasetya Mulya' },
+      { id: 15, rank: 15, name: 'Tara Basro', initials: 'TA', points: 2090, eventsAttended: 4, trend: 'neutral', tier: 'Silver', campus: 'Universitas Bina Nusantara' }
     ]
   },
   mingguan: {
@@ -109,6 +114,7 @@ const MOCK_LEADERBOARD_DATA = {
     },
     topThree: [
       {
+        id: 1,
         rank: 2,
         name: 'Ahmad Fauzi',
         initials: 'AH',
@@ -119,6 +125,7 @@ const MOCK_LEADERBOARD_DATA = {
         sbtVerified: true
       },
       {
+        id: 3,
         rank: 1,
         name: 'Dian Sastro',
         initials: 'DI',
@@ -129,6 +136,7 @@ const MOCK_LEADERBOARD_DATA = {
         sbtVerified: true
       },
       {
+        id: 2,
         rank: 3,
         name: 'Rian Hidayat',
         initials: 'RI',
@@ -140,14 +148,14 @@ const MOCK_LEADERBOARD_DATA = {
       }
     ],
     tableRanks: [
-      { rank: 4, name: 'Siti Rahma', initials: 'SI', points: 980, eventsAttended: 3, trend: 'down', tier: 'Gold', campus: 'Universitas Brawijaya' },
-      { rank: 5, name: 'Eko Prasetyo', initials: 'EK', points: 910, eventsAttended: 3, trend: 'up', tier: 'Gold', campus: 'Universitas Diponegoro' },
-      { rank: 6, name: 'Citra Kirana', initials: 'CI', points: 870, eventsAttended: 2, trend: 'up', tier: 'Gold', campus: 'Universitas Padjadjaran' },
-      { rank: 7, name: 'Budi Santoso', initials: 'BU', points: 820, eventsAttended: 2, trend: 'down', tier: 'Gold', campus: 'Institut Teknologi Sepuluh Nopember' },
-      { rank: 8, name: 'Kamu (Budi Pratama)', initials: 'KM', points: 750, eventsAttended: 2, trend: 'up', tier: 'Silver', campus: 'Universitas Indonesia', isCurrentUser: true },
-      { rank: 9, name: 'Gita Gutawa', initials: 'GI', points: 710, eventsAttended: 2, trend: 'up', tier: 'Gold', campus: 'Universitas Sebelas Maret' },
-      { rank: 10, name: 'Fahri Alamsyah', initials: 'FA', points: 680, eventsAttended: 2, trend: 'down', tier: 'Gold', campus: 'Universitas Airlangga' },
-      { rank: 11, name: 'Kevin Anggara', initials: 'KA', points: 620, eventsAttended: 1, trend: 'neutral', tier: 'Silver', campus: 'Universitas Telkom' }
+      { id: 4, rank: 4, name: 'Siti Rahma', initials: 'SI', points: 980, eventsAttended: 3, trend: 'down', tier: 'Gold', campus: 'Universitas Brawijaya' },
+      { id: 7, rank: 5, name: 'Eko Prasetyo', initials: 'EK', points: 910, eventsAttended: 3, trend: 'up', tier: 'Gold', campus: 'Universitas Diponegoro' },
+      { id: 6, rank: 6, name: 'Citra Kirana', initials: 'CI', points: 870, eventsAttended: 2, trend: 'up', tier: 'Gold', campus: 'Universitas Padjadjaran' },
+      { id: 5, rank: 7, name: 'Budi Santoso', initials: 'BU', points: 820, eventsAttended: 2, trend: 'down', tier: 'Gold', campus: 'Institut Teknologi Sepuluh Nopember' },
+      { id: 'current-user', rank: 8, name: 'Budi Pratama', initials: 'BP', points: 750, eventsAttended: 2, trend: 'up', tier: 'Silver', campus: 'Universitas Indonesia', isCurrentUser: true },
+      { id: 9, rank: 9, name: 'Gita Gutawa', initials: 'GI', points: 710, eventsAttended: 2, trend: 'up', tier: 'Gold', campus: 'Universitas Sebelas Maret' },
+      { id: 8, rank: 10, name: 'Fahri Alamsyah', initials: 'FA', points: 680, eventsAttended: 2, trend: 'down', tier: 'Gold', campus: 'Universitas Airlangga' },
+      { id: 11, rank: 11, name: 'Kevin Anggara', initials: 'KA', points: 620, eventsAttended: 1, trend: 'neutral', tier: 'Silver', campus: 'Universitas Telkom' }
     ]
   },
   semua_waktu: {
@@ -170,6 +178,7 @@ const MOCK_LEADERBOARD_DATA = {
     },
     topThree: [
       {
+        id: 4,
         rank: 2,
         name: 'Siti Rahma',
         initials: 'SI',
@@ -180,6 +189,7 @@ const MOCK_LEADERBOARD_DATA = {
         sbtVerified: true
       },
       {
+        id: 1,
         rank: 1,
         name: 'Ahmad Fauzi',
         initials: 'AH',
@@ -190,6 +200,7 @@ const MOCK_LEADERBOARD_DATA = {
         sbtVerified: true
       },
       {
+        id: 2,
         rank: 3,
         name: 'Rian Hidayat',
         initials: 'RI',
@@ -201,19 +212,21 @@ const MOCK_LEADERBOARD_DATA = {
       }
     ],
     tableRanks: [
-      { rank: 4, name: 'Budi Santoso', initials: 'BU', points: 18200, eventsAttended: 49, trend: 'up', tier: 'Platinum', campus: 'Institut Teknologi Sepuluh Nopember' },
-      { rank: 5, name: 'Dian Sastro', initials: 'DI', points: 17450, eventsAttended: 46, trend: 'up', tier: 'Platinum', campus: 'Universitas Indonesia' },
-      { rank: 6, name: 'Citra Kirana', initials: 'CI', points: 15300, eventsAttended: 41, trend: 'down', tier: 'Platinum', campus: 'Universitas Padjadjaran' },
-      { rank: 7, name: 'Eko Prasetyo', initials: 'EK', points: 14100, eventsAttended: 38, trend: 'neutral', tier: 'Platinum', campus: 'Universitas Diponegoro' },
-      { rank: 8, name: 'Hendra Wijaya', initials: 'HE', points: 13200, eventsAttended: 35, trend: 'down', tier: 'Platinum', campus: 'Binus University' },
-      { rank: 9, name: 'Gita Gutawa', initials: 'GI', points: 12500, eventsAttended: 32, trend: 'up', tier: 'Gold', campus: 'Universitas Sebelas Maret' },
-      { rank: 10, name: 'Fahri Alamsyah', initials: 'FA', points: 11900, eventsAttended: 30, trend: 'down', tier: 'Gold', campus: 'Universitas Airlangga' },
-      { rank: 18, name: 'Kamu (Budi Pratama)', initials: 'KM', points: 8900, eventsAttended: 24, trend: 'up', tier: 'Gold', campus: 'Universitas Indonesia', isCurrentUser: true }
+      { id: 5, rank: 4, name: 'Budi Santoso', initials: 'BU', points: 18200, eventsAttended: 49, trend: 'up', tier: 'Platinum', campus: 'Institut Teknologi Sepuluh Nopember' },
+      { id: 3, rank: 5, name: 'Dian Sastro', initials: 'DI', points: 17450, eventsAttended: 46, trend: 'up', tier: 'Platinum', campus: 'Universitas Indonesia' },
+      { id: 6, rank: 6, name: 'Citra Kirana', initials: 'CI', points: 15300, eventsAttended: 41, trend: 'down', tier: 'Platinum', campus: 'Universitas Padjadjaran' },
+      { id: 7, rank: 7, name: 'Eko Prasetyo', initials: 'EK', points: 14100, eventsAttended: 38, trend: 'neutral', tier: 'Platinum', campus: 'Universitas Diponegoro' },
+      { id: 10, rank: 8, name: 'Hendra Wijaya', initials: 'HE', points: 13200, eventsAttended: 35, trend: 'down', tier: 'Platinum', campus: 'Binus University' },
+      { id: 9, rank: 9, name: 'Gita Gutawa', initials: 'GI', points: 12500, eventsAttended: 32, trend: 'up', tier: 'Gold', campus: 'Universitas Sebelas Maret' },
+      { id: 8, rank: 10, name: 'Fahri Alamsyah', initials: 'FA', points: 11900, eventsAttended: 30, trend: 'down', tier: 'Gold', campus: 'Universitas Airlangga' },
+      { id: 'current-user', rank: 18, name: 'Budi Pratama', initials: 'BP', points: 8900, eventsAttended: 24, trend: 'up', tier: 'Gold', campus: 'Universitas Indonesia', isCurrentUser: true }
     ]
   }
 };
 
 const LeaderboardPage = () => {
+  const { user } = useAuth();
+
   // State filter timeframe: 'mingguan', 'bulanan', 'semua_waktu'
   const [timeframe, setTimeframe] = useState('bulanan');
   // Search query state
@@ -224,6 +237,17 @@ const LeaderboardPage = () => {
   // Ambil data aktif berdasarkan timeframe terpilih
   const currentData = MOCK_LEADERBOARD_DATA[timeframe];
   const { currentUser, topThree, tableRanks, periodLabel, daysRemaining } = currentData;
+
+  const currentUserName = user?.name ? `Kamu (${user.name})` : currentUser.name;
+  const currentUserInitials = user?.name
+    ? user.name
+        .split(' ')
+        .filter(Boolean)
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : currentUser.initials;
 
   // Hitung persentase progress user menuju peringkat di atasnya
   const pointsRemaining = Math.max(0, currentUser.nextRankPoints - currentUser.points);
@@ -297,59 +321,93 @@ const LeaderboardPage = () => {
           </div>
         </div>
 
-        {/* ==================== 2. CURRENT USER HIGHLIGHT CARD ("KAMU") ==================== */}
-        <div className="user-rank-highlight-card">
-          <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
-            {/* User Info */}
-            <div className="d-flex align-items-center gap-3">
-              <div className="user-avatar-circle">
-                {currentUser.initials}
-              </div>
-              <div>
-                <div className="d-flex align-items-center gap-2">
-                  <h5 className="fw-bold text-dark mb-0">{currentUser.name}</h5>
-                  {renderTierBadge(currentUser.tier)}
+        {/* ==================== 2. CURRENT USER HIGHLIGHT CARD ("KAMU") OR GUEST BANNER ==================== */}
+        {user ? (
+          <div className="user-rank-highlight-card">
+            <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
+              {/* User Info */}
+              <div className="d-flex align-items-center gap-3">
+                <Link to="/profile/current-user" className="text-decoration-none">
+                  <div className="user-avatar-circle" style={{ cursor: 'pointer' }}>
+                    {currentUserInitials}
+                  </div>
+                </Link>
+                <div>
+                  <div className="d-flex align-items-center gap-2">
+                    <Link
+                      to="/profile/current-user"
+                      className="fw-bold text-dark text-decoration-none user-table-link mb-0"
+                      style={{ fontSize: '1.25rem' }}
+                    >
+                      {currentUserName}
+                    </Link>
+                    {renderTierBadge(currentUser.tier)}
+                  </div>
+                  <p className="text-muted small mb-0 mt-1">
+                    Peringkat saat ini di tingkat <span className="fw-semibold text-dark">{periodLabel}</span>
+                  </p>
                 </div>
-                <p className="text-muted small mb-0 mt-1">
-                  Peringkat saat ini di tingkat <span className="fw-semibold text-dark">{periodLabel}</span>
-                </p>
+              </div>
+
+              {/* Rank & Points Stats */}
+              <div className="d-flex align-items-center gap-4">
+                <div className="rank-stat-box">
+                  <div className="rank-stat-label">RANK</div>
+                  <div className="rank-stat-value">#{currentUser.rank}</div>
+                </div>
+                <div className="rank-stat-box">
+                  <div className="rank-stat-label">TOTAL POIN</div>
+                  <div className="rank-stat-value primary-highlight">
+                    {currentUser.points.toLocaleString('id-ID')} pts
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Rank & Points Stats */}
-            <div className="d-flex align-items-center gap-4">
-              <div className="rank-stat-box">
-                <div className="rank-stat-label">RANK</div>
-                <div className="rank-stat-value">#{currentUser.rank}</div>
+            {/* Progress to Next Rank */}
+            <div className="pt-2 border-top" style={{ borderColor: '#f1f5f9' }}>
+              <div className="d-flex justify-content-between align-items-center mb-1-5">
+                <span className="small fw-semibold text-secondary">
+                  Peringkat Selanjutnya: <strong className="text-dark">#{currentUser.nextRank}</strong>
+                </span>
+                <span className="small text-muted fw-semibold">
+                  {pointsRemaining > 0 ? `${pointsRemaining} pts lagi` : 'Peringkat Teratas!'}
+                </span>
               </div>
-              <div className="rank-stat-box">
-                <div className="rank-stat-label">TOTAL POIN</div>
-                <div className="rank-stat-value primary-highlight">
-                  {currentUser.points.toLocaleString('id-ID')} pts
+              <div className="progress-track-wrapper">
+                <div
+                  className="progress-fill-bar"
+                  style={{ width: `${progressPercent}%` }}
+                  title={`${progressPercent}% tercapai`}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="leaderboard-guest-card mb-4">
+            <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 p-4">
+              <div className="d-flex align-items-center gap-3">
+                <div className="guest-trophy-icon">
+                  <Trophy size={26} className="text-primary" />
+                </div>
+                <div>
+                  <h5 className="fw-bold mb-1 text-dark">Ingin Melihat Posisi Peringkatmu?</h5>
+                  <p className="text-muted small mb-0">
+                    Masuk dengan akun KampusX Anda untuk melacak poin, melihat posisi peringkat personal, dan bersaing memperebutkan reward bulanan!
+                  </p>
                 </div>
               </div>
+              <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                <Link to="/login" className="btn btn-primary btn-sm px-3 py-2 rounded-pill fw-bold">
+                  Masuk Sekarang
+                </Link>
+                <Link to="/register" className="btn btn-outline-secondary btn-sm px-3 py-2 rounded-pill fw-bold">
+                  Daftar Akun
+                </Link>
+              </div>
             </div>
           </div>
-
-          {/* Progress to Next Rank */}
-          <div className="pt-2 border-top" style={{ borderColor: '#f1f5f9' }}>
-            <div className="d-flex justify-content-between align-items-center mb-1-5">
-              <span className="small fw-semibold text-secondary">
-                Peringkat Selanjutnya: <strong className="text-dark">#{currentUser.nextRank}</strong>
-              </span>
-              <span className="small text-muted fw-semibold">
-                {pointsRemaining > 0 ? `${pointsRemaining} pts lagi` : 'Peringkat Teratas!'}
-              </span>
-            </div>
-            <div className="progress-track-wrapper">
-              <div
-                className="progress-fill-bar"
-                style={{ width: `${progressPercent}%` }}
-                title={`${progressPercent}% tercapai`}
-              />
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* ==================== 3. TOP 3 PODIUM CARDS (2 - 1 - 3) ==================== */}
         <div className="podium-container">
@@ -358,12 +416,18 @@ const LeaderboardPage = () => {
             <div className="podium-rank-tag">
               <span style={{ fontSize: '10px' }}>●</span> RANK #2
             </div>
-            <div className="podium-avatar-large">
-              {topThree[0].initials}
-            </div>
-            <div className="podium-user-name text-truncate px-2" title={topThree[0].name}>
+            <Link to={`/profile/${topThree[0].id || 2}`} className="text-decoration-none d-block">
+              <div className="podium-avatar-large">
+                {topThree[0].initials}
+              </div>
+            </Link>
+            <Link
+              to={`/profile/${topThree[0].id || 2}`}
+              className="podium-user-name text-truncate px-2 d-block text-decoration-none user-table-link"
+              title={topThree[0].name}
+            >
               {topThree[0].name}
-            </div>
+            </Link>
             <div className="podium-user-points">
               {topThree[0].points.toLocaleString('id-ID')} pts
             </div>
@@ -377,12 +441,18 @@ const LeaderboardPage = () => {
             <div className="podium-rank-tag rank-1-tag">
               <Crown size={14} className="text-warning" /> RANK #1
             </div>
-            <div className="podium-avatar-large">
-              {topThree[1].initials}
-            </div>
-            <div className="podium-user-name text-truncate px-2" title={topThree[1].name}>
+            <Link to={`/profile/${topThree[1].id || 1}`} className="text-decoration-none d-block">
+              <div className="podium-avatar-large">
+                {topThree[1].initials}
+              </div>
+            </Link>
+            <Link
+              to={`/profile/${topThree[1].id || 1}`}
+              className="podium-user-name text-truncate px-2 d-block text-decoration-none user-table-link"
+              title={topThree[1].name}
+            >
               {topThree[1].name}
-            </div>
+            </Link>
             <div className="podium-user-points">
               {topThree[1].points.toLocaleString('id-ID')} pts
             </div>
@@ -396,12 +466,18 @@ const LeaderboardPage = () => {
             <div className="podium-rank-tag">
               <span style={{ fontSize: '10px' }}>●</span> RANK #3
             </div>
-            <div className="podium-avatar-large">
-              {topThree[2].initials}
-            </div>
-            <div className="podium-user-name text-truncate px-2" title={topThree[2].name}>
+            <Link to={`/profile/${topThree[2].id || 4}`} className="text-decoration-none d-block">
+              <div className="podium-avatar-large">
+                {topThree[2].initials}
+              </div>
+            </Link>
+            <Link
+              to={`/profile/${topThree[2].id || 4}`}
+              className="podium-user-name text-truncate px-2 d-block text-decoration-none user-table-link"
+              title={topThree[2].name}
+            >
               {topThree[2].name}
-            </div>
+            </Link>
             <div className="podium-user-points">
               {topThree[2].points.toLocaleString('id-ID')} pts
             </div>
@@ -462,41 +538,56 @@ const LeaderboardPage = () => {
                   </thead>
                   <tbody>
                     {filteredTableRanks.length > 0 ? (
-                      filteredTableRanks.map((row) => (
-                        <tr
-                          key={row.rank}
-                          className={`leaderboard-row ${row.isCurrentUser ? 'current-user-row' : ''}`}
-                        >
-                          {/* RANK */}
-                          <td style={{ textAlign: 'center', fontWeight: 700, color: '#334155' }}>
-                            #{row.rank}
-                          </td>
+                      filteredTableRanks.map((row) => {
+                        const isMe = !!user && row.isCurrentUser;
+                        const displayName = isMe
+                          ? (user?.name ? `Kamu (${user.name})` : 'Kamu (Budi Pratama)')
+                          : row.name;
 
-                          {/* USER */}
-                          <td>
-                            <div className="d-flex align-items-center gap-3">
-                              <div
-                                className="table-user-avatar"
-                                style={
-                                  row.isCurrentUser
-                                    ? { backgroundColor: '#00699e', color: '#fff' }
-                                    : {}
-                                }
-                              >
-                                {row.initials}
-                              </div>
-                              <div>
-                                <div className="d-flex align-items-center gap-2">
-                                  <span className="fw-bold text-dark" style={{ fontSize: '14px' }}>
-                                    {row.name}
-                                  </span>
-                                  {row.isCurrentUser && (
-                                    <Badge bg="primary" style={{ fontSize: '10px', fontWeight: 600 }}>
-                                      Kamu
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-muted d-flex align-items-center gap-1 mt-0-5" style={{ fontSize: '12px' }}>
+                        return (
+                          <tr
+                            key={row.rank}
+                            className={`leaderboard-row ${isMe ? 'current-user-row' : ''}`}
+                          >
+                            {/* RANK */}
+                            <td style={{ textAlign: 'center', fontWeight: 700, color: '#334155' }}>
+                              #{row.rank}
+                            </td>
+
+                            {/* USER */}
+                            <td>
+                              <div className="d-flex align-items-center gap-3">
+                                <Link
+                                  to={`/profile/${isMe ? 'current-user' : (row.id || row.rank)}`}
+                                  className="text-decoration-none"
+                                >
+                                  <div
+                                    className="table-user-avatar"
+                                    style={
+                                      isMe
+                                        ? { backgroundColor: '#00699e', color: '#fff' }
+                                        : {}
+                                    }
+                                  >
+                                    {isMe ? currentUserInitials : row.initials}
+                                  </div>
+                                </Link>
+                                <div>
+                                  <div className="d-flex align-items-center gap-2">
+                                    <Link
+                                      to={`/profile/${isMe ? 'current-user' : (row.id || row.rank)}`}
+                                      className="fw-bold text-dark text-decoration-none user-table-link"
+                                      style={{ fontSize: '14px' }}
+                                    >
+                                      {displayName}
+                                    </Link>
+                                    {isMe && (
+                                      <Badge bg="primary" style={{ fontSize: '10px', fontWeight: 600 }}>
+                                        Kamu
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-muted d-flex align-items-center gap-1 mt-0-5" style={{ fontSize: '12px' }}>
                                   <span className="text-truncate" style={{ maxWidth: '220px' }}>
                                     {row.campus}
                                   </span>
@@ -536,8 +627,9 @@ const LeaderboardPage = () => {
                             )}
                           </td>
                         </tr>
-                      ))
-                    ) : (
+                      );
+                    })
+                  ) : (
                       <tr>
                         <td colSpan={5} className="text-center py-5 text-muted">
                           <Info size={28} className="mb-2 text-secondary" />

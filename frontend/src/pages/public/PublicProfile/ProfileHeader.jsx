@@ -13,7 +13,10 @@ import {
   Linkedin,
   Copy,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Mail,
+  Lock,
+  MessageSquare
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../api/axios';
@@ -21,6 +24,8 @@ import api from '../../../api/axios';
 const ProfileHeader = ({
   profile = {},
   isOwnProfile = false,
+  isGuest = false,
+  promptLoginRequired = () => {},
   onOpenVerifyModal
 }) => {
   const navigate = useNavigate();
@@ -41,7 +46,26 @@ const ProfileHeader = ({
     setTimeout(() => setCopiedWallet(false), 2000);
   };
 
+  const handleContactStudent = () => {
+    if (isGuest) {
+      promptLoginRequired(
+        'Hubungi Mahasiswa & Kirim Tawaran',
+        'Kirim tawaran magang, riset kolaboratif, atau proyek langsung ke mahasiswa ini dengan masuk ke akun KampusX Anda.'
+      );
+    } else {
+      alert(`Undangan kolaborasi dan pesan Anda berhasil dikirim ke kontak terdaftar ${profile.name || 'mahasiswa'}!`);
+    }
+  };
+
   const handleGenerateCV = async () => {
+    if (isGuest) {
+      promptLoginRequired(
+        'Unduh On-Chain CV Terverifikasi',
+        'Dokumen CV On-Chain yang dilengkapi QR Code ledger Polygon dan audit kognitif hanya dapat diunduh oleh member terdaftar KampusX.'
+      );
+      return;
+    }
+
     setIsGeneratingCV(true);
     try {
       if (profile.id && typeof profile.id === 'number') {
@@ -90,7 +114,7 @@ const ProfileHeader = ({
             <span>{copiedLink ? 'Link Tersalin!' : 'Bagikan'}</span>
           </button>
 
-          {/* Tombol Zero-Trust On-Chain Verification */}
+          {/* Tombol Zero-Trust On-Chain Verification (Selalu Terbuka) */}
           <button
             type="button"
             className="cover-btn"
@@ -110,11 +134,25 @@ const ProfileHeader = ({
           >
             {isGeneratingCV ? (
               <Spinner animation="border" size="sm" style={{ width: 12, height: 12 }} />
+            ) : isGuest ? (
+              <Lock size={14} className="text-warning" />
             ) : (
               <FileText size={14} />
             )}
             <span>{isGeneratingCV ? 'Mencetak...' : 'Generate On-Chain CV'}</span>
           </button>
+
+          {/* Tombol Hubungi Mahasiswa (Bagi Pengunjung/Recruiter) */}
+          {!isOwnProfile && (
+            <button
+              type="button"
+              className="cover-btn"
+              onClick={handleContactStudent}
+            >
+              <Mail size={14} className="text-primary" />
+              <span>Hubungi Mahasiswa</span>
+            </button>
+          )}
 
           {/* Tombol Edit jika profil sendiri */}
           {isOwnProfile && (
@@ -258,6 +296,8 @@ const ProfileHeader = ({
               >
                 {isGeneratingCV ? (
                   <Spinner animation="border" size="sm" style={{ width: 12, height: 12 }} />
+                ) : isGuest ? (
+                  <Lock size={14} className="text-warning" />
                 ) : (
                   <FileText size={14} />
                 )}
@@ -265,6 +305,16 @@ const ProfileHeader = ({
               </button>
             </div>
             <div className="d-flex gap-2">
+              {!isOwnProfile && (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm flex-fill rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-1"
+                  style={{ fontSize: '12px' }}
+                  onClick={handleContactStudent}
+                >
+                  <Mail size={14} /> Hubungi
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn-light btn-sm flex-fill rounded-pill py-2 border fw-semibold d-flex align-items-center justify-content-center gap-1"
@@ -272,7 +322,7 @@ const ProfileHeader = ({
                 onClick={handleShare}
               >
                 {copiedLink ? <Check size={14} className="text-success" /> : <Share2 size={14} />}
-                <span>{copiedLink ? 'Tersalin' : 'Bagikan Profil'}</span>
+                <span>{copiedLink ? 'Tersalin' : 'Bagikan'}</span>
               </button>
               {isOwnProfile && (
                 <button

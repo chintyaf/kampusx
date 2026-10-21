@@ -20,8 +20,12 @@ import {
   Layers,
   ArrowRight,
   TrendingUp,
-  Check
+  Check,
+  Lock,
+  User,
+  LogIn
 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 import './TalentDirectory.css';
 
 // === DUMMY DATA KANDIDAT MAHASISWA & SKILL MATRIX ===
@@ -277,6 +281,8 @@ const AVAILABLE_SKILLS_FOR_MATCH = [
 ];
 
 const TalentDirectory = () => {
+  const { user } = useAuth();
+
   // Tab Switcher: 'talents' vs 'feed'
   const [activeTab, setActiveTab] = useState('talents');
 
@@ -296,6 +302,18 @@ const TalentDirectory = () => {
   const [selectedSbtTalent, setSelectedSbtTalent] = useState(null);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
 
+  // Modal State for Restricted Access (LinkedIn Style Guest Wall)
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalMessage, setLoginModalMessage] = useState('');
+
+  const promptLoginRequired = (message) => {
+    setLoginModalMessage(
+      message ||
+        'Untuk menjaga privasi data akademik mahasiswa serta integritas verifikasi blockchain kredensial Soulbound Token, silakan masuk ke akun KampusX Anda terlebih dahulu.'
+    );
+    setShowLoginModal(true);
+  };
+
   // Social feed likes state
   const [likedPosts, setLikedPosts] = useState({});
 
@@ -313,6 +331,10 @@ const TalentDirectory = () => {
   };
 
   const toggleLike = (postId) => {
+    if (!user) {
+      promptLoginRequired('Masuk ke akun KampusX Anda untuk memberikan apresiasi dan berinteraksi di Social Feed.');
+      return;
+    }
     setLikedPosts((prev) => ({
       ...prev,
       [postId]: !prev[postId]
@@ -409,37 +431,85 @@ const TalentDirectory = () => {
           {/* ==================== LEFT COLUMN: MINI PROFILE & FILTERS ==================== */}
           <div className="linkedin-left-col">
             {/* User Mini Profile (LinkedIn Style) */}
-            <div className="clean-card">
-              <div className="user-mini-profile-banner" />
-              <div className="user-mini-avatar">KM</div>
-              <div className="user-mini-name">Kamu (Budi Pratama)</div>
-              <div className="user-mini-headline">
-                Mahasiswa Teknik Informatika • Universitas Indonesia
-              </div>
-              <div className="text-center mb-3">
-                <span className="badge bg-light text-dark border px-2 py-1" style={{ fontSize: '11px' }}>
-                  🥈 Silver Tier
-                </span>
-              </div>
+            {user ? (
+              <div className="clean-card">
+                <div className="user-mini-profile-banner" />
+                <div className="user-mini-avatar">
+                  {user.name
+                    ? user.name
+                        .split(' ')
+                        .filter(Boolean)
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase()
+                    : 'KM'}
+                </div>
+                <div className="user-mini-name">Kamu ({user.name || 'Budi Pratama'})</div>
+                <div className="user-mini-headline">
+                  Mahasiswa Teknik Informatika • Universitas Indonesia
+                </div>
+                <div className="text-center mb-3">
+                  <span className="badge bg-light text-dark border px-2 py-1" style={{ fontSize: '11px' }}>
+                    🥈 Silver Tier
+                  </span>
+                </div>
 
-              <div className="user-mini-stats-row">
-                <span>Total Poin Global</span>
-                <span className="user-mini-stats-val">2,450 pts</span>
+                <div className="user-mini-stats-row">
+                  <span>Total Poin Global</span>
+                  <span className="user-mini-stats-val">2,450 pts</span>
+                </div>
+                <div className="user-mini-stats-row">
+                  <span>SBT Terverifikasi</span>
+                  <span className="user-mini-stats-val">2 Kredensial</span>
+                </div>
+                <div className="p-3 text-center border-top">
+                  <Link
+                    to="/profile/current-user"
+                    className="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold"
+                    style={{ fontSize: '12px' }}
+                  >
+                    Lihat Profil Saya
+                  </Link>
+                </div>
               </div>
-              <div className="user-mini-stats-row">
-                <span>SBT Terverifikasi</span>
-                <span className="user-mini-stats-val">2 Kredensial</span>
+            ) : (
+              <div className="clean-card">
+                <div className="user-mini-profile-banner guest-profile-banner" />
+                <div className="user-mini-avatar guest-mini-avatar">
+                  <User size={26} />
+                </div>
+                <div className="user-mini-name">Tamu / Pengunjung</div>
+                <div className="user-mini-headline">
+                  Eksplorasi Profil & Direktori Talenta KampusX
+                </div>
+                <div className="text-center mb-3">
+                  <span className="badge bg-light text-muted border px-2 py-1" style={{ fontSize: '11px' }}>
+                    Mode Tamu Publik
+                  </span>
+                </div>
+
+                <div className="px-3 pb-3 text-center">
+                  <p className="text-muted small mb-3" style={{ fontSize: '12px', lineHeight: '1.4' }}>
+                    Masuk untuk membangun profil talenta digital Anda, klaim kredensial Soulbound Token, dan membuka akses komunikasi dengan rekruter.
+                  </p>
+                  <Link
+                    to="/login"
+                    className="btn btn-primary btn-sm w-100 rounded-pill fw-bold mb-2"
+                    style={{ fontSize: '12px' }}
+                  >
+                    Masuk Sekarang
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold"
+                    style={{ fontSize: '12px' }}
+                  >
+                    Daftar Akun Baru
+                  </Link>
+                </div>
               </div>
-              <div className="p-3 text-center border-top">
-                <Link
-                  to="/profile/current-user"
-                  className="btn btn-outline-primary btn-sm w-100 rounded-pill fw-bold"
-                  style={{ fontSize: '12px' }}
-                >
-                  Lihat Profil Saya
-                </Link>
-              </div>
-            </div>
+            )}
 
             {/* Specialization Filter Card */}
             <div className="clean-card">
@@ -504,6 +574,18 @@ const TalentDirectory = () => {
             {/* ==================== TAB 1: TALENTS DIRECTORY ==================== */}
             {activeTab === 'talents' && (
               <>
+                {/* Guest Preview Notice Banner */}
+                {!user && (
+                  <div className="guest-preview-notice mb-3">
+                    <div className="d-flex align-items-center gap-2">
+                      <ShieldCheck size={18} className="text-primary flex-shrink-0" />
+                      <span className="small text-dark">
+                        <strong>Mode Pratinjau Publik:</strong> Menampilkan 2 profil kandidat sampel. <Link to="/login" className="text-primary fw-bold text-decoration-none">Masuk ke KampusX</Link> untuk melihat seluruh 1.200+ talenta, kontak langsung, dan verifikasi on-chain.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Search Bar */}
                 <div className="position-relative mb-3">
                   <Search
@@ -563,86 +645,164 @@ const TalentDirectory = () => {
 
                 {/* Talent Cards List */}
                 {processedTalents.length > 0 ? (
-                  processedTalents.map((talent) => (
-                    <div key={talent.id} className="talent-card">
-                      <div className="talent-card-banner" />
-                      <div className="talent-card-body">
-                        {/* Avatar & Match Score */}
-                        <div className="talent-avatar-row">
-                          <div
-                            className="talent-card-avatar"
-                            style={{
-                              backgroundColor: talent.avatarBg,
-                              color: talent.avatarColor
-                            }}
-                          >
-                            {talent.initials}
-                          </div>
-                          <div>
-                            {talent.matchScore !== null && talent.matchScore > 0 ? (
-                              <div className="match-score-pill">
-                                <Sparkles size={12} /> {talent.matchScore}% Match
-                              </div>
-                            ) : (
-                              <span className="badge bg-light text-dark border px-2 py-1" style={{ fontSize: '11px' }}>
-                                {talent.tier} Tier
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Name & Headline */}
-                        <Link to={`/profile/${talent.id}`} className="talent-name-link">
-                          {talent.name}
-                        </Link>
-                        <div className="talent-campus-major">
-                          {talent.campus} • {talent.major}
-                        </div>
-                        <p className="talent-bio-text">{talent.bio}</p>
-
-                        {/* Skills Matrix */}
-                        <div className="talent-skill-pills">
-                          {talent.skills.map((s, idx) => (
-                            <span key={idx} className="talent-skill-badge">
-                              {s.name} <span className="talent-skill-pct">{s.level}%</span>
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Metrics Grid */}
-                        <div className="talent-metrics-grid">
-                          <div>
-                            <div className="talent-metric-val">{talent.modulesCompleted}</div>
-                            <div className="talent-metric-lbl">Modul SRL</div>
-                          </div>
-                          <div>
-                            <div className="talent-metric-val">{talent.eventsAttended}</div>
-                            <div className="talent-metric-lbl">Event Dihadiri</div>
-                          </div>
-                          <div>
-                            <div className="talent-metric-val" style={{ color: '#059669' }}>
-                              {talent.sbtCount} SBT
+                  <>
+                    {(user ? processedTalents : processedTalents.slice(0, 2)).map((talent) => (
+                      <div key={talent.id} className="talent-card">
+                        <div className="talent-card-banner" />
+                        <div className="talent-card-body">
+                          {/* Avatar & Match Score */}
+                          <div className="talent-avatar-row">
+                            <div
+                              className="talent-card-avatar"
+                              style={{
+                                backgroundColor: talent.avatarBg,
+                                color: talent.avatarColor
+                              }}
+                            >
+                              {talent.initials}
                             </div>
-                            <div className="talent-metric-lbl">On-Chain</div>
+                            <div>
+                              {talent.matchScore !== null && talent.matchScore > 0 ? (
+                                <div className="match-score-pill">
+                                  <Sparkles size={12} /> {talent.matchScore}% Match
+                                </div>
+                              ) : (
+                                <span className="badge bg-light text-dark border px-2 py-1" style={{ fontSize: '11px' }}>
+                                  {talent.tier} Tier
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        {/* Actions */}
-                        <div className="talent-card-actions">
-                          <button
-                            type="button"
-                            className="btn-verify-sbt"
-                            onClick={() => handleOpenVerifyModal(talent)}
-                          >
-                            <ShieldCheck size={15} /> Verify SBT On-Chain
-                          </button>
-                          <Link to={`/profile/${talent.id}`} className="btn-view-profile">
-                            Lihat Profil <ArrowRight size={14} />
+                          {/* Name & Headline */}
+                          <Link to={`/profile/${talent.id}`} className="talent-name-link">
+                            {talent.name}
                           </Link>
+                          <div className="talent-campus-major">
+                            {talent.campus} • {talent.major}
+                          </div>
+                          <p className="talent-bio-text">{talent.bio}</p>
+
+                          {/* Skills Matrix */}
+                          <div className="talent-skill-pills">
+                            {talent.skills.map((s, idx) => (
+                              <span key={idx} className="talent-skill-badge">
+                                {s.name} <span className="talent-skill-pct">{s.level}%</span>
+                              </span>
+                            ))}
+                          </div>
+
+                          {/* Metrics Grid */}
+                          <div className="talent-metrics-grid">
+                            <div>
+                              <div className="talent-metric-val">{talent.modulesCompleted}</div>
+                              <div className="talent-metric-lbl">Modul SRL</div>
+                            </div>
+                            <div>
+                              <div className="talent-metric-val">{talent.eventsAttended}</div>
+                              <div className="talent-metric-lbl">Event Dihadiri</div>
+                            </div>
+                            <div>
+                              <div className="talent-metric-val" style={{ color: '#059669' }}>
+                                {talent.sbtCount} SBT
+                              </div>
+                              <div className="talent-metric-lbl">On-Chain</div>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="talent-card-actions">
+                            <button
+                              type="button"
+                              className="btn-verify-sbt"
+                              onClick={() => handleOpenVerifyModal(talent)}
+                            >
+                              <ShieldCheck size={15} /> Verify SBT On-Chain
+                            </button>
+                            <Link to={`/profile/${talent.id}`} className="btn-view-profile">
+                              Lihat Profil <ArrowRight size={14} />
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+
+                    {/* Guest Locked Gateway Card & Blurred Preview (LinkedIn Style) */}
+                    {!user && (
+                      <>
+                        <div className="talent-locked-gateway-card">
+                          <div className="gateway-icon-badge">
+                            <Lock size={26} className="text-primary" />
+                          </div>
+                          <h4 className="fw-bold text-dark mb-2">
+                            Masuk ke KampusX untuk Melihat 1.200+ Profil Talenta Lainnya
+                          </h4>
+                          <p className="text-muted mx-auto mb-4" style={{ maxWidth: '520px', fontSize: '13.5px' }}>
+                            Dapatkan akses penuh ke direktori talenta terverifikasi, verifikasi kredensial Soulbound Token (SBT) Polygon, evaluasi SRL mandiri, dan hubungi kandidat unggulan dari kampus-kampus ternama di Indonesia.
+                          </p>
+                          <div className="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                            <Link to="/login" className="btn btn-primary rounded-pill px-4 py-2 fw-bold">
+                              Masuk dengan Akun KampusX
+                            </Link>
+                            <Link to="/register" className="btn btn-outline-secondary rounded-pill px-4 py-2 fw-bold">
+                              Daftar Sebagai Pengguna Baru
+                            </Link>
+                          </div>
+                          <div className="gateway-benefits-row">
+                            <span>✓ 100% On-Chain Polygon Verified</span>
+                            <span>✓ Asesmen SRL & Skill Matrix Riil</span>
+                            <span>✓ Hubungi Talenta Langsung</span>
+                          </div>
+                        </div>
+
+                        {processedTalents[2] && (
+                          <div className="talent-card-blurred-preview position-relative">
+                            <div className="blurred-content-mask" />
+                            <div
+                              className="talent-card"
+                              style={{
+                                filter: 'blur(5px)',
+                                pointerEvents: 'none',
+                                userSelect: 'none',
+                                opacity: 0.45
+                              }}
+                            >
+                              <div className="talent-card-banner" />
+                              <div className="talent-card-body">
+                                <div className="talent-avatar-row">
+                                  <div
+                                    className="talent-card-avatar"
+                                    style={{
+                                      backgroundColor: processedTalents[2].avatarBg,
+                                      color: processedTalents[2].avatarColor
+                                    }}
+                                  >
+                                    {processedTalents[2].initials}
+                                  </div>
+                                  <span className="badge bg-light text-dark border px-2 py-1" style={{ fontSize: '11px' }}>
+                                    {processedTalents[2].tier} Tier
+                                  </span>
+                                </div>
+                                <h5 className="fw-bold mt-2 mb-1">{processedTalents[2].name}</h5>
+                                <div className="text-muted small">
+                                  {processedTalents[2].campus} • {processedTalents[2].major}
+                                </div>
+                                <p className="small text-muted mt-2">{processedTalents[2].bio}</p>
+                                <div className="talent-card-actions mt-3">
+                                  <button type="button" className="btn-verify-sbt">
+                                    <ShieldCheck size={15} /> Verify SBT On-Chain
+                                  </button>
+                                  <button type="button" className="btn-view-profile">
+                                    Lihat Profil <ArrowRight size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
                 ) : (
                   <div className="clean-card p-5 text-center text-muted">
                     <Users size={32} className="mb-2 text-secondary" />
@@ -656,7 +816,7 @@ const TalentDirectory = () => {
             {/* ==================== TAB 2: SOCIAL ACTIVITY FEED ==================== */}
             {activeTab === 'feed' && (
               <div>
-                {MOCK_SOCIAL_POSTS.map((post) => (
+                {(user ? MOCK_SOCIAL_POSTS : MOCK_SOCIAL_POSTS.slice(0, 1)).map((post) => (
                   <div key={post.id} className="social-post-card">
                     {/* Author Row */}
                     <div className="post-header">
@@ -727,17 +887,51 @@ const TalentDirectory = () => {
                           {post.likesCount + (likedPosts[post.id] ? 1 : 0)} Dukungan
                         </span>
                       </button>
-                      <button type="button" className="post-action-btn">
+                      <button
+                        type="button"
+                        className="post-action-btn"
+                        onClick={() => {
+                          if (!user) promptLoginRequired('Masuk ke akun KampusX Anda untuk memberikan komentar dan berdiskusi di feed.');
+                        }}
+                      >
                         <MessageCircle size={15} />
                         <span>{post.commentsCount} Komentar</span>
                       </button>
-                      <button type="button" className="post-action-btn">
+                      <button
+                        type="button"
+                        className="post-action-btn"
+                        onClick={() => {
+                          if (!user) promptLoginRequired('Masuk ke akun KampusX Anda untuk membagikan postingan.');
+                        }}
+                      >
                         <Share2 size={15} />
                         <span>Bagikan</span>
                       </button>
                     </div>
                   </div>
                 ))}
+
+                {!user && (
+                  <div className="feed-locked-gateway-card">
+                    <div className="gateway-icon-badge mb-3">
+                      <Sparkles size={24} className="text-primary" />
+                    </div>
+                    <h5 className="fw-bold text-dark mb-2">
+                      Ingin Mengikuti Diskursus & Prestasi Mahasiswa Lainnya?
+                    </h5>
+                    <p className="text-muted small mx-auto mb-3" style={{ maxWidth: '480px' }}>
+                      Bergabunglah dengan komunitas KampusX untuk memberikan dukungan, berdiskusi mengenai capaian microlearning, dan berjejaring dengan ribuan talenta muda berbakat.
+                    </p>
+                    <div className="d-flex justify-content-center gap-2">
+                      <Link to="/login" className="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold">
+                        Masuk Sekarang
+                      </Link>
+                      <Link to="/register" className="btn btn-outline-secondary btn-sm rounded-pill px-4 py-2 fw-bold">
+                        Daftar Akun
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -880,6 +1074,44 @@ const TalentDirectory = () => {
               Cek di Polygonscan <ExternalLink size={14} />
             </Button>
           </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* ==================== LOGIN REQUIRED MODAL (LINKEDIN STYLE) ==================== */}
+      <Modal
+        show={showLoginModal}
+        onHide={() => setShowLoginModal(false)}
+        centered
+        contentClassName="border-0 shadow-lg"
+        style={{ borderRadius: '24px' }}
+      >
+        <Modal.Body className="p-4 text-center">
+          <div className="modal-lock-badge mb-3">
+            <Lock size={30} className="text-primary" />
+          </div>
+
+          <h5 className="fw-bold text-dark mb-2">Akses Khusus Pengguna Terdaftar</h5>
+          <p className="text-muted small mb-4">
+            {loginModalMessage ||
+              'Untuk menjaga privasi data akademik mahasiswa serta integritas verifikasi blockchain kredensial Soulbound Token, silakan masuk ke akun KampusX Anda terlebih dahulu.'}
+          </p>
+
+          <div className="d-flex flex-column gap-2 mb-3">
+            <Link to="/login" className="btn btn-primary rounded-pill py-2 fw-bold">
+              Masuk ke Akun Anda
+            </Link>
+            <Link to="/register" className="btn btn-outline-secondary rounded-pill py-2 fw-bold">
+              Daftar Akun Baru (Gratis)
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-link text-muted small text-decoration-none"
+            onClick={() => setShowLoginModal(false)}
+          >
+            Tutup
+          </button>
         </Modal.Body>
       </Modal>
     </div>

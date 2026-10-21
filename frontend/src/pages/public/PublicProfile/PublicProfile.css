@@ -407,3 +407,118 @@
     padding: 9px 12px;
   }
 }
+
+/* ==========================================================================
+   LinkedIn-Style Guest View Restrictions & Floating Bar
+   ========================================================================== */
+
+.public-profile-wrapper.guest-view-active {
+  padding-bottom: 100px;
+}
+
+.profile-guest-callout {
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #f97316;
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.06);
+}
+
+.guest-callout-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background-color: #ffedd5;
+  color: #ea580c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.guest-callout-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.guest-callout-desc {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Locked Card Overlay for SBT */
+.sbt-cert-card.sbt-card-locked {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1 !important;
+  min-height: 290px;
+}
+
+.locked-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+}
+
+.locked-icon-bubble {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background-color: #fef3c7;
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* SRL Locked Gateway Box */
+.srl-locked-gateway-box {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px dashed #cbd5e1;
+}
+
+/* Floating Sticky Guest Bar */
+.profile-floating-guest-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1040;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 12px 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  animation: slideUpFloatingBar 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpFloatingBar {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.floating-guest-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+

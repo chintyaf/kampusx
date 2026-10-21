@@ -1,13 +1,24 @@
 import React from 'react';
 import { Row, Col, Badge } from 'react-bootstrap';
-import { Brain, CheckCircle2, Clock, Sparkles, TrendingUp, Award } from 'lucide-react';
+import { Brain, CheckCircle2, Clock, Sparkles, TrendingUp, Award, Lock, LogIn } from 'lucide-react';
 
-const SkillMatrixView = ({ skills = [], srlModules = [] }) => {
+const SkillMatrixView = ({
+  skills = [],
+  srlModules = [],
+  isGuest = false,
+  promptLoginRequired = () => {}
+}) => {
+  const displayedSkills = isGuest ? skills.slice(0, 4) : skills;
+  const lockedSkillsCount = isGuest ? Math.max(skills.length - 4, 0) : 0;
+
+  const displayedModules = isGuest ? srlModules.slice(0, 1) : srlModules;
+  const lockedModulesCount = isGuest ? Math.max(srlModules.length - 1, 1) : 0;
+
   return (
     <div>
       {/* SECTION 1: VEKTOR MATRIKS KEAHLIAN */}
       <div className="bg-white border rounded-4 p-4 mb-4">
-        <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
           <div>
             <h5 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
               <Brain size={20} className="text-primary" /> Matriks Kompetensi & Kemahiran Keahlian
@@ -22,12 +33,12 @@ const SkillMatrixView = ({ skills = [], srlModules = [] }) => {
         </div>
 
         <Row className="g-3">
-          {skills.map((skill, idx) => (
+          {displayedSkills.map((skill, idx) => (
             <Col md={6} key={idx}>
               <div className="skill-bar-container">
                 <div className="skill-bar-header">
-                  <span className="text-dark">{skill.name}</span>
-                  <span className="text-primary">{skill.level}% Mahir</span>
+                  <span className="text-dark fw-semibold">{skill.name}</span>
+                  <span className="text-primary fw-bold">{skill.level}% Mahir</span>
                 </div>
                 <div className="skill-track">
                   <div className="skill-fill" style={{ width: `${skill.level}%` }} />
@@ -36,11 +47,35 @@ const SkillMatrixView = ({ skills = [], srlModules = [] }) => {
             </Col>
           ))}
         </Row>
+
+        {/* Jika ada skill terkunci untuk guest */}
+        {isGuest && lockedSkillsCount > 0 && (
+          <div className="mt-3 p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <Lock size={15} className="text-secondary" />
+              <span className="small text-muted">
+                +{lockedSkillsCount} Kompetensi keahlian lainnya disembunyikan dalam pratinjau publik.
+              </span>
+            </div>
+            <button
+              type="button"
+              className="btn btn-link btn-sm text-primary fw-bold text-decoration-none p-0"
+              onClick={() =>
+                promptLoginRequired(
+                  'Buka Seluruh Matriks Keahlian',
+                  'Masuk untuk melihat analisis lengkap distribusi keahlian dan skor kemahiran mahasiswa ini.'
+                )
+              }
+            >
+              Buka Semua Keahlian &rarr;
+            </button>
+          </div>
+        )}
       </div>
 
       {/* SECTION 2: RIWAYAT KELULUSAN MODUL MICROLEARNING SRL (CHINTYA'S MODULE INTEGRATION) */}
       <div className="bg-white border rounded-4 p-4">
-        <div className="d-flex align-items-center justify-content-between mb-3">
+        <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
           <div>
             <h5 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
               <Sparkles size={20} className="text-warning" /> Riwayat Microlearning (Self-Regulated Learning)
@@ -50,12 +85,12 @@ const SkillMatrixView = ({ skills = [], srlModules = [] }) => {
             </p>
           </div>
           <span className="badge bg-light text-dark border">
-            {srlModules.length} Modul Lulus
+            {srlModules.length} Modul Terverifikasi
           </span>
         </div>
 
         <div>
-          {srlModules.map((mod) => (
+          {displayedModules.map((mod) => (
             <div key={mod.id} className="srl-module-card">
               <div>
                 <div className="d-flex align-items-center gap-2 mb-1">
@@ -80,6 +115,45 @@ const SkillMatrixView = ({ skills = [], srlModules = [] }) => {
               </div>
             </div>
           ))}
+
+          {/* LinkedIn-style Gated Lock Card untuk Riwayat SRL Tambahan */}
+          {isGuest && (
+            <div className="srl-locked-gateway-box p-4 rounded-4 mt-3 text-center border">
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: '#fef3c7',
+                  color: '#b45309',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 12px'
+                }}
+              >
+                <Lock size={20} />
+              </div>
+              <h6 className="fw-bold text-dark mb-1">
+                Catatan Evaluasi Kognitif SRL Mendalam Terkunci (+{lockedModulesCount} Modul Lainnya)
+              </h6>
+              <p className="text-muted small mx-auto mb-3" style={{ maxWidth: '480px', fontSize: '12.5px' }}>
+                Masuk ke KampusX untuk melihat rincian 3-fase SRL (Forethought Goal Setting, Performance Monitoring, dan Self-Reflection Gen-AI), waktu pengerjaan, dan catatan evaluasi pedagogis lengkap mahasiswa ini.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
+                onClick={() =>
+                  promptLoginRequired(
+                    'Evaluasi Kognitif SRL Penuh',
+                    'Daftar atau masuk ke akun KampusX untuk membuka catatan pengerjaan microlearning, evaluasi kognitif 3-fase, dan log skor refleksi Gen-AI.'
+                  )
+                }
+              >
+                <LogIn size={14} /> Masuk untuk Melihat Evaluasi Kognitif
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

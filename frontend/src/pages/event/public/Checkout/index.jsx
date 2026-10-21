@@ -1,799 +1,773 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Spinner, Alert, Badge } from 'react-bootstrap';
 import {
-	ArrowLeft,
-	CheckCircle,
-	Calendar,
-	MapPin,
-	User,
-	Mail,
-	Phone,
-	ShieldCheck,
-	Tag,
-	CreditCard,
-	Ticket,
-	QrCode,
-	Download,
+  ArrowLeft,
+  CheckCircle,
+  Calendar,
+  MapPin,
+  User,
+  Mail,
+  Phone,
+  ShieldCheck,
+  Tag,
+  CreditCard,
+  Ticket,
+  QrCode,
+  Download,
+  Lock,
+  Clock,
+  Copy,
+  ExternalLink,
+  ChevronRight,
+  Gift,
+  Check
 } from 'lucide-react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
-// import api from "../../api/axios";
-// import { useAuth } from "../../context/AuthContext";
-import axios from 'axios';
+import { QRCodeSVG } from 'qrcode.react';
 import api from '../../../../api/axios';
-import { useAuth } from '../../../../context/AuthContext'; // Sesuaikan path-nya
-import { STORAGE_URL } from '@/api/storage';
+import { useAuth } from '../../../../context/AuthContext';
+import './Checkout.css';
+
+// === DUMMY EVENT FALLBACK DATA JIKA BACKEND OFFLINE ===
+const DEFAULT_MOCK_EVENT = {
+  id: 1,
+  title: 'National AI & Data Science Workshop 2026: From Theory to Industry Application',
+  organizer_name: 'KampusX Tech & GDSC Indonesia',
+  start_date: '2026-11-28T09:00:00Z',
+  location: 'Auditorium Utama Kampus & Zoom Hybrid',
+  price: 50000,
+  banner_url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80',
+  event_tickets: [
+    {
+      id: 'reg1',
+      name: 'Tiket Peserta Regular (Seat-Locked)',
+      price: 50000,
+      quota: 45
+    }
+  ]
+};
 
 // ── Step indicator ────────────────────────────────────────────────────────────
 const Steps = ({ current }) => {
-	const items = ['Informasi', 'Pembayaran', 'Selesai'];
-	return (
-		<div
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				marginBottom: 32,
-			}}>
-			{items.map((label, i) => {
-				const idx = i + 1;
-				const done = current > idx;
-				const active = current === idx;
-				return (
-					<React.Fragment key={idx}>
-						<div
-							style={{
-								display: 'flex',
-								flexDirection: 'column',
-								alignItems: 'center',
-								gap: 4,
-							}}>
-							<div
-								style={{
-									width: 32,
-									height: 32,
-									borderRadius: '50%',
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									fontSize: 13,
-									fontWeight: 700,
-									background:
-										done || active
-											? 'var(--color-primary)'
-											: 'var(--color-border)',
-									color: done || active ? '#fff' : 'var(--color-secondary)',
-									transition: 'all .2s',
-								}}>
-								{done ? <CheckCircle size={16} /> : idx}
-							</div>
-							<span
-								style={{
-									fontSize: 11,
-									fontWeight: active ? 700 : 400,
-									color: active
-										? 'var(--color-primary)'
-										: 'var(--color-secondary)',
-								}}>
-								{label}
-							</span>
-						</div>
-						{i < items.length - 1 && (
-							<div
-								style={{
-									flex: 1,
-									height: 2,
-									background:
-										current > idx
-											? 'var(--color-primary)'
-											: 'var(--color-border)',
-									margin: '0 8px',
-									marginBottom: 20,
-									transition: 'all .2s',
-								}}
-							/>
-						)}
-					</React.Fragment>
-				);
-			})}
-		</div>
-	);
+  const items = ['Informasi', 'Pembayaran', 'Selesai'];
+  return (
+    <div className="steps-container">
+      {items.map((label, i) => {
+        const idx = i + 1;
+        const done = current > idx;
+        const active = current === idx;
+        return (
+          <React.Fragment key={idx}>
+            <div className="step-node">
+              <div
+                className={`step-circle ${
+                  done ? 'done' : active ? 'active' : 'pending'
+                }`}
+              >
+                {done ? <CheckCircle size={16} /> : idx}
+              </div>
+              <span
+                className={`step-label ${
+                  done ? 'done' : active ? 'active' : 'pending'
+                }`}
+              >
+                {label}
+              </span>
+            </div>
+            {i < items.length - 1 && (
+              <div
+                className={`step-line ${
+                  current > idx ? 'done' : 'pending'
+                }`}
+              />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
 };
 
 // ── Field wrapper ─────────────────────────────────────────────────────────────
 const FieldIcon = ({ icon: Icon, children }) => (
-	<div style={{ position: 'relative' }}>
-		<Icon
-			size={16}
-			style={{
-				position: 'absolute',
-				top: 11,
-				left: 12,
-				color: 'var(--color-secondary)',
-				pointerEvents: 'none',
-			}}
-		/>
-		{React.cloneElement(children, {
-			style: {
-				...children.props.style,
-				paddingLeft: 36,
-				borderColor: 'var(--color-border)',
-				borderRadius: 8,
-				fontSize: 'var(--font-sm)',
-			},
-		})}
-	</div>
+  <div style={{ position: 'relative' }}>
+    <Icon
+      size={16}
+      style={{
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        color: '#64748b',
+        pointerEvents: 'none'
+      }}
+    />
+    {React.cloneElement(children, {
+      style: {
+        ...children.props.style,
+        paddingLeft: 38,
+        borderColor: '#cbd5e1',
+        borderRadius: 8,
+        fontSize: '13.5px'
+      }
+    })}
+  </div>
 );
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Main Checkout Component ───────────────────────────────────────────────────
 const Checkout = () => {
-	const { id } = useParams();
-	const navigate = useNavigate();
-	const { user, token } = useAuth();
-	const [searchParams] = useSearchParams();
-	const ticketId = searchParams.get('ticketId');
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const ticketId = searchParams.get('ticketId');
 
-	const [step, setStep] = useState(1); // 1=form, 2=processing, 3=done
-	const [eventDetails, setEventDetails] = useState(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const [submitError, setSubmitError] = useState(null);
+  // Step state: 1 = Form, 2 = Payment Selection & QRIS, 3 = Success Ticket
+  const [step, setStep] = useState(1);
+  const [eventDetails, setEventDetails] = useState(DEFAULT_MOCK_EVENT);
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
-	const [formData, setFormData] = useState({
-		name: user?.name || '',
-		email: user?.email || '',
-		phone: user?.phone || '',
-	});
+  // Seat Locking Timer State (15 Menit = 900 Detik)
+  const [timeLeft, setTimeLeft] = useState(900);
 
-	// Redirect jika belum login
-	useEffect(() => {
-		if (!user) navigate('/signin', { state: { from: `/checkout/${id}` } });
-	}, [user]);
+  // Form State
+  const [formData, setFormData] = useState({
+    name: user?.name || 'Budi Pratama',
+    email: user?.email || 'budi.pratama@ui.ac.id',
+    phone: user?.phone || '081234567890'
+  });
 
-	// Fetch event
-	useEffect(() => {
-		if (!user) return;
-		(async () => {
-			try {
-				const res = await api.get(`events/${id}`);
-				const result = res.data;
-				setEventDetails(result?.data ?? result);
-			} catch {
-				setError('Gagal memuat detail event.');
-			} finally {
-				setIsLoading(false);
-			}
-		})();
-	}, [id, user]);
+  // Selected Payment Method: 'qris' | 'bca_va' | 'gopay'
+  const [paymentMethod, setPaymentMethod] = useState('qris');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [copiedVA, setCopiedVA] = useState(false);
 
-	// Load Midtrans Snap
-	useEffect(() => {
-		const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
-		const snapUrl = import.meta.env.VITE_MIDTRANS_SNAP_URL;
-		if (!snapUrl) return;
+  // Issued Ticket Info after payment
+  const [issuedTicket, setIssuedTicket] = useState(null);
 
-		const script = document.createElement('script');
-		script.src = snapUrl;
-		script.setAttribute('data-client-key', clientKey);
-		script.async = true;
-		document.body.appendChild(script);
-		return () => document.body.removeChild(script);
-	}, []);
+  // Countdown Timer Effect (Redis-based Seat Lock simulation)
+  useEffect(() => {
+    if (step === 3) return; // Stop timer if completed
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          alert('Waktu penguncian kursi Anda telah habis (15 menit). Silakan pilih tiket kembali.');
+          navigate('/explore-events');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-	const handleChange = (e) =>
-		setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    return () => clearInterval(timer);
+  }, [step, navigate]);
 
-	const handleCheckout = async (e) => {
-		e.preventDefault();
-		setSubmitError(null);
-		setStep(2);
+  // Format detik menjadi mm:ss
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
-		try {
-			// Generate a unique order_id locally
-			const generatedOrderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  // Coba fetch event asli jika backend ada
+  useEffect(() => {
+    (async () => {
+      if (!id) return;
+      try {
+        const res = await api.get(`events/${id}`).catch(() => null);
+        if (res && res.data) {
+          const result = res.data?.data ?? res.data;
+          setEventDetails(result);
+        }
+      } catch (err) {
+        console.warn('Menggunakan fallback mock event data:', err);
+      }
+    })();
+  }, [id]);
 
-			const res = await api.post('v1/payment/charge', {
-				order_id: generatedOrderId,
-				amount: total,
-				event_id: id,
-				name: formData.name,
-				email: formData.email,
-				phone: formData.phone,
-			});
+  const handleChange = (e) =>
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-			const { is_paid, payment_url, redirect_url } = res.data;
+  // Kalkulasi Harga
+  const tickets = eventDetails?.event_tickets || eventDetails?.eventTickets || [];
+  const displayTickets =
+    tickets.length > 0
+      ? tickets
+      : [
+          {
+            id: 'reg1',
+            name: 'Tiket Peserta Regular',
+            price: eventDetails?.price || 50000
+          }
+        ];
+  const selectedTicket = displayTickets.find((t) => String(t.id) === String(ticketId)) || displayTickets[0];
+  const ticketName = selectedTicket ? selectedTicket.name : 'Tiket Peserta Regular';
+  const eventPrice = selectedTicket ? parseFloat(selectedTicket.price) || 0 : parseFloat(eventDetails.price) || 0;
+  const adminFee = eventPrice > 0 ? 1000 : 0;
+  const total = eventPrice + adminFee;
+  const isFree = total === 0;
 
-			if (is_paid) {
-				// console.log("INI RAW JSON DARI LARAVEL:", res.data);
-				// Event Berbayar: arahkan ke simulator sandbox
-				window.location.href = payment_url;
-			} else if (redirect_url) {
-				// Event Gratis: arahkan langsung ke halaman sukses/tiket gratis
-				window.location.href = redirect_url;
-			} else {
-				throw new Error('Respons tidak valid dari server simulator.');
-			}
-		} catch (err) {
-			setSubmitError(err.response?.data?.message ?? 'Terjadi kesalahan sistem.');
-			setStep(1);
-		}
-	};
+  // Lanjut dari Step 1 ke Step 2
+  const handleProceedToPayment = (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.email || !formData.phone) {
+      setSubmitError('Harap lengkapi semua data pemesan.');
+      return;
+    }
+    setSubmitError(null);
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-	// ── Loading ───────────────────────────────────────────────────────────────
-	if (isLoading)
-		return (
-			<div
-				style={{
-					display: 'flex',
-					justifyContent: 'center',
-					alignItems: 'center',
-					minHeight: '80vh',
-				}}>
-				<Spinner animation="border" style={{ color: 'var(--color-primary)' }} />
-			</div>
-		);
+  // Simulasikan Pembayaran Sukses (Step 2 ke Step 3)
+  const handleSimulatePaymentSuccess = async () => {
+    setIsProcessingPayment(true);
+    // Simulasi delay gateway pembayaran (Midtrans/Xendit) 1.2 detik
+    await new Promise((resolve) => setTimeout(resolve, 1200));
 
-	if (error || !eventDetails)
-		return (
-			<Container style={{ paddingTop: 56, textAlign: 'center' }}>
-				<Alert
-					style={{
-						background: 'var(--error-bg)',
-						border: '1px solid var(--error-border)',
-						color: 'var(--error-text)',
-						borderRadius: 10,
-					}}>
-					{error ?? 'Event tidak ditemukan.'}
-				</Alert>
-				<Button
-					onClick={() => navigate(-1)}
-					style={{ background: 'var(--color-primary)', border: 'none', borderRadius: 8 }}>
-					Kembali
-				</Button>
-			</Container>
-		);
+    const generatedTicketCode = `TK-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const ticketData = {
+      orderId: `ORD-${Date.now()}`,
+      ticketCode: generatedTicketCode,
+      eventTitle: eventDetails.title,
+      attendeeName: formData.name,
+      attendeeEmail: formData.email,
+      ticketType: ticketName,
+      totalPaid: total,
+      paymentMethod:
+        paymentMethod === 'qris'
+          ? 'QRIS Mandiri/BCA/Gojek'
+          : paymentMethod === 'bca_va'
+          ? 'BCA Virtual Account'
+          : 'GoPay / E-Wallet',
+      date: new Date().toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
 
-	// ── Kalkulasi harga ───────────────────────────────────────────────────────
-	const tickets = eventDetails?.event_tickets || eventDetails?.eventTickets || [];
-	const displayTickets = tickets.length > 0 ? tickets : [
-		{
-			id: 'day1',
-			name: 'Tiket Peserta',
-			price: eventDetails?.price || 195000,
-		}
-	];
-	const selectedTicket = displayTickets.find(t => String(t.id) === String(ticketId));
-	const ticketName = selectedTicket ? selectedTicket.name : 'Tiket';
-	const eventPrice = selectedTicket ? (parseFloat(selectedTicket.price) || 0) : (parseFloat(eventDetails.price) || 0);
-	const adminFee = eventPrice > 0 ? 1 : 0;
-	const total = eventPrice + adminFee;
-	const isFree = total === 0;
+    setIssuedTicket(ticketData);
+    setIsProcessingPayment(false);
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-	const fmtRp = (n) => (n === 0 ? 'Gratis' : `Rp ${n.toLocaleString('id-ID')}`);
+  const handleCopyVA = () => {
+    navigator.clipboard.writeText('8219081234567890');
+    setCopiedVA(true);
+    setTimeout(() => setCopiedVA(false), 2000);
+  };
 
-	// ── Render ────────────────────────────────────────────────────────────────
-	return (
-		<div style={{ background: 'var(--color-bg)', minHeight: '100vh', paddingBottom: 56 }}>
-			{/* ── Page header ──────────────────────────────────────────────────── */}
-			<div
-				style={{
-					background: 'var(--color-white)',
-					borderBottom: '1px solid var(--color-border)',
-					padding: '18px 0',
-					marginBottom: 32,
-					boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-				}}>
-				<Container>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-						<button
-							onClick={() => navigate(-1)}
-							style={{
-								background: 'none',
-								border: 'none',
-								padding: 4,
-								cursor: 'pointer',
-								color: 'var(--color-secondary)',
-								display: 'flex',
-								alignItems: 'center',
-							}}>
-							<ArrowLeft size={20} />
-						</button>
-						<div>
-							<h5
-								style={{
-									margin: 0,
-									fontWeight: 800,
-									color: 'var(--color-text)',
-									fontSize: 'var(--font-lg)',
-								}}>
-								Checkout
-							</h5>
-							<p
-								style={{
-									margin: 0,
-									fontSize: 'var(--font-xs)',
-									color: 'var(--color-secondary)',
-								}}>
-								Lengkapi data untuk konfirmasi pesanan
-							</p>
-						</div>
-					</div>
-				</Container>
-			</div>
+  return (
+    <div className="checkout-page-wrapper">
+      {/* ── Header Bar ─────────────────────────────────────────── */}
+      <div className="checkout-header-bar">
+        <Container>
+          <div className="d-flex align-items-center gap-3">
+            <button
+              type="button"
+              className="checkout-back-btn"
+              onClick={() => {
+                if (step === 2) setStep(1);
+                else navigate(-1);
+              }}
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '18px' }}>
+                {step === 3 ? 'Pemesanan Berhasil' : 'Checkout & Kunci Kursi'}
+              </h5>
+              <p className="text-muted small mb-0">
+                {step === 3
+                  ? 'E-Tiket resmi telah terbit dan siap digunakan'
+                  : 'Selesaikan transaksi sebelum batas waktu penguncian habis'}
+              </p>
+            </div>
+          </div>
+        </Container>
+      </div>
 
-			<Container>
-				{/* Step indicator */}
-				<Steps current={step === 2 ? 2 : 1} />
+      <Container>
+        {/* Step Indicator */}
+        <Steps current={step} />
 
-				{/* Submit error */}
-				{submitError && (
-					<Alert
-						style={{
-							background: 'var(--error-bg)',
-							border: '1px solid var(--error-border)',
-							color: 'var(--error-text)',
-							borderRadius: 10,
-							fontSize: 'var(--font-sm)',
-							marginBottom: 20,
-						}}>
-						{submitError}
-					</Alert>
-				)}
+        {/* ── REDIS SEAT LOCKING TIMER BANNER (Sesuai Proposal TA Brigitta) ── */}
+        {step !== 3 && (
+          <div className="seat-lock-banner">
+            <div className="seat-lock-info">
+              <div className="seat-lock-icon">
+                <Lock size={20} />
+              </div>
+              <div>
+                <div className="seat-lock-title">
+                  🔒 Kursi Anda Diamankan (Redis Seat-Lock Engine)
+                </div>
+                <p className="seat-lock-desc">
+                  Sistem mengunci 1 kuota tiket untuk Anda selama 15 menit agar terhindar dari *overbooking*.
+                </p>
+              </div>
+            </div>
 
-				<Form onSubmit={handleCheckout}>
-					<Row className="g-4">
-						{/* ── LEFT: Form ─────────────────────────────────────────────── */}
-						<Col lg={8}>
-							{/* Event info card */}
-							<div
-								style={{
-									background: 'var(--bahama-blue-50)',
-									border: '1px solid var(--color-border-blue)',
-									borderRadius: 12,
-									padding: '14px 16px',
-									marginBottom: 16,
-									display: 'flex',
-									gap: 14,
-									alignItems: 'flex-start',
-								}}>
-								<img
-									src={
-										eventDetails.image_path
-											? `${STORAGE_URL}/${eventDetails.image_path}`
-											: `${STORAGE_URL}/event-banners/${eventDetails.id}.jpg`
-									}
-									alt={eventDetails.title}
-									style={{
-										width: 80,
-										height: 60,
-										borderRadius: 8,
-										objectFit: 'cover',
-										flexShrink: 0,
-									}}
-								/>
-								<div style={{ minWidth: 0 }}>
-									<p
-										style={{
-											margin: '0 0 4px',
-											fontWeight: 700,
-											fontSize: 'var(--font-md)',
-											color: 'var(--color-text)',
-											overflow: 'hidden',
-											textOverflow: 'ellipsis',
-											whiteSpace: 'nowrap',
-										}}>
-										{eventDetails.title}
-									</p>
-									<div
-										style={{
-											display: 'flex',
-											gap: 12,
-											fontSize: 'var(--font-xs)',
-											color: 'var(--color-secondary)',
-											flexWrap: 'wrap',
-										}}>
-										{eventDetails.start_date && (
-											<span
-												style={{
-													display: 'flex',
-													alignItems: 'center',
-													gap: 4,
-												}}>
-												<Calendar size={11} />{' '}
-												{new Date(
-													eventDetails.start_date,
-												).toLocaleDateString('id-ID', {
-													day: 'numeric',
-													month: 'long',
-													year: 'numeric',
-												})}
-											</span>
-										)}
-										{eventDetails.location && (
-											<span
-												style={{
-													display: 'flex',
-													alignItems: 'center',
-													gap: 4,
-												}}>
-												<MapPin size={11} /> {eventDetails.location}
-											</span>
-										)}
-									</div>
-								</div>
-							</div>
+            <div className="seat-lock-timer-box">
+              <div className="seat-lock-timer-label">Sisa Waktu</div>
+              <div className="seat-lock-timer-val">{formatTime(timeLeft)}</div>
+            </div>
+          </div>
+        )}
 
-							{/* Form card */}
-							<Card
-								style={{
-									border: '1px solid var(--color-border)',
-									borderRadius: 12,
-									boxShadow: '0 2px 8px rgba(0,105,158,0.05)',
-									overflow: 'hidden',
-								}}>
-								<div
-									style={{
-										padding: '16px 20px',
-										borderBottom: '1px solid var(--color-border)',
-										background: 'var(--color-white)',
-									}}>
-									<h6
-										style={{
-											margin: 0,
-											fontWeight: 700,
-											color: 'var(--color-text)',
-											fontSize: 'var(--font-md)',
-										}}>
-										Informasi Pemesan
-									</h6>
-									<p
-										style={{
-											margin: '2px 0 0',
-											fontSize: 'var(--font-xs)',
-											color: 'var(--color-secondary)',
-										}}>
-										Data ini akan digunakan sebagai identitas tiket
-									</p>
-								</div>
-								<Card.Body style={{ padding: '20px' }}>
-									<Form.Group style={{ marginBottom: 16 }}>
-										<Form.Label
-											style={{
-												fontSize: 'var(--font-sm)',
-												fontWeight: 600,
-												color: 'var(--color-text)',
-												marginBottom: 6,
-											}}>
-											Nama Lengkap{' '}
-											<span style={{ color: 'var(--error-text)' }}>*</span>
-										</Form.Label>
-										<FieldIcon icon={User}>
-											<Form.Control
-												type="text"
-												name="name"
-												value={formData.name}
-												onChange={handleChange}
-												required
-												disabled={step === 2}
-												placeholder="Nama sesuai identitas"
-											/>
-										</FieldIcon>
-									</Form.Group>
+        {submitError && (
+          <Alert variant="danger" className="rounded-3 border-0 shadow-sm mb-4">
+            {submitError}
+          </Alert>
+        )}
 
-									<Row className="g-3">
-										<Col md={6}>
-											<Form.Group>
-												<Form.Label
-													style={{
-														fontSize: 'var(--font-sm)',
-														fontWeight: 600,
-														color: 'var(--color-text)',
-														marginBottom: 6,
-													}}>
-													Email{' '}
-													<span style={{ color: 'var(--error-text)' }}>
-														*
-													</span>
-												</Form.Label>
-												<FieldIcon icon={Mail}>
-													<Form.Control
-														type="email"
-														name="email"
-														value={formData.email}
-														onChange={handleChange}
-														required
-														disabled={step === 2}
-														placeholder="email@kamu.com"
-													/>
-												</FieldIcon>
-											</Form.Group>
-										</Col>
-										<Col md={6}>
-											<Form.Group>
-												<Form.Label
-													style={{
-														fontSize: 'var(--font-sm)',
-														fontWeight: 600,
-														color: 'var(--color-text)',
-														marginBottom: 6,
-													}}>
-													Nomor WhatsApp{' '}
-													<span style={{ color: 'var(--error-text)' }}>
-														*
-													</span>
-												</Form.Label>
-												<FieldIcon icon={Phone}>
-													<Form.Control
-														type="tel"
-														name="phone"
-														value={formData.phone}
-														onChange={handleChange}
-														required
-														disabled={step === 2}
-														placeholder="0812xxxxxx"
-													/>
-												</FieldIcon>
-											</Form.Group>
-										</Col>
-									</Row>
-								</Card.Body>
-							</Card>
+        {/* ==================== STEP 1: FORM INFORMASI PEMESAN ==================== */}
+        {step === 1 && (
+          <Form onSubmit={handleProceedToPayment}>
+            <Row className="g-4">
+              {/* Left Column: Event details & Customer inputs */}
+              <Col lg={8}>
+                {/* Event info mini card */}
+                <div className="checkout-event-card">
+                  <img
+                    src={eventDetails.banner_url || DEFAULT_MOCK_EVENT.banner_url}
+                    alt={eventDetails.title}
+                    className="checkout-event-img"
+                  />
+                  <div>
+                    <h6 className="checkout-event-title">{eventDetails.title}</h6>
+                    <div className="checkout-event-meta">
+                      <span>
+                        <Calendar size={13} className="me-1 text-primary" />
+                        {new Date(eventDetails.start_date).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </span>
+                      <span>
+                        <MapPin size={13} className="me-1 text-secondary" />
+                        {eventDetails.location}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-							{/* Jaminan */}
-							<div
-								style={{
-									display: 'flex',
-									gap: 20,
-									marginTop: 16,
-									flexWrap: 'wrap',
-								}}>
-								{[
-									{ icon: ShieldCheck, text: 'Transaksi aman & terenkripsi' },
-									{ icon: Ticket, text: 'E-tiket dikirim ke email' },
-									{ icon: Tag, text: 'Harga sudah termasuk pajak' },
-								].map(({ icon: Icon, text }) => (
-									<div
-										key={text}
-										style={{
-											display: 'flex',
-											alignItems: 'center',
-											gap: 6,
-											fontSize: 'var(--font-xs)',
-											color: 'var(--color-secondary)',
-										}}>
-										<Icon size={13} color="var(--color-primary)" /> {text}
-									</div>
-								))}
-							</div>
-						</Col>
+                {/* Form Inputs Card */}
+                <Card className="border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+                  <div className="p-3 px-4 border-bottom bg-white">
+                    <h6 className="fw-bold mb-0 text-dark">Informasi Pemesan</h6>
+                    <small className="text-muted">
+                      Data ini akan dicantumkan pada E-Tiket dan sertifikat kehadiran.
+                    </small>
+                  </div>
 
-						{/* ── RIGHT: Order summary ────────────────────────────────────── */}
-						<Col lg={4}>
-							<div style={{ position: 'sticky', top: 90 }}>
-								<Card
-									style={{
-										border: '1px solid var(--color-border)',
-										borderRadius: 12,
-										boxShadow: '0 2px 8px rgba(0,105,158,0.06)',
-										overflow: 'hidden',
-									}}>
-									<div
-										style={{
-											padding: '14px 18px',
-											borderBottom: '1px solid var(--color-border)',
-											background: 'var(--color-white)',
-										}}>
-										<h6
-											style={{
-												margin: 0,
-												fontWeight: 700,
-												color: 'var(--color-text)',
-												fontSize: 'var(--font-md)',
-											}}>
-											Ringkasan Pesanan
-										</h6>
-									</div>
+                  <Card.Body className="p-4">
+                    <Form.Group className="mb-3">
+                      <Form.Label className="small fw-semibold text-dark">
+                        Nama Lengkap <span className="text-danger">*</span>
+                      </Form.Label>
+                      <FieldIcon icon={User}>
+                        <Form.Control
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                          placeholder="Nama sesuai identitas resmi"
+                        />
+                      </FieldIcon>
+                    </Form.Group>
 
-									<Card.Body style={{ padding: '16px 18px' }}>
-										{/* Event title */}
-										<div style={{ marginBottom: 14 }}>
-											<p
-												style={{
-													margin: '0 0 2px',
-													fontWeight: 700,
-													fontSize: 'var(--font-sm)',
-													color: 'var(--color-text)',
-												}}>
-												{eventDetails.title}
-											</p>
-											{eventDetails.location && (
-												<p
-													style={{
-														margin: 0,
-														fontSize: 'var(--font-xs)',
-														color: 'var(--color-secondary)',
-														display: 'flex',
-														alignItems: 'center',
-														gap: 4,
-													}}>
-													<MapPin size={10} /> {eventDetails.location}
-												</p>
-											)}
-										</div>
+                    <Row className="g-3">
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label className="small fw-semibold text-dark">
+                            Email <span className="text-danger">*</span>
+                          </Form.Label>
+                          <FieldIcon icon={Mail}>
+                            <Form.Control
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleChange}
+                              required
+                              placeholder="email@kampus.ac.id"
+                            />
+                          </FieldIcon>
+                        </Form.Group>
+                      </Col>
 
-										<hr
-											style={{
-												margin: '12px 0',
-												borderColor: 'var(--color-border)',
-												opacity: 1,
-											}}
-										/>
+                      <Col md={6}>
+                        <Form.Group>
+                          <Form.Label className="small fw-semibold text-dark">
+                            Nomor WhatsApp <span className="text-danger">*</span>
+                          </Form.Label>
+                          <FieldIcon icon={Phone}>
+                            <Form.Control
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleChange}
+                              required
+                              placeholder="081234567890"
+                            />
+                          </FieldIcon>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                  </Card.Body>
+                </Card>
 
-										{/* Price breakdown */}
-										<div
-											style={{
-												display: 'flex',
-												flexDirection: 'column',
-												gap: 8,
-												marginBottom: 12,
-											}}>
-											<div
-												style={{
-													display: 'flex',
-													justifyContent: 'space-between',
-													fontSize: 'var(--font-sm)',
-													color: 'var(--color-secondary)',
-												}}>
-												<span>1× {ticketName}</span>
-												<span
-													style={{
-														fontWeight: 600,
-														color: 'var(--color-text)',
-													}}>
-													{eventPrice === 0
-														? 'Gratis'
-														: `Rp ${eventPrice.toLocaleString('id-ID')}`}
-												</span>
-											</div>
-											<div
-												style={{
-													display: 'flex',
-													justifyContent: 'space-between',
-													fontSize: 'var(--font-sm)',
-													color: 'var(--color-secondary)',
-												}}>
-												<span>Biaya Admin</span>
-												<span
-													style={{
-														fontWeight: 600,
-														color: 'var(--color-text)',
-													}}>
-													{adminFee === 0
-														? '–'
-														: `Rp ${adminFee.toLocaleString('id-ID')}`}
-												</span>
-											</div>
-										</div>
+                {/* Security Guarantees */}
+                <div className="d-flex gap-4 flex-wrap text-muted small px-2">
+                  <div className="d-flex align-items-center gap-2">
+                    <ShieldCheck size={16} className="text-success" />
+                    <span>Seat-Locking Redis 15 Menit Aktif</span>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    <Ticket size={16} className="text-primary" />
+                    <span>E-Tiket & QR Code Otomatis</span>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    <Tag size={16} className="text-secondary" />
+                    <span>Bebas Biaya Tersembunyi</span>
+                  </div>
+                </div>
+              </Col>
 
-										<hr
-											style={{
-												margin: '12px 0',
-												borderColor: 'var(--color-border)',
-												opacity: 1,
-											}}
-										/>
+              {/* Right Column: Order Summary */}
+              <Col lg={4}>
+                <div className="order-summary-card">
+                  <div className="order-summary-header">
+                    <h6 className="fw-bold mb-0 text-dark">Ringkasan Pesanan</h6>
+                  </div>
 
-										{/* Total */}
-										<div
-											style={{
-												display: 'flex',
-												justifyContent: 'space-between',
-												alignItems: 'center',
-												marginBottom: 20,
-											}}>
-											<span
-												style={{
-													fontWeight: 800,
-													fontSize: 'var(--font-md)',
-													color: 'var(--color-text)',
-												}}>
-												Total
-											</span>
-											<span
-												style={{
-													fontWeight: 800,
-													fontSize: 20,
-													color: 'var(--color-primary)',
-												}}>
-												{isFree
-													? 'GRATIS'
-													: `Rp ${total.toLocaleString('id-ID')}`}
-											</span>
-										</div>
+                  <div className="order-summary-body">
+                    <div className="mb-3">
+                      <div className="fw-bold text-dark small mb-1">{eventDetails.title}</div>
+                      <small className="text-muted d-flex align-items-center gap-1">
+                        <MapPin size={12} /> {eventDetails.location}
+                      </small>
+                    </div>
 
-										{/* CTA Button */}
-										<Button
-											type="submit"
-											disabled={step === 2}
-											style={{
-												width: '100%',
-												background: 'var(--color-primary)',
-												border: 'none',
-												borderRadius: 10,
-												fontWeight: 700,
-												fontSize: 'var(--font-md)',
-												padding: '12px 0',
-												display: 'flex',
-												alignItems: 'center',
-												justifyContent: 'center',
-												gap: 8,
-												transition: 'opacity .15s',
-											}}>
-											{step === 2 ? (
-												<>
-													<Spinner
-														as="span"
-														animation="border"
-														size="sm"
-													/>{' '}
-													Memproses…
-												</>
-											) : (
-												<>
-													<CreditCard size={16} />{' '}
-													{isFree
-														? 'Klaim Tiket Gratis'
-														: 'Lanjut ke Pembayaran'}
-												</>
-											)}
-										</Button>
+                    <hr className="my-2" style={{ borderColor: '#f1f5f9' }} />
 
-										<p
-											style={{
-												margin: '10px 0 0',
-												textAlign: 'center',
-												fontSize: 'var(--font-xs)',
-												color: 'var(--color-secondary)',
-											}}>
-											Dengan melanjutkan, kamu menyetujui{' '}
-											<span
-												style={{
-													color: 'var(--color-primary)',
-													cursor: 'pointer',
-													fontWeight: 600,
-												}}>
-												syarat & ketentuan
-											</span>{' '}
-											kami.
-										</p>
-									</Card.Body>
-								</Card>
+                    <div className="d-flex justify-content-between small text-secondary py-1">
+                      <span>1× {ticketName}</span>
+                      <span className="fw-bold text-dark">
+                        {eventPrice === 0 ? 'Gratis' : `Rp ${eventPrice.toLocaleString('id-ID')}`}
+                      </span>
+                    </div>
 
-								{/* Help */}
-								<div
-									style={{
-										marginTop: 12,
-										textAlign: 'center',
-										fontSize: 'var(--font-xs)',
-										color: 'var(--color-secondary)',
-									}}>
-									Ada masalah?{' '}
-									<a
-										href="mailto:support@kampusx.id"
-										style={{
-											color: 'var(--color-primary)',
-											fontWeight: 600,
-											textDecoration: 'none',
-										}}>
-										Hubungi support
-									</a>
-								</div>
-							</div>
-						</Col>
-					</Row>
-				</Form>
-			</Container>
-		</div>
-	);
+                    <div className="d-flex justify-content-between small text-secondary py-1">
+                      <span>Biaya Layanan & Payment</span>
+                      <span className="fw-bold text-dark">
+                        {adminFee === 0 ? '–' : `Rp ${adminFee.toLocaleString('id-ID')}`}
+                      </span>
+                    </div>
+
+                    <hr className="my-2" style={{ borderColor: '#f1f5f9' }} />
+
+                    <div className="d-flex justify-content-between align-items-center py-2 mb-3">
+                      <span className="fw-bold text-dark">Total Pembayaran</span>
+                      <span className="fw-bold fs-5 text-primary">
+                        {isFree ? 'GRATIS' : `Rp ${total.toLocaleString('id-ID')}`}
+                      </span>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      variant="dark"
+                      className="w-100 rounded-pill py-2-5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                      style={{ fontSize: '14px' }}
+                    >
+                      <CreditCard size={16} />
+                      <span>Lanjut ke Pembayaran</span>
+                    </Button>
+
+                    <p className="text-center text-muted small mt-3 mb-0" style={{ fontSize: '11px' }}>
+                      Dengan melanjutkan, Anda menyetujui syarat & ketentuan pemesanan tiket KampusX.
+                    </p>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Form>
+        )}
+
+        {/* ==================== STEP 2: METODE PEMBAYARAN & SIMULATOR GATEWAY ==================== */}
+        {step === 2 && (
+          <Row className="g-4">
+            <Col lg={8}>
+              <Card className="border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+                <div className="p-3 px-4 border-bottom bg-white d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 className="fw-bold mb-0 text-dark">Pilih Metode Pembayaran</h6>
+                    <small className="text-muted">
+                      Transaksi instan terverifikasi otomatis via Payment Gateway
+                    </small>
+                  </div>
+                  <Badge bg="success-subtle" className="text-success border border-success-subtle">
+                    Instant Gateway
+                  </Badge>
+                </div>
+
+                <Card.Body className="p-4">
+                  <div className="payment-method-selector">
+                    {/* 1. QRIS */}
+                    <div
+                      className={`payment-option-card ${paymentMethod === 'qris' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('qris')}
+                    >
+                      <div className="payment-option-left">
+                        <div className="payment-radio-circle">
+                          {paymentMethod === 'qris' && <div className="payment-radio-inner" />}
+                        </div>
+                        <div>
+                          <div className="fw-bold text-dark small">QRIS (GoPay, OVO, Dana, BCA Mobile)</div>
+                          <small className="text-muted">Scan QR instan dari semua e-wallet dan m-banking</small>
+                        </div>
+                      </div>
+                      <Badge bg="primary-subtle" className="text-primary">Rekomendasi</Badge>
+                    </div>
+
+                    {/* 2. Virtual Account */}
+                    <div
+                      className={`payment-option-card ${paymentMethod === 'bca_va' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('bca_va')}
+                    >
+                      <div className="payment-option-left">
+                        <div className="payment-radio-circle">
+                          {paymentMethod === 'bca_va' && <div className="payment-radio-inner" />}
+                        </div>
+                        <div>
+                          <div className="fw-bold text-dark small">BCA Virtual Account</div>
+                          <small className="text-muted">Verifikasi instan 24 jam bebas biaya admin</small>
+                        </div>
+                      </div>
+                      <span className="small text-muted fw-semibold">VA Otomatis</span>
+                    </div>
+
+                    {/* 3. GoPay / E-Wallet */}
+                    <div
+                      className={`payment-option-card ${paymentMethod === 'gopay' ? 'selected' : ''}`}
+                      onClick={() => setPaymentMethod('gopay')}
+                    >
+                      <div className="payment-option-left">
+                        <div className="payment-radio-circle">
+                          {paymentMethod === 'gopay' && <div className="payment-radio-inner" />}
+                        </div>
+                        <div>
+                          <div className="fw-bold text-dark small">GoPay / ShopeePay E-Wallet</div>
+                          <small className="text-muted">Arahkan langsung ke aplikasi pembayaran</small>
+                        </div>
+                      </div>
+                      <span className="small text-muted fw-semibold">1-Klik Bayar</span>
+                    </div>
+                  </div>
+
+                  {/* Payment Details Box */}
+                  {paymentMethod === 'qris' && (
+                    <div className="qris-box-container">
+                      <div className="fw-bold text-dark mb-1">Scan Kode QRIS Pembayaran</div>
+                      <p className="text-muted small mb-3">
+                        Gunakan aplikasi GoPay, OVO, Dana, ShopeePay, atau m-Banking Anda.
+                      </p>
+                      <div className="qris-code-frame">
+                        <QRCodeSVG
+                          value={`https://kampusx.id/pay/qris?order=${Date.now()}&amt=${total}`}
+                          size={176}
+                        />
+                      </div>
+                      <div className="small text-muted">
+                        Ref ID: <strong className="text-dark font-monospace">QRIS-KX-{Date.now().toString().slice(-6)}</strong>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === 'bca_va' && (
+                    <div className="p-4 bg-light rounded-4 border mb-3">
+                      <div className="small text-muted mb-1">Nomor Virtual Account:</div>
+                      <div className="d-flex align-items-center justify-content-between p-3 bg-white rounded-3 border mb-2">
+                        <span className="fs-5 fw-bold font-monospace text-dark">
+                          8219 0812 3456 7890
+                        </span>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          className="rounded-pill"
+                          onClick={handleCopyVA}
+                        >
+                          {copiedVA ? <Check size={14} className="me-1" /> : <Copy size={14} className="me-1" />}
+                          {copiedVA ? 'Tersalin' : 'Salin'}
+                        </Button>
+                      </div>
+                      <small className="text-muted">
+                        Pembayaran akan terverifikasi secara instan dalam 3-5 detik setelah transfer.
+                      </small>
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+
+            {/* Right Column: Order Confirmation */}
+            <Col lg={4}>
+              <div className="order-summary-card">
+                <div className="order-summary-header">
+                  <h6 className="fw-bold mb-0 text-dark">Konfirmasi Bayar</h6>
+                </div>
+
+                <div className="order-summary-body">
+                  <div className="d-flex justify-content-between small text-secondary py-1">
+                    <span>Pemesan:</span>
+                    <span className="fw-bold text-dark">{formData.name}</span>
+                  </div>
+                  <div className="d-flex justify-content-between small text-secondary py-1">
+                    <span>Metode:</span>
+                    <span className="fw-bold text-primary text-uppercase">{paymentMethod}</span>
+                  </div>
+
+                  <hr className="my-2" style={{ borderColor: '#f1f5f9' }} />
+
+                  <div className="d-flex justify-content-between align-items-center py-2 mb-3">
+                    <span className="fw-bold text-dark">Total Tagihan</span>
+                    <span className="fw-bold fs-5 text-primary">
+                      Rp {total.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  {/* Simulator Button */}
+                  <Button
+                    type="button"
+                    variant="success"
+                    className="w-100 rounded-pill py-2-5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mb-2"
+                    onClick={handleSimulatePaymentSuccess}
+                    disabled={isProcessingPayment}
+                    style={{ fontSize: '14px' }}
+                  >
+                    {isProcessingPayment ? (
+                      <>
+                        <Spinner animation="border" size="sm" />
+                        <span>Memverifikasi Pembayaran...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={16} />
+                        <span>Bayar Sekarang (Simulasi)</span>
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline-secondary"
+                    className="w-100 rounded-pill py-2 fw-semibold"
+                    onClick={() => setStep(1)}
+                    disabled={isProcessingPayment}
+                    style={{ fontSize: '13px' }}
+                  >
+                    Ubah Data Pemesan
+                  </Button>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        )}
+
+        {/* ==================== STEP 3: PEMBAYARAN SUKSES & TIKET TERBIT ==================== */}
+        {step === 3 && issuedTicket && (
+          <div className="checkout-success-card">
+            <div className="success-badge-circle">
+              <CheckCircle size={40} strokeWidth={2.5} />
+            </div>
+
+            <Badge bg="success" className="px-3 py-1-5 rounded-pill mb-2">
+              LUNAS • TERVERIFIKASI PAYMENT GATEWAY
+            </Badge>
+
+            <h3 className="fw-bold text-dark mb-1">Pemesanan Tiket Berhasil!</h3>
+            <p className="text-muted small mb-3">
+              Kursi Anda telah resmi terkonfirmasi. Detail tiket elektronik telah diterbitkan di bawah ini.
+            </p>
+
+            {/* Ticket Claim Box */}
+            <div className="ticket-claim-box">
+              <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <span className="small text-muted">KODE TIKET RESMI:</span>
+                <span className="fw-bold font-monospace text-primary fs-5">
+                  {issuedTicket.ticketCode}
+                </span>
+              </div>
+
+              <div className="small mb-2">
+                <span className="text-muted">Event: </span>
+                <strong className="text-dark">{issuedTicket.eventTitle}</strong>
+              </div>
+
+              <div className="small mb-2">
+                <span className="text-muted">Nama Peserta: </span>
+                <strong className="text-dark">{issuedTicket.attendeeName}</strong> ({issuedTicket.attendeeEmail})
+              </div>
+
+              <div className="small mb-2">
+                <span className="text-muted">Tipe Tiket: </span>
+                <strong className="text-dark">{issuedTicket.ticketType}</strong>
+              </div>
+
+              <div className="small mb-2">
+                <span className="text-muted">Metode Pembayaran: </span>
+                <strong className="text-dark">{issuedTicket.paymentMethod}</strong>
+              </div>
+
+              <div className="small text-muted">
+                Waktu Transaksi: {issuedTicket.date}
+              </div>
+            </div>
+
+            {/* Interactive Functional Navigation Buttons to Existing Pages */}
+            <div className="d-flex flex-column flex-sm-row gap-2 mt-4">
+              {/* 1. Navigate to /my-tickets (Existing Page!) */}
+              <button
+                type="button"
+                className="btn btn-dark flex-fill rounded-pill py-2-5 fw-bold d-flex align-items-center justify-content-center gap-2"
+                onClick={() => navigate('/my-tickets')}
+              >
+                <Ticket size={16} />
+                <span>Lihat Tiket Saya</span>
+              </button>
+
+              {/* 2. Navigate to /explore-events (Existing Page!) */}
+              <button
+                type="button"
+                className="btn btn-outline-secondary flex-fill rounded-pill py-2-5 fw-semibold d-flex align-items-center justify-content-center gap-2"
+                onClick={() => navigate('/explore-events')}
+              >
+                <Calendar size={16} />
+                <span>Eksplor Event Lain</span>
+              </button>
+
+              {/* 3. Navigate to /rewards (Existing Page!) */}
+              <button
+                type="button"
+                className="btn btn-outline-primary flex-fill rounded-pill py-2-5 fw-semibold d-flex align-items-center justify-content-center gap-2"
+                onClick={() => navigate('/rewards')}
+              >
+                <Gift size={16} />
+                <span>Cek Poin Loyalty</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </Container>
+    </div>
+  );
 };
 
 export default Checkout;

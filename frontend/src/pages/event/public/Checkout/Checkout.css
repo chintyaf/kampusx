@@ -1,0 +1,382 @@
+/* frontend/src/pages/event/public/Checkout/Checkout.css */
+
+.checkout-page-wrapper {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0f172a;
+  padding-bottom: 60px;
+}
+
+/* Page Header */
+.checkout-header-bar {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 16px 0;
+  margin-bottom: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.checkout-back-btn {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.checkout-back-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Seat Locking Redis Timer Banner */
+.seat-lock-banner {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+}
+
+.seat-lock-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.seat-lock-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background-color: #f59e0b;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.seat-lock-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 2px;
+}
+
+.seat-lock-desc {
+  font-size: 11.5px;
+  color: #b45309;
+  margin-bottom: 0;
+}
+
+.seat-lock-timer-box {
+  background: #ffffff;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 6px 14px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.seat-lock-timer-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #92400e;
+  letter-spacing: 0.05em;
+}
+
+.seat-lock-timer-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #b45309;
+  font-family: monospace;
+  line-height: 1.1;
+}
+
+/* Step Indicator */
+.steps-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.step-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.step-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.step-circle.active {
+  background: #00699e;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 105, 158, 0.25);
+}
+
+.step-circle.done {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.step-circle.pending {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+}
+
+.step-label {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.step-label.active {
+  color: #00699e;
+  font-weight: 700;
+}
+
+.step-label.done {
+  color: #10b981;
+}
+
+.step-label.pending {
+  color: #94a3b8;
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  margin: 0 10px 22px;
+  transition: all 0.2s ease;
+}
+
+.step-line.done {
+  background: #10b981;
+}
+
+.step-line.pending {
+  background: #e2e8f0;
+}
+
+/* Event Thumbnail Header Card */
+.checkout-event-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.checkout-event-img {
+  width: 90px;
+  height: 68px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: #f1f5f9;
+}
+
+.checkout-event-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.checkout-event-meta {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+/* Payment Method Cards */
+.payment-method-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.payment-option-card {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #ffffff;
+}
+
+.payment-option-card:hover {
+  border-color: #cbd5e1;
+  background: #fafbfc;
+}
+
+.payment-option-card.selected {
+  border-color: #00699e;
+  background: #f0f9ff;
+  box-shadow: 0 2px 6px rgba(0, 105, 158, 0.1);
+}
+
+.payment-option-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-radio-circle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payment-option-card.selected .payment-radio-circle {
+  border-color: #00699e;
+}
+
+.payment-radio-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #00699e;
+}
+
+/* QRIS Display Container */
+.qris-box-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  margin-bottom: 20px;
+}
+
+.qris-code-frame {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 16px;
+  border: 2px dashed #00699e;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+/* Order Summary Box */
+.order-summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 105, 158, 0.05);
+  overflow: hidden;
+  position: sticky;
+  top: 90px;
+}
+
+.order-summary-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+
+.order-summary-body {
+  padding: 18px 20px;
+}
+
+/* Success Card */
+.checkout-success-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: 0 4px 25px rgba(15, 23, 42, 0.04);
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.success-badge-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #dcfce7;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
+}
+
+.ticket-claim-box {
+  background: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+/* Responsive Mobile */
+@media (max-width: 640px) {
+  .seat-lock-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .seat-lock-timer-box {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+  }
+  .checkout-event-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .checkout-event-img {
+    width: 100%;
+    height: 120px;
+  }
+}
