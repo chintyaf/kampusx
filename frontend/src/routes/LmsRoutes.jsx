@@ -26,7 +26,8 @@ import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
 import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
 import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
-import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
+// import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
+import LogsPage from '@/pages/lms/organizer/LogsPage';
 
 export const LmsRoutes = () => {
 	return (

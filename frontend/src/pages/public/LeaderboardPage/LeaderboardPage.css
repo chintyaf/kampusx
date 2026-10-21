@@ -1,0 +1,506 @@
+/* frontend/src/pages/public/LeaderboardPage/LeaderboardPage.css */
+
+.leaderboard-page-wrapper {
+  background-color: #f8fafc;
+  min-height: calc(100vh - 70px);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0f172a;
+  padding-bottom: 60px;
+}
+
+/* Page Header */
+.leaderboard-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.leaderboard-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Segmented Filter Pills */
+.timeframe-pill-container {
+  display: inline-flex;
+  background-color: #e2e8f0;
+  padding: 4px;
+  border-radius: 9999px;
+  gap: 4px;
+}
+
+.timeframe-pill-btn {
+  border: none;
+  background: transparent;
+  padding: 7px 18px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.timeframe-pill-btn:hover:not(.active) {
+  color: #0f172a;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.timeframe-pill-btn.active {
+  background-color: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+/* User Card ("Kamu") */
+.user-rank-highlight-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-rank-highlight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, #00699e 0%, #0284c7 100%);
+}
+
+.user-avatar-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid #bae6fd;
+}
+
+.rank-stat-box {
+  text-align: right;
+}
+
+.rank-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.rank-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.rank-stat-value.primary-highlight {
+  color: #00699e;
+}
+
+.progress-track-wrapper {
+  background-color: #f1f5f9;
+  height: 8px;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.progress-fill-bar {
+  background-color: #0f172a;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Top 3 Podium Cards */
+.podium-container {
+  display: grid;
+  grid-template-columns: 1fr 1.06fr 1fr;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 768px) {
+  .podium-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .podium-card.rank-1 {
+    order: 1;
+  }
+
+  .podium-card.rank-2 {
+    order: 2;
+  }
+
+  .podium-card.rank-3 {
+    order: 3;
+  }
+}
+
+.podium-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 24px 18px 20px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.podium-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+/* Rank 1 Featured Card */
+.podium-card.rank-1 {
+  border: 1.5px solid #0f172a;
+  padding: 28px 20px 24px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.podium-rank-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.podium-rank-tag.rank-1-tag {
+  color: #d97706;
+}
+
+.podium-avatar-large {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 22px;
+  position: relative;
+}
+
+.podium-card.rank-1 .podium-avatar-large {
+  width: 86px;
+  height: 86px;
+  font-size: 26px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 3px solid #f59e0b;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
+}
+
+.podium-card.rank-2 .podium-avatar-large {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  color: #334155;
+  border: 3px solid #94a3b8;
+}
+
+.podium-card.rank-3 .podium-avatar-large {
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+  color: #9a3412;
+  border: 3px solid #fb923c;
+}
+
+.podium-user-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.podium-card.rank-1 .podium-user-name {
+  font-size: 18px;
+}
+
+.podium-user-points {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.podium-card.rank-1 .podium-user-points {
+  color: #00699e;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Main Table Container */
+.leaderboard-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  padding: 16px 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #fafbfc;
+}
+
+.leaderboard-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #0f172a;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.leaderboard-row {
+  transition: background-color 0.15s ease;
+}
+
+.leaderboard-row:hover {
+  background-color: #f8fafc;
+}
+
+.leaderboard-row.current-user-row {
+  background-color: #f0f9ff !important;
+  font-weight: 600;
+}
+
+.leaderboard-row.current-user-row td {
+  border-top: 1px solid #bae6fd;
+  border-bottom: 1px solid #bae6fd;
+}
+
+/* User avatar in table */
+.table-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #334155;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Trend Badges */
+.trend-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trend-up {
+  color: #16a34a;
+}
+
+.trend-down {
+  color: #e11d48;
+}
+
+.trend-neutral {
+  color: #94a3b8;
+}
+
+/* Right Sidebar Cards */
+.sidebar-info-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 22px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  margin-bottom: 20px;
+}
+
+.sidebar-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.sidebar-card-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.sidebar-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.sidebar-item-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sidebar-item-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #0f172a;
+}
+
+.sidebar-item-icon-box.primary-tint {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+
+.sidebar-item-icon-box.gold-tint {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.sidebar-item-icon-box.purple-tint {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+
+.sidebar-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.sidebar-item-subtitle {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Tier Tag Pills */
+.tier-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.tier-diamond {
+  background-color: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.tier-platinum {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.tier-gold {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.tier-silver {
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.tier-bronze {
+  background-color: #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 576px) {
+  .leaderboard-title {
+    font-size: 22px;
+  }
+  .leaderboard-subtitle {
+    font-size: 13px;
+  }
+  .timeframe-pill-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+  .timeframe-pill-btn {
+    flex: 1;
+    padding: 6px 6px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .user-rank-highlight-card {
+    padding: 18px 16px;
+  }
+  .rank-stat-value {
+    font-size: 20px;
+  }
+  .rank-stat-label {
+    font-size: 10px;
+  }
+  .user-avatar-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 13px;
+  }
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+}

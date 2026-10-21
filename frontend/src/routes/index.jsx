@@ -26,6 +26,8 @@ import LandingPage from '../pages/public/LandingPage';
 import PublicProfile from '../pages/public/PublicProfile/index.jsx';
 import NearestEventTest from '../pages/public/NearestEventTest';
 import AttendVenuePage from '../pages/public/AttendVenuePage';
+import LeaderboardPage from '../pages/public/LeaderboardPage/index.jsx';
+import TalentDirectory from '../pages/public/TalentDirectory/index.jsx';
 
 // Pages: Member
 import MemberDashboard from '@/pages/member/MemberDashboard';
@@ -101,6 +103,8 @@ const AppRoutes = () => {
 					{/* Test & Public Profile Pages */}
 
 					<Route path="/profile/:id" element={<PublicProfile />} />
+					<Route path="/leaderboard" element={<LeaderboardPage />} />
+					<Route path="/talents" element={<TalentDirectory />} />
 
 					<Route path="/attend-venue" element={<AttendVenuePage />} />
 					<Route path="/a/:code" element={<AttendVenuePage />} />

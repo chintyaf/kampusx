@@ -23,6 +23,8 @@ import {
 	LogOut,
 	Gift,
 	GraduationCap,
+	Trophy,
+	Users,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import NotificationDropdown from '../../components/NotificationDropdown';
@@ -125,6 +127,12 @@ const NavbarPublic = () => {
 					</NavLink>
 					<NavLink to="/explore-microlearning" style={linkStyle}>
 						Eksplor Kelas
+					</NavLink>
+					<NavLink to="/leaderboard" style={linkStyle}>
+						Leaderboard
+					</NavLink>
+					<NavLink to="/talents" style={linkStyle}>
+						Talent
 					</NavLink>
 					{user && (
 						<>
@@ -253,6 +261,22 @@ const NavbarPublic = () => {
 							>
 								<Compass size={18} />
 								<span>Eksplor Event</span>
+							</NavLink>
+							<NavLink
+								to="/leaderboard"
+								style={mobileLinkStyle}
+								onClick={handleClose}
+							>
+								<Trophy size={18} />
+								<span>Leaderboard</span>
+							</NavLink>
+							<NavLink
+								to="/talents"
+								style={mobileLinkStyle}
+								onClick={handleClose}
+							>
+								<Users size={18} />
+								<span>Direktori Talent</span>
 							</NavLink>
 							{user && (
 								<>

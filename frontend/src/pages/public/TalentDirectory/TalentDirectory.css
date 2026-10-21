@@ -1,0 +1,647 @@
+/* frontend/src/pages/public/TalentDirectory/TalentDirectory.css */
+
+.talent-page-wrapper {
+  background-color: #f8fafc;
+  min-height: calc(100vh - 70px);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0f172a;
+  padding-bottom: 60px;
+}
+
+/* Page Header & Banner */
+.talent-header-banner {
+  background: linear-gradient(135deg, #00699e 0%, #034b73 100%);
+  border-radius: 20px;
+  padding: 32px 36px;
+  color: #ffffff;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 105, 158, 0.15);
+}
+
+.talent-header-banner::after {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.talent-banner-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.talent-banner-subtitle {
+  font-size: 14px;
+  color: #e0f2fe;
+  max-width: 680px;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+/* 3-Column LinkedIn Style Layout */
+.linkedin-container {
+  display: grid;
+  grid-template-columns: 280px 1fr 310px;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 1200px) {
+  .linkedin-container {
+    grid-template-columns: 260px 1fr;
+  }
+  .linkedin-right-col {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .linkedin-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* White Card Base */
+.clean-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+/* User Left Mini-Profile Card (LinkedIn style) */
+.user-mini-profile-banner {
+  height: 64px;
+  background: linear-gradient(90deg, #0284c7 0%, #00699e 100%);
+}
+
+.user-mini-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  background-color: #0f172a;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -32px auto 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 2;
+}
+
+.user-mini-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+.user-mini-headline {
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+  padding: 0 16px;
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+.user-mini-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  font-size: 12px;
+  border-top: 1px solid #f1f5f9;
+  color: #64748b;
+}
+
+.user-mini-stats-val {
+  font-weight: 700;
+  color: #00699e;
+}
+
+/* Filters in Left Column */
+.filter-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 16px 18px 10px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.filter-pill-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 18px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.filter-pill-item:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.filter-pill-item.active {
+  background-color: #f0f9ff;
+  color: #00699e;
+  font-weight: 700;
+  border-left: 3px solid #00699e;
+}
+
+/* Center Feed Tabs: "Direktori Talent" vs "Feed Prestasi" */
+.feed-tab-bar {
+  display: flex;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 6px;
+  margin-bottom: 20px;
+}
+
+.feed-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feed-tab-btn:hover:not(.active) {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.feed-tab-btn.active {
+  background-color: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+
+/* Skill Match Simulator Box */
+.match-simulator-box {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.match-simulator-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.match-skill-tag-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin: 3px;
+}
+
+.match-skill-tag-btn:hover {
+  border-color: #00699e;
+  color: #00699e;
+}
+
+.match-skill-tag-btn.selected {
+  background-color: #00699e;
+  color: #ffffff;
+  border-color: #00699e;
+  box-shadow: 0 2px 6px rgba(0, 105, 158, 0.2);
+}
+
+/* Talent Card (LinkedIn Style) */
+.talent-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.talent-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.talent-card-banner {
+  height: 64px;
+  background: linear-gradient(90deg, #e0f2fe 0%, #cbd5e1 100%);
+  position: relative;
+}
+
+.talent-card-body {
+  padding: 0 22px 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.talent-avatar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: -34px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 3;
+}
+
+.talent-card-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 3.5px solid #ffffff;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 800;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 4;
+}
+
+.match-score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.talent-name-link {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.talent-name-link:hover {
+  color: #00699e;
+}
+
+.talent-campus-major {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.talent-bio-text {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+/* Skill Tags with Proficiency */
+.talent-skill-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.talent-skill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.talent-skill-pct {
+  color: #00699e;
+  font-weight: 700;
+}
+
+/* Card Metrics Grid */
+.talent-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.talent-metric-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.talent-metric-lbl {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.talent-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 14px;
+}
+
+.btn-verify-sbt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+}
+
+.btn-verify-sbt:hover {
+  background-color: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+.btn-view-profile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #0f172a;
+  color: #ffffff;
+  border: 1px solid #0f172a;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  flex: 1;
+}
+
+.btn-view-profile:hover {
+  background-color: #00699e;
+  border-color: #00699e;
+  color: #ffffff;
+}
+
+/* Social Feed Post Card */
+.social-post-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.post-author-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.post-author-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.post-author-meta {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.post-content-text {
+  font-size: 13.5px;
+  color: #1e293b;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+/* Post Certificate Highlight Attachment */
+.post-cert-attachment {
+  background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.post-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+}
+
+.post-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.post-action-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.post-action-btn.liked {
+  color: #00699e;
+}
+
+/* Zero-Trust Modal */
+.modal-trust-badge {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-color: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.2);
+}
+
+.chain-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12.5px;
+}
+
+.chain-info-row:last-child {
+  border-bottom: none;
+}
+
+.chain-info-label {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.chain-info-val {
+  color: #0f172a;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .talent-header-banner {
+    padding: 22px 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+  .talent-banner-title {
+    font-size: 20px;
+  }
+  .talent-banner-subtitle {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 576px) {
+  .feed-tab-btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .talent-card-body {
+    padding: 0 16px 16px;
+  }
+  .talent-card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .btn-verify-sbt,
+  .btn-view-profile {
+    width: 100%;
+    padding: 9px 12px;
+  }
+  .talent-metrics-grid {
+    padding: 8px 10px;
+  }
+  .talent-metric-val {
+    font-size: 13px;
+  }
+  .talent-metric-lbl {
+    font-size: 9.5px;
+  }
+  .post-cert-attachment {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .post-cert-attachment button {
+    width: 100%;
+  }
+  .post-actions-bar {
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .post-action-btn {
+    font-size: 11px;
+    padding: 4px 6px;
+  }
+}

@@ -54,7 +54,8 @@ import {
 } from 'lucide-react';
 
 // Import Custom Styles for Clean, Refactored Layout
-import '@/styles/lessonViewer.css';
+// import '@/styles/lessonViewer.css';
+import '@/pages/lms/lessonViewer.css';
 
 // Import Micro-Quiz mock data and persistence helpers
 import {

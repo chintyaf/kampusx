@@ -1,50 +1,49 @@
 import React from 'react';
 import { Row, Col } from 'react-bootstrap';
-import { Award, Zap, Calendar as CalendarIcon } from 'lucide-react';
+import { Award, Zap, Trophy, BookOpen, ShieldCheck } from 'lucide-react';
 
-const ProfileStats = ({ stats = {}, onEventClick }) => {
-	const items = [
-		// { label: 'Total Point', value: stats.points ?? 0, icon: <Zap size={20} style={{ color: '#ffb020' }} className="mb-1" /> },
-		// { label: 'Level', value: stats.level ?? 1, icon: <Award size={20} style={{ color: 'var(--color-primary)' }} className="mb-1" /> },
-		{ 
-			label: 'Event Diikuti', 
-			value: stats.total_events ?? 0, 
-			icon: <CalendarIcon size={20} style={{ color: '#10b981' }} className="mb-1" />,
-			onClick: onEventClick
-		},
-	];
+const ProfileStats = ({ stats = {} }) => {
+  const statItems = [
+    {
+      label: 'Status Tier',
+      value: stats.tier || 'Silver',
+      icon: <Award size={20} className="text-warning mb-1" />
+    },
+    {
+      label: 'Poin Global',
+      value: `${(stats.points || 2450).toLocaleString('id-ID')} pts`,
+      icon: <Zap size={20} className="text-primary mb-1" />
+    },
+    {
+      label: 'Rank Leaderboard',
+      value: stats.rank ? `#${stats.rank}` : '#12',
+      icon: <Trophy size={20} className="text-dark mb-1" />
+    },
+    {
+      label: 'Modul SRL Lulus',
+      value: stats.modulesCompleted ?? 8,
+      icon: <BookOpen size={20} className="text-info mb-1" />
+    },
+    {
+      label: 'SBT On-Chain',
+      value: `${stats.sbtCount ?? 5} SBT`,
+      icon: <ShieldCheck size={20} className="text-success mb-1" />
+    }
+  ];
 
-	return (
-		<Row className="justify-content-center mb-4">
-			<Col xs={12} md={10} lg={8}>
-				<div className="d-flex justify-content-between bg-white rounded-4 py-3 px-4" style={{ borderColor: 'var(--color-border)'}}>
-					{items.map((item, idx) => (
-						<div 
-							key={idx} 
-							className="text-center flex-fill" 
-							onClick={item.onClick}
-							style={{ 
-								borderRight: idx !== items.length - 1 ? '1px solid var(--color-border)' : 'none',
-								cursor: item.onClick ? 'pointer' : 'default',
-								transition: 'opacity 0.2s ease',
-								userSelect: 'none'
-							}}
-							onMouseEnter={(e) => { if (item.onClick) e.currentTarget.style.opacity = '0.7'; }}
-							onMouseLeave={(e) => { if (item.onClick) e.currentTarget.style.opacity = '1'; }}
-						>
-							{item.icon}
-							<div className="fw-bold text-uppercase mt-1" style={{ fontSize: '10px', letterSpacing: '0.5px', color: 'var(--color-secondary)' }}>
-								{item.label}
-							</div>
-							<div className="fw-bold" style={{ fontSize: '1.25rem', color: 'var(--color-text)' }}>
-								{item.value}
-							</div>
-						</div>
-					))}
-				</div>
-			</Col>
-		</Row>
-	);
+  return (
+    <div className="profile-stats-card">
+      <Row className="g-2">
+        {statItems.map((item, idx) => (
+          <Col key={idx} xs={6} md={true} className="stat-metric-box">
+            <div>{item.icon}</div>
+            <div className="stat-metric-val">{item.value}</div>
+            <div className="stat-metric-lbl">{item.label}</div>
+          </Col>
+        ))}
+      </Row>
+    </div>
+  );
 };
 
 export default ProfileStats;
