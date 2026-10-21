@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import { CheckCircle2, ExternalLink, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, ExternalLink, ShieldCheck, FileText } from 'lucide-react';
 
-const ZeroTrustModal = ({ show, onHide, sbtData, studentName }) => {
+const ZeroTrustModal = ({ show, onHide, sbtData, studentName, onOpenFileModal }) => {
   if (!sbtData) return null;
 
   return (
@@ -64,23 +64,39 @@ const ZeroTrustModal = ({ show, onHide, sbtData, studentName }) => {
           </div>
         </div>
 
-        <div className="d-flex gap-2">
-          <Button
-            variant="outline-secondary"
-            className="w-100 rounded-pill py-2"
-            onClick={onHide}
-          >
-            Tutup
-          </Button>
-          <Button
-            variant="dark"
-            className="w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2"
-            onClick={() => {
-              window.open('https://polygonscan.com', '_blank');
-            }}
-          >
-            Cek di Polygonscan <ExternalLink size={14} />
-          </Button>
+        {/* Action Buttons */}
+        <div className="d-flex flex-column gap-2">
+          {onOpenFileModal && (
+            <Button
+              variant="outline-primary"
+              className="w-100 rounded-pill py-2 fw-semibold d-flex align-items-center justify-content-center gap-2"
+              onClick={() => {
+                onHide();
+                onOpenFileModal(sbtData);
+              }}
+            >
+              <FileText size={16} /> Lihat Dokumen File E-Sertifikat
+            </Button>
+          )}
+
+          <div className="d-flex gap-2">
+            <Button
+              variant="outline-secondary"
+              className="w-100 rounded-pill py-2"
+              onClick={onHide}
+            >
+              Tutup
+            </Button>
+            <Button
+              variant="dark"
+              className="w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2"
+              onClick={() => {
+                window.open('https://polygonscan.com', '_blank');
+              }}
+            >
+              Polygonscan <ExternalLink size={14} />
+            </Button>
+          </div>
         </div>
       </Modal.Body>
     </Modal>

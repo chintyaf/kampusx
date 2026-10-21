@@ -23,6 +23,7 @@ import SkillMatrixView from './SkillMatrixView';
 import ActivityFeedView from './ActivityFeedView';
 import EventHistoryView from './EventHistoryView';
 import ZeroTrustModal from './ZeroTrustModal';
+import CertificateFileModal from './CertificateFileModal';
 import './PublicProfile.css';
 
 // === DUMMY CANDIDATE PROFILES DATABASE (Mencakup Top Leaderboard & Talenta) ===
@@ -54,6 +55,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-1',
         tokenId: '#SBT-2026-0041',
+        ticketCode: 'CERT-2026-0041',
         title: 'Advanced AI & Deep Learning Specialist',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -63,6 +65,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-2',
         tokenId: '#SBT-2026-0035',
+        ticketCode: 'CERT-2026-0035',
         title: 'Python for Data Science Masterclass',
         issuer: 'Google Developer Student Clubs & KampusX',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -72,6 +75,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-3',
         tokenId: '#SBT-2026-0019',
+        ticketCode: 'CERT-2026-0019',
         title: 'Self-Regulated Learning (SRL) Cognition Award',
         issuer: 'KampusX Pedagogy Center',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -139,6 +143,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-2-1',
         tokenId: '#SBT-2026-0082',
+        ticketCode: 'CERT-2026-0082',
         title: 'Fullstack Microservices & Cloud Engineering',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -148,6 +153,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-2-2',
         tokenId: '#SBT-2026-0061',
+        ticketCode: 'CERT-2026-0061',
         title: 'Advanced Asynchronous Javascript Patterns',
         issuer: 'Tech Leaders League & KampusX',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -200,6 +206,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-3-1',
         tokenId: '#SBT-2026-0112',
+        ticketCode: 'CERT-2026-0112',
         title: 'Mastering Design Systems & Accessibility WCAG 2.2',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -250,6 +257,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-4-1',
         tokenId: '#SBT-2026-0095',
+        ticketCode: 'CERT-2026-0095',
         title: 'Smart Contract Security & EVM Vulnerabilities',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -300,6 +308,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-5-1',
         tokenId: '#SBT-2026-0130',
+        ticketCode: 'CERT-2026-0130',
         title: 'High-Concurrency Backend Systems with Go',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -350,6 +359,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-cu-1',
         tokenId: '#SBT-2026-0291',
+        ticketCode: 'CERT-2026-0291',
         title: 'Modern Frontend Architecture with React',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -359,6 +369,7 @@ const MOCK_PROFILES_DATABASE = {
       {
         id: 'sbt-cu-2',
         tokenId: '#SBT-2026-0240',
+        ticketCode: 'CERT-2026-0240',
         title: 'Smart Contract & Token Fundamentals',
         issuer: 'Polygon Developer League & KampusX',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -451,6 +462,7 @@ const getDynamicMockProfile = (id) => {
       {
         id: `sbt-${id}-1`,
         tokenId: `#SBT-2026-0${id}9`,
+        ticketCode: `CERT-2026-0${id}9`,
         title: 'Certified Competence & Practical Technology Mastery',
         issuer: 'KampusX Verified Credentials',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -460,6 +472,7 @@ const getDynamicMockProfile = (id) => {
       {
         id: `sbt-${id}-2`,
         tokenId: `#SBT-2026-0${id}2`,
+        ticketCode: `CERT-2026-0${id}2`,
         title: 'Self-Regulated Learning (SRL) Core Achievement',
         issuer: 'KampusX Pedagogy Center',
         contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
@@ -505,6 +518,10 @@ const UserProfile = () => {
   // Modal verification state
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [selectedSbt, setSelectedSbt] = useState(null);
+
+  // Modal file certificate state
+  const [showCertificateFileModal, setShowCertificateFileModal] = useState(false);
+  const [selectedCertForFile, setSelectedCertForFile] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -552,6 +569,22 @@ const UserProfile = () => {
       setSelectedSbt(profileData.sbtCertificates[0]);
     }
     setShowVerifyModal(true);
+  };
+
+  const handleOpenFileModal = (cert) => {
+    if (isGuest && cert && cert.id !== 'sbt-1' && cert.id !== 'sbt-2-1' && cert.id !== 'sbt-3-1' && cert.id !== 'sbt-4-1' && cert.id !== 'sbt-5-1' && cert.id !== 'sbt-cu-1') {
+      promptLoginRequired(
+        'Buka Dokumen Sertifikat Lengkap',
+        'Masuk ke akun KampusX untuk membuka dan mengunduh seluruh file dokumen e-sertifikat mahasiswa ini.'
+      );
+      return;
+    }
+    if (cert) {
+      setSelectedCertForFile(cert);
+    } else if (profileData && profileData.sbtCertificates && profileData.sbtCertificates.length > 0) {
+      setSelectedCertForFile(profileData.sbtCertificates[0]);
+    }
+    setShowCertificateFileModal(true);
   };
 
   const promptLoginRequired = (title, description) => {
@@ -661,6 +694,8 @@ const UserProfile = () => {
           <SbtCertificatesView
             sbtCertificates={sbtCertificates}
             onVerifySbt={handleOpenVerifyModal}
+            onOpenFileModal={handleOpenFileModal}
+            studentName={name}
             isGuest={isGuest}
             promptLoginRequired={promptLoginRequired}
           />
@@ -699,6 +734,16 @@ const UserProfile = () => {
           onHide={() => setShowVerifyModal(false)}
           sbtData={selectedSbt}
           studentName={name}
+          onOpenFileModal={handleOpenFileModal}
+        />
+
+        {/* ==================== 5.5 DOKUMEN FILE E-SERTIFIKAT MODAL ==================== */}
+        <CertificateFileModal
+          show={showCertificateFileModal}
+          onHide={() => setShowCertificateFileModal(false)}
+          certData={selectedCertForFile}
+          studentName={name}
+          onVerifyOnChain={handleOpenVerifyModal}
         />
 
         {/* ==================== 6. LOGIN REQUIRED INTERACTIVE MODAL ==================== */}
