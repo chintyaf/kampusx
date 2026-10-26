@@ -37,10 +37,7 @@ const DashboardLayout = () => {
 		sidebarType = 'organizer';
 	}
 	// Kondisi kapan sidebar benar-benar dirender
-	const showSidebar =
-		pathname !== '/' &&
-		!pathname.includes('buat-acara') &&
-		!pathname.includes('organizer/dashboard');
+	const showSidebar = pathname !== '/' && !pathname.includes('buat-acara');
 
 	return (
 		<div

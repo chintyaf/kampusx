@@ -10,8 +10,8 @@ const NAV_SECTIONS = [
     label: 'Organizer',
     badge: 'Dashboard',
     items: [
-      { id: 'editor',    label: 'Editor Template',       Icon: Layout,     desc: 'Desain sertifikat' },
-      { id: 'distribusi', label: 'Manajemen Distribusi', Icon: Settings,   desc: 'Atur & rilis' },
+      { id: 'editor', label: 'Editor Template', Icon: Layout, desc: 'Desain sertifikat' },
+      { id: 'distribusi', label: 'Manajemen Distribusi', Icon: Settings, desc: 'Atur & rilis' },
     ],
   },
   {

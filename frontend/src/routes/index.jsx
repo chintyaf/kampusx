@@ -163,6 +163,7 @@ const AppRoutes = () => {
 				<Route path="/staff/attendees" element={<StaffAttendees />} />
 				<Route path="/staff/kiosk" element={<KioskModePage isStaff={true} />} />
 
+
 				{/* 8. Microlearning */}
 				<Route path="/*" element={<LmsRoutes />} />
 

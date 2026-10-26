@@ -56,10 +56,29 @@ const Sidebar = ({ type, isSidebarCollapsed, setIsSidebarCollapsed }) => {
 	const currentMenu = useMemo(() => {
 		return baseMenu
 			.filter((item) => !(eventStatus === 'draft' && item.hideWhenDraft))
-			.map((item) => ({
-				...item,
-				path: item.path ? item.path.replace(/:eventId|:slug/g, currentEventId) : item.path,
-			}));
+			.map((item) => {
+				let path = item.path
+					? item.path.replace(/:eventId|:slug/g, currentEventId)
+					: item.path;
+
+				// ✅ Pastikan path utama selalu diawali dengan '/'
+				if (path && !path.startsWith('/')) {
+					path = `/${path}`;
+				}
+
+				return {
+					...item,
+					path,
+					// ✅ Pastikan path pada submenu (jika ada) juga aman
+					submenu: item.submenu?.map((sub) => ({
+						...sub,
+						path:
+							sub.path && !sub.path.startsWith('/') && !sub.path.startsWith('http')
+								? `/${sub.path}`
+								: sub.path,
+					})),
+				};
+			});
 	}, [baseMenu, currentEventId, eventStatus]);
 
 	const handleToggle = (id) => {

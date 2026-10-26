@@ -205,14 +205,14 @@ const ExploreMicrolearningPage = () => {
 		if (aiRecommendedOnly) {
 			chips.push({
 				key: 'ai-rec',
-				label: '✨ Rekomendasi AI',
+				label: 'Rekomendasi AI',
 				onRemove: () => setAiRecommendedOnly(false),
 			});
 		}
 		if (weeklyGoalOnly) {
 			chips.push({
 				key: 'weekly-goal',
-				label: '🎯 Target Mingguan',
+				label: 'Target Mingguan',
 				onRemove: () => setWeeklyGoalOnly(false),
 			});
 		}
