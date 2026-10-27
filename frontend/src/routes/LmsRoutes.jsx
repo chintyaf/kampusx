@@ -75,6 +75,10 @@ export const LmsRoutes = () => {
 				</Route>
 			</Route>
 
+			<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
+			{/* Direct Lesson Shortcut */}
+			<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
+
 			{/* 5. DASHBOARD LAYOUT GROUP (Admin & Organizer) */}
 			<Route element={<OrgLearningLayout />}>
 				<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
@@ -87,9 +91,14 @@ export const LmsRoutes = () => {
 							path="learning-path/:learningId"
 							element={<ManageLearningPathPage />}
 						/>
-						<Route path="learning-path/:learningId/edit-module/:moduleId" element={<EditModulePage />} />
-						<Route path="learning-path/:learningId/edit-module/:moduleId/:lessonId" element={<EditLessonPage />} />
-
+						<Route
+							path="learning-path/:learningId/edit-module/:moduleId"
+							element={<EditModulePage />}
+						/>
+						<Route
+							path="learning-path/:learningId/edit-module/:moduleId/:lessonId"
+							element={<EditLessonPage />}
+						/>
 
 						<Route path="learning-paths" element={<LearningPathsPage />} />
 
@@ -105,10 +114,6 @@ export const LmsRoutes = () => {
 					</Route>
 				</Route>
 			</Route>
-
-			<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
-			{/* Direct Lesson Shortcut */}
-			<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
 		</Routes>
 	);
 };

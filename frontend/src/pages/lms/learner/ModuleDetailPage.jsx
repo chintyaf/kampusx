@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 
 // Import Data Mock & Komponen
-import { getModuleData } from '@/pages/lms/learner/modules/detail/mockData';
-import ModuleHeader from '@/pages/lms/learner/modules/detail/ModuleHeader';
-import ModuleLesson from '@/pages/lms/learner/modules/detail/ModuleLesson';
-import ModuleSRL from '@/pages/lms/learner/modules/detail/ModuleSRL';
+import { getModuleData } from '@/pages/lms/mock-data/mockData';
+import ModuleHeader from '@/pages/lms/learner/modules/detail-module/ModuleHeader';
+import ModuleLesson from '@/pages/lms/learner/modules/detail-module/ModuleLesson';
+import ModuleSRL from '@/pages/lms/learner/modules/detail-module/ModuleSRL';
 
 /**
  * ModuleDetailPage

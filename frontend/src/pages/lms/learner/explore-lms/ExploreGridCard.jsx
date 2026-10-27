@@ -43,21 +43,42 @@ const ExploreGridCard = ({ item, isBookmarked, onToggleBookmark, onNavigate }) =
 				{/* Content type badge */}
 				<div className="position-absolute top-0 start-0 p-2">
 					{isLearningPath && (
-						<span className="badge bg-white text-primary border shadow-sm d-inline-flex align-items-center gap-1 py-1 px-2 fw-semibold">
+						<span
+							className="btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 text-nowrap flex-shrink-0 transition-all"
+							style={{
+								backgroundColor: 'var(--bahama-blue-50)',
+								borderColor: 'var(--bahama-blue-200)',
+								color: 'var(--bahama-blue-700)',
+							}}
+						>
 							<Compass size={13} />
 							Learning Path
 						</span>
 					)}
 
 					{isModule && (
-						<span className="badge bg-white text-primary border shadow-sm d-inline-flex align-items-center gap-1 py-1 px-2 fw-semibold">
+						<span
+							className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 text-nowrap flex-shrink-0 transition`}
+							style={{
+								backgroundColor: 'var(--purple-bg)',
+								borderColor: 'var(--purple-border-color)',
+								color: 'var(--purple-text)',
+							}}
+						>
 							<Layers size={13} />
 							Modul
 						</span>
 					)}
 
 					{isLesson && (
-						<span className="badge bg-white text-primary border shadow-sm d-inline-flex align-items-center gap-1 py-1 px-2 fw-semibold">
+						<span
+							className={`btn btn-sm rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 text-nowrap flex-shrink-0 transition-all`}
+							style={{
+								backgroundColor: 'var(--warning-bg)',
+								borderColor: 'var(--warning-border)',
+								color: 'var(--warning-text)',
+							}}
+						>
 							<Zap size={13} />
 							Microlearning
 						</span>
@@ -167,7 +188,6 @@ const ExploreGridCard = ({ item, isBookmarked, onToggleBookmark, onNavigate }) =
 							</span>
 						</div>
 					)}
-
 
 					{/* CTA */}
 					{isLearningPath && (

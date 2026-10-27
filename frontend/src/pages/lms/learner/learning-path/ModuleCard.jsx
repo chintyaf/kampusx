@@ -13,6 +13,7 @@ import {
 	Brain,
 	ArrowRight,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // ============================================================================
 // 1. LESSON COMPONENTS
@@ -69,7 +70,7 @@ export const LessonCard = ({ lesson }) => {
 					className={`fw-medium text-truncate ${
 						lesson?.completed ? 'text-decoration-line-through text-muted' : 'text-dark'
 					}`}
-                    style={{ fontSize : "14px" }}
+					style={{ fontSize: '14px' }}
 				>
 					{lesson?.title}
 				</span>
@@ -188,13 +189,11 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 							))}
 						</div>
 
-						{/* Action Button */}
+						{/* Action Link */}
 						<div className="d-flex justify-content-end pt-1">
-							<Button
-								variant="primary"
-								size="sm"
-								className="lms-btn-action fw-semibold px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 border-0"
-								onClick={() => navigate(`/learner/modules/${module?.id}`)}
+							<Link
+								to={`/learner/lesson/les-1`}
+								className="btn btn-primary btn-sm lms-btn-action fw-semibold px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 border-0 text-decoration-none"
 							>
 								<span>
 									{isCompleted
@@ -204,7 +203,7 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 											: 'Start Module'}
 								</span>
 								<ArrowRight size={14} className="lms-btn-icon" />
-							</Button>
+							</Link>
 						</div>
 					</div>
 				</div>

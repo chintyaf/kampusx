@@ -98,7 +98,7 @@ const LearningPathDetail = () => {
                     ================================================================ */}
 					<Col lg={12}>
 						{/* 1. WIDGET SRL: "Set Your Learning Goals" (Forethought Phase) */}
-						<LearningSRLGoal
+						{/* <LearningSRLGoal
 							selectedHours={selectedHours}
 							setSelectedHours={setSelectedHours}
 							selectedWeeks={selectedWeeks}
@@ -106,7 +106,7 @@ const LearningPathDetail = () => {
 							goalSaved={goalSaved}
 							handleSaveGoal={handleSaveGoal}
 							getProjectedDate={getProjectedDate}
-						/>
+						/> */}
 
 						{/* 2. WIDGET ROADMAP: "Module Roadmap" (Timeline Interactive) */}
 						<LearningModule

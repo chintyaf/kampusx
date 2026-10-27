@@ -228,7 +228,7 @@ const MemberDashboard = () => {
 					isLoading={isLoading}
 				/>
 
-				<MicrolearningSection />
+					{/* <MicrolearningSection /> */}
 
 				<ActiveTicketsSection activeTickets={activeTickets} isLoading={isLoading} />
 

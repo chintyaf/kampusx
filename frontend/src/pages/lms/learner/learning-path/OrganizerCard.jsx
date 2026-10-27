@@ -1,4 +1,7 @@
 import React from 'react';
+import { Card } from 'react-bootstrap';
+import { Star } from 'lucide-react';
+import { MOCK_LEARNING_PATH } from '@/pages/lms/mock-data/mockData';
 
 const OrganizerCard = () => {
 	return (

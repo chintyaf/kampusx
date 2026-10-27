@@ -52,6 +52,7 @@ import {
 	Lock,
 	XCircle,
 } from 'lucide-react';
+import { MODULE_LESSONS_DATA, mockLessonMicroQuizzes } from '@/pages/lms/mock-data/mockData';
 
 const Quiz = () => {
 	const { moduleId = 'mod-arch-101', lessonId = 'les-4' } = useParams();

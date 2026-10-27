@@ -280,7 +280,7 @@ const ExploreHeader = ({
 					</div>
 
 					{/* View Switcher */}
-					<div className="bg-white btn-group border rounded-3 p-1 flex-shrink-0">
+					{/* <div className="bg-white btn-group border rounded-3 p-1 flex-shrink-0">
 						<button
 							type="button"
 							className={`btn btn-sm border-0 py-1 px-2 rounded-2 ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
@@ -297,7 +297,7 @@ const ExploreHeader = ({
 						>
 							<List size={15} />
 						</button>
-					</div>
+					</div> */}
 				</div>
 			</div>
 		</div>

@@ -412,7 +412,7 @@
 }
 
 .lms-card-header:hover .lms-title {
-	color: #028090 !important;
+	color: var(--color-primary) !important;
 }
 
 /* --- Chevron Rotation Animation --- */
@@ -469,7 +469,7 @@
 
 /* --- Action Button Hover & Icon Move --- */
 .lms-btn-action {
-	background-color: #028090 !important;
+	background-color: var(--color-primary) !important;
 	transition:
 		background-color 0.2s ease,
 		transform 0.2s ease,
@@ -477,7 +477,7 @@
 }
 
 .lms-btn-action:hover {
-	background-color: #026a78 !important;
+	background-color: #00547f !important;
 	transform: translateY(-1px);
 	box-shadow: 0 4px 12px rgba(2, 128, 144, 0.25);
 }
@@ -495,7 +495,6 @@
 }
 
 /* --- Keyframe Animations --- */
-
 
 /* Subtle Pop-in for Completed Checkmarks */
 @keyframes lmsPopIn {

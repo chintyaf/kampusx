@@ -1,5 +1,7 @@
+import { MODULE_LESSONS_DATA } from './lessonData';
+
 // ============================================================================
-// MOCK DATA: Curated Modules with SRL Forethought and Multi-Unit Lessons
+// MODULE REGISTRY (Curated Modules & Detail Overviews)
 // ============================================================================
 
 export const MODULE_DATA_REGISTRY = {
@@ -11,12 +13,14 @@ export const MODULE_DATA_REGISTRY = {
 		category: 'System Architecture',
 		level: 'Menengah',
 		duration: '45 Menit',
+		durationMinutes: 45,
 		totalLessons: 6,
 		completedLessons: 3,
 		progressPercent: 50,
 		currentLessonId: 'les-4',
 		currentLessonTitle: 'Lesson 4: Scalable Endpoints, Idempotency & Rate Limiting',
 		xpReward: 150,
+		passingScore: 75,
 		description:
 			'Pelajari prinsip perancangan endpoint RESTful yang skalabel, penanganan idempotent request methods, strategi HTTP caching headers, serta teknik rate limiting untuk sistem backend berkinerja tinggi.',
 		instructor: {
@@ -41,76 +45,131 @@ export const MODULE_DATA_REGISTRY = {
 			title: 'API Architect Apprentice',
 			description: 'Menyelesaikan implementasi RESTful API best practices.',
 		},
+		lessons: MODULE_LESSONS_DATA,
+	},
+
+	'mod-daspro-101': {
+		id: 'mod-daspro-101',
+		title: 'Dasar Pemrograman: Tipe Data & Program Sederhana',
+		learningPath: 'Dasar Pemrograman dengan Python',
+		learningPathId: 'lp-daspro',
+		category: 'Computer Science',
+		level: 'Pemula',
+		duration: '45 Menit',
+		durationMinutes: 45,
+		totalLessons: 6,
+		completedLessons: 3,
+		progressPercent: 50,
+		currentLessonId: 'les-4',
+		currentLessonTitle: 'Lesson 4: Instruksi Input, Output & Formatting Output',
+		xpReward: 150,
+		passingScore: 70,
+		description:
+			'Modul ini membahas konsep dasar pemrograman komputer meliputi jenis tipe data (boolean, integer, float, string), penulisan variabel, pengisian nilai (assignment), instruksi input/output, hingga implementasi algoritma sekuensial sederhana menggunakan Python.',
+		instructor: {
+			name: 'Tim Dosen Dasar Pemrograman',
+			title: 'Program Studi S-1 Teknik Informatika',
+			avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80',
+			rating: 4.95,
+			totalStudents: '3,820',
+			bio: 'Fakultas Teknologi Informasi - Universitas Kristen Maranatha.',
+		},
+		learningOutcomes: [
+			'Memahami konsep Stored Program Computer, 4 tipe data dasar (boolean, integer, float, string), dan operatornya.',
+			'Menguasai aturan penamaan variabel yang valid, konsep assignment, dan penulisan struktur program Python.',
+			'Menerapkan instruksi masukan/keluaran (input/print) dan teknik formatting output (end, sep, format numerik).',
+			'Menyelesaikan persoalan sekuensial seperti tukar isi variabel, konversi waktu, suhu, mata uang, dan pecahan uang.',
+		],
+		prerequisites: [
+			'Pengenalan dasar logika matematika',
+			'Instalasi Python 3.x pada perangkat lokal',
+		],
+		badgeEarned: {
+			title: 'Python Fundamental Novice',
+			description:
+				'Berhasil menguasai tipe data dan penyusunan program sekuensial sederhana.',
+		},
 		lessons: [
 			{
-				id: 'les-1',
+				id: 'py-les-1',
 				number: 1,
-				title: 'Fondasi RESTful Semantic & URI Naming Convention',
+				title: 'Pengenalan Konsep Stored Program & Tipe Data Dasar',
+				type: 'video',
 				format: 'video',
 				duration: '10 min',
-				status: 'completed', // completed | current | locked
+				status: 'completed',
 				xp: 25,
 				summary:
-					'Aturan penamaan URI RESTful, resource plural vs singular, dan anti-patterns.',
+					'Alur Stored Program Computer dan 4 tipe data dasar (boolean, integer, float, string).',
 			},
 			{
-				id: 'les-2',
+				id: 'py-les-2',
 				number: 2,
-				title: 'HTTP Status Codes, Error Handling & RFC 7807',
+				title: 'Operator Aritmatika, Relasional & Logika',
+				type: 'article',
 				format: 'article',
 				duration: '8 min',
 				status: 'completed',
 				xp: 20,
 				summary:
-					'Standardisasi format pesan galat JSON menggunakan standar Problem Details (RFC 7807).',
+					'Operasi aritmatika khusus (//, %, **), operator logika (and, or, not), dan operator string.',
 			},
 			{
-				id: 'les-3',
+				id: 'py-les-3',
 				number: 3,
-				title: 'Diagnostic Checkpoint: REST Principles Assessment',
-				format: 'quiz',
-				duration: '7 min',
+				title: 'Aturan Penamaan Variabel, Assignment & Struktur Program',
+				type: 'video',
+				format: 'video',
+				duration: '10 min',
 				status: 'completed',
-				score: '92/100',
-				xp: 30,
-				summary: 'Kuis evaluasi pemahaman HTTP contracts dan payload serialization.',
+				score: '95/100',
+				xp: 25,
+				summary:
+					'Aturan penamaan nama/variabel valid, instruksi assignment, dan struktur main() Python.',
 			},
 			{
-				id: 'les-4',
+				id: 'py-les-4',
 				number: 4,
-				title: 'Scalable Endpoints, Idempotency & Rate Limiting',
-				format: 'video',
+				title: 'Instruksi Input, Output & Formatting Output',
+				type: 'article',
+				format: 'article',
 				duration: '12 min',
 				status: 'current',
 				xp: 35,
 				summary:
-					'Kunci idempotency key dengan Redis dan konfigurasi sliding window rate limiter.',
+					'Pembacaan input(), cetak print(), parameter end/sep, serta formatting integer dan float.',
 			},
 			{
-				id: 'les-5',
+				id: 'py-les-5',
 				number: 5,
-				title: 'Interactive Code Lab: Implementing Idempotency Middleware',
+				title: 'Interactive Code Lab: Aksi Sekuensial & Algoritma Konversi',
+				type: 'code',
 				format: 'code',
-				duration: '10 min',
+				duration: '12 min',
 				status: 'locked',
 				xp: 30,
 				summary:
-					'Tulis middleware Express/FastAPI untuk validasi idempotency token pada transaksi.',
+					'Praktik penulisan algoritma sekuensial untuk tukar variabel dan konversi waktu/detik.',
 			},
 			{
-				id: 'les-6',
+				id: 'py-les-6',
 				number: 6,
-				title: 'Refleksi Diri SRL & Ringkasan Modul REST API',
+				title: 'Refleksi Diri & Evaluasi Pemrograman Sederhana',
+				type: 'reflection',
 				format: 'reflection',
 				duration: '8 min',
 				status: 'locked',
 				xp: 30,
 				summary:
-					'Evaluasi metakognisi, pencatatan insight utama, dan penyesuaian strategi belajar.',
+					'Evaluasi metakognisi dan penyelesaian latihan studi kasus (mata uang, suhu, pecahan uang).',
 			},
 		],
 	},
 };
+
+// Aliases for registry lookups (e.g., 'mod-1' -> 'mod-arch-101')
+MODULE_DATA_REGISTRY['mod-1'] = MODULE_DATA_REGISTRY['mod-arch-101'];
+MODULE_DATA_REGISTRY['1'] = MODULE_DATA_REGISTRY['mod-arch-101'];
 
 /**
  * Fallback module generator if non-registered ID is visited
@@ -120,7 +179,7 @@ export const getModuleData = (moduleId) => {
 		return MODULE_DATA_REGISTRY[moduleId];
 	}
 
-	// Generic template for other IDs
+	// Generic fallback template for other IDs
 	return {
 		id: moduleId || 'mod-default',
 		title: 'Microlearning Mastery & Technical Foundations',
@@ -129,12 +188,14 @@ export const getModuleData = (moduleId) => {
 		category: 'Software Engineering',
 		level: 'Menengah',
 		duration: '40 Menit',
+		durationMinutes: 40,
 		totalLessons: 5,
 		completedLessons: 2,
 		progressPercent: 40,
 		currentLessonId: 'les-3',
 		currentLessonTitle: 'Lesson 3: Core Implementation & Best Practices',
 		xpReward: 120,
+		passingScore: 75,
 		description:
 			'Modul pembelajaran modular microlearning untuk mempercepat akselerasi keahlian teknis secara mandiri melalui kurikulum bertahap.',
 		instructor: {
@@ -155,57 +216,6 @@ export const getModuleData = (moduleId) => {
 			title: 'Active Tech Scholar',
 			description: 'Menyelesaikan modul dengan konsistensi belajar tinggi.',
 		},
-		lessons: [
-			{
-				id: 'les-1',
-				number: 1,
-				title: 'Pengantar Konsep & Prinsip Dasar',
-				format: 'video',
-				duration: '10 min',
-				status: 'completed',
-				xp: 25,
-				summary: 'Dasar pemahaman arsitektur dan framework yang digunakan.',
-			},
-			{
-				id: 'les-2',
-				number: 2,
-				title: 'Deep Dive: Komponen Utama & Praktik Nyata',
-				format: 'article',
-				duration: '8 min',
-				status: 'completed',
-				xp: 20,
-				summary: 'Ulasan mendalam dengan studi kasus riil industri.',
-			},
-			{
-				id: 'les-3',
-				number: 3,
-				title: 'Core Implementation & Best Practices',
-				format: 'video',
-				duration: '12 min',
-				status: 'current',
-				xp: 35,
-				summary: 'Sesi praktik langsung dan penulisan kode terstruktur.',
-			},
-			{
-				id: 'les-4',
-				number: 4,
-				title: 'Checkpoint Evaluasi & Diagnostic Quiz',
-				format: 'quiz',
-				duration: '8 min',
-				status: 'locked',
-				xp: 25,
-				summary: 'Uji pemahaman mandiri dengan soal diagnostik adaptif.',
-			},
-			{
-				id: 'les-5',
-				number: 5,
-				title: 'Refleksi Diri SRL & Metakognisi Belajar',
-				format: 'reflection',
-				duration: '7 min',
-				status: 'locked',
-				xp: 25,
-				summary: 'Refleksi evaluasi capaian belajar dan rencana aplikasi nyata.',
-			},
-		],
+		lessons: MODULE_LESSONS_DATA,
 	};
 };
