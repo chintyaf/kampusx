@@ -14,7 +14,7 @@ import ForethoughtPage from '@/pages/lms/learner/modules/forethought/Forethought
 import QuizPage from '@/pages/lms/learner/modules/quiz/QuizPage';
 import ReflectionPage from '@/pages/lms/learner/modules/reflection/ReflectionPage';
 import AnalyticsPage from '@/pages/lms/learner/analytics/AnalyticsPage';
-import BadgesPage from '@/pages/lms/learner/badges/BadgesPage';
+import BadgeCertificatePage from '@/pages/lms/learner/badges/BadgeCertificatePage';
 import SettingsPage from '@/pages/lms/learner/settings/SettingsPage';
 import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPage';
 import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
@@ -70,7 +70,7 @@ export const LmsRoutes = () => {
 
 					{/* Learner Profile & Settings */}
 					<Route path="analytics" element={<AnalyticsPage />} />
-					<Route path="badges" element={<BadgesPage />} />
+					<Route path="badges" element={<BadgeCertificatePage />} />
 					<Route path="settings" element={<SettingsPage />} />
 				</Route>
 			</Route>

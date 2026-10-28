@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, Form, Alert, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Form, Alert, Badge, Modal } from 'react-bootstrap';
 import {
   ChevronLeft,
   Star,
@@ -124,6 +124,17 @@ const ReflectionPage = () => {
 
   return (
     <div style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: 64 }}>
+      {isSaved && (
+        <Modal show={true} onHide={() => navigate('/learning')} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>🎉 Selamat! Modul selesai</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="text-center">
+            <p>Anda telah menyelesaikan modul ini dan mendapatkan <strong>100 XP</strong> serta badge <Badge bg="success">Completed</Badge>!</p>
+            <p>Anda akan diarahkan ke dashboard belajar dalam beberapa detik.</p>
+          </Modal.Body>
+        </Modal>
+      )}
       {/* Top Navbar */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '16px 0', position: 'sticky', top: 0, zIndex: 1020 }}>
         <Container>

@@ -176,8 +176,6 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 						</Button>
 					) : isCurrent ? (
 						<Button
-							as={Link}
-							to={`/learner/lessons/${item.id}`}
 							size="sm"
 							className="px-3 py-1 fw-bold d-inline-flex align-items-center gap-1 shadow-sm text-decoration-none"
 							style={{
@@ -187,7 +185,10 @@ const LessonItem = ({ item, handleNavigateToLesson }) => {
 								fontSize: 'var(--font-sm)',
 								borderRadius: 'var(--radius-md)',
 							}}
-							onClick={(e) => e.stopPropagation()}
+							onClick={(e) => {
+								e.stopPropagation();
+								handleNavigateToLesson && handleNavigateToLesson(item.id);
+							}}
 						>
 							<Play size={13} fill="currentColor" />
 							<span>Buka Unit</span>

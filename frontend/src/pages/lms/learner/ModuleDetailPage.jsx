@@ -6,11 +6,11 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { getModuleData } from '@/pages/lms/mock-data/mockData';
 import ModuleHeader from '@/pages/lms/learner/modules/detail-module/ModuleHeader';
 import ModuleLesson from '@/pages/lms/learner/modules/detail-module/ModuleLesson';
-import ModuleSRL from '@/pages/lms/learner/modules/detail-module/ModuleSRL';
+import SRLForethoughtModal from '@/components/lms/SRLForethoughtModal';
 
 /**
  * ModuleDetailPage
- * Halaman Akses & Overview Modul Microlearning
+ * Halaman Akses & Overview Modul Microlearning dengan SRL Forethought Interceptor
  */
 const ModuleDetailPage = () => {
 	const { moduleId = 'mod-arch-101' } = useParams();
@@ -19,12 +19,32 @@ const ModuleDetailPage = () => {
 	const moduleData = getModuleData(moduleId);
 
 	const [isBookmarked, setIsBookmarked] = useState(false);
-
-	// Filter lessons
 	const [lessonFilter, setLessonFilter] = useState('all'); // 'all' | 'uncompleted'
 
-	const handleNavigateToLesson = (lessonId) => {
-		navigate(`/learner/lesson/${lessonId}`);
+	// --- STATE INTERSEPTOR SRL FORETHOUGHT ---
+	const [isForethoughtOpen, setIsForethoughtOpen] = useState(false);
+	const [targetLessonId, setTargetLessonId] = useState(null);
+
+	/**
+	 * 1. Pemicu Akses Modul (Action Trigger)
+	 * Menahan navigasi langsung dan menampilkan modal SRL Forethought
+	 */
+	const handleInitiateLearning = (lessonId) => {
+		const target = lessonId || moduleData?.currentLessonId || moduleData?.lessons?.[0]?.id;
+		setTargetLessonId(target);
+		setIsForethoughtOpen(true);
+	};
+
+	/**
+	 * 4. Transisi ke Fase Performance (Navigation Unlock)
+	 * Menutup modal perencanaan dan mengalihkan pengguna ke Halaman Materi/Lesson
+	 */
+	const handleForethoughtComplete = (payload) => {
+		setIsForethoughtOpen(false);
+
+		// Redirect ke halaman lesson materi aktif (Fase Performance)
+		const lessonDestination = targetLessonId || moduleData?.currentLessonId || 'les-01';
+		navigate(`/learner/lessons/${lessonDestination}`);
 	};
 
 	const filteredLessons = moduleData.lessons.filter((les) => {
@@ -39,40 +59,36 @@ const ModuleDetailPage = () => {
 			{/* 1. HERO BANNER / HEADER MODUL */}
 			<ModuleHeader
 				moduleData={moduleData}
-				handleNavigateToLesson={handleNavigateToLesson}
+				handleNavigateToLesson={handleInitiateLearning}
 				isBookmarked={isBookmarked}
 				setIsBookmarked={setIsBookmarked}
 			/>
 
 			{/* 2. MAIN CONTENT & SIDEBAR SECTION */}
-			<Container className="" style={{ marginTop: '1.5rem' }}>
+			<Container style={{ marginTop: '1.5rem' }}>
 				<Row className="g-4">
-					{/* A. MAIN CONTENT AREA (col-lg-8) */}
 					<Col lg={12}>
-						{/* 2. DAFTAR UNIT PEMBELAJARAN (LESSON ROADMAP) */}
+						{/* DAFTAR UNIT PEMBELAJARAN (LESSON ROADMAP) */}
 						<ModuleLesson
 							moduleData={moduleData}
 							filteredLessons={filteredLessons}
 							lessonFilter={lessonFilter}
 							setLessonFilter={setLessonFilter}
-							handleNavigateToLesson={handleNavigateToLesson}
+							handleNavigateToLesson={handleInitiateLearning}
 						/>
-
-						{/* 3. CAPAIAN PEMBELAJARAN (LEARNING OUTCOMES) */}
-					</Col>
-
-					{/* B. SIDEBAR AREA (col-lg-4) */}
-					<Col lg={4}>
-						{/* 1. WIDGET SRL: FASE 1 - FORETHOUGHT & PLANNING */}
-						{/* <ModuleSRL /> */}
-						{/* 1. INSTRUKTUR KELAS */}
-
-						{/* 2. DIGITAL BADGE & SERTIFIKASI CHECKPOINT */}
-
-						{/* 3. SRL TIPS & HABIT BOOSTER */}
 					</Col>
 				</Row>
 			</Container>
+
+			{/* 3. MODAL POP-UP FORM FORETHOUGHT (Interseptor Pre-Learning) */}
+			<SRLForethoughtModal
+				isOpen={isForethoughtOpen}
+				onClose={() => setIsForethoughtOpen(false)}
+				onComplete={handleForethoughtComplete}
+				enrollmentId={moduleData?.enrollmentId || 1}
+				recommendedTime={15}
+				moduleTitle={moduleData?.title}
+			/>
 		</div>
 	);
 };

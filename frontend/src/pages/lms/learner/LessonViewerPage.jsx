@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
+import SRLPerformancePhase from '@/components/lms/SRLPerformancePhase';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Layouts & Components
@@ -15,7 +16,7 @@ import '@/pages/lms/lessonViewer.css';
 import { MODULE_LESSONS_DATA } from './lesson/mockData';
 
 const LessonViewerPage = () => {
-	const { lessonId } = useParams();
+	const { lessonId, moduleId } = useParams();
 	const navigate = useNavigate();
 
 	// Ref untuk scroll container (<main>)
@@ -77,6 +78,16 @@ const LessonViewerPage = () => {
 	};
 
 	// Handler Navigasi Selanjutnya
+	const handleLessonComplete = (secondsSpent, extra) => {
+		// You could send analytics here using secondsSpent and extra if needed
+		if (isLastLesson) {
+			// All lessons completed, proceed to Self‑Reflection (Quiz) phase
+			navigate(`/learner/modules/${moduleId}/quiz`);
+		} else {
+			handleNext();
+		}
+	};
+
 	const handleNext = () => {
 		if (!isLastLesson) {
 			const nextIndex = currentIndex + 1;
@@ -120,8 +131,31 @@ const LessonViewerPage = () => {
 							{isQuiz ? (
 								<LessonQuiz item={currentLesson} onNext={handleNext} />
 							) : (
-								<LessonMaterial item={currentLesson} />
+								<>
+									<LessonMaterial item={currentLesson} />
+									<SRLPerformancePhase
+										lesson={currentLesson}
+										lessonNumber={currentIndex + 1}
+										totalLessons={MODULE_LESSONS_DATA.length}
+										onComplete={handleLessonComplete}
+									/>
+									{isLastLesson && (
+										<Button variant="success" className="mt-3" onClick={() => navigate(`/learner/modules/${moduleId}/quiz`)}>
+											Selesaikan &amp; Kerjakan Kuis
+										</Button>
+									)}
+								</>
 							)}
+						</div>
+						{/* SRL Performance Phase Section */}
+						<div className="mt-4">
+							<h5 className="mb-3">Performance Phase</h5>
+							<SRLPerformancePhase
+								lesson={currentLesson}
+								lessonNumber={currentIndex + 1}
+								totalLessons={MODULE_LESSONS_DATA.length}
+								onComplete={handleLessonComplete}
+							/>
 						</div>
 
 						{/* TOMBOL NAVIGASI SEBELUMNYA & SELANJUTNYA */}
