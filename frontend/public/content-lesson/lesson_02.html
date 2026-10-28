@@ -1,0 +1,90 @@
+<article>
+	<section>
+		<h2>1. Bilangan Logika (Boolean)</h2>
+		<p>
+			Tipe data Boolean hanya memiliki domain harga <code>True</code> dan
+			<code>False</code> dengan operator utama <code>and</code>, <code>or</code>, dan
+			<code>not</code>.
+		</p>
+		<div>
+			<table>
+				<thead>
+					<tr>
+						<th>x</th>
+						<th>y</th>
+						<th>not x</th>
+						<th>x and y</th>
+						<th>x or y</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y text-gray-600">
+					<tr>
+						<td>True</td>
+						<td>True</td>
+						<td>False</td>
+						<td>True</td>
+						<td>True</td>
+					</tr>
+					<tr>
+						<td>True</td>
+						<td>False</td>
+						<td>False</td>
+						<td>False</td>
+						<td>True</td>
+					</tr>
+					<tr>
+						<td>False</td>
+						<td>True</td>
+						<td>True</td>
+						<td>False</td>
+						<td>True</td>
+					</tr>
+					<tr>
+						<td>False</td>
+						<td>False</td>
+						<td>True</td>
+						<td>False</td>
+						<td>False</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section>
+		<h2>2. Operator Relasional</h2>
+		<p>
+			Operator relasional membandingkan dua nilai dan menghasilkan keluaran bertipe
+			<strong>Boolean</strong>:
+		</p>
+		<ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+			<li><code>&lt;</code> (Lebih kecil) &rarr; <code>2 &lt; 5</code> (True)</li>
+			<li>
+				<code>&lt;=</code> (Lebih kecil sama dengan) &rarr; <code>5 &lt;= 7</code> (True)
+			</li>
+			<li><code>&gt;</code> (Lebih besar) &rarr; <code>2 &gt; 2</code> (False)</li>
+			<li>
+				<code>&gt;=</code> (Lebih besar sama dengan) &rarr; <code>5 &gt;= 5</code> (True)
+			</li>
+			<li><code>==</code> (Sama dengan) &rarr; <code>'a' == 'A'</code> (False)</li>
+			<li><code>!=</code> (Tidak sama dengan) &rarr; <code>'a' != 'A'</code> (True)</li>
+		</ul>
+	</section>
+
+	<section class="mt-6">
+		<h3>
+			<span>Kode Python</span>
+			Operasi Logika & Relasional
+		</h3>
+		<pre><code>x = True
+y = False
+
+print("not x   :", not x)     # False
+print("x and y :", x and y)   # False
+print("x or y  :", x or y)    # True
+
+print("10 // 3 :", 10 // 3)   # 3 (Bagi Integer)
+print("10 % 3  :", 10 % 3)    # 1 (Modulo)
+print("'a' < 'c':", 'a' < 'c')  # True</code></pre>
+	</section>
+</article>

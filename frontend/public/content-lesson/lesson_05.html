@@ -1,0 +1,54 @@
+<article class="space-y-6">
+	<section>
+		<h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">1. Aksi Sekuensial</h2>
+		<p class="text-gray-700 leading-relaxed text-sm">
+			<strong>Aksi Sekuensial</strong> adalah struktur kendali di mana sederetan instruksi
+			dieksekusi secara berurutan, baris demi baris dari atas ke bawah.
+		</p>
+	</section>
+
+	<section>
+		<h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">
+			2. Algoritma Tukar Isi Variabel (Swapping)
+		</h2>
+		<p class="text-gray-700 text-sm mb-3">
+			Proses menukar nilai <code>x</code> dan <code>y</code> membutuhkan satu variabel bantuan
+			(<code>t</code>):
+		</p>
+		<ol
+			class="list-decimal list-inside space-y-1 text-sm text-gray-800 bg-gray-50 p-4 rounded border"
+		>
+			<li>Simpan nilai <code>x</code> ke variabel sementara &rarr; <code>t = x</code></li>
+			<li>Isi <code>x</code> dengan nilai dari <code>y</code> &rarr; <code>x = y</code></li>
+			<li>
+				Isi <code>y</code> dengan nilai awal <code>x</code> yang disimpan di
+				<code>t</code> &rarr; <code>y = t</code>
+			</li>
+		</ol>
+	</section>
+
+	<section class="mt-6">
+		<h3 class="font-bold text-gray-800 mb-2 flex items-center">
+			<span class="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded mr-2"
+				>Kode Python</span
+			>
+			Program Tukar Isi Variabel (Tukar.py)
+		</h3>
+		<pre
+			class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto"
+		><code># File: Tukar.py
+def main():
+    x = int(input("Nilai x :"))
+    y = int(input("Nilai y :"))
+
+    # Algoritma Tukar Nilai
+    t = x
+    x = y
+    y = t
+
+    print("Setelah tukar -> Nilai x:", x, "| Nilai y:", y)
+
+if __name__ == '__main__':
+    main()</code></pre>
+	</section>
+</article>

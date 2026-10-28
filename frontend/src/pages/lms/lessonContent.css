@@ -1,0 +1,172 @@
+/* ============================================================================
+   LESSON CONTENT STYLING (.lesson-body-content)
+   ============================================================================ */
+
+.lesson-body-content {
+	color: var(--text, #334155);
+	font-size: var(--font-sm, 0.95rem);
+	line-height: 1.7;
+}
+
+/* --- Headings --- */
+.lesson-body-content h1,
+.lesson-body-content h2,
+.lesson-body-content h3,
+.lesson-body-content h4 {
+	color: var(--text-heading, #0f172a);
+	font-weight: 700;
+	line-height: 1.35;
+	margin-top: 1.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.lesson-body-content h1 {
+	font-size: 1.65rem;
+	border-bottom: 2px solid var(--neutral-border, #e2e8f0);
+	padding-bottom: 0.5rem;
+}
+
+.lesson-body-content h2 {
+	font-size: 1.35rem;
+	border-bottom: 1px solid var(--neutral-border, #e2e8f0);
+	padding-bottom: 0.4rem;
+}
+
+.lesson-body-content h3 {
+	font-size: 1.15rem;
+}
+
+.lesson-body-content h4 {
+	font-size: 1rem;
+}
+
+/* --- Paragraf & Teks --- */
+.lesson-body-content p {
+	margin-bottom: 1.15rem;
+	color: var(--text-muted, #475569);
+}
+
+.lesson-body-content strong {
+	color: var(--text, #0f172a);
+	font-weight: 600;
+}
+
+.lesson-body-content a {
+	color: var(--primary, #2563eb);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.lesson-body-content a:hover {
+	color: var(--primary-hover, #1d4ed8);
+}
+
+/* --- List / Daftar --- */
+.lesson-body-content ul,
+.lesson-body-content ol {
+	margin-bottom: 1.25rem;
+	padding-left: 1.5rem;
+}
+
+.lesson-body-content ul {
+	list-style-type: disc;
+}
+
+.lesson-body-content ol {
+	list-style-type: decimal;
+}
+
+.lesson-body-content li {
+	margin-bottom: 0.4rem;
+	color: var(--text-muted, #475569);
+}
+
+.lesson-body-content li::marker {
+	color: var(--primary, #3b82f6);
+}
+
+/* --- Inline Code & Code Block --- */
+.lesson-body-content code {
+	background-color: var(--neutral-bg, #f1f5f9);
+	color: var(--purple-text, #4f46e5);
+	font-family: 'Fira Code', Monaco, Consolas, monospace;
+	font-size: 0.875em;
+	padding: 0.2rem 0.4rem;
+	border-radius: 0.25rem;
+	border: 1px solid var(--neutral-border, #e2e8f0);
+}
+
+.lesson-body-content pre {
+	background-color: #0f172a;
+	color: #f8fafc;
+	padding: 1rem 1.25rem;
+	border-radius: 0.5rem;
+	overflow-x: auto;
+	margin-top: 1rem;
+	margin-bottom: 1.5rem;
+}
+
+.lesson-body-content pre code {
+	background-color: transparent;
+	color: inherit;
+	padding: 0;
+	border: none;
+	font-size: 0.875rem;
+}
+
+/* --- Callout & Blockquote --- */
+.lesson-body-content blockquote {
+	border-left: 4px solid var(--primary, #3b82f6);
+	background-color: var(--blue-bg, #eff6ff);
+	padding: 0.85rem 1.25rem;
+	margin: 1.5rem 0;
+	border-radius: 0 0.375rem 0.375rem 0;
+	color: var(--text-muted, #1e3a8a);
+}
+
+.lesson-body-content blockquote p:last-child {
+	margin-bottom: 0;
+}
+
+/* --- Table Styling --- */
+.lesson-body-content table {
+	width: 100%;
+	margin-bottom: 1.5rem;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+	border: 1px solid var(--neutral-border, #e2e8f0);
+	border-radius: 0.375rem;
+	overflow: hidden;
+}
+
+.lesson-body-content th,
+.lesson-body-content td {
+	padding: 0.75rem 1rem;
+	border: 1px solid var(--neutral-border, #e2e8f0);
+	text-align: left;
+}
+
+.lesson-body-content th {
+	background-color: var(--neutral-bg, #f8fafc);
+	font-weight: 600;
+	color: var(--text, #0f172a);
+}
+
+.lesson-body-content tr:nth-child(even) {
+	background-color: var(--card-alt, #fcfcfd);
+}
+
+/* --- Gambar & Pemisah --- */
+.lesson-body-content img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 0.5rem;
+	margin: 1.25rem 0;
+	display: block;
+}
+
+.lesson-body-content hr {
+	border: 0;
+	border-top: 1px solid var(--neutral-border, #e2e8f0);
+	margin: 2rem 0;
+}

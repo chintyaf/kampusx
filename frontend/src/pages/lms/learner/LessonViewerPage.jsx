@@ -3,34 +3,28 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Import Custom Styles for Clean, Refactored Layout
-// import '@/styles/lessonViewer.css';
-
-import '@/pages/lms/lessonViewer.css';
-
 // Layouts & Components
 import NavbarLesson from '@/layouts/partials-dashboard/NavbarLesson';
 import LessonSidebar from '@/pages/lms/learner/lesson/LessonSidebar';
-import LessonFooter from './lesson/LessonFooter';
 import LessonMaterial from './lesson/LessonMaterial';
-import LessonQuiz from './lesson/LessonQuiz'; // <-- Import Komponen Kuis
-import LessonHeader from './lesson/LessonHeader';
+import LessonQuiz from './lesson/LessonQuiz';
 
 // Styles & Data
 import '@/pages/lms/lessonViewer.css';
+
 import { MODULE_LESSONS_DATA } from './lesson/mockData';
 
 const LessonViewerPage = () => {
 	const { lessonId } = useParams();
 	const navigate = useNavigate();
 
-	// Ref untuk mengakses elemen scroll container (<main>)
+	// Ref untuk scroll container (<main>)
 	const mainContentRef = useRef(null);
 
-	// State untuk menyimpan index lesson aktif
+	// State index lesson aktif
 	const [currentIndex, setCurrentIndex] = useState(0);
 
-	// Helper function untuk smooth scroll ke paling atas
+	// Helper smooth scroll ke paling atas
 	const scrollToTop = () => {
 		if (mainContentRef.current) {
 			mainContentRef.current.scrollTo({
@@ -40,7 +34,7 @@ const LessonViewerPage = () => {
 		}
 	};
 
-	// Sinkronisasi index berdasarkan lessonId di URL jika ada
+	// Sinkronisasi index berdasarkan URL params (lessonId)
 	useEffect(() => {
 		if (lessonId && MODULE_LESSONS_DATA.length > 0) {
 			const foundIndex = MODULE_LESSONS_DATA.findIndex(
@@ -52,19 +46,19 @@ const LessonViewerPage = () => {
 		}
 	}, [lessonId]);
 
-	// Triggers smooth scroll ke atas setiap kali index lesson / materi berpindah
+	// Scroll ke atas saat materi berpindah
 	useEffect(() => {
 		scrollToTop();
 	}, [currentIndex]);
 
 	const currentLesson = MODULE_LESSONS_DATA[currentIndex] || {};
 
-	// Cek apakah item aktif adalah kuis / assessment
+	// Cek jenis modul aktif (Kuis vs Materi Text/Video)
 	const isQuiz =
 		currentLesson?.type?.toLowerCase() === 'quiz' ||
 		currentLesson?.type?.toLowerCase() === 'assessment';
 
-	// Check batas materi
+	// Cek batas navigasi
 	const isFirstLesson = currentIndex === 0;
 	const isLastLesson = currentIndex === MODULE_LESSONS_DATA.length - 1;
 
@@ -73,10 +67,11 @@ const LessonViewerPage = () => {
 		if (!isFirstLesson) {
 			const prevIndex = currentIndex - 1;
 			const prevLesson = MODULE_LESSONS_DATA[prevIndex];
-			setCurrentIndex(prevIndex);
 
-			if (prevLesson?.id && lessonId) {
+			if (prevLesson?.id) {
 				navigate(`../learner/lesson/${prevLesson.id}`);
+			} else {
+				setCurrentIndex(prevIndex);
 			}
 		}
 	};
@@ -86,10 +81,11 @@ const LessonViewerPage = () => {
 		if (!isLastLesson) {
 			const nextIndex = currentIndex + 1;
 			const nextLesson = MODULE_LESSONS_DATA[nextIndex];
-			setCurrentIndex(nextIndex);
 
-			if (nextLesson?.id && lessonId) {
+			if (nextLesson?.id) {
 				navigate(`../learner/lesson/${nextLesson.id}`);
+			} else {
+				setCurrentIndex(nextIndex);
 			}
 		}
 	};
@@ -113,18 +109,18 @@ const LessonViewerPage = () => {
 						borderColor: 'var(--neutral-border)',
 					}}
 				>
-					<LessonSidebar data={MODULE_LESSONS_DATA} />
+					<LessonSidebar data={MODULE_LESSONS_DATA} currentLessonId={currentLesson?.id} />
 				</aside>
 
 				{/* MAIN CONTENT CANVAS */}
 				<main ref={mainContentRef} className="flex-grow-1 overflow-y-auto p-4">
 					<div className="container p-0" style={{ maxWidth: '960px' }}>
-						{/* KONDISIONAL RENDER: Kuis vs Materi Pelajaran biasa */}
+						{/* KONDISIONAL RENDER: Kuis vs Materi Pelajaran */}
 						<div className="mb-4">
 							{isQuiz ? (
 								<LessonQuiz item={currentLesson} onNext={handleNext} />
 							) : (
-								<LessonMaterial data={MODULE_LESSONS_DATA} />
+								<LessonMaterial item={currentLesson} />
 							)}
 						</div>
 

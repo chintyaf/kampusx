@@ -40,7 +40,7 @@
 	display: none;
 	width: 0;
 	height: 0;
-}
+}	
 
 /* ==========================================================================
    3. AREA UTAMA (MAIN CONTENT)
@@ -203,6 +203,7 @@
 	.srl-checkpoint-container,
 	.srl-reflection-container {
 		padding: 18px 16px;
+
 	}
 	.lesson-footer-content {
 		padding: 0 12px;

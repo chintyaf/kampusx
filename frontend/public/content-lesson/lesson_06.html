@@ -1,0 +1,58 @@
+<article class="space-y-6">
+	<section>
+		<h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">
+			1. Spesifikasi Perhitungan Konversi Detik
+		</h2>
+		<p class="text-gray-700 text-sm mb-3">
+			Mengonversi total nilai detik $N$ menjadi Jam, Menit, dan sisa Detik menggunakan
+			pembagian bulat (<code>//</code>) dan sisa bagi (<code>%</code>):
+		</p>
+		<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r text-sm text-blue-900">
+			<ul class="list-disc list-inside space-y-1">
+				<li><code>Jam = N // 3600</code></li>
+				<li><code>Sisa = N % 3600</code></li>
+				<li><code>Menit = Sisa // 60</code></li>
+				<li><code>Detik = Sisa % 60</code></li>
+			</ul>
+		</div>
+	</section>
+
+	<section>
+		<h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">
+			2. Tracing Nilai (Contoh Input: 5000 Detik)
+		</h2>
+		<ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+			<li><code>Jam</code> = 5000 // 3600 = <strong>1 Jam</strong></li>
+			<li><code>Sisa</code> = 5000 % 3600 = 1400 detik</li>
+			<li><code>Menit</code> = 1400 // 60 = <strong>23 Menit</strong></li>
+			<li><code>Detik</code> = 1400 % 60 = <strong>20 Detik</strong></li>
+		</ul>
+	</section>
+
+	<section class="mt-6">
+		<h3 class="font-bold text-gray-800 mb-2 flex items-center">
+			<span class="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded mr-2"
+				>Kode Python</span
+			>
+			Program Konversi Detik (KonversiDetik.py)
+		</h3>
+		<pre
+			class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto"
+		><code># File: KonversiDetik.py
+def main():
+    Detik = int(input("Input Detik: "))
+
+    J = Detik // 3600
+    Sisa = Detik % 3600
+    M = Sisa // 60
+    D = Sisa % 60
+
+    print("Hasil Konversi:", Detik, "detik")
+    print("Jam   :", J)
+    print("Menit :", M)
+    print("Detik :", D)
+
+if __name__ == '__main__':
+    main()</code></pre>
+	</section>
+</article>
