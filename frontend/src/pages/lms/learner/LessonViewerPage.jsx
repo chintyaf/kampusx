@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
-import SRLPerformancePhase from '@/components/lms/SRLPerformancePhase';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 // Layouts & Components
 import NavbarLesson from '@/layouts/partials-dashboard/NavbarLesson';
 import LessonSidebar from '@/pages/lms/learner/lesson/LessonSidebar';
 import LessonMaterial from './lesson/LessonMaterial';
 import LessonQuiz from './lesson/LessonQuiz';
+import { showLessonCompleteToast } from '@/components/lms/LessonCompleteToast';
 
 // Styles & Data
 import '@/pages/lms/lessonViewer.css';
-
 import { MODULE_LESSONS_DATA } from './lesson/mockData';
 
 const LessonViewerPage = () => {
@@ -24,6 +23,9 @@ const LessonViewerPage = () => {
 
 	// State index lesson aktif
 	const [currentIndex, setCurrentIndex] = useState(0);
+
+	// State himpunan lesson yang telah selesai
+	const [completedLessonIds, setCompletedLessonIds] = useState(() => new Set(['les-1', 'les-2']));
 
 	// Helper smooth scroll ke paling atas
 	const scrollToTop = () => {
@@ -63,6 +65,15 @@ const LessonViewerPage = () => {
 	const isFirstLesson = currentIndex === 0;
 	const isLastLesson = currentIndex === MODULE_LESSONS_DATA.length - 1;
 
+	// Helper navigasi ke id lesson tertentu
+	const goToLesson = useCallback(
+		(targetId) => {
+			const targetModule = moduleId || currentLesson?.moduleId || 'mod-arch-101';
+			navigate(`/learner/${targetModule}/${targetId}`);
+		},
+		[moduleId, currentLesson?.moduleId, navigate],
+	);
+
 	// Handler Navigasi Sebelumnya
 	const handlePrevious = () => {
 		if (!isFirstLesson) {
@@ -70,36 +81,72 @@ const LessonViewerPage = () => {
 			const prevLesson = MODULE_LESSONS_DATA[prevIndex];
 
 			if (prevLesson?.id) {
-				navigate(`../learner/lesson/${prevLesson.id}`);
+				goToLesson(prevLesson.id);
 			} else {
 				setCurrentIndex(prevIndex);
 			}
 		}
 	};
 
-	// Handler Navigasi Selanjutnya
-	const handleLessonComplete = (secondsSpent, extra) => {
-		// You could send analytics here using secondsSpent and extra if needed
-		if (isLastLesson) {
-			// All lessons completed, proceed to Self‑Reflection (Quiz) phase
-			navigate(`/learner/modules/${moduleId}/quiz`);
-		} else {
-			handleNext();
-		}
-	};
-
-	const handleNext = () => {
+	// Handler Navigasi Selanjutnya (pindah materi tanpa toast complete jika belum selesai)
+	const handleNext = useCallback(() => {
 		if (!isLastLesson) {
 			const nextIndex = currentIndex + 1;
 			const nextLesson = MODULE_LESSONS_DATA[nextIndex];
 
 			if (nextLesson?.id) {
-				navigate(`../learner/lesson/${nextLesson.id}`);
+				goToLesson(nextLesson.id);
 			} else {
 				setCurrentIndex(nextIndex);
 			}
 		}
-	};
+	}, [currentIndex, isLastLesson, goToLesson]);
+
+	// Handler Penyelesaian Lesson dengan Toast Feedback
+	const handleLessonComplete = useCallback(
+		(metadata = {}) => {
+			const completedId = currentLesson?.id;
+
+			// Update completed set
+			const updatedSet = new Set(completedLessonIds);
+			if (completedId) {
+				updatedSet.add(completedId);
+				setCompletedLessonIds(updatedSet);
+			}
+
+			const total = MODULE_LESSONS_DATA.length;
+			const completedCount = updatedSet.size;
+			const percent = Math.round((completedCount / total) * 100);
+
+			const targetModule = moduleId || currentLesson?.moduleId || 'mod-arch-101';
+			const quizUrl = `/learner/modules/${targetModule}/quiz`;
+
+			// Tampilkan Toast Notifikasi Lesson Complete
+			showLessonCompleteToast({
+				lesson: currentLesson,
+				durationSeconds: metadata.durationSeconds || 0,
+				progress: {
+					completed: completedCount,
+					total,
+					percent,
+				},
+				isLast: isLastLesson,
+				onNext: !isLastLesson ? handleNext : null,
+				onGoToQuiz: isLastLesson ? () => navigate(quizUrl) : null,
+			});
+
+			// Arahkan ke langkah berikutnya
+			if (isLastLesson) {
+				// Beri jeda sejenak agar learner bisa menikmati feedback reward
+				setTimeout(() => {
+					navigate(quizUrl);
+				}, 1600);
+			} else {
+				handleNext();
+			}
+		},
+		[completedLessonIds, currentLesson, isLastLesson, moduleId, handleNext, navigate],
+	);
 
 	return (
 		<div className="d-flex flex-column vh-100 overflow-hidden bg-light">
@@ -120,7 +167,12 @@ const LessonViewerPage = () => {
 						borderColor: 'var(--neutral-border)',
 					}}
 				>
-					<LessonSidebar data={MODULE_LESSONS_DATA} currentLessonId={currentLesson?.id} />
+					<LessonSidebar
+						data={MODULE_LESSONS_DATA}
+						currentLessonId={currentLesson?.id}
+						completedLessonIds={completedLessonIds}
+						onSelectLesson={goToLesson}
+					/>
 				</aside>
 
 				{/* MAIN CONTENT CANVAS */}
@@ -129,33 +181,13 @@ const LessonViewerPage = () => {
 						{/* KONDISIONAL RENDER: Kuis vs Materi Pelajaran */}
 						<div className="mb-4">
 							{isQuiz ? (
-								<LessonQuiz item={currentLesson} onNext={handleNext} />
+								<LessonQuiz item={currentLesson} onNext={handleLessonComplete} />
 							) : (
-								<>
-									<LessonMaterial item={currentLesson} />
-									<SRLPerformancePhase
-										lesson={currentLesson}
-										lessonNumber={currentIndex + 1}
-										totalLessons={MODULE_LESSONS_DATA.length}
-										onComplete={handleLessonComplete}
-									/>
-									{isLastLesson && (
-										<Button variant="success" className="mt-3" onClick={() => navigate(`/learner/modules/${moduleId}/quiz`)}>
-											Selesaikan &amp; Kerjakan Kuis
-										</Button>
-									)}
-								</>
+								<LessonMaterial
+									item={currentLesson}
+									onCompleteLesson={handleLessonComplete}
+								/>
 							)}
-						</div>
-						{/* SRL Performance Phase Section */}
-						<div className="mt-4">
-							<h5 className="mb-3">Performance Phase</h5>
-							<SRLPerformancePhase
-								lesson={currentLesson}
-								lessonNumber={currentIndex + 1}
-								totalLessons={MODULE_LESSONS_DATA.length}
-								onComplete={handleLessonComplete}
-							/>
 						</div>
 
 						{/* TOMBOL NAVIGASI SEBELUMNYA & SELANJUTNYA */}
@@ -175,21 +207,31 @@ const LessonViewerPage = () => {
 								Sebelumnya
 							</Button>
 
-							<Button
-								onClick={handleNext}
-								disabled={isLastLesson}
-								className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
-								style={{
-									backgroundColor: isLastLesson
-										? 'var(--neutral-border)'
-										: 'var(--primary)',
-									opacity: isLastLesson ? 0.6 : 1,
-									cursor: isLastLesson ? 'not-allowed' : 'pointer',
-								}}
-							>
-								Selanjutnya
-								<ChevronRight size={18} />
-							</Button>
+							<div className="d-flex align-items-center gap-2">
+								{/* <Button
+									variant="success"
+									onClick={() => handleLessonComplete()}
+									className="d-flex align-items-center gap-2 px-3 py-2 fw-medium shadow-sm"
+								>
+									{isLastLesson ? 'Selesaikan Modul' : 'Tandai Selesai'}
+								</Button> */}
+
+								<Button
+									onClick={handleNext}
+									disabled={isLastLesson}
+									className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
+									style={{
+										backgroundColor: isLastLesson
+											? 'var(--neutral-border)'
+											: 'var(--primary)',
+										opacity: isLastLesson ? 0.6 : 1,
+										cursor: isLastLesson ? 'not-allowed' : 'pointer',
+									}}
+								>
+									Selanjutnya
+									<ChevronRight size={18} />
+								</Button>
+							</div>
 						</div>
 					</div>
 				</main>

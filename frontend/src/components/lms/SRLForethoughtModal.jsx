@@ -1,324 +1,320 @@
 import React, { useState } from 'react';
-import api from '@/api/axios';
+import { Modal, Form, Button, Alert } from 'react-bootstrap';
+
+// Data statis didefinisikan di luar komponen untuk mencegah re-allocation saat render
+const STRATEGY_OPTIONS = [
+	{ id: 'Catat Poin', label: 'Catat Poin' },
+	{ id: 'Fokus Membaca', label: 'Fokus Membaca' },
+	{ id: 'Langsung Kuis', label: 'Langsung Kuis' },
+];
+
+const QUICK_GOALS = ['Pahami Konsep Dasar', 'Tuntaskan Semua Unit', 'Siap Skor Kuis 100%'];
+
+const EFFICACY_LEVELS = [
+	{ level: 1, emoji: '😟', label: 'Masih asing' },
+	{ level: 2, emoji: '😐', label: 'Tahu sedikit' },
+	{ level: 3, emoji: '🙂', label: 'Cukup mengerti' },
+	{ level: 4, emoji: '😊', label: 'Sudah paham' },
+	{ level: 5, emoji: '🚀', label: 'Sangat menguasai' },
+];
 
 /**
- * SRLForethoughtModal (Modal Pop-up Form Forethought)
- * Interseptor metakognitif (Fase 1 Forethought SRL) sebelum peserta didik masuk ke Fase Performance.
- *
- * Variabel Utama:
- * 1. goal: Penetapan Tujuan (Task Analysis / Goal Setting)
- * 2. plan: Alokasi Waktu (Time Management / Strategic Planning)
- * 3. strategy / motivation: Strategi & Motivasi Belajar (Metacognitive Awareness)
- * 4. self_efficacy: Efikasi Diri 1-5 (Self-Motivation Beliefs / Fitur Machine Learning)
- *
- * Props:
- * - isOpen: boolean
- * - onClose: function
- * - onComplete: function(payload)
- * - enrollmentId: number | string
- * - recommendedTime: number
- * - moduleTitle: string
+ * SRLForethoughtModal
+ * Pop-up interseptor metakognitif (Fase 1 Forethought Self-Regulated Learning).
  */
 export const SRLForethoughtModal = ({
-  isOpen,
-  onClose,
-  onComplete,
-  enrollmentId = 1,
-  recommendedTime = 15,
-  moduleTitle = '',
+	isOpen,
+	onClose,
+	onComplete,
+	enrollmentId = 1,
+	recommendedTime = 15,
+	moduleTitle = '',
 }) => {
-  // 1. Goal (Penetapan Tujuan)
-  const [goal, setGoal] = useState('');
-  // 2. Plan (Alokasi Waktu dalam Menit)
-  const [plan, setPlan] = useState(recommendedTime.toString());
-  // 3. Strategy / Motivation (Metacognitive Awareness)
-  const [strategy, setStrategy] = useState('Fokus Membaca');
-  // 4. Self-Efficacy (Skala 1 - 5 Self-Motivation Beliefs)
-  const [selfEfficacy, setSelfEfficacy] = useState(4);
+	const [goal, setGoal] = useState('');
+	const [plan, setPlan] = useState(String(recommendedTime));
+	const [strategy, setStrategy] = useState('Fokus Membaca');
+	const [selfEfficacy, setSelfEfficacy] = useState(4);
+	const [errorMessage, setErrorMessage] = useState('');
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		const trimmedGoal = goal.trim();
 
-  if (!isOpen) return null;
+		if (!trimmedGoal) {
+			setErrorMessage('Tentukan tujuan belajar Anda sebelum memulai.');
+			return;
+		}
 
-  // Opsi Strategy Chips/Pills
-  const strategyOptions = [
-    { id: 'Catat Poin', label: '📝 Catat Poin' },
-    { id: 'Fokus Membaca', label: '📖 Fokus Membaca' },
-    { id: 'Langsung Kuis', label: '⚡ Langsung Kuis' },
-  ];
+		setErrorMessage('');
 
-  // Quick Goal Suggestions (< 15 detik completion)
-  const quickGoals = [
-    'Pahami Konsep Dasar',
-    'Tuntaskan Semua Unit',
-    'Siap Skor Kuis 100%',
-  ];
+		const payload = {
+			enrollment_id: enrollmentId,
+			goal: trimmedGoal,
+			plan: `${plan} menit`,
+			strategy,
+			motivation: strategy,
+			self_efficacy: Number(selfEfficacy),
+			timestamp: new Date().toISOString(),
+		};
 
-  // Skala Efikasi Diri (1-5 Emoji Scale)
-  const efficacyLevels = [
-    { level: 1, emoji: '😟', label: 'Ragu' },
-    { level: 2, emoji: '😐', label: 'Cukup' },
-    { level: 3, emoji: '🙂', label: 'Yakin' },
-    { level: 4, emoji: '😊', label: 'Optimis' },
-    { level: 5, emoji: '🚀', label: 'Sangat Siap' },
-  ];
+		if (typeof onComplete === 'function') {
+			onComplete(payload);
+		}
+	};
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage('');
+	return (
+		<Modal
+			show={isOpen}
+			onHide={onClose}
+			centered
+			backdrop="static"
+			keyboard
+			contentClassName="shadow border-0 overflow-hidden bg-white"
+			style={{
+				margin: 'auto',
+				fontFamily: 'var(--font)',
+				borderRadius: 'var(--radius-lg)',
+			}}
+		>
+			{/* Modal Header */}
+			<Modal.Header
+				closeButton
+				className="py-3 px-4 border-bottom bg-white"
+				style={{ borderColor: 'var(--neutral-border)' }}
+			>
+				<Modal.Title style={{ color: 'var(--text)' }}>
+					<div
+						className="d-flex align-items-center gap-2"
+						style={{ fontSize: 'var(--font-sm)' }}
+					>
+						<span>Kesiapan Belajar (SRL Forethought)</span>
+					</div>
+					{moduleTitle && (
+						<span
+							className="d-block mt-1 fw-normal"
+							style={{ fontSize: '10px', color: 'var(--text-muted)' }}
+						>
+							Modul: {moduleTitle}
+						</span>
+					)}
+				</Modal.Title>
+			</Modal.Header>
 
-    if (!goal.trim()) {
-      setErrorMessage('Tentukan tujuan belajar Anda sebelum memulai.');
-      return;
-    }
+			<Form onSubmit={handleSubmit}>
+				<Modal.Body className="p-4">
+					{errorMessage && (
+						<Alert
+							className="py-2 px-3 mb-3 border"
+							style={{
+								backgroundColor: 'var(--error-bg)',
+								color: 'var(--error-text)',
+								borderColor: 'var(--error-border)',
+								fontSize: 'var(--font-xs)',
+								borderRadius: 'var(--radius-sm)',
+							}}
+						>
+							{errorMessage}
+						</Alert>
+					)}
 
-    setIsSubmitting(true);
+					{/* 1. Target Belajar */}
+					<Form.Group className="mb-4" controlId="learningGoal">
+						<div className="d-flex justify-content-between align-items-center mb-1">
+							<Form.Label
+								className="fw-bold mb-0"
+								style={{ fontSize: 'var(--font-sm)', color: 'var(--text)' }}
+							>
+								Tentukan target belajar Anda
+								<span style={{ color: 'var(--error-text)' }}>*</span>
+							</Form.Label>
+							<span
+								style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}
+							>
+								Task Analysis
+							</span>
+						</div>
+						<Form.Control
+							type="text"
+							size="sm"
+							className="py-2 px-3"
+							placeholder="Contoh: Menguasai state dan hooks..."
+							value={goal}
+							onChange={(e) => setGoal(e.target.value)}
+							style={{
+								borderRadius: 'var(--radius-md)',
+								borderColor: 'var(--neutral-border)',
+								fontSize: 'var(--font-sm)',
+								color: 'var(--text)',
+							}}
+							required
+						/>
+						<div className="d-flex gap-2 mt-2 flex-wrap">
+							{QUICK_GOALS.map((item) => (
+								<Button
+									key={item}
+									type="button"
+									variant="light"
+									size="sm"
+									className="py-1 px-2.5 border"
+									style={{
+										fontSize: 'var(--font-xs)',
+										borderRadius: 'var(--radius-full)',
+										backgroundColor: 'var(--color-bg-2)',
+										borderColor: 'var(--neutral-border)',
+										color: 'var(--text-muted)',
+									}}
+									onClick={() => setGoal(item)}
+								>
+									+ {item}
+								</Button>
+							))}
+						</div>
+					</Form.Group>
 
-    const payload = {
-      enrollment_id: enrollmentId,
-      goal: goal.trim(),
-      plan: `${plan} menit`,
-      strategy,
-      motivation: strategy, // kompatibilitas alias payload motivation/strategy
-      self_efficacy: Number(selfEfficacy),
-      timestamp: new Date().toISOString(),
-    };
+					{/* 2. Alokasi Waktu */}
+					<Form.Group className="mb-4" controlId="timePlan">
+						<div className="d-flex justify-content-between align-items-center mb-1">
+							<Form.Label
+								className="fw-bold mb-0"
+								style={{ fontSize: 'var(--font-sm)', color: 'var(--text)' }}
+							>
+								Berapa estimasi waktu yang disiapkan?
+							</Form.Label>
+						</div>
+						<Form.Select
+							size="sm"
+							className="py-2 px-3"
+							value={plan}
+							onChange={(e) => setPlan(e.target.value)}
+							style={{
+								borderRadius: 'var(--radius-md)',
+								borderColor: 'var(--neutral-border)',
+								fontSize: 'var(--font-sm)',
+								color: 'var(--text)',
+							}}
+						>
+							<option value="10">10 Menit — Microlearning Kilat</option>
+							<option value="15">15 Menit — Sesuai Rekomendasi Sistem</option>
+							<option value="20">20 Menit — Standar Pemahaman Modul</option>
+							<option value="30">30 Menit — Deep Focus & Catatan Lengkap</option>
+						</Form.Select>
+					</Form.Group>
 
-    try {
-      // Coba kirim via interceptor Axios
-      try {
-        await api.post('/srl/forethought', payload);
-      } catch (axiosErr) {
-        // Fallback fetch API
-        await fetch('/api/srl/forethought', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      }
+					{/* 3. Taktik Kognitif */}
+					<div className="mb-4">
+						<div className="d-flex justify-content-between align-items-center mb-2">
+							<Form.Label
+								className="fw-bold mb-0"
+								style={{ fontSize: 'var(--font-sm)', color: 'var(--text)' }}
+							>
+								Metode belajar apa yang akan kamu gunakan?
+							</Form.Label>
+						</div>
+						<div className="d-flex gap-2">
+							{STRATEGY_OPTIONS.map((item) => {
+								const isActive = strategy === item.id;
+								return (
+									<Button
+										key={item.id}
+										type="button"
+										size="sm"
+										style={{
+											fontSize: 'var(--font-xs)',
+											borderRadius: 'var(--radius-full)',
+											backgroundColor: isActive
+												? 'var(--text)'
+												: 'var(--color-bg-2)',
+											color: isActive ? 'var(--color-white)' : 'var(--text)',
+											borderColor: isActive
+												? 'var(--text)'
+												: 'var(--neutral-border)',
+										}}
+										onClick={() => setStrategy(item.id)}
+									>
+										{item.label}
+									</Button>
+								);
+							})}
+						</div>
+					</div>
 
-      // Unlock navigasi ke Fase Performance
-      if (typeof onComplete === 'function') {
-        onComplete(payload);
-      }
-    } catch (error) {
-      console.warn('Gagal mengirim SRL Forethought:', error);
-      // Tetap lanjutkan navigasi agar user experience tidak terhambat
-      if (typeof onComplete === 'function') {
-        onComplete(payload);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+					{/* 4. Efikasi Diri */}
+					<div
+						className="p-3 border"
+						style={{
+							backgroundColor: 'var(--color-bg-2)',
+							borderRadius: 'var(--radius)',
+							borderColor: 'var(--border)',
+						}}
+					>
+						<div className="d-flex justify-content-between align-items-center mb-2">
+							<Form.Label
+								className="fw-bold mb-0"
+								style={{ fontSize: 'var(--font-sm)', color: 'var(--text)' }}
+							>
+								Seberapa paham kamu dengan materi ini?
+							</Form.Label>
+						</div>
+						<div className="d-flex justify-content-between gap-2">
+							{EFFICACY_LEVELS.map((item) => {
+								const isSelected = selfEfficacy === item.level;
+								return (
+									<button
+										key={item.level}
+										type="button"
+										className="flex-fill text-center p-2 border transition-all"
+										style={{
+											borderRadius: 'var(--radius-md)',
+											backgroundColor: isSelected
+												? 'var(--text)'
+												: 'var(--card)',
+											color: isSelected
+												? 'var(--color-white)'
+												: 'var(--text)',
+											borderColor: isSelected
+												? 'var(--text)'
+												: 'var(--neutral-border)',
+											cursor: 'pointer',
+										}}
+										onClick={() => setSelfEfficacy(item.level)}
+										title={`Tingkat ${item.level}: ${item.label}`}
+									>
+										<div>{item.emoji}</div>
+										<div style={{ fontSize: 'var(--font-xs)' }}>
+											{item.label}
+										</div>
+									</button>
+								);
+							})}
+						</div>
+					</div>
+				</Modal.Body>
 
-  return (
-    <>
-      <div className="modal-backdrop fade show" style={{ zIndex: 1050 }}></div>
-      <div
-        className="modal fade show d-block"
-        tabIndex="-1"
-        role="dialog"
-        aria-modal="true"
-        style={{ zIndex: 1055 }}
-      >
-        <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '520px' }}>
-          <div className="modal-content shadow border-0 rounded-4 overflow-hidden">
-            {/* Modal Header */}
-            <div className="modal-header bg-primary text-white py-3 px-4">
-              <div>
-                <h5 className="modal-title fw-bold mb-0 fs-6">
-                  🎯 Kesiapan Belajar (SRL Forethought)
-                </h5>
-                {moduleTitle && (
-                  <span className="small text-white-50 d-block mt-0.5" style={{ fontSize: '0.8rem' }}>
-                    Modul: {moduleTitle}
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                className="btn-close btn-close-white"
-                onClick={onClose}
-                disabled={isSubmitting}
-                aria-label="Close"
-              />
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="modal-body p-4 pt-3">
-                {errorMessage && (
-                  <div className="alert alert-danger py-2 px-3 small mb-3" role="alert">
-                    {errorMessage}
-                  </div>
-                )}
-
-                {/* 1. PENETAPAN TUJUAN (goal) */}
-                <div className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <label htmlFor="learningGoal" className="form-label fw-bold mb-0 small">
-                      1. Target Belajar (<code className="text-primary">goal</code>){' '}
-                      <span className="text-danger">*</span>
-                    </label>
-                    <span className="text-muted" style={{ fontSize: '0.72rem' }}>
-                      Task Analysis
-                    </span>
-                  </div>
-                  <input
-                    id="learningGoal"
-                    type="text"
-                    className="form-control form-control-sm py-2"
-                    placeholder="Contoh: Menguasai state dan hooks..."
-                    value={goal}
-                    onChange={(e) => setGoal(e.target.value)}
-                    required
-                  />
-                  {/* Quick Goal Chips untuk Low Friction (< 15 detik) */}
-                  <div className="d-flex gap-1 mt-1.5 flex-wrap">
-                    {quickGoals.map((g) => (
-                      <button
-                        key={g}
-                        type="button"
-                        className="btn btn-sm btn-light border py-0 px-2 text-secondary"
-                        style={{ fontSize: '0.72rem', borderRadius: '12px' }}
-                        onClick={() => setGoal(g)}
-                      >
-                        + {g}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. ALOKASI WAKTU (plan) */}
-                <div className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <label htmlFor="timePlan" className="form-label fw-bold mb-0 small">
-                      2. Alokasi Waktu (<code className="text-primary">plan</code>)
-                    </label>
-                    <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: '0.72rem' }}>
-                      Rekomendasi: {recommendedTime} Menit
-                    </span>
-                  </div>
-                  <select
-                    id="timePlan"
-                    className="form-select form-select-sm py-2"
-                    value={plan}
-                    onChange={(e) => setPlan(e.target.value)}
-                  >
-                    <option value="10">10 Menit — Microlearning Kilat</option>
-                    <option value="15">15 Menit — Sesuai Rekomendasi Sistem</option>
-                    <option value="20">20 Menit — Standar Pemahaman Modul</option>
-                    <option value="30">30 Menit — Deep Focus & Catatan Lengkap</option>
-                  </select>
-                </div>
-
-                {/* 3. STRATEGI BELAJAR (strategy / motivation) - Single-select Chips/Pills */}
-                <div className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-1.5">
-                    <label className="form-label fw-bold mb-0 small">
-                      3. Taktik Kognitif (<code className="text-primary">strategy</code>)
-                    </label>
-                    <span className="text-muted" style={{ fontSize: '0.72rem' }}>
-                      Metacognitive Awareness
-                    </span>
-                  </div>
-                  <div className="d-flex gap-2">
-                    {strategyOptions.map((item) => {
-                      const isActive = strategy === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className={`btn btn-sm flex-fill py-1.5 px-2 rounded-pill fw-semibold transition-all ${isActive
-                              ? 'btn-primary shadow-sm'
-                              : 'btn-outline-secondary bg-light text-dark border'
-                            }`}
-                          style={{ fontSize: '0.78rem' }}
-                          onClick={() => setStrategy(item.id)}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 4. EFIKASI DIRI (self_efficacy) - Rating 1-5 dengan Emoji */}
-                <div className="mb-2 p-2.5 bg-light rounded-3 border">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <label className="form-label fw-bold mb-0 small text-dark">
-                      4. Efikasi Diri (<code className="text-primary">self_efficacy</code>)
-                    </label>
-                    <span className="badge bg-warning-subtle text-dark border border-warning-subtle" style={{ fontSize: '0.72rem' }}>
-                      Fitur Model ML Readiness
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between gap-1">
-                    {efficacyLevels.map((item) => {
-                      const isSelected = selfEfficacy === item.level;
-                      return (
-                        <button
-                          key={item.level}
-                          type="button"
-                          className={`btn flex-fill text-center p-1 rounded-3 transition-all ${isSelected
-                              ? 'btn-primary text-white shadow-sm'
-                              : 'btn-outline-light text-secondary border bg-white'
-                            }`}
-                          onClick={() => setSelfEfficacy(item.level)}
-                          title={`Tingkat ${item.level}: ${item.label}`}
-                        >
-                          <div style={{ fontSize: '1.25rem', lineHeight: '1.2' }}>{item.emoji}</div>
-                          <div style={{ fontSize: '0.68rem', fontWeight: isSelected ? '700' : '500' }}>
-                            {item.label}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="modal-footer bg-light border-0 py-2.5 px-4 d-flex justify-content-between">
-                <span className="text-muted small" style={{ fontSize: '0.75rem' }}>
-                  ⚡ Estimasi isi: &lt; 15 detik
-                </span>
-                <div className="d-flex gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary btn-sm px-3"
-                    onClick={onClose}
-                    disabled={isSubmitting}
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-sm px-4 fw-bold shadow-sm"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-1.5"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        Menyimpan...
-                      </>
-                    ) : (
-                      'Simpan Target & Mulai Belajar'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+				{/* Modal Footer */}
+				<Modal.Footer className="border-0 pb-3 px-4 d-flex justify-content-end align-items-center">
+					<div className="d-flex gap-2">
+						<Button
+							type="button"
+							variant="light"
+							size="sm"
+							className="px-3 border"
+							onClick={onClose}
+							style={{
+								backgroundColor: 'var(--card)',
+								borderColor: 'var(--neutral-border)',
+								color: 'var(--text-muted)',
+							}}
+						>
+							Batal
+						</Button>
+						<Button type="submit" size="sm" className="px-4 fw-bold border-0">
+							Simpan Target & Mulai Belajar
+						</Button>
+					</div>
+				</Modal.Footer>
+			</Form>
+		</Modal>
+	);
 };
 
 export default SRLForethoughtModal;

@@ -61,39 +61,6 @@ const LearningHeader = ({ isBookmarked: externalIsBookmarked, onToggleBookmark }
 
 				<Row className="align-items-center g-4">
 					<Col lg={9}>
-						{/* Badge Topik */}
-						<div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
-							<span
-								className="badge px-3 py-1 fw-bold d-inline-flex align-items-center gap-1"
-								style={{
-									backgroundColor: 'rgba(255, 255, 255, 0.15)',
-									color: '#00A8E8',
-									backdropFilter: 'blur(8px)',
-									border: '1px solid rgba(0, 168, 232, 0.35)',
-									fontSize: '0.78rem',
-									borderRadius: '9999px',
-									letterSpacing: '0.04em',
-								}}
-							>
-								<Layers size={13} />
-								<span>🗺️ LEARNING PATH</span>
-							</span>
-
-							<span
-								className="badge px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1"
-								style={{
-									backgroundColor: 'rgba(2, 128, 144, 0.25)',
-									color: '#E0F2FE',
-									border: '1px solid rgba(2, 128, 144, 0.4)',
-									fontSize: '0.78rem',
-									borderRadius: '9999px',
-								}}
-							>
-								<Sparkles size={12} className="text-warning" />
-								<span>AI Recommended Path</span>
-							</span>
-						</div>
-
 						{/* Judul Utama */}
 						<h1
 							className="fw-bold mb-2 text-white"
@@ -125,40 +92,18 @@ const LearningHeader = ({ isBookmarked: externalIsBookmarked, onToggleBookmark }
 								<Clock size={15} style={{ color: '#00A8E8' }} />
 								{MOCK_LEARNING_PATH.metrics.totalHours}
 							</span>
-							<span>•</span>
-							<span>{MOCK_LEARNING_PATH.metrics.enrolledCount}</span>
-							<span>•</span>
+							{/* <span>•</span>
+							<span>{MOCK_LEARNING_PATH.metrics.enrolledCount}</span> */}
+							{/* <span>•</span>
 							<span className="d-flex align-items-center gap-1 text-warning fw-bold">
 								<Star size={14} fill="#f59e0b" color="#f59e0b" />
 								<span>{MOCK_LEARNING_PATH.metrics.rating}</span>
 								<span className="text-white-50 fw-normal">
 									({MOCK_LEARNING_PATH.metrics.reviewsCount})
 								</span>
-							</span>
-							<span>•</span>
-							<span>Updated {MOCK_LEARNING_PATH.metrics.updatedAt}</span>
-						</div>
-
-						{/* Smart Contract Verification Pill */}
-						<div className="mb-4">
-							<span
-								className="badge px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 text-wrap text-start"
-								style={{
-									backgroundColor: 'rgba(11, 37, 69, 0.65)',
-									border: '1px solid rgba(0, 168, 232, 0.4)',
-									color: '#E0F2FE',
-									borderRadius: '8px',
-									fontSize: '0.8rem',
-									lineHeight: 1.4,
-								}}
-							>
-								<ShieldCheck
-									size={16}
-									className="flex-shrink-0"
-									style={{ color: '#00A8E8' }}
-								/>
-								<span>🛡️ 7 Certificates & Blockchain Smart Contract Verified</span>
-							</span>
+							</span> */}
+							{/* <span>•</span>
+							<span>Updated {MOCK_LEARNING_PATH.metrics.updatedAt}</span> */}
 						</div>
 
 						{/* CTA Action Buttons */}

@@ -1,0 +1,42 @@
+<article>
+	<section>
+		<h2>1. Perintah Input & Type Casting</h2>
+		<p class="text-gray-700 text-sm mb-3">
+			Perintah <code>input()</code> membaca masukan dari pengguna sebagai teks (String).
+			Gunakan fungsi <code>int()</code> atau <code>float()</code> untuk melakukan konversi
+			tipe data (type casting).
+		</p>
+	</section>
+
+	<section>
+		<h2>2. Formatting Output (sep & end)</h2>
+		<ul>
+			<li><strong>end:</strong> Menentukan karakter di akhir baris (default `\n`).</li>
+			<li><strong>sep:</strong> Menentukan karakter pemisah antar argumen output.</li>
+			<li>
+				<strong>Formatting Float:</strong> <code>"{0:4.2f}".format(y)</code> memformat float
+				ke 2 digit angka desimal.
+			</li>
+		</ul>
+	</section>
+
+	<section class="mt-6">
+		<h3>
+			<span>Kode Python</span>
+			Input, Output, & Formatting
+		</h3>
+		<pre><code>def main():
+    nama = input("Ketikkan nama: ")
+    nilaiC = int(input("Masukkan nilai C: "))
+
+    # Penggunaan end dan sep
+    print(5, end=" ")
+    print(0.0025) # Dicetak di baris yang sama (5 0.0025)
+
+    print("Hello from ", nama, "!", sep="")
+    print("Formatted float: {0:4.2f}".format(0.25678)) # Output: 0.26
+
+if __name__ == '__main__':
+    main()</code></pre>
+	</section>
+</article>
