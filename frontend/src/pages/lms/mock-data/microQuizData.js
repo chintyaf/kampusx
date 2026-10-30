@@ -79,53 +79,53 @@ export const mockLessonMicroQuizzes = {
 			xpReward: 15,
 		},
 	],
-	'les-4': [
-		{
-			id: 'mq-4-1',
-			question: 'Bagaimana Idempotency-Key mencegah duplikasi transaksi pembayaran?',
-			options: [
-				'Menolak setiap transaksi yang terjadi di bawah 1 detik',
-				'Menyimpan UUID unik di Redis; request dengan key yang sama mengembalikan cached response',
-				'Mengunci akun user selama proses pembayaran',
-				'Mengenkripsi saldo sebelum request dikirim',
-			],
-			correctAnswer: 1,
-			explanation:
-				'Idempotency-Key di-cache bersama responsnya. Jika koneksi terputus dan client mencoba lagi, respons yang sama dikembalikan tanpa menagih ulang.',
-			xpReward: 15,
-		},
-	],
-	'les-5': [
-		{
-			id: 'mq-5-1',
-			question:
-				'Komponen apa yang wajib disimpan bersama Idempotency-Key di caching layer (Redis)?',
-			options: [
-				'Hanya boolean status proses (success/fail)',
-				'HTTP status code, response headers, dan response body',
-				'Seluruh file log server',
-				'Password user yang di-hash',
-			],
-			correctAnswer: 1,
-			explanation:
-				'Status code, headers relevan, dan payload response harus disimpan agar replika respons identik dapat dikirim ulang.',
-			xpReward: 15,
-		},
-	],
-	'les-6': [
-		{
-			id: 'mq-6-1',
-			question: 'Pada fase Self-Regulated Learning (SRL), kapan evaluasi hasil pemahaman dilakukan?',
-			options: [
-				'Forethought Phase',
-				'Performance Phase',
-				'Self-Reflection Phase',
-				'Preparation Phase',
-			],
-			correctAnswer: 2,
-			explanation:
-				'Self-Reflection Phase berfokus pada metakognisi, self-assessment nilai, dan formulasi adaptasi untuk sesi belajar berikutnya.',
-			xpReward: 15,
-		},
-	],
+	// 'les-4': [
+	// 	{
+	// 		id: 'mq-4-1',
+	// 		question: 'Bagaimana Idempotency-Key mencegah duplikasi transaksi pembayaran?',
+	// 		options: [
+	// 			'Menolak setiap transaksi yang terjadi di bawah 1 detik',
+	// 			'Menyimpan UUID unik di Redis; request dengan key yang sama mengembalikan cached response',
+	// 			'Mengunci akun user selama proses pembayaran',
+	// 			'Mengenkripsi saldo sebelum request dikirim',
+	// 		],
+	// 		correctAnswer: 1,
+	// 		explanation:
+	// 			'Idempotency-Key di-cache bersama responsnya. Jika koneksi terputus dan client mencoba lagi, respons yang sama dikembalikan tanpa menagih ulang.',
+	// 		xpReward: 15,
+	// 	},
+	// ],
+	// 'les-5': [
+	// 	{
+	// 		id: 'mq-5-1',
+	// 		question:
+	// 			'Komponen apa yang wajib disimpan bersama Idempotency-Key di caching layer (Redis)?',
+	// 		options: [
+	// 			'Hanya boolean status proses (success/fail)',
+	// 			'HTTP status code, response headers, dan response body',
+	// 			'Seluruh file log server',
+	// 			'Password user yang di-hash',
+	// 		],
+	// 		correctAnswer: 1,
+	// 		explanation:
+	// 			'Status code, headers relevan, dan payload response harus disimpan agar replika respons identik dapat dikirim ulang.',
+	// 		xpReward: 15,
+	// 	},
+	// ],
+	// 'les-6': [
+	// 	{
+	// 		id: 'mq-6-1',
+	// 		question: 'Pada fase Self-Regulated Learning (SRL), kapan evaluasi hasil pemahaman dilakukan?',
+	// 		options: [
+	// 			'Forethought Phase',
+	// 			'Performance Phase',
+	// 			'Self-Reflection Phase',
+	// 			'Preparation Phase',
+	// 		],
+	// 		correctAnswer: 2,
+	// 		explanation:
+	// 			'Self-Reflection Phase berfokus pada metakognisi, self-assessment nilai, dan formulasi adaptasi untuk sesi belajar berikutnya.',
+	// 		xpReward: 15,
+	// 	},
+	// ],
 };

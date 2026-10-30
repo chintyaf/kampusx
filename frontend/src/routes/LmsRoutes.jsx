@@ -2,7 +2,7 @@ import React from 'react';
 import { Route, Routes, Navigate, Link } from 'react-router-dom';
 
 // Layouts
-import MemberLayout from '@/layouts/MemberLayout';
+import LmsLayout from '@/layouts/lms/LmsLayout';
 
 // Learner Pages
 import LearningDashboard from '@/pages/lms/learner/LearningDashboard';
@@ -41,7 +41,7 @@ export const LmsRoutes = () => {
 	return (
 		<Routes>
 			{/* 1. LEARNER DOMAIN */}
-			<Route element={<MemberLayout />}>
+			<Route element={<LmsLayout />}>
 				{/* Top-Level Shortcuts */}
 				<Route path="/explore-microlearning" element={<ExploreMicrolearningPage />} />
 				<Route path="/learning" element={<LearningDashboard />} />

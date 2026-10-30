@@ -6,51 +6,105 @@ import {
 	ChevronRight,
 	HelpCircle,
 	Check,
-	ArrowRight,
 	Clock,
 	AlertTriangle,
 	Bookmark,
 	Send,
 } from 'lucide-react';
 
-// Import Mock Data
-import { mockModulesData, mockModuleQuizzes, mockContinueLearning } from '@/data/learningMockData';
+// Data kuis dengan semua jawaban benar dipindahkan ke opsi A
+const QUIZ_DATA = {
+	title: 'Web Application Architecture & REST API Design',
+	passingScore: 75,
+	questions: [
+		{
+			id: 1,
+			question: 'Apa fungsi utama dari REST API dalam arsitektur web modern?',
+			options: [
+				{
+					key: 'A',
+					text: 'Memungkinkan komunikasi antara server dan client menggunakan protokol HTTP',
+				},
+				{ key: 'B', text: 'Mengatur tampilan antarmuka pengguna (UI) secara otomatis' },
+				{ key: 'C', text: 'Menyimpan data langsung ke database internal browser' },
+				{ key: 'D', text: 'Menjalankan kode Python langsung di sisi browser' },
+			],
+			correct: 'A',
+		},
+		{
+			id: 2,
+			question:
+				'HTTP Method manakah yang paling tepat digunakan untuk memperbarui seluruh data resource?',
+			options: [
+				{ key: 'A', text: 'PUT' },
+				{ key: 'B', text: 'GET' },
+				{ key: 'C', text: 'POST' },
+				{ key: 'D', text: 'PATCH' },
+			],
+			correct: 'A',
+		},
+		{
+			id: 3,
+			question: 'Status code HTTP 404 menunjukkan bahwa...',
+			options: [
+				{ key: 'A', text: 'Resource yang diminta tidak ditemukan' },
+				{ key: 'B', text: 'Server mengalami kesalahan internal' },
+				{ key: 'C', text: 'Permintaan berhasil dilakukan' },
+				{ key: 'D', text: 'Akses ditolak karena masalah otorisasi' },
+			],
+			correct: 'A',
+		},
+		{
+			id: 4,
+			question:
+				'Manakah di bawah ini yang merupakan ciri khas dari arsitektur Stateless pada REST API?',
+			options: [
+				{
+					key: 'A',
+					text: 'Setiap request dari client harus berisi semua informasi yang dibutuhkan server',
+				},
+				{
+					key: 'B',
+					text: 'Server menyimpan state/session pengguna di dalam database server',
+				},
+				{ key: 'C', text: 'Client tidak diperbolehkan mengirimkan header Authorization' },
+				{
+					key: 'D',
+					text: 'Server secara otomatis mengingat request sebelumnya dari IP yang sama',
+				},
+			],
+			correct: 'A',
+		},
+		{
+			id: 5,
+			question:
+				'Format data manakah yang paling umum digunakan untuk pertukaran data pada RESTful API?',
+			options: [
+				{ key: 'A', text: 'JSON' },
+				{ key: 'B', text: 'XML' },
+				{ key: 'C', text: 'YAML' },
+				{ key: 'D', text: 'CSV' },
+			],
+			correct: 'A',
+		},
+	],
+};
 
 const QuizPage = () => {
 	const { moduleId = 'mod-arch-101' } = useParams();
 	const navigate = useNavigate();
 
-	// Find module data or fallback to mod-arch-101
-	const moduleData =
-		mockModulesData[moduleId] ||
-		(moduleId === 'mod-arch-101' ? mockContinueLearning : mockModulesData['mod-arch-101']) ||
-		mockModulesData['1'];
+	const moduleTitle = QUIZ_DATA.title;
+	const quizQuestions = QUIZ_DATA.questions;
+	const passingScore = QUIZ_DATA.passingScore;
 
-	const moduleTitle = moduleData?.title || 'Web Application Architecture & REST API Design';
-	const quizQuestions =
-		moduleData?.moduleQuiz?.length > 0
-			? moduleData.moduleQuiz
-			: mockModuleQuizzes[moduleId] || mockModuleQuizzes['mod-arch-101'];
-
-	const passingScore = moduleData?.passingScore || 75;
-
-	// Active question index (0 to length - 1)
 	const [currentQuestion, setCurrentQuestion] = useState(0);
-
-	// User answers map: { [questionIndex]: optionKey }
 	const [userAnswers, setUserAnswers] = useState({});
-
-	// Marked for review map: { [questionIndex]: boolean }
 	const [markedForReview, setMarkedForReview] = useState({});
-
-	// Timer countdown: 10 minutes (600 seconds)
 	const [timeLeft, setTimeLeft] = useState(600);
 	const [isTimerRunning, setIsTimerRunning] = useState(true);
-
-	// Modal confirmation
 	const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-	// Countdown interval
 	useEffect(() => {
 		if (!isTimerRunning) return;
 		const timer = setInterval(() => {
@@ -68,14 +122,13 @@ const QuizPage = () => {
 		return () => clearInterval(timer);
 	}, [isTimerRunning]);
 
-	// Format time mm:ss
 	const formatTime = (seconds) => {
 		const mins = Math.floor(seconds / 60);
 		const secs = seconds % 60;
 		return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 	};
 
-	const currentQ = quizQuestions[currentQuestion] || quizQuestions[0];
+	const currentQ = quizQuestions[currentQuestion] || {};
 	const selectedOption = userAnswers[currentQuestion] || null;
 	const isCurrentFlagged = markedForReview[currentQuestion] || false;
 
@@ -95,35 +148,29 @@ const QuizPage = () => {
 
 	const handleNext = () => {
 		if (currentQuestion < quizQuestions.length - 1) {
-			setCurrentQuestion(currentQuestion + 1);
+			setCurrentQuestion((prev) => prev + 1);
 		}
 	};
 
 	const handlePrev = () => {
 		if (currentQuestion > 0) {
-			setCurrentQuestion(currentQuestion - 1);
+			setCurrentQuestion((prev) => prev - 1);
 		}
 	};
 
-	// Submit quiz and calculate percentage score
 	const handleSubmitQuiz = () => {
 		setShowSubmitModal(false);
 		setIsTimerRunning(false);
 
 		let correctCount = 0;
 		quizQuestions.forEach((q, idx) => {
-			const userChoice = userAnswers[idx];
-			const correctKey =
-				q.correct ||
-				(q.options && typeof q.correctAnswer === 'number'
-					? q.options[q.correctAnswer]?.key
-					: null);
-			if (userChoice && userChoice === correctKey) {
+			if (userAnswers[idx] === q.correct) {
 				correctCount++;
 			}
 		});
 
-		const scorePercentage = Math.round((correctCount / quizQuestions.length) * 100);
+		const scorePercentage =
+			quizQuestions.length > 0 ? Math.round((correctCount / quizQuestions.length) * 100) : 0;
 		const isPassed = scorePercentage >= passingScore;
 
 		const quizResult = {
@@ -150,7 +197,8 @@ const QuizPage = () => {
 	};
 
 	const answeredCount = Object.keys(userAnswers).length;
-	const progressPercent = Math.round((answeredCount / quizQuestions.length) * 100);
+	const progressPercent =
+		quizQuestions.length > 0 ? Math.round((answeredCount / quizQuestions.length) * 100) : 0;
 
 	return (
 		<div
@@ -221,7 +269,6 @@ const QuizPage = () => {
 							</div>
 						</div>
 
-						{/* Timer & Quick Actions */}
 						<div className="d-flex align-items-center gap-3">
 							<div
 								className="d-flex align-items-center gap-2 px-3 py-2 border fw-bold font-monospace"
@@ -271,7 +318,6 @@ const QuizPage = () => {
 
 			<Container style={{ paddingTop: 28 }}>
 				<Row className="g-4">
-					{/* LEFT COLUMN: Progress & Question Navigation Matrix */}
 					<Col lg={3}>
 						<div
 							className="d-flex flex-column gap-3 position-sticky"
@@ -312,7 +358,6 @@ const QuizPage = () => {
 									</span>
 								</div>
 
-								{/* Progress bar */}
 								<ProgressBar
 									now={progressPercent}
 									className="mb-3"
@@ -324,7 +369,6 @@ const QuizPage = () => {
 									variant="success"
 								/>
 
-								{/* Grid of Question Numbers */}
 								<div
 									style={{
 										display: 'grid',
@@ -376,11 +420,7 @@ const QuizPage = () => {
 												}}
 												title={`Soal ${index + 1}`}
 											>
-												{isAnswered && !isCurrent ? (
-													<Check size={14} />
-												) : (
-													index + 1
-												)}
+												{isAnswered && !isCurrent ? index + 1 : index + 1}
 												{isFlagged && (
 													<span
 														style={{
@@ -399,7 +439,6 @@ const QuizPage = () => {
 									})}
 								</div>
 
-								{/* Legend indicator */}
 								<div
 									className="mt-3 pt-3 border-top d-flex flex-column gap-2"
 									style={{
@@ -449,364 +488,446 @@ const QuizPage = () => {
 						</div>
 					</Col>
 
-					{/* RIGHT COLUMN: Question Card & Interactive Options */}
 					<Col lg={9}>
-						{/* Top Question Meta Card */}
 						<Card
 							style={{
-								borderRadius: 'var(--radius-lg)',
-								border: 'var(--border-w-xs) solid var(--neutral-border)',
-								backgroundColor: 'var(--card)',
-								padding: 20,
-								marginBottom: 16,
+								borderRadius: '16px',
+								border: '1px solid var(--neutral-border, #E2E8F0)',
+								backgroundColor: 'var(--card, #FFFFFF)',
 								boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+								overflow: 'hidden',
 							}}
 						>
-							<div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
-								<div className="d-flex align-items-center gap-2">
-									<span
-										className="badge border-0 px-3 py-2 fw-bold"
-										style={{
-											backgroundColor: 'var(--primary)',
-											color: 'var(--color-white)',
-											borderRadius: 'var(--radius-full)',
-											fontSize: 'var(--font-xs)',
-										}}
-									>
-										Soal No. {currentQuestion + 1}
-									</span>
-									<span
-										style={{
-											color: 'var(--muted)',
-											fontSize: 'var(--font-sm)',
-										}}
-									>
-										dari {quizQuestions.length} pertanyaan
-									</span>
-									<span
-										className="badge border ms-1"
-										style={{
-											backgroundColor: 'var(--neutral-bg)',
-											color: 'var(--muted)',
-											borderColor: 'var(--neutral-border)',
-											fontSize: 'var(--font-xs)',
-										}}
-									>
-										Ambang Lulus: {passingScore}%
-									</span>
-								</div>
-
-								<Button
-									variant={isCurrentFlagged ? 'warning' : 'outline-secondary'}
-									size="sm"
-									className="px-3 py-1 fw-semibold d-inline-flex align-items-center gap-2 text-nowrap"
+							{/* Header Info Soal & Ambang Lulus */}
+							<div
+								className="px-4 py-3 d-flex align-items-center justify-content-between border-bottom"
+								style={{ borderColor: 'var(--neutral-border, #F1F5F9)' }}
+							>
+								<span
 									style={{
-										borderRadius: 'var(--radius-md)',
-										fontSize: 'var(--font-xs)',
-										backgroundColor: isCurrentFlagged
-											? 'var(--warning-bg)'
-											: 'transparent',
-										borderColor: isCurrentFlagged
-											? 'var(--warning-border)'
-											: 'var(--neutral-border)',
-										color: isCurrentFlagged
-											? 'var(--warning-heading)'
-											: 'var(--muted)',
-									}}
-									onClick={handleToggleFlag}
-								>
-									<Bookmark
-										size={13}
-										fill={isCurrentFlagged ? 'currentColor' : 'none'}
-									/>
-									<span>
-										{isCurrentFlagged
-											? 'Ditandai Ragu-Ragu'
-											: 'Tandai Ragu-Ragu'}
-									</span>
-								</Button>
-							</div>
-						</Card>
-
-						{/* Question Text Card */}
-						<Card
-							style={{
-								borderRadius: 'var(--radius-lg)',
-								border: 'var(--border-w-xs) solid var(--neutral-border)',
-								backgroundColor: 'var(--card)',
-								padding: 24,
-								marginBottom: 16,
-								boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
-							}}
-						>
-							<div className="d-flex gap-3 align-items-start">
-								<div
-									className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1"
-									style={{
-										width: 34,
-										height: 34,
-										backgroundColor: 'var(--primary-light)',
-										color: 'var(--primary)',
+										fontSize: 'var(--font-xs, 0.85rem)',
+										fontWeight: 800,
+										color: 'var(--text, #1E293B)',
+										letterSpacing: '0.05em',
+										textTransform: 'uppercase',
 									}}
 								>
-									<HelpCircle size={18} />
-								</div>
-								<div className="flex-grow-1">
-									<h4
-										style={{
-											fontSize: 'var(--font-md)',
-											fontWeight: 700,
-											color: 'var(--text)',
-											lineHeight: 1.5,
-											margin: 0,
-										}}
-									>
-										{currentQ.q || currentQ.question}
-									</h4>
-								</div>
+									SOAL {currentQuestion + 1} DARI {quizQuestions.length}
+								</span>
+								<span
+									className="px-3 py-1 fw-semibold"
+									style={{
+										fontSize: 'var(--font-xs, 0.8rem)',
+										color: 'var(--muted, #475569)',
+										backgroundColor: 'var(--card, #FFFFFF)',
+										border: '1px solid var(--neutral-border, #CBD5E1)',
+										borderRadius: '50px',
+									}}
+								>
+									Ambang lulus {passingScore}%
+								</span>
 							</div>
-						</Card>
 
-						{/* Multiple Choice Options List */}
-						<div className="d-flex flex-column gap-3 mb-3">
-							{currentQ.options.map((option, idx) => {
-								const optKey =
-									typeof option === 'string'
-										? String.fromCharCode(65 + idx)
-										: option.key || String.fromCharCode(65 + idx);
-								const optText = typeof option === 'string' ? option : option.text;
-								const isSelected = selectedOption === optKey;
-
-								return (
+							{/* Isi Pertanyaan & Opsi */}
+							<div className="p-4">
+								{/* Blok Pertanyaan */}
+								<div className="d-flex gap-3 align-items-start mb-4">
 									<div
-										key={optKey}
-										onClick={() => handleOptionSelect(optKey)}
-										className="p-3 d-flex align-items-center gap-3"
+										className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
 										style={{
-											borderRadius: 'var(--radius-md)',
-											border: `var(--border-w-xs) solid ${
-												isSelected
-													? 'var(--primary)'
-													: 'var(--neutral-border)'
-											}`,
-											background: isSelected
-												? 'var(--bahama-blue-50)'
-												: 'var(--card)',
-											cursor: 'pointer',
-											boxShadow: isSelected
-												? '0 4px 12px rgba(0, 105, 158, 0.08)'
-												: 'none',
-											transition: 'all 0.15s ease',
+											width: 44,
+											height: 44,
+											backgroundColor: 'var(--primary-light, #E0F2FE)',
+											color: 'var(--primary, #0284C7)',
 										}}
 									>
-										<div
-											style={{
-												width: 32,
-												height: 32,
-												borderRadius: 'var(--radius-full)',
-												background: isSelected
-													? 'var(--primary)'
-													: 'var(--neutral-bg)',
-												color: isSelected
-													? 'var(--color-white)'
-													: 'var(--muted)',
-												display: 'flex',
-												alignItems: 'center',
-												justifyContent: 'center',
-												fontWeight: 700,
-												fontSize: 'var(--font-xs)',
-												flexShrink: 0,
-												transition: 'all 0.15s ease',
-											}}
-										>
-											{optKey}
-										</div>
-
-										<span
-											style={{
-												fontSize: 'var(--font-sm)',
-												fontWeight: isSelected ? 600 : 400,
-												color: isSelected
-													? 'var(--primary)'
-													: 'var(--text)',
-												lineHeight: 1.5,
-											}}
-										>
-											{optText}
-										</span>
+										<HelpCircle size={22} />
 									</div>
-								);
-							})}
-						</div>
+									<div>
+										<span
+											className="d-block fw-bold text-uppercase mb-1"
+											style={{
+												fontSize: '0.75rem',
+												color: 'var(--muted, #64748B)',
+												letterSpacing: '0.05em',
+											}}
+										>
+											PERTANYAAN
+										</span>
+										<h4
+											style={{
+												fontSize: '1.25rem',
+												fontWeight: 700,
+												color: 'var(--text, #0F172A)',
+												lineHeight: 1.5,
+												margin: 0,
+											}}
+										>
+											{currentQ.question}
+										</h4>
+									</div>
+								</div>
 
-						{/* Navigation Bottom Action Bar */}
-						<Card
-							style={{
-								borderRadius: 'var(--radius-lg)',
-								border: 'var(--border-w-xs) solid var(--neutral-border)',
-								backgroundColor: 'var(--card)',
-								padding: 18,
-								boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
-							}}
-						>
-							<div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+								{/* Daftar Opsi Jawaban */}
+								<div className="d-flex flex-column gap-3 mb-4">
+									{currentQ.options?.map((option) => {
+										const optKey = option.key;
+										const optText = option.text;
+										const isSelected = selectedOption === optKey;
+
+										return (
+											<div
+												key={optKey}
+												onClick={() => handleOptionSelect(optKey)}
+												className="p-3 d-flex align-items-center justify-content-between gap-3"
+												style={{
+													borderRadius: '12px',
+													border: `1.5px solid ${
+														isSelected
+															? 'var(--primary, #0284C7)'
+															: 'var(--neutral-border, #E2E8F0)'
+													}`,
+													backgroundColor: isSelected
+														? 'var(--bahama-blue-50, #F0F9FF)'
+														: 'var(--card, #FFFFFF)',
+													cursor: 'pointer',
+													transition: 'all 0.15s ease-in-out',
+												}}
+											>
+												<div className="d-flex align-items-center gap-3">
+													<div
+														style={{
+															width: 36,
+															height: 36,
+															borderRadius: '50%',
+															backgroundColor: isSelected
+																? 'var(--primary, #0284C7)'
+																: 'var(--neutral-bg, #F1F5F9)',
+															color: isSelected
+																? '#FFFFFF'
+																: 'var(--muted, #64748B)',
+															display: 'flex',
+															alignItems: 'center',
+															justifyContent: 'center',
+															fontWeight: 700,
+															fontSize: '0.875rem',
+															flexShrink: 0,
+														}}
+													>
+														{optKey}
+													</div>
+													<span
+														style={{
+															fontSize: '0.95rem',
+															fontWeight: isSelected ? 600 : 400,
+															color: isSelected
+																? 'var(--text, #0F172A)'
+																: 'var(--text, #1E293B)',
+															lineHeight: 1.4,
+														}}
+													>
+														{optText}
+													</span>
+												</div>
+
+												{/* Indikator Pilihan (Kanan) */}
+												<div>
+													{isSelected ? (
+														<div
+															className="rounded-circle d-flex align-items-center justify-content-center"
+															style={{
+																width: 28,
+																height: 28,
+																backgroundColor:
+																	'var(--primary, #0284C7)',
+																color: '#FFFFFF',
+															}}
+														>
+															<Check size={16} strokeWidth={2.5} />
+														</div>
+													) : (
+														<div
+															className="rounded-circle"
+															style={{
+																width: 28,
+																height: 28,
+																border: '2px solid var(--neutral-border, #CBD5E1)',
+																backgroundColor: 'transparent',
+															}}
+														/>
+													)}
+												</div>
+											</div>
+										);
+									})}
+								</div>
+
+								{/* Tombol Tandai Ragu-ragu */}
+								<div className="d-flex justify-content-end mb-2">
+									<button
+										type="button"
+										onClick={handleToggleFlag}
+										className="btn btn-link text-decoration-none d-inline-flex align-items-center gap-2 p-0"
+										style={{
+											color: isCurrentFlagged
+												? 'var(--warning-text, #D97706)'
+												: 'var(--muted, #64748B)',
+											fontWeight: 600,
+											fontSize: '0.875rem',
+										}}
+									>
+										<Bookmark
+											size={18}
+											fill={isCurrentFlagged ? 'currentColor' : 'none'}
+										/>
+										<span>
+											{isCurrentFlagged
+												? 'Ditandai ragu-ragu'
+												: 'Tandai ragu-ragu'}
+										</span>
+									</button>
+								</div>
+							</div>
+
+							{/* Navigasi Bawah */}
+							<div
+								className="p-4 d-flex align-items-center justify-content-between border-top"
+								style={{
+									borderColor: 'var(--neutral-border, #F1F5F9)',
+									backgroundColor: 'var(--card, #FFFFFF)',
+								}}
+							>
 								<Button
-									variant="outline-secondary"
-									disabled={currentQuestion === 0}
+									variant="light"
 									onClick={handlePrev}
-									className="px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2"
+									disabled={currentQuestion === 0}
+									className="d-inline-flex align-items-center gap-2 px-3 py-2 fw-semibold"
 									style={{
-										borderRadius: 'var(--radius-md)',
-										fontSize: 'var(--font-sm)',
-										borderColor: 'var(--neutral-border)',
-										color: 'var(--muted)',
+										borderRadius: '10px',
+										backgroundColor: '#FFFFFF',
+										border: '1px solid var(--neutral-border, #CBD5E1)',
+										color: 'var(--text, #334155)',
+										fontSize: '0.875rem',
+										opacity: currentQuestion === 0 ? 0.5 : 1,
 									}}
 								>
-									<ChevronLeft size={16} />
-									<span>Sebelumnya</span>
+									<ChevronLeft size={18} /> Soal sebelumnya
 								</Button>
 
-								<div className="d-flex align-items-center gap-2">
-									{currentQuestion < quizQuestions.length - 1 ? (
-										<Button
-											onClick={handleNext}
-											className="px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 border-0"
-											style={{
-												backgroundColor: 'var(--text)',
-												color: 'var(--color-white)',
-												borderRadius: 'var(--radius-md)',
-												fontSize: 'var(--font-sm)',
-											}}
-										>
-											<span>Selanjutnya</span>
-											<ChevronRight size={16} />
-										</Button>
-									) : null}
-
+								{currentQuestion < quizQuestions.length - 1 ? (
+									<Button
+										onClick={handleNext}
+										className="d-inline-flex align-items-center gap-2 px-4 py-2 fw-semibold border-0"
+										style={{
+											backgroundColor: 'var(--primary, #0284C7)',
+											color: '#FFFFFF',
+											borderRadius: '10px',
+											fontSize: '0.875rem',
+										}}
+									>
+										Soal selanjutnya <ChevronRight size={18} />
+									</Button>
+								) : (
 									<Button
 										onClick={() => setShowSubmitModal(true)}
-										className="px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 border-0 shadow-sm"
+										className="d-inline-flex align-items-center gap-2 px-4 py-2 fw-semibold border-0"
 										style={{
-											backgroundColor: 'var(--primary)',
-											color: 'var(--color-white)',
-											borderRadius: 'var(--radius-md)',
-											fontSize: 'var(--font-sm)',
+											backgroundColor: 'var(--primary, #0284C7)',
+											color: '#FFFFFF',
+											borderRadius: '10px',
+											fontSize: '0.875rem',
 										}}
 									>
-										<span>Kirim Jawaban & Lanjut ke Refleksi</span>
-										<ArrowRight size={16} />
+										Kirim Jawaban <Send size={18} />
 									</Button>
-								</div>
+								)}
 							</div>
 						</Card>
 					</Col>
 				</Row>
 			</Container>
 
-			{/* Confirmation Modal */}
-			<Modal show={showSubmitModal} onHide={() => setShowSubmitModal(false)} centered>
-				<Modal.Header closeButton style={{ borderColor: 'var(--neutral-border)' }}>
+			<Modal
+				show={showSubmitModal}
+				onHide={() => setShowSubmitModal(false)}
+				centered
+				contentClassName="border-0 shadow-lg"
+				style={{ borderRadius: '16px', overflow: 'hidden' }}
+			>
+				{/* Header Modal */}
+				<Modal.Header closeButton className="px-4 pt-4 pb-2 border-bottom-0">
 					<Modal.Title
-						className="fw-bold"
-						style={{ fontSize: 'var(--font-md)', color: 'var(--text)' }}
+						style={{
+							fontSize: '1.125rem',
+							fontWeight: 700,
+							color: 'var(--text, #0F172A)',
+						}}
 					>
-						Konfirmasi Pengiriman Jawaban
+						Konfirmasi Pengiriman Quiz
 					</Modal.Title>
 				</Modal.Header>
-				<Modal.Body style={{ backgroundColor: 'var(--card)' }}>
-					<p
-						className="mb-3"
-						style={{ fontSize: 'var(--font-sm)', color: 'var(--muted)' }}
-					>
-						Apakah Anda yakin ingin menyelesaikan kuis evaluasi ini sekarang?
-					</p>
 
+				{/* Body Modal */}
+				<Modal.Body className="px-4 py-2">
+					{/* Kartu Peringatan Utama */}
 					<div
-						className="p-3 mb-3 border"
+						className="d-flex align-items-center gap-3 mb-3 p-3"
 						style={{
-							backgroundColor: 'var(--neutral-bg)',
-							borderColor: 'var(--neutral-border)',
-							borderRadius: 'var(--radius-md)',
+							backgroundColor: 'var(--neutral-bg, #F8FAFC)',
+							border: '1px solid var(--neutral-border, #E2E8F0)',
+							borderRadius: '12px',
 						}}
 					>
 						<div
-							className="d-flex justify-content-between mb-1"
-							style={{ fontSize: 'var(--font-sm)' }}
-						>
-							<span style={{ color: 'var(--muted)' }}>Total Soal:</span>
-							<strong style={{ color: 'var(--text)' }}>
-								{quizQuestions.length} Soal
-							</strong>
-						</div>
-						<div
-							className="d-flex justify-content-between mb-1"
-							style={{ fontSize: 'var(--font-sm)' }}
-						>
-							<span style={{ color: 'var(--muted)' }}>Soal Terjawab:</span>
-							<strong style={{ color: 'var(--success-text)' }}>
-								{answeredCount} Soal
-							</strong>
-						</div>
-						{quizQuestions.length - answeredCount > 0 && (
-							<div
-								className="d-flex justify-content-between"
-								style={{ fontSize: 'var(--font-sm)', color: 'var(--danger-text)' }}
-							>
-								<span>Belum Terjawab:</span>
-								<strong>{quizQuestions.length - answeredCount} Soal</strong>
-							</div>
-						)}
-					</div>
-
-					{quizQuestions.length - answeredCount > 0 && (
-						<div
-							className="p-3 border d-flex align-items-start gap-2"
+							className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
 							style={{
-								backgroundColor: 'var(--warning-bg)',
-								borderColor: 'var(--warning-border)',
-								borderRadius: 'var(--radius-md)',
-								color: 'var(--warning-heading)',
-								fontSize: 'var(--font-sm)',
+								width: 44,
+								height: 44,
+								backgroundColor:
+									quizQuestions.length - answeredCount > 0
+										? '#FEF3C7'
+										: '#E0F2FE',
+								color:
+									quizQuestions.length - answeredCount > 0
+										? '#D97706'
+										: '#0284C7',
 							}}
 						>
-							<AlertTriangle
-								size={18}
-								className="flex-shrink-0 mt-1"
-								style={{ color: 'var(--warning-text)' }}
-							/>
+							<AlertTriangle size={22} />
+						</div>
+						<div>
+							<h6
+								className="mb-1 fw-bold"
+								style={{ fontSize: '0.95rem', color: 'var(--text, #0F172A)' }}
+							>
+								Apakah Anda yakin ingin menyelesaikan quiz ini?
+							</h6>
+							<p className="mb-0 text-muted" style={{ fontSize: '0.825rem' }}>
+								Jawaban Anda akan dikirim dan disimulasikan untuk penilaian akhir.
+							</p>
+						</div>
+					</div>
+
+					{/* Grid Status Ringkasan Jawaban */}
+					<div className="row g-2 mb-2">
+						<div className="col-6">
+							<div
+								className="p-3 text-center"
+								style={{
+									backgroundColor: 'var(--success-bg, #F0FDF4)',
+									border: '1px solid var(--success-border, #DCFCE7)',
+									borderRadius: '10px',
+								}}
+							>
+								<span
+									className="d-block text-muted mb-1"
+									style={{
+										fontSize: '0.725rem',
+										fontWeight: 700,
+										letterSpacing: '0.05em',
+										textTransform: 'uppercase',
+									}}
+								>
+									Sudah Dijawab
+								</span>
+								<span
+									className="fw-bold fs-5"
+									style={{ color: 'var(--success-text, #16A34A)' }}
+								>
+									{answeredCount}{' '}
+									<small className="text-muted fs-6" style={{ fontWeight: 500 }}>
+										/ {quizQuestions.length}
+									</small>
+								</span>
+							</div>
+						</div>
+						<div className="col-6">
+							<div
+								className="p-3 text-center"
+								style={{
+									backgroundColor:
+										quizQuestions.length - answeredCount > 0
+											? 'var(--warning-bg, #FFFBEB)'
+											: 'var(--neutral-bg, #F8FAFC)',
+									border: `1px solid ${quizQuestions.length - answeredCount > 0 ? 'var(--warning-border, #FEF3C7)' : 'var(--neutral-border, #E2E8F0)'}`,
+									borderRadius: '10px',
+								}}
+							>
+								<span
+									className="d-block text-muted mb-1"
+									style={{
+										fontSize: '0.725rem',
+										fontWeight: 700,
+										letterSpacing: '0.05em',
+										textTransform: 'uppercase',
+									}}
+								>
+									Belum Dijawab
+								</span>
+								<span
+									className="fw-bold fs-5"
+									style={{
+										color:
+											quizQuestions.length - answeredCount > 0
+												? 'var(--warning-text, #D97706)'
+												: 'var(--muted, #64748B)',
+									}}
+								>
+									{quizQuestions.length - answeredCount}
+								</span>
+							</div>
+						</div>
+					</div>
+
+					{/* Banner Peringatan Tambahan jika masih ada soal tersisa */}
+					{quizQuestions.length - answeredCount > 0 && (
+						<div
+							className="p-2.5 px-3 mt-3 d-flex align-items-center gap-2"
+							style={{
+								backgroundColor: '#FEF2F2',
+								border: '1px solid #FEE2E2',
+								color: '#991B1B',
+								fontSize: '0.825rem',
+								borderRadius: '8px',
+							}}
+						>
+							<AlertTriangle size={15} className="flex-shrink-0" />
 							<span>
-								Masih ada soal yang belum Anda jawab. Soal yang belum terjawab akan
-								dihitung bernilai 0.
+								Perhatian: Masih ada{' '}
+								<strong>{quizQuestions.length - answeredCount} soal</strong> yang
+								belum diisi!
 							</span>
 						</div>
 					)}
 				</Modal.Body>
-				<Modal.Footer style={{ borderColor: 'var(--neutral-border)' }}>
+
+				{/* Footer Actions */}
+				<Modal.Footer className="px-4 pb-4 pt-3 border-top-0 d-flex justify-content-end gap-2">
 					<Button
-						variant="outline-secondary"
-						size="sm"
+						variant="light"
 						onClick={() => setShowSubmitModal(false)}
+						className="px-4 py-2 fw-semibold"
 						style={{
-							borderRadius: 'var(--radius-sm)',
-							fontSize: 'var(--font-xs)',
-							borderColor: 'var(--neutral-border)',
-							color: 'var(--muted)',
+							borderRadius: '10px',
+							backgroundColor: '#FFFFFF',
+							border: '1px solid var(--neutral-border, #CBD5E1)',
+							color: 'var(--text, #334155)',
+							fontSize: '0.875rem',
 						}}
 					>
-						Periksa Kembali
+						Batal
 					</Button>
 					<Button
-						size="sm"
-						className="border-0"
-						style={{
-							backgroundColor: 'var(--primary)',
-							color: 'var(--color-white)',
-							borderRadius: 'var(--radius-sm)',
-							fontSize: 'var(--font-xs)',
-						}}
 						onClick={handleSubmitQuiz}
+						className="px-4 py-2 fw-semibold border-0 d-inline-flex align-items-center gap-2"
+						style={{
+							backgroundColor: 'var(--primary, #0284C7)',
+							color: '#FFFFFF',
+							borderRadius: '10px',
+							fontSize: '0.875rem',
+						}}
 					>
-						Ya, Kirim Sekarang
+						Ya, Kirim Jawaban
 					</Button>
 				</Modal.Footer>
 			</Modal>

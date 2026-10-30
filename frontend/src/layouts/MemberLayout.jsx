@@ -12,9 +12,6 @@ const MemberLayout = () => {
 				<Outlet />
 			</main>
 			<Footer />
-
-			{/* Floating "Mulai Sesi Pembelajaran" button + modal */}
-			<ForethoughtModal />
 		</div>
 	);
 };
