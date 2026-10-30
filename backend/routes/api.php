@@ -75,6 +75,19 @@ Route::get('/certificate/verify/{ticket_code}', [EventCertificateController::cla
 Route::get('/certificate/render/{ticket_code}', [EventCertificateController::class, 'getCertificateRenderData']);
 Route::get('/certificate/background/{eventId}', [EventCertificateController::class, 'getBackgroundPublic']);
 
+// ==========================================
+// BLOCKCHAIN & SOULBOUND TOKEN (SBT) - RUMUSAN MASALAH 2
+// ==========================================
+Route::post('/v1/credentials/trigger-mint', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'triggerMint']);
+Route::get('/v1/blockchain/verify/{identifier}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'verify']);
+Route::get('/v1/blockchain/polygonscan/{txHash}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getPolygonscanData']);
+
+// ==========================================
+// JOB MATCHING & RECRUITER VIEW - RUMUSAN MASALAH 4
+// ==========================================
+Route::post('/v1/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
+Route::post('/v1/talents/send-offer', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'sendRecruiterOffer']);
+
 Route::get('/test', function () {
     return response()->json('hallo', 200);
 });

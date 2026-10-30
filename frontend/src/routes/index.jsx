@@ -51,6 +51,7 @@ import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventP
 import EventVenueQrPage from '@/pages/event/management/EventVenueQrPage/index';
 import CertificateVerificationPage from '../pages/certificate/CertificateVerificationPage';
 import CertificatePublicView from '@/pages/certificate/CertificatePublicView';
+import PolygonscanExplorer from '../pages/blockchain/PolygonscanExplorer';
 
 // Pages: Staff & Test/Misc
 import StaffLogin from '../pages/staff/StaffLogin';
@@ -105,6 +106,9 @@ const AppRoutes = () => {
 					<Route path="/profile/:id" element={<PublicProfile />} />
 					<Route path="/leaderboard" element={<LeaderboardPage />} />
 					<Route path="/talents" element={<TalentDirectory />} />
+					<Route path="/blockchain/explorer" element={<PolygonscanExplorer />} />
+					<Route path="/blockchain/explorer/:hash" element={<PolygonscanExplorer />} />
+					<Route path="/blockchain/explorer/tx/:hash" element={<PolygonscanExplorer />} />
 
 					<Route path="/attend-venue" element={<AttendVenuePage />} />
 					<Route path="/a/:code" element={<AttendVenuePage />} />

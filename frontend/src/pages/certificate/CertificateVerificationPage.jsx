@@ -100,7 +100,7 @@ const CertificateVerificationPage = () => {
 
   const handleOpenPolygonscan = () => {
     const tx = data.timestampHash || '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c';
-    window.open(`https://polygonscan.com/tx/${tx}`, '_blank');
+    window.open(`/blockchain/explorer/tx/${tx}`, '_blank');
   };
 
   const displayShortHash = (hash) => {

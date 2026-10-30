@@ -91,10 +91,11 @@ const ZeroTrustModal = ({ show, onHide, sbtData, studentName, onOpenFileModal })
               variant="dark"
               className="w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2"
               onClick={() => {
-                window.open('https://polygonscan.com', '_blank');
+                const tx = sbtData.txHash || '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c';
+                window.open(`/blockchain/explorer/tx/${tx}`, '_blank');
               }}
             >
-              Polygonscan <ExternalLink size={14} />
+              Cek di Polygonscan <ExternalLink size={14} />
             </Button>
           </div>
         </div>
