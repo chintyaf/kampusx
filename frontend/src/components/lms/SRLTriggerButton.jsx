@@ -17,9 +17,9 @@ const SRLTriggerButton = () => {
 				name: 'Forethought',
 				description: 'Rencanakan pembelajaran',
 				icon: isSessionActive ? (
-					<Target size={24} />
+					<Target size={16} />
 				) : (
-					<Play size={26} fill="currentColor" style={{ marginLeft: 2 }} />
+					<Play size={16} fill="currentColor" style={{ marginLeft: 2 }} />
 				),
 				color: 'var(--bahama-blue-400)',
 				accent: 'var(--primary)',

@@ -500,12 +500,12 @@ const QuizPage = () => {
 						>
 							{/* Header Info Soal & Ambang Lulus */}
 							<div
-								className="px-4 py-3 d-flex align-items-center justify-content-between border-bottom"
+								className="px-4 pb-1 d-flex align-items-center justify-content-between border-bottom"
 								style={{ borderColor: 'var(--neutral-border, #F1F5F9)' }}
 							>
 								<span
 									style={{
-										fontSize: 'var(--font-xs, 0.85rem)',
+										fontSize: 'var(--font-xs, 0.75rem)',
 										fontWeight: 800,
 										color: 'var(--text, #1E293B)',
 										letterSpacing: '0.05em',
@@ -545,7 +545,7 @@ const QuizPage = () => {
 									</div>
 									<div>
 										<span
-											className="d-block fw-bold text-uppercase mb-1"
+											className="d-block fw-bold text-uppercase"
 											style={{
 												fontSize: '0.75rem',
 												color: 'var(--muted, #64748B)',
@@ -556,7 +556,7 @@ const QuizPage = () => {
 										</span>
 										<h4
 											style={{
-												fontSize: '1.25rem',
+												fontSize: '1rem',
 												fontWeight: 700,
 												color: 'var(--text, #0F172A)',
 												lineHeight: 1.5,
@@ -569,7 +569,7 @@ const QuizPage = () => {
 								</div>
 
 								{/* Daftar Opsi Jawaban */}
-								<div className="d-flex flex-column gap-3 mb-4">
+								<div className="d-flex flex-column gap-2">
 									{currentQ.options?.map((option) => {
 										const optKey = option.key;
 										const optText = option.text;
@@ -597,8 +597,8 @@ const QuizPage = () => {
 												<div className="d-flex align-items-center gap-3">
 													<div
 														style={{
-															width: 36,
-															height: 36,
+															width: 24,
+															height: 24,
 															borderRadius: '50%',
 															backgroundColor: isSelected
 																? 'var(--primary, #0284C7)'
@@ -610,7 +610,7 @@ const QuizPage = () => {
 															alignItems: 'center',
 															justifyContent: 'center',
 															fontWeight: 700,
-															fontSize: '0.875rem',
+															fontSize: '0.75rem',
 															flexShrink: 0,
 														}}
 													>
@@ -618,7 +618,7 @@ const QuizPage = () => {
 													</div>
 													<span
 														style={{
-															fontSize: '0.95rem',
+															fontSize: '0.85rem',
 															fontWeight: isSelected ? 600 : 400,
 															color: isSelected
 																? 'var(--text, #0F172A)'
@@ -661,37 +661,11 @@ const QuizPage = () => {
 										);
 									})}
 								</div>
-
-								{/* Tombol Tandai Ragu-ragu */}
-								<div className="d-flex justify-content-end mb-2">
-									<button
-										type="button"
-										onClick={handleToggleFlag}
-										className="btn btn-link text-decoration-none d-inline-flex align-items-center gap-2 p-0"
-										style={{
-											color: isCurrentFlagged
-												? 'var(--warning-text, #D97706)'
-												: 'var(--muted, #64748B)',
-											fontWeight: 600,
-											fontSize: '0.875rem',
-										}}
-									>
-										<Bookmark
-											size={18}
-											fill={isCurrentFlagged ? 'currentColor' : 'none'}
-										/>
-										<span>
-											{isCurrentFlagged
-												? 'Ditandai ragu-ragu'
-												: 'Tandai ragu-ragu'}
-										</span>
-									</button>
-								</div>
 							</div>
 
 							{/* Navigasi Bawah */}
 							<div
-								className="p-4 d-flex align-items-center justify-content-between border-top"
+								className=" d-flex align-items-center justify-content-between px-4"
 								style={{
 									borderColor: 'var(--neutral-border, #F1F5F9)',
 									backgroundColor: 'var(--card, #FFFFFF)',
@@ -713,6 +687,29 @@ const QuizPage = () => {
 								>
 									<ChevronLeft size={18} /> Soal sebelumnya
 								</Button>
+
+								<button
+									type="button"
+									onClick={handleToggleFlag}
+									className="btn btn-link text-decoration-none d-inline-flex align-items-center gap-2 p-0"
+									style={{
+										color: isCurrentFlagged
+											? 'var(--warning-text, #D97706)'
+											: 'var(--muted, #64748B)',
+										fontWeight: 600,
+										fontSize: '0.875rem',
+									}}
+								>
+									<Bookmark
+										size={18}
+										fill={isCurrentFlagged ? 'currentColor' : 'none'}
+									/>
+									<span>
+										{isCurrentFlagged
+											? 'Ditandai ragu-ragu'
+											: 'Tandai ragu-ragu'}
+									</span>
+								</button>
 
 								{currentQuestion < quizQuestions.length - 1 ? (
 									<Button

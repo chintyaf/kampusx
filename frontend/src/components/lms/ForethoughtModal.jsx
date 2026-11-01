@@ -282,7 +282,7 @@ const ForethoughtModal = ({ moduleId = 1, onComplete }) => {
 							<div className="mb-3">
 								<Form.Label className="fw-semibold small">
 									<Target size={15} className="me-2" />
-									Target sesi ini
+									Target sesi ini <span className="text-danger">*</span>
 								</Form.Label>
 
 								<Form.Control

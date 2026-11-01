@@ -73,11 +73,11 @@ export const LmsRoutes = () => {
 					<Route path="badges" element={<BadgeCertificatePage />} />
 					<Route path="settings" element={<SettingsPage />} />
 				</Route>
+				
+				{/* Direct Lesson Shortcut */}
+				<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
+				<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
 			</Route>
-
-			<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
-			{/* Direct Lesson Shortcut */}
-			<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
 
 			{/* 5. DASHBOARD LAYOUT GROUP (Admin & Organizer) */}
 			<Route element={<OrgLearningLayout />}>

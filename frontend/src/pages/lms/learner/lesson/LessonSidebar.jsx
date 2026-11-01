@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ChevronLeft, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import LessonSidebarItem from './LessonSidebarItem';
 import QuizSidebarItem from './QuizSidebarItem';
 
-const LessonSidebar = ({ data = [], currentLessonId, completedLessonIds: externalCompleted, onSelectLesson }) => {
+const LessonSidebar = ({
+	data = [],
+	currentLessonId,
+	completedLessonIds: externalCompleted,
+	onSelectLesson,
+}) => {
 	const { moduleId = 'mod-arch-101', lessonId = 'les-4' } = useParams();
 	const navigate = useNavigate();
 
@@ -118,17 +123,30 @@ const LessonSidebar = ({ data = [], currentLessonId, completedLessonIds: externa
 				})}
 
 				{/* Quiz Navigation */}
-				<div className="mt-3 px-3">
+				<div
+					className=""
+					style={{
+						backgroundColor: '#f8fafc',
+						borderBottom: '1px solid var(--neutral-border, #e2e8f0)',
+						borderBottom: '1px solid var(--neutral-border, #e2e8f0)',
+					}}
+				>
+					<div className="lesson-quiz-label">Evaluasi</div>
+
 					<Link
 						to={`/learner/modules/${moduleId}/quiz`}
-						className="d-flex align-items-center gap-2 px-3 py-2 rounded text-decoration-none"
-						style={{
-							backgroundColor: 'var(--primary-light)',
-							color: 'var(--primary)',
-						}}
+						className="lesson-quiz-link d-flex align-items-center gap-3 px-3 pb-3 pt-2 text-decoration-none"
 					>
-						<Play size={16} style={{ color: 'var(--primary)' }} />
-						<span style={{ fontSize: 'var(--font-xs)', fontWeight: 600 }}>Kuis Modul</span>
+						<span className="lesson-quiz-icon d-inline-flex align-items-center justify-content-center flex-shrink-0">
+							<Play size={14} />
+						</span>
+
+						<div className="flex-grow-1" style={{ minWidth: 0 }}>
+							<div className="lesson-quiz-title">Kuis Modul</div>
+							<div className="lesson-quiz-subtitle">Uji pemahamanmu</div>
+						</div>
+
+						<ChevronRight size={16} className="lesson-quiz-chevron flex-shrink-0" />
 					</Link>
 				</div>
 			</div>

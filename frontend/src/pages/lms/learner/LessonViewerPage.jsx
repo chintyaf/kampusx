@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
-import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Layouts & Components
-import NavbarLesson from '@/layouts/partials-dashboard/NavbarLesson';
 import LessonSidebar from '@/pages/lms/learner/lesson/LessonSidebar';
 import LessonMaterial from './lesson/LessonMaterial';
 import LessonQuiz from './lesson/LessonQuiz';
@@ -149,93 +148,81 @@ const LessonViewerPage = () => {
 	);
 
 	return (
-		<div className="d-flex flex-column vh-100 overflow-hidden bg-light">
-			<NavbarLesson />
-
-			{/* MAIN CONTAINER (Sidebar + Content Canvas) */}
-			<div
-				className="d-flex flex-grow-1 position-relative w-100 overflow-hidden"
-				style={{ minHeight: 0 }}
+		// Root mengisi sisa ruang <main> milik LmsLayout (bukan vh-100)
+		<div
+			className="d-flex flex-grow-1 position-relative w-100 overflow-hidden"
+			style={{ minHeight: 0 }}
+		>
+			{/* SIDEBAR CONTAINER */}
+			<aside
+				className="d-none d-lg-flex flex-column flex-shrink-0 border-end lesson-sidebar-scroll"
+				style={{
+					width: '300px',
+					fontFamily: 'var(--font)',
+					backgroundColor: 'var(--card)',
+					borderColor: 'var(--neutral-border)',
+				}}
 			>
-				{/* SIDEBAR CONTAINER */}
-				<aside
-					className="d-none d-lg-flex flex-column flex-shrink-0 border-end h-100 lesson-sidebar-scroll"
-					style={{
-						width: '300px',
-						fontFamily: 'var(--font)',
-						backgroundColor: 'var(--card)',
-						borderColor: 'var(--neutral-border)',
-					}}
-				>
-					<LessonSidebar
-						data={MODULE_LESSONS_DATA}
-						currentLessonId={currentLesson?.id}
-						completedLessonIds={completedLessonIds}
-						onSelectLesson={goToLesson}
-					/>
-				</aside>
+				<LessonSidebar
+					data={MODULE_LESSONS_DATA}
+					currentLessonId={currentLesson?.id}
+					completedLessonIds={completedLessonIds}
+					onSelectLesson={goToLesson}
+				/>
+			</aside>
 
-				{/* MAIN CONTENT CANVAS */}
-				<main ref={mainContentRef} className="flex-grow-1 overflow-y-auto p-4">
-					<div className="container p-0" style={{ maxWidth: '960px' }}>
-						{/* KONDISIONAL RENDER: Kuis vs Materi Pelajaran */}
-						<div className="mb-4">
-							{isQuiz ? (
-								<LessonQuiz item={currentLesson} onNext={handleLessonComplete} />
-							) : (
-								<LessonMaterial
-									item={currentLesson}
-									onCompleteLesson={handleLessonComplete}
-								/>
-							)}
-						</div>
+			{/* MAIN CONTENT CANVAS */}
+			<main ref={mainContentRef} className="flex-grow-1 overflow-y-auto p-4">
+				<div className="container p-0" style={{ maxWidth: '960px' }}>
+					{/* KONDISIONAL RENDER: Kuis vs Materi Pelajaran */}
+					<div className="mb-4">
+						{isQuiz ? (
+							<LessonQuiz item={currentLesson} onNext={handleLessonComplete} />
+						) : (
+							<LessonMaterial
+								item={currentLesson}
+								onCompleteLesson={handleLessonComplete}
+							/>
+						)}
+					</div>
 
-						{/* TOMBOL NAVIGASI SEBELUMNYA & SELANJUTNYA */}
-						<div className="d-flex justify-content-between align-items-center mb-4">
+					{/* TOMBOL NAVIGASI SEBELUMNYA & SELANJUTNYA */}
+					<div className="d-flex justify-content-between align-items-center mb-4">
+						<Button
+							variant="outline-secondary"
+							onClick={handlePrevious}
+							disabled={isFirstLesson}
+							className="d-flex align-items-center gap-2 px-3 py-2 fw-medium"
+							style={{
+								color: isFirstLesson ? 'var(--text-muted)' : '',
+								opacity: isFirstLesson ? 0.5 : 1,
+								cursor: isFirstLesson ? 'not-allowed' : 'pointer',
+							}}
+						>
+							<ChevronLeft size={18} />
+							Sebelumnya
+						</Button>
+
+						<div className="d-flex align-items-center gap-2">
 							<Button
-								variant="outline-secondary"
-								onClick={handlePrevious}
-								disabled={isFirstLesson}
-								className="d-flex align-items-center gap-2 px-3 py-2 fw-medium"
+								onClick={handleNext}
+								disabled={isLastLesson}
+								className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
 								style={{
-									color: isFirstLesson ? 'var(--text-muted)' : '',
-									opacity: isFirstLesson ? 0.5 : 1,
-									cursor: isFirstLesson ? 'not-allowed' : 'pointer',
+									backgroundColor: isLastLesson
+										? 'var(--neutral-border)'
+										: 'var(--primary)',
+									opacity: isLastLesson ? 0.6 : 1,
+									cursor: isLastLesson ? 'not-allowed' : 'pointer',
 								}}
 							>
-								<ChevronLeft size={18} />
-								Sebelumnya
+								Selanjutnya
+								<ChevronRight size={18} />
 							</Button>
-
-							<div className="d-flex align-items-center gap-2">
-								{/* <Button
-									variant="success"
-									onClick={() => handleLessonComplete()}
-									className="d-flex align-items-center gap-2 px-3 py-2 fw-medium shadow-sm"
-								>
-									{isLastLesson ? 'Selesaikan Modul' : 'Tandai Selesai'}
-								</Button> */}
-
-								<Button
-									onClick={handleNext}
-									disabled={isLastLesson}
-									className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
-									style={{
-										backgroundColor: isLastLesson
-											? 'var(--neutral-border)'
-											: 'var(--primary)',
-										opacity: isLastLesson ? 0.6 : 1,
-										cursor: isLastLesson ? 'not-allowed' : 'pointer',
-									}}
-								>
-									Selanjutnya
-									<ChevronRight size={18} />
-								</Button>
-							</div>
 						</div>
 					</div>
-				</main>
-			</div>
+				</div>
+			</main>
 		</div>
 	);
 };

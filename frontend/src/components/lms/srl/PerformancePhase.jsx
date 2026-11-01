@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, RotateCcw, ArrowRight, Target, CheckCircle2 } from 'lucide-react';
-import { Button, Row } from 'react-bootstrap';
+import { Play, Pause, RotateCcw, Target, CheckCircle2 } from 'lucide-react';
+import { Button } from 'react-bootstrap';
 
 const DEFAULT_TARGET_MINUTES = 25;
 const RING_RADIUS = 52;
@@ -49,25 +49,31 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 		return () => clearInterval(id);
 	}, [isRunning]);
 
-	const elapsed = Math.min(
+	// Tidak dibatasi targetSeconds, jadi waktu terus bertambah setelah target tercapai
+	const elapsed = Math.max(
+		0,
 		accumulated + (isRunning ? Math.floor((now - startedAt) / 1000) : 0),
-		targetSeconds,
 	);
+	const reached = elapsed >= targetSeconds; // target tercapai
+	const overtime = Math.max(0, elapsed - targetSeconds); // waktu tambahan
 	const remaining = targetSeconds - elapsed;
-	const progress = elapsed / targetSeconds;
-	const finished = remaining <= 0;
+	const progress = Math.min(elapsed / targetSeconds, 1); // ring maksimal penuh
+
+	const displayTime = reached ? `+${formatTime(overtime)}` : formatTime(remaining);
 
 	const handleStart = () => save({ startedAt: Date.now(), hasStarted: true });
 	const handlePause = () => save({ accumulatedSeconds: elapsed, startedAt: null });
 	const handleReset = () => save({ accumulatedSeconds: 0, startedAt: null, hasStarted: true });
 
-	const handleRingClick = () => {
-		if (finished) handleReset();
-		else if (isRunning) handlePause();
-		else handleStart();
-	};
+	const handleRingClick = () => (isRunning ? handlePause() : handleStart());
 
-	const ringAction = finished ? 'Atur ulang timer' : isRunning ? 'Jeda timer' : 'Lanjutkan timer';
+	const ringAction = isRunning ? 'Jeda timer' : 'Lanjutkan timer';
+
+	// Simpan total waktu aktual sebelum pindah ke Reflection
+	const handleFinish = () => {
+		if (isRunning) handlePause();
+		goToReflection();
+	};
 
 	// Timer langsung berjalan saat fase ini pertama kali dibuka
 	const autoStarted = useRef(false);
@@ -77,12 +83,6 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 		handleStart();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-
-	// Hentikan timer saat waktu habis
-	useEffect(() => {
-		if (finished && isRunning) save({ accumulatedSeconds: targetSeconds, startedAt: null });
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [finished, isRunning]);
 
 	return (
 		<>
@@ -131,21 +131,6 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 				}
 				.perf-ring:hover { transform: scale(1.03); }
 				.perf-ring:active { transform: scale(.98); }
-				.perf-ring-action {
-					margin-top: 6px;
-					display: inline-flex;
-					align-items: center;
-					justify-content: center;
-					width: 28px;
-					height: 28px;
-					border-radius: 50%;
-					background: var(--primary-light);
-					color: var(--primary);
-					transition: background .2s ease, color .2s ease;
-				}
-				.perf-ring:hover .perf-ring-action { background: var(--primary); color: var(--color-white); }
-				.perf-ring.is-done .perf-ring-action { background: var(--success-bg); color: var(--success-text); }
-				.perf-ring.is-done:hover .perf-ring-action { background: var(--success-text); color: var(--color-white); }
 				.perf-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 				.perf-ring-track { fill: none; stroke: var(--bahama-blue-100); stroke-width: 8; }
 				.perf-ring-bar {
@@ -154,7 +139,7 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 					stroke-width: 8;
 					stroke-linecap: round;
 					stroke-dasharray: ${RING_LENGTH};
-					stroke-dashoffset: ${RING_LENGTH * progress};
+					stroke-dashoffset: ${RING_LENGTH * (1 - progress)};
 					transition: stroke-dashoffset .9s linear, stroke .3s ease;
 				}
 				.perf-ring.is-done .perf-ring-bar { stroke: var(--success-text); }
@@ -173,6 +158,7 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 					font-variant-numeric: tabular-nums;
 					line-height: 1.1;
 				}
+				.perf-ring.is-done .perf-time { color: var(--success-text); }
 				.perf-time-sub { margin-top: 4px; font-size: var(--font-xs); color: var(--text-muted); }
 
 				.perf-state {
@@ -224,12 +210,11 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 					transition: background .2s ease, color .2s ease;
 				}
 				.perf-btn-icon:hover { background: var(--neutral-bg); color: var(--text); }
+				.perf-btn-icon:disabled { opacity: .5; cursor: not-allowed; }
 
 				/* ---------- Catatan ---------- */
 				.perf-section { display: flex; flex-direction: column; gap: 10px; }
-				.perf-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 				.perf-section-title { font-size: var(--font-sm); font-weight: 700; }
-				.perf-section-hint { font-size: var(--font-xs); color: var(--text-muted); }
 
 				.perf-notes {
 					width: 100%;
@@ -246,8 +231,6 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 					box-sizing: border-box;
 				}
 				.perf-notes::placeholder { color: var(--text-muted); }
-
-
 
 				@media (prefers-reduced-motion: reduce) {
 					.perf * { transition: none !important; }
@@ -269,27 +252,30 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 				<div className="perf-timer">
 					<button
 						type="button"
-						className={`perf-ring${finished ? ' is-done' : ''}`}
+						className={`perf-ring${reached ? ' is-done' : ''}`}
 						onClick={handleRingClick}
 						title={ringAction}
-						aria-label={`${ringAction}. Sisa waktu ${formatTime(remaining)}`}
+						aria-label={`${ringAction}. ${reached ? 'Waktu tambahan' : 'Sisa waktu'} ${displayTime}`}
 					>
 						<svg viewBox="0 0 120 120" aria-hidden="true">
 							<circle className="perf-ring-track" cx="60" cy="60" r={RING_RADIUS} />
 							<circle className="perf-ring-bar" cx="60" cy="60" r={RING_RADIUS} />
 						</svg>
 						<span className="perf-ring-center">
-							<span className="perf-time">{formatTime(remaining)}</span>
-							<span className="perf-time-sub">dari {targetMinutes} menit</span>
+							<span className="perf-time">{displayTime}</span>
+							{reached && <span className="perf-time-sub">melebihi target</span>}
 						</span>
 					</button>
 
 					<span
-						className={`perf-state${finished ? ' is-done' : isRunning ? ' is-running' : ''}`}
+						className={`perf-state${reached ? ' is-done' : isRunning ? ' is-running' : ''}`}
 					>
-						{finished ? (
+						{reached ? (
 							<>
-								<CheckCircle2 size={14} /> Waktu belajar selesai
+								<CheckCircle2 size={14} />
+								{isRunning
+									? 'Target tercapai · waktu tambahan berjalan'
+									: 'Target tercapai · dijeda'}
 							</>
 						) : isRunning ? (
 							'Sedang berjalan'
@@ -299,24 +285,19 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 					</span>
 
 					<div className="perf-controls">
-						{!finished &&
-							(isRunning ? (
-								<button
-									type="button"
-									className="perf-btn-main is-pause"
-									onClick={handlePause}
-								>
-									<Pause size={18} fill="currentColor" /> Jeda
-								</button>
-							) : (
-								<button
-									type="button"
-									className="perf-btn-main"
-									onClick={handleStart}
-								>
-									<Play size={18} fill="currentColor" /> Lanjutkan
-								</button>
-							))}
+						{isRunning ? (
+							<button
+								type="button"
+								className="perf-btn-main is-pause"
+								onClick={handlePause}
+							>
+								<Pause size={18} fill="currentColor" /> Jeda
+							</button>
+						) : (
+							<button type="button" className="perf-btn-main" onClick={handleStart}>
+								<Play size={18} fill="currentColor" /> Lanjutkan
+							</button>
+						)}
 						<button
 							type="button"
 							className="perf-btn-icon"
@@ -349,7 +330,7 @@ const PerformancePhase = ({ srlData, updatePhaseData, closeModal, goToReflection
 					<Button className="btn-primary" onClick={closeModal}>
 						Lanjut Sesi
 					</Button>
-					<Button className="btn-secondary border" onClick={goToReflection}>
+					<Button className="btn-secondary border" onClick={handleFinish}>
 						Selesai
 					</Button>
 				</div>
