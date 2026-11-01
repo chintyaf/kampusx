@@ -93,7 +93,7 @@ const ExploreMicrolearningPage = () => {
 			} else if (item.type === 'module') {
 				navigate(`/learner/modules/${item.id}`);
 			} else {
-				navigate(`/learner/modules/${item.id}/forethought`);
+				navigate(`/learner/lessons/${item.id}`);
 			}
 		},
 		[navigate],

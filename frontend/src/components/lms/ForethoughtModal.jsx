@@ -1,20 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Button, OverlayTrigger, Tooltip } from 'react-bootstrap';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, GraduationCap, X, Plus, Sparkle } from 'lucide-react';
+import { Form, Button, Modal, OverlayTrigger, Tooltip, ProgressBar, Badge } from 'react-bootstrap';
+import {
+	GraduationCap,
+	X,
+	Plus,
+	ArrowRight,
+	ArrowLeft,
+	Clock,
+	Target,
+	BookOpen,
+	CheckCircle,
+	Lightbulb,
+	RotateCcw,
+} from 'lucide-react';
 
-const defaultStrategies = [
-	'Pomodoro',
-	'Matikan notifikasi',
-	'Catat poin penting',
-	'Musik fokus',
+const defaultStrategies = ['Pomodoro', 'Matikan notifikasi', 'Catat poin penting', 'Musik fokus'];
+
+const phases = [
+	{ id: 'forethought', label: 'Forethought', number: 1 },
+	{ id: 'performance', label: 'Performance', number: 2 },
+	{ id: 'reflection', label: 'Self-Reflection', number: 3 },
 ];
 
-const ForethoughtModal = () => {
+const ForethoughtModal = ({ moduleId = 1, onComplete }) => {
 	const navigate = useNavigate();
-	const [isOpen, setIsOpen] = useState(false);
 
+	const [isOpen, setIsOpen] = useState(false);
+	const [phase, setPhase] = useState('forethought');
+
+	// Forethought states
 	const [sessionGoal, setSessionGoal] = useState('');
 	const [selectedStrategies, setSelectedStrategies] = useState([]);
 	const [customStrategies, setCustomStrategies] = useState([]);
@@ -22,18 +37,51 @@ const ForethoughtModal = () => {
 	const [estimatedTime, setEstimatedTime] = useState(25);
 	const [confidence, setConfidence] = useState(3);
 
+	// Performance states
+	const [sessionStartedAt, setSessionStartedAt] = useState(null);
+	const [elapsedTime, setElapsedTime] = useState(0);
+	const [finalDuration, setFinalDuration] = useState(0);
+
+	// Self-Reflection states
+	const [achievement, setAchievement] = useState(3);
+	const [understanding, setUnderstanding] = useState('');
+	const [difficulties, setDifficulties] = useState('');
+	const [nextPlan, setNextPlan] = useState('');
+
 	const allStrategies = [...defaultStrategies, ...customStrategies];
+
+	// Timer: menghitung waktu belajar aktual
+	useEffect(() => {
+		if (phase !== 'performance' || !sessionStartedAt) return;
+
+		const interval = setInterval(() => {
+			setElapsedTime(Date.now() - sessionStartedAt);
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [phase, sessionStartedAt]);
+
+	// Format waktu menjadi HH:MM:SS
+	const formatTime = (milliseconds) => {
+		const totalSeconds = Math.floor(milliseconds / 1000);
+		const hours = Math.floor(totalSeconds / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const seconds = totalSeconds % 60;
+
+		return [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+	};
 
 	const toggleStrategy = (strategy) => {
 		setSelectedStrategies((prev) =>
 			prev.includes(strategy)
-				? prev.filter((s) => s !== strategy)
-				: [...prev, strategy]
+				? prev.filter((item) => item !== strategy)
+				: [...prev, strategy],
 		);
 	};
 
 	const addCustomStrategy = () => {
 		const trimmed = newStrategy.trim();
+
 		if (trimmed && !allStrategies.includes(trimmed)) {
 			setCustomStrategies((prev) => [...prev, trimmed]);
 			setSelectedStrategies((prev) => [...prev, trimmed]);
@@ -41,284 +89,574 @@ const ForethoughtModal = () => {
 		}
 	};
 
-	const moduleId = 1;
+	const resetSession = () => {
+		setPhase('forethought');
+
+		setSessionGoal('');
+		setSelectedStrategies([]);
+		setCustomStrategies([]);
+		setNewStrategy('');
+		setEstimatedTime(25);
+		setConfidence(3);
+
+		setSessionStartedAt(null);
+		setElapsedTime(0);
+		setFinalDuration(0);
+
+		setAchievement(3);
+		setUnderstanding('');
+		setDifficulties('');
+		setNextPlan('');
+	};
 
 	const handleClose = () => {
 		setIsOpen(false);
-		setSessionGoal('');
-		setSelectedStrategies([]);
-		setNewStrategy('');
-		setConfidence(3);
-		setEstimatedTime(25);
+		resetSession();
 	};
 
-	const handleSubmit = (e) => {
+	// FORETHOUGHT -> PERFORMANCE
+	const handleStartLearning = (e) => {
 		e.preventDefault();
+
+		setSessionStartedAt(Date.now());
+		setElapsedTime(0);
+		setPhase('performance');
+	};
+
+	// PERFORMANCE -> SELF-REFLECTION
+	const handleFinishLearning = () => {
+		const duration = Date.now() - sessionStartedAt;
+
+		setElapsedTime(duration);
+		setFinalDuration(duration);
+		setPhase('reflection');
+	};
+
+	// SELF-REFLECTION -> COMPLETE
+	const handleComplete = (e) => {
+		e.preventDefault();
+
+		const sessionData = {
+			goal: sessionGoal,
+			strategies: selectedStrategies,
+			estimatedTime,
+			confidence,
+			actualDuration: Math.floor(finalDuration / 60000),
+			achievement,
+			understanding,
+			difficulties,
+			nextPlan,
+		};
+
+		onComplete?.(sessionData);
+
 		handleClose();
 		navigate(`/learner/modules/${moduleId}`);
 	};
 
+	const activePhase = phases.findIndex((item) => item.id === phase);
+	const progress = ((activePhase + 1) / phases.length) * 100;
+
+	const actualMinutes = Math.floor(elapsedTime / 60000);
+	const estimatedPercentage = Math.min((actualMinutes / estimatedTime) * 100, 100);
+
 	return (
 		<>
-			{/* Floating Icon Button */}
-			<AnimatePresence>
-				{!isOpen && (
-					<OverlayTrigger
-						placement="left"
-						overlay={<Tooltip>Mulai Sesi Pembelajaran</Tooltip>}
-					>
-						<motion.button
-							initial={{ scale: 0, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							exit={{ scale: 0, opacity: 0 }}
-							whileHover={{ scale: 1.1 }}
-							whileTap={{ scale: 0.9 }}
-							onClick={() => setIsOpen(true)}
-							style={{
-								position: 'fixed',
-								bottom: 28,
-								right: 28,
-								zIndex: 1050,
-								background: '#005a87',
-								color: '#fff',
-								border: 'none',
-								borderRadius: '50%',
-								width: 52,
-								height: 52,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								boxShadow: '0 4px 20px rgba(0,90,135,0.3)',
-								cursor: 'pointer',
-							}}
-						>
-							<GraduationCap size={22} />
-						</motion.button>
-					</OverlayTrigger>
-				)}
-			</AnimatePresence>
+			{/* Floating Button */}
+			<OverlayTrigger placement="left" overlay={<Tooltip>Mulai Sesi Pembelajaran</Tooltip>}>
+				<button
+					onClick={() => setIsOpen(true)}
+					style={{
+						position: 'fixed',
+						bottom: 28,
+						right: 28,
+						zIndex: 1050,
+						width: 52,
+						height: 52,
+						borderRadius: '50%',
+						border: 'none',
+						background: '#005a87',
+						color: '#fff',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						boxShadow: '0 4px 20px rgba(0,90,135,0.3)',
+						cursor: 'pointer',
+					}}
+				>
+					<GraduationCap size={22} />
+				</button>
+			</OverlayTrigger>
 
-			{/* Modal */}
-			<AnimatePresence>
-				{isOpen && (
-					<>
-						<motion.div
-							initial={{ opacity: 0 }}
-							animate={{ opacity: 1 }}
-							exit={{ opacity: 0 }}
-							onClick={handleClose}
-							style={{
-								position: 'fixed',
-								inset: 0,
-								background: 'rgba(0,0,0,0.4)',
-								zIndex: 1060,
-							}}
-						/>
+			{/* Main Modal */}
+			<Modal
+				show={isOpen}
+				onHide={handleClose}
+				centered
+				scrollable
+				size="md"
+				backdrop="static"
+			>
+				<Modal.Header
+					style={{
+						border: 'none',
+						padding: '22px 24px 12px',
+					}}
+				>
+					<div className="w-100">
+						<div className="d-flex justify-content-between align-items-center">
+							<div>
+								<h5 className="fw-bold mb-1">
+									{phase === 'forethought' && 'Persiapkan Sesi Belajarmu'}
+									{phase === 'performance' && 'Sesi Pembelajaran Berlangsung'}
+									{phase === 'reflection' && 'Evaluasi Pembelajaran'}
+								</h5>
 
-						<motion.div
-							initial={{ opacity: 0, y: 30 }}
-							animate={{ opacity: 1, y: 0 }}
-							exit={{ opacity: 0, y: 30 }}
-							transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-							style={{
-								position: 'fixed',
-								inset: 0,
-								zIndex: 1070,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								padding: 20,
-								pointerEvents: 'none',
-							}}
-						>
-							<div style={{
-								width: '100%',
-								maxWidth: 480,
-								maxHeight: 'calc(100vh - 40px)',
-								overflowY: 'auto',
-								background: '#fff',
-								borderRadius: 16,
-								boxShadow: '0 16px 48px rgba(0,0,0,0.15)',
-								pointerEvents: 'auto',
-							}}>
-								{/* Header */}
-								<div style={{
-									padding: '20px 24px 0',
-									display: 'flex',
-									justifyContent: 'space-between',
-									alignItems: 'center',
-								}}>
-									<div>
-										<h5 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
-											Persiapkan Sesi Belajarmu
-										</h5>
-										<p style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8' }}>
-											Rencanakan agar belajar lebih efektif
-										</p>
-									</div>
-									<button
-										onClick={handleClose}
+								<small className="text-muted">Self-Regulated Learning</small>
+							</div>
+
+							<button
+								onClick={handleClose}
+								className="btn btn-light btn-sm rounded-circle"
+							>
+								<X size={18} />
+							</button>
+						</div>
+
+						{/* Phase Indicator */}
+						<div className="d-flex justify-content-between mt-4 mb-2">
+							{phases.map((item, index) => (
+								<div
+									key={item.id}
+									className="d-flex align-items-center gap-2"
+									style={{ fontSize: 11 }}
+								>
+									<div
 										style={{
-											background: 'none', border: 'none',
-											cursor: 'pointer', padding: 4,
-											color: '#94a3b8',
-										}}
-									>
-										<X size={18} />
-									</button>
-								</div>
-
-								{/* Form */}
-								<Form onSubmit={handleSubmit} style={{ padding: '20px 24px 24px' }}>
-									<Form.Group className="mb-3">
-										<Form.Label style={{ fontWeight: 600, fontSize: 12, color: '#334155', marginBottom: 6 }}>
-											Target sesi ini
-										</Form.Label>
-										<Form.Control
-											type="text"
-											required
-											placeholder="Apa yang ingin kamu kuasai?"
-											value={sessionGoal}
-											onChange={(e) => setSessionGoal(e.target.value)}
-											style={{ borderRadius: 8, padding: '10px 12px', fontSize: 13, border: '1px solid #e2e8f0' }}
-										/>
-									</Form.Group>
-
-									<Form.Group className="mb-3">
-										<Form.Label style={{ fontWeight: 600, fontSize: 12, color: '#334155', marginBottom: 6 }}>
-											Strategi fokus
-										</Form.Label>
-										<div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-											{allStrategies.map((s) => {
-												const active = selectedStrategies.includes(s);
-												return (
-													<button
-														type="button"
-														key={s}
-														onClick={() => toggleStrategy(s)}
-														style={{
-															padding: '6px 12px',
-															borderRadius: 20,
-															border: active ? '1.5px solid #005a87' : '1px solid #e2e8f0',
-															background: active ? '#f0f9ff' : '#fff',
-															color: active ? '#005a87' : '#64748b',
-															fontWeight: 500,
-															fontSize: 12,
-															cursor: 'pointer',
-															transition: 'all 0.15s ease',
-														}}
-													>
-														{s}
-													</button>
-												);
-											})}
-										</div>
-										<div style={{ display: 'flex', gap: 6 }}>
-											<Form.Control
-												type="text"
-												placeholder="Tambah strategi sendiri..."
-												value={newStrategy}
-												onChange={(e) => setNewStrategy(e.target.value)}
-												onKeyDown={(e) => {
-													if (e.key === 'Enter') {
-														e.preventDefault();
-														addCustomStrategy();
-													}
-												}}
-												style={{ borderRadius: 8, padding: '8px 12px', fontSize: 12, border: '1px solid #e2e8f0', flex: 1 }}
-											/>
-											<button
-												type="button"
-												onClick={addCustomStrategy}
-												style={{
-													background: '#f8fafc',
-													border: '1px solid #e2e8f0',
-													borderRadius: 8,
-													padding: '0 10px',
-													cursor: 'pointer',
-													display: 'flex',
-													alignItems: 'center',
-													color: '#64748b',
-												}}
-											>
-												<Plus size={14} />
-											</button>
-										</div>
-									</Form.Group>
-
-									<Form.Group className="mb-3">
-										<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-											<Form.Label style={{ fontWeight: 600, fontSize: 12, color: '#334155', margin: 0 }}>
-												Estimasi waktu
-											</Form.Label>
-											<span style={{ fontSize: 12, fontWeight: 600, color: '#005a87' }}>
-												{estimatedTime} menit
-											</span>
-										</div>
-										<Form.Range
-											min={5} max={60} step={5}
-											value={estimatedTime}
-											onChange={(e) => setEstimatedTime(Number(e.target.value))}
-										/>
-									</Form.Group>
-
-									<Form.Group className="mb-4">
-										<Form.Label style={{ fontWeight: 600, fontSize: 12, color: '#334155', marginBottom: 6 }}>
-											Tingkat keyakinan
-										</Form.Label>
-										<div style={{ display: 'flex', gap: 6 }}>
-											{[1, 2, 3, 4, 5].map((num) => (
-												<button
-													type="button"
-													key={num}
-													onClick={() => setConfidence(num)}
-													style={{
-														flex: 1,
-														padding: '8px 0',
-														borderRadius: 8,
-														border: confidence === num ? '1.5px solid #005a87' : '1px solid #e2e8f0',
-														background: confidence === num ? '#f0f9ff' : '#fff',
-														color: confidence === num ? '#005a87' : '#94a3b8',
-														fontWeight: 600,
-														fontSize: 11,
-														cursor: 'pointer',
-														transition: 'all 0.15s ease',
-													}}
-												>
-													{num}
-												</button>
-											))}
-										</div>
-										<div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#cbd5e1', marginTop: 4 }}>
-											<span>Kurang yakin</span>
-											<span>Sangat yakin</span>
-										</div>
-									</Form.Group>
-
-									<Button
-										type="submit"
-										style={{
-											width: '100%',
-											background: '#005a87',
-											border: 'none',
-											borderRadius: 10,
-											padding: '12px',
-											fontWeight: 600,
-											fontSize: 13,
+											width: 25,
+											height: 25,
+											borderRadius: '50%',
 											display: 'flex',
 											alignItems: 'center',
 											justifyContent: 'center',
-											gap: 8,
+											background:
+												index <= activePhase ? '#005a87' : '#e2e8f0',
+											color: index <= activePhase ? '#fff' : '#94a3b8',
+											fontWeight: 600,
 										}}
 									>
-										Mulai Belajar <ArrowRight size={14} />
-									</Button>
-								</Form>
+										{index < activePhase ? (
+											<CheckCircle size={14} />
+										) : (
+											item.number
+										)}
+									</div>
+
+									<span
+										style={{
+											color: index === activePhase ? '#005a87' : '#94a3b8',
+											fontWeight: index === activePhase ? 700 : 400,
+										}}
+									>
+										{item.label}
+									</span>
+								</div>
+							))}
+						</div>
+
+						<ProgressBar
+							now={progress}
+							style={{ height: 4, background: '#e2e8f0' }}
+							variant="info"
+						/>
+					</div>
+				</Modal.Header>
+
+				<Modal.Body style={{ padding: '16px 24px 24px' }}>
+					{/* ================================= */}
+					{/* 1. FORETHOUGHT */}
+					{/* ================================= */}
+
+					{phase === 'forethought' && (
+						<Form onSubmit={handleStartLearning}>
+							<div className="mb-3">
+								<Form.Label className="fw-semibold small">
+									<Target size={15} className="me-2" />
+									Target sesi ini
+								</Form.Label>
+
+								<Form.Control
+									type="text"
+									required
+									placeholder="Apa yang ingin kamu kuasai?"
+									value={sessionGoal}
+									onChange={(e) => setSessionGoal(e.target.value)}
+									style={{ fontSize: 13, padding: 11 }}
+								/>
 							</div>
-						</motion.div>
-					</>
-				)}
-			</AnimatePresence>
+
+							<div className="mb-3">
+								<Form.Label className="fw-semibold small">
+									Strategi fokus
+								</Form.Label>
+
+								<div className="d-flex flex-wrap gap-2 mb-2">
+									{allStrategies.map((strategy) => {
+										const active = selectedStrategies.includes(strategy);
+
+										return (
+											<button
+												type="button"
+												key={strategy}
+												onClick={() => toggleStrategy(strategy)}
+												className="btn btn-sm"
+												style={{
+													borderRadius: 20,
+													fontSize: 11,
+													background: active ? '#e0f2fe' : '#fff',
+													border: active
+														? '1px solid #005a87'
+														: '1px solid #e2e8f0',
+													color: active ? '#005a87' : '#64748b',
+												}}
+											>
+												{strategy}
+											</button>
+										);
+									})}
+								</div>
+
+								<div className="d-flex gap-2">
+									<Form.Control
+										size="sm"
+										placeholder="Tambah strategi sendiri..."
+										value={newStrategy}
+										onChange={(e) => setNewStrategy(e.target.value)}
+										onKeyDown={(e) => {
+											if (e.key === 'Enter') {
+												e.preventDefault();
+												addCustomStrategy();
+											}
+										}}
+									/>
+
+									<Button variant="light" onClick={addCustomStrategy}>
+										<Plus size={16} />
+									</Button>
+								</div>
+							</div>
+
+							<div className="mb-4">
+								<div className="d-flex justify-content-between">
+									<Form.Label className="fw-semibold small">
+										Estimasi waktu belajar
+									</Form.Label>
+
+									<span className="small fw-bold" style={{ color: '#005a87' }}>
+										{estimatedTime} menit
+									</span>
+								</div>
+
+								<Form.Range
+									min={5}
+									max={60}
+									step={5}
+									value={estimatedTime}
+									onChange={(e) => setEstimatedTime(Number(e.target.value))}
+								/>
+
+								<div
+									className="d-flex justify-content-between text-muted"
+									style={{ fontSize: 10 }}
+								>
+									<span>5 menit</span>
+									<span>60 menit</span>
+								</div>
+							</div>
+
+							<div className="mb-4">
+								<Form.Label className="fw-semibold small">
+									Tingkat keyakinan
+								</Form.Label>
+
+								<div className="d-flex gap-2">
+									{[1, 2, 3, 4, 5].map((num) => (
+										<button
+											type="button"
+											key={num}
+											onClick={() => setConfidence(num)}
+											className="btn flex-fill"
+											style={{
+												background: confidence === num ? '#e0f2fe' : '#fff',
+												color: confidence === num ? '#005a87' : '#94a3b8',
+												border:
+													confidence === num
+														? '1px solid #005a87'
+														: '1px solid #e2e8f0',
+											}}
+										>
+											{num}
+										</button>
+									))}
+								</div>
+
+								<div
+									className="d-flex justify-content-between text-muted mt-1"
+									style={{ fontSize: 10 }}
+								>
+									<span>Kurang yakin</span>
+									<span>Sangat yakin</span>
+								</div>
+							</div>
+
+							<Button
+								type="submit"
+								className="w-100 border-0 py-2"
+								style={{ background: '#005a87' }}
+							>
+								Mulai Belajar <ArrowRight size={15} className="ms-2" />
+							</Button>
+						</Form>
+					)}
+
+					{/* ================================= */}
+					{/* 2. PERFORMANCE */}
+					{/* ================================= */}
+
+					{phase === 'performance' && (
+						<div>
+							<div className="text-center py-3">
+								<div
+									className="mx-auto mb-3 d-flex align-items-center justify-content-center"
+									style={{
+										width: 60,
+										height: 60,
+										borderRadius: '50%',
+										background: '#e0f2fe',
+										color: '#005a87',
+									}}
+								>
+									<BookOpen size={27} />
+								</div>
+
+								<Badge bg="success" className="mb-2">
+									Learning in Progress
+								</Badge>
+
+								<h6 className="text-muted fw-normal mb-2">Waktu pembelajaran</h6>
+
+								<h1
+									className="fw-bold mb-1"
+									style={{
+										fontSize: 42,
+										color: '#005a87',
+										fontVariantNumeric: 'tabular-nums',
+									}}
+								>
+									{formatTime(elapsedTime)}
+								</h1>
+
+								<small className="text-muted">Durasi belajar aktual</small>
+							</div>
+
+							{/* Learning Goal */}
+							<div className="p-3 rounded-3 mb-3" style={{ background: '#f8fafc' }}>
+								<div className="small text-muted mb-1">
+									<Target size={14} className="me-1" />
+									Target pembelajaran
+								</div>
+
+								<div className="fw-semibold small">{sessionGoal}</div>
+							</div>
+
+							{/* Time Comparison */}
+							<div className="border rounded-3 p-3 mb-3">
+								<div className="d-flex justify-content-between mb-2">
+									<span className="small fw-semibold">
+										<Clock size={14} className="me-1" />
+										Estimasi vs Aktual
+									</span>
+
+									<span className="small fw-bold" style={{ color: '#005a87' }}>
+										{actualMinutes} / {estimatedTime} menit
+									</span>
+								</div>
+
+								<ProgressBar now={estimatedPercentage} style={{ height: 8 }} />
+
+								<div
+									className="d-flex justify-content-between mt-2 text-muted"
+									style={{ fontSize: 10 }}
+								>
+									<span>Waktu aktual: {actualMinutes} menit</span>
+									<span>Target: {estimatedTime} menit</span>
+								</div>
+							</div>
+
+							{/* Selected Strategies */}
+							<div className="mb-4">
+								<div className="small fw-semibold mb-2">
+									Strategi belajar yang direncanakan
+								</div>
+
+								<div className="d-flex flex-wrap gap-2">
+									{selectedStrategies.length > 0 ? (
+										selectedStrategies.map((strategy) => (
+											<Badge
+												key={strategy}
+												bg="light"
+												text="dark"
+												className="p-2 fw-normal"
+											>
+												<CheckCircle
+													size={11}
+													className="me-1 text-success"
+												/>
+												{strategy}
+											</Badge>
+										))
+									) : (
+										<small className="text-muted">
+											Tidak ada strategi khusus.
+										</small>
+									)}
+								</div>
+							</div>
+
+							<div className="alert alert-info py-2 small">
+								<Lightbulb size={15} className="me-1" />
+								Tetap fokus dan pantau perkembangan belajarmu. Waktu akan dihitung
+								secara otomatis.
+							</div>
+
+							<Button
+								onClick={handleFinishLearning}
+								className="w-100 border-0 py-2"
+								style={{ background: '#005a87' }}
+							>
+								Selesaikan Sesi <CheckCircle size={15} className="ms-2" />
+							</Button>
+						</div>
+					)}
+
+					{/* ================================= */}
+					{/* 3. SELF-REFLECTION */}
+					{/* ================================= */}
+
+					{phase === 'reflection' && (
+						<Form onSubmit={handleComplete}>
+							<div
+								className="text-center p-3 rounded-3 mb-4"
+								style={{ background: '#f0f9ff' }}
+							>
+								<CheckCircle
+									size={32}
+									style={{ color: '#005a87' }}
+									className="mb-2"
+								/>
+
+								<h6 className="fw-bold mb-1">Sesi pembelajaran selesai!</h6>
+
+								<div className="text-muted small">Waktu belajar aktual</div>
+
+								<h3 className="fw-bold mb-0" style={{ color: '#005a87' }}>
+									{formatTime(finalDuration)}
+								</h3>
+							</div>
+
+							<div className="mb-3">
+								<Form.Label className="fw-semibold small">
+									1. Seberapa baik target pembelajaran tercapai?
+								</Form.Label>
+
+								<div className="d-flex gap-2">
+									{[1, 2, 3, 4, 5].map((num) => (
+										<button
+											type="button"
+											key={num}
+											onClick={() => setAchievement(num)}
+											className="btn flex-fill"
+											style={{
+												background:
+													achievement === num ? '#e0f2fe' : '#fff',
+												color: achievement === num ? '#005a87' : '#94a3b8',
+												border:
+													achievement === num
+														? '1px solid #005a87'
+														: '1px solid #e2e8f0',
+											}}
+										>
+											{num}
+										</button>
+									))}
+								</div>
+
+								<div
+									className="d-flex justify-content-between text-muted mt-1"
+									style={{ fontSize: 10 }}
+								>
+									<span>Belum tercapai</span>
+									<span>Sangat tercapai</span>
+								</div>
+							</div>
+
+							<div className="mb-3">
+								<Form.Label className="fw-semibold small">
+									2. Apa yang berhasil kamu pahami?
+								</Form.Label>
+
+								<Form.Control
+									as="textarea"
+									rows={2}
+									required
+									placeholder="Tuliskan pemahaman atau hal baru yang diperoleh..."
+									value={understanding}
+									onChange={(e) => setUnderstanding(e.target.value)}
+									style={{ fontSize: 13 }}
+								/>
+							</div>
+
+							<div className="mb-3">
+								<Form.Label className="fw-semibold small">
+									3. Kesulitan apa yang kamu hadapi?
+								</Form.Label>
+
+								<Form.Control
+									as="textarea"
+									rows={2}
+									placeholder="Tuliskan kendala selama pembelajaran..."
+									value={difficulties}
+									onChange={(e) => setDifficulties(e.target.value)}
+									style={{ fontSize: 13 }}
+								/>
+							</div>
+
+							<div className="mb-4">
+								<Form.Label className="fw-semibold small">
+									4. Apa yang akan kamu lakukan selanjutnya?
+								</Form.Label>
+
+								<Form.Control
+									as="textarea"
+									rows={2}
+									placeholder="Contoh: Mengulang materi atau mempelajari topik berikutnya..."
+									value={nextPlan}
+									onChange={(e) => setNextPlan(e.target.value)}
+									style={{ fontSize: 13 }}
+								/>
+							</div>
+
+							<Button
+								type="submit"
+								className="w-100 border-0 py-2"
+								style={{ background: '#005a87' }}
+							>
+								Simpan Refleksi <CheckCircle size={15} className="ms-2" />
+							</Button>
+						</Form>
+					)}
+				</Modal.Body>
+			</Modal>
 		</>
 	);
 };

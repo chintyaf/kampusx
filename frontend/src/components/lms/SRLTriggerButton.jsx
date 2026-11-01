@@ -1,0 +1,327 @@
+import React from 'react';
+import { X, Play, Zap, Pause, ClipboardCheck, Target } from 'lucide-react';
+import { useSRL } from '@/context/SRLContext';
+
+// Three ring segments = three SRL phases (Forethought → Performance → Self-Reflection)
+const RING_RADIUS = 40;
+const SEGMENT_SWEEP = 96; // degrees drawn per segment (120° minus a 24° gap)
+const SEGMENT_START = [-80, 40, 160]; // start angle of each segment
+
+const SRLTriggerButton = () => {
+	const { toggleModal, isOpen, isSessionActive, currentPhase, isPaused } = useSRL();
+
+	const getPhaseConfig = () => {
+		if (!isSessionActive || currentPhase === 'forethought') {
+			return {
+				phase: 1,
+				name: 'Forethought',
+				description: 'Rencanakan pembelajaran',
+				icon: isSessionActive ? (
+					<Target size={24} />
+				) : (
+					<Play size={26} fill="currentColor" style={{ marginLeft: 2 }} />
+				),
+				color: 'var(--bahama-blue-400)',
+				accent: 'var(--primary)',
+				status: isSessionActive ? 'Merencanakan' : 'Belum dimulai',
+				live: false,
+			};
+		}
+
+		if (currentPhase === 'performance') {
+			return {
+				phase: 2,
+				name: 'Performance',
+				description: isPaused
+					? 'Sesi pembelajaran dijeda'
+					: 'Sedang menjalani pembelajaran',
+				icon: isPaused ? (
+					<Pause size={24} fill="currentColor" />
+				) : (
+					<Zap size={24} fill="currentColor" />
+				),
+				color: isPaused ? 'var(--warning-border)' : 'var(--bahama-blue-400)',
+				accent: isPaused ? 'var(--warning-text)' : 'var(--primary)',
+				status: isPaused ? 'Dijeda' : 'Sedang fokus',
+				live: !isPaused,
+			};
+		}
+
+		return {
+			phase: 3,
+			name: 'Self-Reflection',
+			description: 'Evaluasi hasil pembelajaran',
+			icon: <ClipboardCheck size={24} />,
+			color: 'color-mix(in srgb, var(--purple-text) 55%, white)',
+			accent: 'var(--purple-text)',
+			status: 'Evaluasi',
+			live: false,
+		};
+	};
+
+	const config = getPhaseConfig();
+
+	const title = isOpen ? 'Tutup SRL' : config.description;
+	const icon = isOpen ? <X size={24} /> : config.icon;
+
+	return (
+		<>
+			<style>{`
+				.srl-trigger-container {
+					position: fixed;
+					bottom: 28px;
+					right: 28px;
+					z-index: 9999;
+					display: flex;
+					align-items: center;
+					gap: 14px;
+					font-family: var(--font, inherit);
+					--srl-color: ${config.accent};
+					--srl-accent: ${config.accent};
+					--srl-track: var(--bahama-blue-200);
+				}
+
+				/* ---------- Info card ---------- */
+				.srl-info {
+					position: relative;
+					min-width: 156px;
+					padding: 11px 16px 12px;
+					border-radius: var(--radius-lg);
+					background: var(--card);
+					border: var(--border-w-xs) solid var(--border-md);
+					box-shadow: 0 10px 30px rgba(8, 47, 73, 0.14);
+					animation: srl-info-in .28s ease-out;
+				}
+
+				/* little tail pointing toward the button */
+				.srl-info::after {
+					content: '';
+					position: absolute;
+					top: 50%;
+					right: -5px;
+					width: 10px;
+					height: 10px;
+					background: var(--card);
+					border-top: var(--border-w-xs) solid var(--border-md);
+					border-right: var(--border-w-xs) solid var(--border-md);
+					transform: translateY(-50%) rotate(45deg);
+				}
+
+				.srl-info-top {
+					display: flex;
+					align-items: center;
+					gap: 7px;
+					margin-bottom: 5px;
+				}
+
+				.srl-status-dot {
+					position: relative;
+					width: 7px;
+					height: 7px;
+					border-radius: 50%;
+					background: var(--srl-accent);
+					flex-shrink: 0;
+				}
+
+				.srl-status-dot.is-live::after {
+					content: '';
+					position: absolute;
+					inset: 0;
+					border-radius: 50%;
+					background: var(--srl-accent);
+					animation: srl-pulse 1.8s ease-out infinite;
+				}
+
+				.srl-info-status {
+					font-size: 11px;
+					font-weight: 600;
+					color: var(--srl-accent);
+				}
+
+				.srl-info-title {
+					font-size: 14px;
+					font-weight: 700;
+					line-height: 1.2;
+					color: var(--text);
+				}
+
+				.srl-info-description {
+					margin-top: 2px;
+					font-size: var(--font-xs);
+					line-height: 1.35;
+					color: var(--text-muted);
+				}
+
+				/* ---------- Trigger button ---------- */
+				.srl-trigger {
+					position: relative;
+					width: 68px;
+					height: 68px;
+					padding: 0;
+					border: 0;
+					border-radius: 50%;
+					background: color-mix(in srgb, var(--card) 40%, transparent);
+					-webkit-backdrop-filter: blur(10px) saturate(1.4);
+					backdrop-filter: blur(10px) saturate(1.4);
+					color: var(--color-white);
+					cursor: pointer;
+					box-shadow:
+						0 8px 24px rgba(8, 47, 73, 0.12),
+						inset 0 0 0 var(--border-w-xs) rgba(255, 255, 255, 0.55);
+					transition: transform .25s ease, box-shadow .25s ease;
+				}
+
+				.srl-trigger:hover {
+					transform: translateY(-3px);
+					box-shadow:
+						0 12px 30px rgba(8, 47, 73, 0.18),
+						inset 0 0 0 var(--border-w-xs) rgba(255, 255, 255, 0.7);
+				}
+
+				.srl-trigger:active {
+					transform: translateY(-1px) scale(0.97);
+				}
+
+				.srl-trigger:focus-visible {
+					outline: var(--border-w-md) solid var(--srl-color);
+					outline-offset: 3px;
+				}
+
+				.srl-ring {
+					position: absolute;
+					inset: 0;
+					width: 100%;
+					height: 100%;
+				}
+
+				.srl-seg {
+					fill: none;
+					stroke-width: 4.5;
+					stroke-linecap: round;
+					transform-origin: 50px 50px;
+					transition: stroke .3s ease, opacity .3s ease;
+				}
+
+				.srl-seg.is-todo {
+					stroke: var(--srl-track);
+				}
+
+				.srl-seg.is-done {
+					stroke: var(--srl-color);
+					opacity: .45;
+				}
+
+				.srl-seg.is-active {
+					stroke: var(--srl-color);
+					filter: drop-shadow(0 0 2px color-mix(in srgb, var(--srl-color) 50%, transparent));
+				}
+
+				.srl-core {
+					position: absolute;
+					inset: 24%;
+					border-radius: 50%;
+					background: linear-gradient(145deg, var(--srl-accent), color-mix(in srgb, var(--srl-accent) 65%, black));
+					box-shadow: 0 6px 14px color-mix(in srgb, var(--srl-accent) 40%, transparent);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+
+				.srl-trigger-dot {
+					position: absolute;
+					top: -3px;
+					right: -3px;
+					width: 14px;
+					height: 14px;
+					border-radius: 50%;
+					background: ${isPaused ? 'var(--warning-border)' : 'var(--success-border-color)'};
+					border: var(--border-w-md) solid var(--card);
+				}
+
+				@keyframes srl-info-in {
+					from { opacity: 0; transform: translateX(8px); }
+					to   { opacity: 1; transform: translateX(0); }
+				}
+
+				@keyframes srl-pulse {
+					from { transform: scale(1); opacity: .6; }
+					to   { transform: scale(2.8); opacity: 0; }
+				}
+
+				@media (max-width: 576px) {
+					.srl-trigger-container {
+						bottom: 20px;
+						right: 18px;
+					}
+
+					.srl-info {
+						min-width: 132px;
+						padding: 9px 13px 10px;
+					}
+
+					.srl-trigger {
+						width: 60px;
+						height: 60px;
+					}
+				}
+
+				@media (prefers-reduced-motion: reduce) {
+					.srl-trigger,
+					.srl-seg,
+					.srl-info {
+						transition: none;
+						animation: none;
+					}
+					.srl-status-dot.is-live::after {
+						animation: none;
+					}
+				}
+			`}</style>
+
+			<div className="srl-trigger-container">
+				<button
+					type="button"
+					onClick={toggleModal}
+					title={title}
+					aria-label={
+						isOpen
+							? 'Tutup SRL'
+							: `SRL, fase ${config.phase} dari 3: ${config.name}. ${config.description}`
+					}
+					aria-expanded={isOpen}
+					className="srl-trigger"
+				>
+					<svg className="srl-ring" viewBox="0 0 100 100" aria-hidden="true">
+						{SEGMENT_START.map((start, i) => {
+							const n = i + 1;
+							const state =
+								n < config.phase
+									? 'is-done'
+									: n === config.phase
+										? 'is-active'
+										: 'is-todo';
+							return (
+								<circle
+									key={n}
+									className={`srl-seg ${state}`}
+									cx="50"
+									cy="50"
+									r={RING_RADIUS}
+									pathLength="360"
+									strokeDasharray={`${SEGMENT_SWEEP} ${360 - SEGMENT_SWEEP}`}
+									style={{ transform: `rotate(${start}deg)` }}
+								/>
+							);
+						})}
+					</svg>
+
+					<span className="srl-core">{icon}</span>
+
+					{isSessionActive && !isOpen && <span className="srl-trigger-dot" />}
+				</button>
+			</div>
+		</>
+	);
+};
+
+export default SRLTriggerButton;
