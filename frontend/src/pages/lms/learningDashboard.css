@@ -79,7 +79,7 @@
 	margin-bottom: 14px;
 }
 .ld-title {
-	font-size: var(--font-lg);
+	font-size: var(--font-md);
 	font-weight: 700;
 	line-height: 1.25;
 }
@@ -87,7 +87,7 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	font-size: var(--font-sm);
+	font-size: var(--font-xs);
 	font-weight: 700;
 	margin: 18px 0 10px;
 }
@@ -354,22 +354,46 @@
 	color: var(--ld-muted);
 	font-size: var(--font-sm);
 	margin-top: 4px !important;
-	max-width: 560px;
 }
+
 .ld-streak {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
+	gap: 6px;
+	padding: 4px 12px 4px 8px;
 	background: var(--ld-warning-soft);
 	color: var(--ld-warning);
-	border: 1px solid var(--ld-warning-border);
-	padding: 8px 16px;
+	border: 1px solid color-mix(in srgb, var(--ld-warning-border) 60%, transparent);
 	border-radius: var(--radius-full);
-	font-size: var(--font-sm);
+	font-size: 13px;
+	line-height: 1;
+	white-space: nowrap;
+	cursor: default;
+	user-select: none;
 }
-.ld-streak strong {
-	font-size: var(--font-lg);
+
+.ld-streak svg {
+	flex-shrink: 0;
+	/* outline saja, tidak ada fill */
 }
+
+.ld-streak__text {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 3px;
+}
+
+.ld-streak__count {
+	font-size: 15px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.ld-streak__label {
+	font-weight: 500;
+	opacity: 0.85;
+}
+
 .ld-stats {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
@@ -639,7 +663,7 @@
 	display: flex;
 	gap: 12px;
 	align-items: center;
-	padding: 14px;
+	padding: 0px 14px;
 	border-radius: var(--radius);
 	background: var(--ld-primary-soft);
 	color: var(--ld-primary);
@@ -837,105 +861,6 @@
 	opacity: 0.8;
 }
 
-/* ---------- Readiness ---------- */
-.ld-gauge {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 4px;
-	margin-bottom: 14px;
-}
-.ld-gauge svg {
-	width: 100%;
-	max-width: 260px;
-}
-.ld-gauge-track,
-.ld-gauge-value {
-	fill: none;
-	stroke-width: 13;
-	stroke-linecap: round;
-}
-.ld-gauge-track {
-	stroke: var(--ld-neutral-soft);
-}
-.ld-gauge-value {
-	stroke: var(--ld-primary);
-	transition: stroke-dasharray 0.6s ease;
-}
-.ld-gauge-value.is-success {
-	stroke: var(--ld-success);
-}
-.ld-gauge-value.is-warning {
-	stroke: var(--ld-warning);
-}
-.ld-gauge-value.is-danger {
-	stroke: var(--error-text);
-}
-.ld-gauge-tick {
-	stroke: var(--ld-card);
-	stroke-width: 2;
-}
-.ld-gauge-score {
-	font-size: 30px;
-	font-weight: 800;
-	fill: var(--ld-ink);
-}
-.ld-gauge-caption {
-	font-size: 10px;
-	fill: var(--ld-muted);
-}
-.ld-gauge-axis {
-	font-size: 9px;
-	fill: var(--ld-muted);
-}
-.ld-gauge-level {
-	font-size: var(--font-sm);
-	padding: 6px 14px;
-	margin-top: -6px;
-}
-
-.ld-factors {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 8px;
-}
-.ld-factor {
-	background: var(--ld-bg);
-	border-radius: var(--radius);
-	padding: 10px 8px;
-	text-align: center;
-}
-.ld-factor strong {
-	display: block;
-	font-size: var(--font-sm);
-}
-.ld-factor strong.is-success {
-	color: var(--ld-success);
-}
-.ld-factor small {
-	display: block;
-	font-size: var(--font-xs);
-	line-height: 1.25;
-	margin-top: 2px;
-}
-.ld-quiz {
-	margin-top: 14px;
-	padding: 12px;
-	border: 1px dashed var(--ld-line-strong);
-	border-radius: var(--radius);
-}
-.ld-quiz-head {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 8px;
-	margin-bottom: 6px;
-}
-.ld-quiz p {
-	font-size: var(--font-xs);
-	line-height: 1.5;
-}
-
 /* ---------- Skills / Badges ---------- */
 .ld-skills {
 	display: flex;
@@ -1083,4 +1008,208 @@
 	.ld-session-time-col {
 		display: none;
 	}
+}
+
+.ld-pagination {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid var(--ld-border, #e5e7eb);
+}
+
+.ld-pagination-info {
+	margin: 0;
+	font-size: 13px;
+	color: var(--ld-text-muted, #6b7280);
+}
+
+.ld-pagination-controls {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.ld-page-btn {
+	min-width: 34px;
+	height: 34px;
+	padding: 0 10px;
+	border: 1px solid var(--ld-border, #e5e7eb);
+	border-radius: 8px;
+	background: #fff;
+	font-size: 13px;
+	font-weight: 500;
+	color: inherit;
+	cursor: pointer;
+	transition:
+		background 0.15s,
+		border-color 0.15s;
+}
+
+.ld-page-btn:hover:not(:disabled):not(.is-active) {
+	background: var(--ld-surface-hover, #f3f4f6);
+}
+
+.ld-page-btn.is-active {
+	background: var(--ld-primary, #4f46e5);
+	border-color: var(--ld-primary, #4f46e5);
+	color: #fff;
+}
+
+.ld-page-btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.ld-page-ellipsis {
+	padding: 0 4px;
+	color: var(--ld-text-muted, #6b7280);
+}
+
+@media (max-width: 640px) {
+	.ld-pagination {
+		justify-content: center;
+	}
+	.ld-pagination-info {
+		width: 100%;
+		text-align: center;
+	}
+}
+
+/* ---------- Readiness (simplified) ----------
+   Tambahkan di bagian bawah file CSS dashboard.
+   Class lama (.ld-factors, .ld-factor, .ld-quiz, .ld-callout di widget ini,
+   .ld-gauge-tick, .ld-gauge-caption, .ld-gauge-axis) tidak dipakai lagi
+   oleh widget ini dan boleh dihapus kalau tidak dipakai komponen lain. */
+
+.ld-gauge {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+.ld-gauge svg {
+	width: 100%;
+	max-width: 260px;
+}
+.ld-gauge-track,
+.ld-gauge-value {
+	fill: none;
+	stroke-width: 13;
+	stroke-linecap: round;
+}
+.ld-gauge-track {
+	stroke: var(--ld-neutral-soft);
+}
+.ld-gauge-value {
+	stroke: var(--ld-primary);
+	transition: stroke-dasharray 0.6s ease;
+}
+.ld-gauge-value.is-success {
+	stroke: var(--ld-success);
+}
+.ld-gauge-value.is-warning {
+	stroke: var(--ld-warning);
+}
+.ld-gauge-value.is-danger {
+	stroke: var(--ld-danger);
+}
+.ld-gauge-score {
+	font-size: 34px;
+	font-weight: 800;
+	fill: var(--ld-ink);
+}
+.ld-gauge-level {
+	font-size: var(--font-sm);
+	padding: 6px 14px;
+	margin-top: -4px;
+}
+
+.ld-rd-action {
+	text-align: center;
+	font-size: var(--font-sm);
+	line-height: 1.5;
+	color: var(--ld-muted);
+	max-width: 30ch;
+	margin: 0 auto !important;
+}
+
+.ld-rd-details {
+	margin-top: 16px;
+	border-top: 1px solid var(--ld-line);
+	padding-top: 12px;
+}
+.ld-rd-details summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	cursor: pointer;
+	list-style: none;
+	font-size: var(--font-sm);
+	font-weight: 600;
+	color: var(--ld-primary);
+}
+.ld-rd-details summary::-webkit-details-marker {
+	display: none;
+}
+.ld-rd-details summary::after {
+	content: '';
+	width: 7px;
+	height: 7px;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg);
+	transition: transform 0.2s;
+}
+.ld-rd-details[open] summary::after {
+	transform: rotate(-135deg);
+}
+
+.ld-rd-factors {
+	margin: 12px 0 0;
+}
+.ld-rd-factor {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 12px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--ld-line);
+	font-size: var(--font-sm);
+}
+.ld-rd-factor dt {
+	color: var(--ld-muted);
+}
+.ld-rd-factor dd {
+	margin: 0;
+	font-weight: 700;
+}
+.ld-rd-factor dd.is-success {
+	color: var(--ld-success);
+}
+
+.ld-rd-quiz {
+	margin-top: 14px;
+	font-size: var(--font-xs);
+	line-height: 1.5;
+	color: var(--ld-muted);
+}
+.ld-rd-quiz-head {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 4px !important;
+	color: var(--ld-ink);
+	font-weight: 600;
+}
+.ld-rd-quiz-head strong {
+	color: var(--ld-primary);
+}
+
+.ld-readiness .ld-note {
+	text-align: center;
 }

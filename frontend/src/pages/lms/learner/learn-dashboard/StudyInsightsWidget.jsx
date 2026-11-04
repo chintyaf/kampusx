@@ -38,17 +38,6 @@ const StudyInsightsWidget = ({ sessions = [] }) => {
 					})}
 				</div>
 			</section>
-
-			{latest && (
-				<div className="ld-callout is-purple ld-next-session">
-					<Icon name="lightbulb" size={16} />
-					<div>
-						<strong>Untuk sesi berikutnya</strong>
-						<p>{latest.reflection.futureAdjustment}</p>
-						<small>Dari refleksi · {formatSessionDate(latest.startedAt)}</small>
-					</div>
-				</div>
-			)}
 		</>
 	);
 };

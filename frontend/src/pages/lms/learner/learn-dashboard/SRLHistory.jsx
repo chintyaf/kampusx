@@ -68,6 +68,7 @@ const SRLHistory = ({ sessions = [] }) => {
 						Tinjau rencana, proses, dan refleksi dari setiap sesi belajarmu
 					</p>
 				</div>
+
 				<div className="ld-tabs" role="tablist">
 					{FILTERS.map((f) => (
 						<button
@@ -87,7 +88,7 @@ const SRLHistory = ({ sessions = [] }) => {
 				</div>
 			</div>
 
-			<div className="ld-kpis">
+			{/* <div className="ld-kpis">
 				<div className="ld-kpi">
 					<Icon name="calendar" size={18} />
 					<div>
@@ -116,7 +117,7 @@ const SRLHistory = ({ sessions = [] }) => {
 						)}
 					</div>
 				</div>
-			</div>
+			</div> */}
 
 			<div className="ld-srl-layout">
 				<div className="ld-srl-list">

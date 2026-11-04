@@ -28,7 +28,7 @@ const SkillMatrixWidget = ({ data, onOpenJobMatching }) => (
 			))}
 		</div>
 
-		<h3 className="ld-subtitle">
+		{/* <h3 className="ld-subtitle">
 			<Icon name="briefcase" size={14} /> Kesesuaian karier
 		</h3>
 		<div className="ld-jobs">
@@ -55,7 +55,7 @@ const SkillMatrixWidget = ({ data, onOpenJobMatching }) => (
 
 		<button type="button" className="ld-btn ld-btn-outline ld-btn-block" onClick={onOpenJobMatching}>
 			Lihat Job Matching <Icon name="arrow-right" size={14} />
-		</button>
+		</button> */}
 	</section>
 );
 

@@ -20,12 +20,12 @@ const BadgesWidget = ({ data, onViewCertificate }) => {
 				<div>
 					<h2 className="ld-title">Pencapaian</h2>
 					<p className="ld-sub">
-						{earned} dari {data.badges.length} badge diraih
+						{/* {earned} dari {data.badges.length} badge diraih */}
 					</p>
 				</div>
 			</div>
 
-			<div className="ld-badges">
+			{/* <div className="ld-badges">
 				{data.badges.map((b) => (
 					<div key={b.id} className={`ld-badge ${b.earned ? 'is-earned' : ''}`}>
 						<span className="ld-badge-icon">
@@ -34,11 +34,12 @@ const BadgesWidget = ({ data, onViewCertificate }) => {
 						<small>{b.name}</small>
 					</div>
 				))}
-			</div>
-
-			<h3 className="ld-subtitle">
+			</div> */}
+{/*
+			<h3 className="ld-subtitle mb-4">
 				<Icon name="award" size={14} /> Sertifikat & kredensial digital
-			</h3>
+			</h3> */}
+
 			<div className="ld-creds">
 				{data.credentials.map((c) => {
 					const st = CREDENTIAL_STATUS[c.status];

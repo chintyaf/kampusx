@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon';
 import ModuleThumb from './ModuleThumb';
 import { READINESS_LEVELS, SRL_PHASES, getReadinessLevel } from './learningUtils';
@@ -9,13 +9,31 @@ const TABS = [
 	{ key: 'completed', label: 'Selesai' },
 ];
 
+const PAGE_SIZE = 5;
+
 const PHASE_LABEL = Object.fromEntries(SRL_PHASES.map((p) => [p.key, p.label]));
+
+/**
+ * Bikin daftar nomor halaman dengan ellipsis, mis. [1, '…', 4, 5, 6, '…', 12]
+ */
+const getPageItems = (current, total) => {
+	if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+	const items = [1];
+	const start = Math.max(2, current - 1);
+	const end = Math.min(total - 1, current + 1);
+	if (start > 2) items.push('start-ellipsis');
+	for (let i = start; i <= end; i++) items.push(i);
+	if (end < total - 1) items.push('end-ellipsis');
+	items.push(total);
+	return items;
+};
 
 /**
  * Learning path Member: progres lesson, fase SRL aktif, skor kuis terakhir, dan Readiness Level per modul.
  */
 const EnrolledModules = ({ modules = [], onContinue, onViewCertificate }) => {
 	const [tab, setTab] = useState('all');
+	const [page, setPage] = useState(1);
 
 	const counts = useMemo(
 		() => ({
@@ -25,7 +43,28 @@ const EnrolledModules = ({ modules = [], onContinue, onViewCertificate }) => {
 		}),
 		[modules],
 	);
-	const visible = tab === 'all' ? modules : modules.filter((m) => m.status === tab);
+
+	const filtered = useMemo(
+		() => (tab === 'all' ? modules : modules.filter((m) => m.status === tab)),
+		[modules, tab],
+	);
+
+	const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+	const currentPage = Math.min(page, totalPages);
+	const startIdx = (currentPage - 1) * PAGE_SIZE;
+	const visible = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+	// Reset ke halaman 1 saat tab berganti
+	useEffect(() => {
+		setPage(1);
+	}, [tab]);
+
+	// Jaga-jaga kalau data berkurang dan halaman saat ini jadi tidak valid
+	useEffect(() => {
+		if (page > totalPages) setPage(totalPages);
+	}, [page, totalPages]);
+
+	const goTo = (p) => setPage(Math.min(Math.max(1, p), totalPages));
 
 	return (
 		<section className="ld-card">
@@ -117,6 +156,52 @@ const EnrolledModules = ({ modules = [], onContinue, onViewCertificate }) => {
 				})}
 				{!visible.length && <p className="ld-empty">Belum ada modul pada kategori ini.</p>}
 			</div>
+
+			{filtered.length > PAGE_SIZE && (
+				<nav className="ld-pagination" aria-label="Pagination learning path">
+					<p className="ld-pagination-info">
+						Menampilkan {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, filtered.length)}{' '}
+						dari {filtered.length} modul
+					</p>
+					<div className="ld-pagination-controls">
+						<button
+							type="button"
+							className="ld-page-btn"
+							onClick={() => goTo(currentPage - 1)}
+							disabled={currentPage === 1}
+							aria-label="Halaman sebelumnya"
+						>
+							‹
+						</button>
+						{getPageItems(currentPage, totalPages).map((item) =>
+							typeof item === 'number' ? (
+								<button
+									key={item}
+									type="button"
+									className={`ld-page-btn ${item === currentPage ? 'is-active' : ''}`}
+									onClick={() => goTo(item)}
+									aria-current={item === currentPage ? 'page' : undefined}
+								>
+									{item}
+								</button>
+							) : (
+								<span key={item} className="ld-page-ellipsis" aria-hidden="true">
+									…
+								</span>
+							),
+						)}
+						<button
+							type="button"
+							className="ld-page-btn"
+							onClick={() => goTo(currentPage + 1)}
+							disabled={currentPage === totalPages}
+							aria-label="Halaman berikutnya"
+						>
+							›
+						</button>
+					</div>
+				</nav>
+			)}
 		</section>
 	);
 };

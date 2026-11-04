@@ -49,7 +49,7 @@ const RecommendedModules = ({ modules = [], onOpen, onExploreAll }) => (
 									<Icon name="clock" size={13} /> {m.duration} menit
 								</span>
 							</div>
-
+{/* 
 							<div className="ld-progress-row">
 								<span>Kecocokan</span>
 								<strong>{pct}%</strong>
@@ -65,7 +65,7 @@ const RecommendedModules = ({ modules = [], onOpen, onExploreAll }) => (
 										{s}
 									</span>
 								))}
-							</div>
+							</div> */}
 
 							<button type="button" className="ld-btn ld-btn-outline" onClick={() => onOpen?.(m)}>
 								Lihat Modul <Icon name="arrow-right" size={14} />

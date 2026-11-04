@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from './Icon';
+// import { Collumn } from 'react-bootstrap';
 
 const getGreeting = () => {
 	const h = new Date().getHours();
@@ -26,7 +27,7 @@ const LearningHeader = ({ user, streak = 0, stats = [] }) => {
 	return (
 		<header className="ld-header">
 			<div className="ld-header-top">
-				<div>
+				<div className="col-8">
 					<span className="ld-date">
 						<Icon name="calendar" size={14} /> {today}
 					</span>
@@ -38,10 +39,15 @@ const LearningHeader = ({ user, streak = 0, stats = [] }) => {
 						refleksikan hasilnya.
 					</p>
 				</div>
-				<div className="ld-streak" title="Hari beruntun kamu belajar">
-					<Icon name="flame" size={18} />
-					<strong>{streak}</strong>
-					<span>hari beruntun</span>
+				<div
+					className="ld-streak"
+					title={`Kamu sudah belajar ${streak} hari berturut-turut. Pertahankan!`}
+				>
+					<Icon name="flame" size={16} />
+					<span className="ld-streak__text">
+						<span className="ld-streak__count">{streak}</span>
+						<span className="ld-streak__label">hari</span>
+					</span>
 				</div>
 			</div>
 

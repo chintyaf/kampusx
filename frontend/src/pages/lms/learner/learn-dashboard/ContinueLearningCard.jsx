@@ -48,48 +48,7 @@ const ContinueLearningCard = ({ module, onContinue, onViewAll }) => {
 				<div className="ld-progress">
 					<div className="ld-progress-bar" style={{ width: `${progress}%` }} />
 				</div>
-
-				<ol className="ld-srl-steps">
-					{SRL_PHASES.map((p, i) => {
-						const state = i < currentIdx ? 'is-done' : i === currentIdx ? 'is-current' : '';
-						return (
-							<li key={p.key} className={`ld-srl-step ${state}`}>
-								<span className="ld-srl-dot">
-									<Icon name={i < currentIdx ? 'check' : p.icon} size={14} />
-								</span>
-								<span className="ld-srl-text">
-									<strong>{p.label}</strong>
-									<small>{p.hint}</small>
-								</span>
-							</li>
-						);
-					})}
-				</ol>
-
-				{forethought && (
-					<div className="ld-session">
-						<div className="ld-session-goal">
-							<small>Target sesi ini</small>
-							<p>{forethought.sessionGoal}</p>
-							<div className="ld-chips">
-								{forethought.selectedStrategies.map((s) => (
-									<span key={s} className="ld-chip is-purple">
-										{s}
-									</span>
-								))}
-							</div>
-						</div>
-						<div className="ld-session-time">
-							<small>Waktu belajar</small>
-							<p>
-								<strong>{studied}</strong> / {estimated} menit
-							</p>
-							<div className="ld-progress is-thin">
-								<div className="ld-progress-bar is-purple" style={{ width: `${timePct}%` }} />
-							</div>
-						</div>
-					</div>
-				)}
+		
 
 				<div className="ld-actions">
 					<button type="button" className="ld-btn ld-btn-primary" onClick={onContinue}>

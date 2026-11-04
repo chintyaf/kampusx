@@ -65,7 +65,7 @@ const LearningReadinessWidget = ({ readiness = mockLearningReadiness }) => {
 						<h6
 							className="fw-bold mb-0"
 							style={{
-								fontSize: 'var(--font-md)',
+								fontSize: 'var(--font-sm)',
 								color: 'var(--text)',
 								lineHeight: 1.2,
 							}}
@@ -79,7 +79,7 @@ const LearningReadinessWidget = ({ readiness = mockLearningReadiness }) => {
 				</div>
 
 				<span
-					className="badge fw-semibold px-2.5 py-1"
+					className="badge fw-semibold px-3 py-1"
 					style={{
 						fontSize: 'var(--font-xs)',
 						backgroundColor: 'var(--success-bg)',
