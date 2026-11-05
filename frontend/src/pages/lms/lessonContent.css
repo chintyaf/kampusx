@@ -1,11 +1,54 @@
 /* ============================================================================
-   LESSON CONTENT STYLING (.lesson-body-content)
+   LESSON CONTENT STYLING
+   Konten lesson.html sengaja polos (unstyled). Semua tampilan diatur di sini.
+   Palet: Bahama Blue (variabel dari :root global)
    ============================================================================ */
 
+/* --- Judul lesson (h1 di komponen) --- */
+.lesson-title {
+	font-size: clamp(1.5rem, 3vw, 1.85rem);
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: -0.01em;
+	color: var(--bahama-blue-950, #082f49);
+	margin-bottom: 1.25rem;
+}
+
+/* --- Kontainer konten --- */
 .lesson-body-content {
-	color: var(--text, #334155);
-	font-size: var(--font-sm, 0.95rem);
-	line-height: 1.7;
+	--lesson-text: #334155;
+	--lesson-heading: var(--bahama-blue-950, #082f49);
+	--lesson-border: var(--neutral-border, #dae0eb);
+
+	/* Aksen biru */
+	--lesson-accent: var(--primary, #00699e);
+	--lesson-accent-hover: var(--bahama-blue-800, #075985);
+	--lesson-accent-soft: var(--bahama-blue-50, #f0f9ff);
+	--lesson-accent-border: var(--bahama-blue-200, #bae6fd);
+	--lesson-code-text: var(--bahama-blue-700, #0369a1);
+
+	color: var(--lesson-text);
+	font-size: 1rem;
+	line-height: 1.8;
+	overflow-wrap: anywhere;
+}
+
+/* Pengganti `space-y-6` (Tailwind) */
+.lesson-body-content .space-y-6 > * + * {
+	margin-top: 2.5rem;
+}
+
+/* Elemen pertama di dalam section/div tidak perlu margin atas */
+.lesson-body-content > :first-child,
+.lesson-body-content section > :first-child,
+.lesson-body-content div > :first-child {
+	margin-top: 0;
+}
+
+/* Hilangkan ruang kosong di bawah elemen terakhir */
+.lesson-body-content > :last-child,
+.lesson-body-content > :last-child > :last-child {
+	margin-bottom: 0;
 }
 
 /* --- Headings --- */
@@ -13,57 +56,80 @@
 .lesson-body-content h2,
 .lesson-body-content h3,
 .lesson-body-content h4 {
-	color: var(--text-heading, #0f172a);
-	font-weight: 700;
+	color: var(--lesson-heading);
 	line-height: 1.35;
-	margin-top: 1.75rem;
-	margin-bottom: 0.75rem;
+	letter-spacing: -0.005em;
+	margin-top: 2rem;
+	margin-bottom: 0.9rem;
 }
 
 .lesson-body-content h1 {
 	font-size: 1.65rem;
-	border-bottom: 2px solid var(--neutral-border, #e2e8f0);
+	font-weight: 700;
 	padding-bottom: 0.5rem;
+	border-bottom: 2px solid var(--lesson-border);
 }
 
 .lesson-body-content h2 {
-	font-size: 1.35rem;
-	border-bottom: 1px solid var(--neutral-border, #e2e8f0);
-	padding-bottom: 0.4rem;
+	position: relative;
+	font-size: 1.5rem;
+	font-weight: 700;
+	padding-bottom: 0.65rem;
+	border-bottom: 1px solid var(--lesson-border);
+}
+
+/* Aksen pendek di bawah h2 */
+.lesson-body-content h2::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	bottom: -1px;
+	width: 56px;
+	height: 3px;
+	border-radius: 3px;
+	background-color: var(--lesson-accent);
 }
 
 .lesson-body-content h3 {
 	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 1.3;
+	padding-left: 0.75rem;
+	border-left: 3px solid var(--lesson-accent);
 }
 
 .lesson-body-content h4 {
 	font-size: 1rem;
+	font-weight: 600;
 }
 
-/* --- Paragraf & Teks --- */
+/* --- Paragraf & teks --- */
 .lesson-body-content p {
+	margin-top: 0;
 	margin-bottom: 1.15rem;
-	color: var(--text-muted, #475569);
+	color: var(--lesson-text);
 }
 
-.lesson-body-content strong {
-	color: var(--text, #0f172a);
+.lesson-body-content strong,
+.lesson-body-content b {
+	color: var(--lesson-heading);
 	font-weight: 600;
 }
 
 .lesson-body-content a {
-	color: var(--primary, #2563eb);
+	color: var(--lesson-accent);
 	text-decoration: underline;
 	text-underline-offset: 3px;
 }
 
 .lesson-body-content a:hover {
-	color: var(--primary-hover, #1d4ed8);
+	color: var(--lesson-accent-hover);
 }
 
-/* --- List / Daftar --- */
+/* --- List --- */
 .lesson-body-content ul,
 .lesson-body-content ol {
+	margin-top: 0;
 	margin-bottom: 1.25rem;
 	padding-left: 1.5rem;
 }
@@ -77,96 +143,210 @@
 }
 
 .lesson-body-content li {
-	margin-bottom: 0.4rem;
-	color: var(--text-muted, #475569);
+	margin-bottom: 0.5rem;
+	padding-left: 0.25rem;
+	color: var(--lesson-text);
 }
 
 .lesson-body-content li::marker {
-	color: var(--primary, #3b82f6);
+	color: var(--lesson-accent);
 }
 
-/* --- Inline Code & Code Block --- */
+.lesson-body-content li > ul,
+.lesson-body-content li > ol {
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+
+/* --- Inline code (biru) --- */
 .lesson-body-content code {
-	background-color: var(--neutral-bg, #f1f5f9);
-	color: var(--purple-text, #4f46e5);
-	font-family: 'Fira Code', Monaco, Consolas, monospace;
-	font-size: 0.875em;
-	padding: 0.2rem 0.4rem;
-	border-radius: 0.25rem;
-	border: 1px solid var(--neutral-border, #e2e8f0);
+	font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.85em;
+	padding: 0.15rem 0.45rem;
+	border-radius: 0.3rem;
+	background-color: var(--lesson-accent-soft);
+	border: 1px solid var(--lesson-accent-border);
+	color: var(--lesson-code-text);
+	word-break: normal;
 }
 
-.lesson-body-content pre {
+/* --- Code block (dibungkus .lesson-code oleh komponen) --- */
+.lesson-code {
+	margin: 1.5rem 0;
+	border: 1px solid #1e293b;
+	border-radius: 0.75rem;
+	overflow: hidden;
 	background-color: #0f172a;
-	color: #f8fafc;
-	padding: 1rem 1.25rem;
-	border-radius: 0.5rem;
-	overflow-x: auto;
-	margin-top: 1rem;
-	margin-bottom: 1.5rem;
+	box-shadow: 0 4px 16px rgba(15, 23, 42, 0.14);
 }
 
+.lesson-code-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.5rem 0.6rem 0.5rem 1rem;
+	background-color: #1e293b;
+	border-bottom: 1px solid #334155;
+}
+
+.lesson-code-lang {
+	font-size: 0.75rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #94a3b8;
+}
+
+.lesson-code-copy {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #cbd5e1;
+	background: transparent;
+	border: 1px solid #475569;
+	border-radius: 0.375rem;
+	padding: 0.2rem 0.7rem;
+	cursor: pointer;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		border-color 0.2s ease;
+}
+
+.lesson-code-copy:hover {
+	background-color: #334155;
+	color: #ffffff;
+}
+
+.lesson-code-copy.is-copied {
+	color: #4ade80;
+	border-color: #4ade80;
+}
+
+/* <pre> standalone (tanpa wrapper) */
+.lesson-body-content pre {
+	margin: 1.25rem 0 1.5rem;
+	padding: 1.1rem 1.35rem;
+	background-color: #0f172a;
+	color: #e2e8f0;
+	border-radius: 0.75rem;
+	overflow-x: auto;
+	white-space: pre;
+	tab-size: 4;
+	scrollbar-width: thin;
+	scrollbar-color: #475569 transparent;
+}
+
+/* <pre> di dalam .lesson-code: wrapper yang mengurus bingkai */
+.lesson-code pre {
+	margin: 0;
+	padding: 1rem 1.25rem;
+	border-radius: 0;
+	background: transparent;
+}
+
+/* Code di dalam pre: reset gaya inline code */
 .lesson-body-content pre code {
-	background-color: transparent;
-	color: inherit;
+	display: block;
 	padding: 0;
 	border: none;
-	font-size: 0.875rem;
+	border-radius: 0;
+	background: transparent;
+	color: inherit;
+	font-size: 0.85rem;
+	line-height: 1.7;
+	white-space: inherit;
 }
 
-/* --- Callout & Blockquote --- */
+.lesson-body-content pre::-webkit-scrollbar {
+	height: 6px;
+}
+
+.lesson-body-content pre::-webkit-scrollbar-thumb {
+	background-color: #475569;
+	border-radius: 10px;
+}
+
+/* --- Blockquote / callout --- */
 .lesson-body-content blockquote {
-	border-left: 4px solid var(--primary, #3b82f6);
-	background-color: var(--blue-bg, #eff6ff);
-	padding: 0.85rem 1.25rem;
 	margin: 1.5rem 0;
-	border-radius: 0 0.375rem 0.375rem 0;
-	color: var(--text-muted, #1e3a8a);
+	padding: 0.85rem 1.25rem;
+	border-left: 4px solid var(--lesson-accent);
+	border-radius: 0 0.5rem 0.5rem 0;
+	background-color: var(--lesson-accent-soft);
+	color: var(--bahama-blue-900, #0c4a6e);
 }
 
-.lesson-body-content blockquote p:last-child {
+.lesson-body-content blockquote > :last-child {
 	margin-bottom: 0;
 }
 
-/* --- Table Styling --- */
+/* --- Tabel (dibungkus .lesson-table-wrap oleh komponen) --- */
+.lesson-table-wrap {
+	margin: 1.5rem 0;
+	overflow-x: auto;
+	border: 1px solid var(--lesson-border);
+	border-radius: 0.5rem;
+}
+
 .lesson-body-content table {
 	width: 100%;
-	margin-bottom: 1.5rem;
+	margin: 0;
 	border-collapse: collapse;
 	font-size: 0.875rem;
-	border: 1px solid var(--neutral-border, #e2e8f0);
-	border-radius: 0.375rem;
-	overflow: hidden;
 }
 
 .lesson-body-content th,
 .lesson-body-content td {
-	padding: 0.75rem 1rem;
-	border: 1px solid var(--neutral-border, #e2e8f0);
+	padding: 0.7rem 1rem;
 	text-align: left;
+	vertical-align: top;
+	border-bottom: 1px solid var(--lesson-border);
 }
 
 .lesson-body-content th {
-	background-color: var(--neutral-bg, #f8fafc);
+	background-color: var(--lesson-accent-soft);
 	font-weight: 600;
-	color: var(--text, #0f172a);
+	color: var(--lesson-heading);
+	white-space: nowrap;
 }
 
-.lesson-body-content tr:nth-child(even) {
-	background-color: var(--card-alt, #fcfcfd);
+.lesson-body-content tbody tr:nth-child(even) {
+	background-color: var(--neutral-bg, #f1f5f9);
 }
 
-/* --- Gambar & Pemisah --- */
+.lesson-body-content tbody tr:last-child td {
+	border-bottom: none;
+}
+
+/* --- Gambar & pemisah --- */
 .lesson-body-content img {
+	display: block;
 	max-width: 100%;
 	height: auto;
-	border-radius: 0.5rem;
 	margin: 1.25rem 0;
-	display: block;
+	border-radius: 0.5rem;
 }
 
 .lesson-body-content hr {
-	border: 0;
-	border-top: 1px solid var(--neutral-border, #e2e8f0);
 	margin: 2rem 0;
+	border: 0;
+	border-top: 1px solid var(--lesson-border);
+	opacity: 1;
+}
+
+/* --- Responsif --- */
+@media (max-width: 575.98px) {
+	.lesson-body-content {
+		font-size: 0.9375rem;
+	}
+
+	.lesson-body-content h2 {
+		font-size: 1.25rem;
+	}
+
+	.lesson-code pre,
+	.lesson-body-content pre {
+		padding: 0.9rem 1rem;
+	}
 }

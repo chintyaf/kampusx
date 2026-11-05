@@ -1,41 +1,37 @@
 import React from 'react';
-import { Route, Routes, Navigate, Link } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 
-// Layouts
+// Layouts & Protection
 import LmsLayout from '@/layouts/lms/LmsLayout';
+import OrgLmsLayout from '@/layouts/OrgLmsLayout';
+import ProtectedRoute from './ProtectedRoute';
 
-// Learner Pages
+// 1. Learner Domain Pages
+import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPage';
 import LearningDashboard from '@/pages/lms/learner/LearningDashboard';
-import OnboardingPage from '@/pages/lms/learner/onboarding/OnboardingPage';
-import CatalogPage from '@/pages/lms/learner/catalog/CatalogPage';
 import ModuleDetailPage from '@/pages/lms/learner/ModuleDetailPage';
 import LessonViewerPage from '@/pages/lms/learner/LessonViewerPage';
+import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
 import ForethoughtPage from '@/pages/lms/learner/modules/forethought/ForethoughtPage';
 import QuizPage from '@/pages/lms/learner/modules/quiz/QuizPage';
 import ReflectionPage from '@/pages/lms/learner/modules/reflection/ReflectionPage';
 import AnalyticsPage from '@/pages/lms/learner/analytics/AnalyticsPage';
 import BadgeCertificatePage from '@/pages/lms/learner/badges/BadgeCertificatePage';
 import SettingsPage from '@/pages/lms/learner/settings/SettingsPage';
-import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPage';
-import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
 
-// Organizer Pages
-import OrgMicrolearning from '../pages/lms/organizer/OrgMicrolearning';
+// 2. Organizer Domain Pages
+import OrgMicrolearning from '@/pages/lms/organizer/OrgMicrolearning';
+import ManageLearningPathPage from '@/pages/lms/organizer/ManageLearningPathPage';
 import DashboardPage from '@/pages/lms/organizer/dashboard/DashboardPage';
-import ContentPage from '@/pages/lms/organizer/content/ContentPage';
-import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
-import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
 import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
-import ManageLearningPathPage from '../pages/lms/ManageLearningPathPage';
+import CreateLearningPage from '@/pages/lms/organizer/CreateLearningPage';
+import EditModulePage from '@/pages/lms/organizer/EditModulePage';
+import EditLessonPage from '@/pages/lms/organizer/EditLessonPage';
+import ContentPage from '@/pages/lms/organizer/content/ContentPage';
 import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
 import LogsPage from '@/pages/lms/organizer/logs/LogsPage';
-import CreateLearningPage from '../pages/lms/organizer/create-microlearning/CreateLearningPage';
-
-import DashboardLayout from '@/layouts/DashboardLayout';
-import OrgLearningLayout from '@/layouts/OrgLearningLayout';
-import ProtectedRoute from './ProtectedRoute';
-import EditModulePage from '../pages/lms/organizer/create-microlearning/EditModulePage';
-import EditLessonPage from '../pages/lms/organizer/create-microlearning/EditLessonPage';
+import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
+import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
 
 export const LmsRoutes = () => {
 	return (
@@ -50,9 +46,6 @@ export const LmsRoutes = () => {
 				<Route path="/learner">
 					<Route path="explore" element={<ExploreMicrolearningPage />} />
 					<Route path="dashboard" element={<Navigate to="/learning" replace />} />
-
-					{/* <Route path="onboarding" element={<OnboardingPage />} /> */}
-					{/* <Route path="catalog" element={<CatalogPage />} /> */}
 
 					{/* Group Prefix: /learner/learning-paths */}
 					<Route path="learning-paths">
@@ -73,18 +66,18 @@ export const LmsRoutes = () => {
 					<Route path="badges" element={<BadgeCertificatePage />} />
 					<Route path="settings" element={<SettingsPage />} />
 				</Route>
-				
-				{/* Direct Lesson Shortcut */}
+
+				{/* Direct Lesson Shortcuts */}
 				<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
 				<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
 			</Route>
 
-			{/* 5. DASHBOARD LAYOUT GROUP (Admin & Organizer) */}
-			<Route element={<OrgLearningLayout />}>
+			{/* 2. ORGANIZER DOMAIN */}
+			<Route element={<OrgLmsLayout />}>
 				<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
-					{/* 2. ORGANIZER DOMAIN */}
 					<Route path="/organizer">
 						<Route path="microlearning" element={<OrgMicrolearning />} />
+						<Route path="dashboard" element={<DashboardPage />} />
 
 						<Route path="learning-path/add" element={<CreateLearningPage />} />
 						<Route
@@ -99,6 +92,7 @@ export const LmsRoutes = () => {
 							path="learning-path/:learningId/edit-module/:moduleId/:lessonId"
 							element={<EditLessonPage />}
 						/>
+						<Route path="modules/:moduleId" element={<EditLessonPage />} />
 
 						<Route path="learning-paths" element={<LearningPathsPage />} />
 

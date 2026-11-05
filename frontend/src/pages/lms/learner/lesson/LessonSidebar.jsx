@@ -128,7 +128,6 @@ const LessonSidebar = ({
 					style={{
 						backgroundColor: '#f8fafc',
 						borderBottom: '1px solid var(--neutral-border, #e2e8f0)',
-						borderBottom: '1px solid var(--neutral-border, #e2e8f0)',
 					}}
 				>
 					<div className="lesson-quiz-label">Evaluasi</div>

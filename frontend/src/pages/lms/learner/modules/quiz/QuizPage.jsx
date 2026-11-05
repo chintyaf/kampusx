@@ -19,49 +19,56 @@ const QUIZ_DATA = {
 	questions: [
 		{
 			id: 1,
+			bloom: 'C2 - Memahami',
 			question: 'Apa fungsi utama dari REST API dalam arsitektur web modern?',
 			options: [
 				{
 					key: 'A',
-					text: 'Memungkinkan komunikasi antara server dan client menggunakan protokol HTTP',
+					text: 'Memungkinkan komunikasi standar antara server dan client menggunakan protokol HTTP',
 				},
 				{ key: 'B', text: 'Mengatur tampilan antarmuka pengguna (UI) secara otomatis' },
 				{ key: 'C', text: 'Menyimpan data langsung ke database internal browser' },
 				{ key: 'D', text: 'Menjalankan kode Python langsung di sisi browser' },
+				{ key: 'E', text: 'Menggantikan peran sistem operasi host server' },
 			],
 			correct: 'A',
 		},
 		{
 			id: 2,
+			bloom: 'C3 - Menerapkan',
 			question:
-				'HTTP Method manakah yang paling tepat digunakan untuk memperbarui seluruh data resource?',
+				'HTTP Method manakah yang paling tepat digunakan untuk memperbarui seluruh data resource secara idempoten?',
 			options: [
 				{ key: 'A', text: 'PUT' },
 				{ key: 'B', text: 'GET' },
 				{ key: 'C', text: 'POST' },
 				{ key: 'D', text: 'PATCH' },
+				{ key: 'E', text: 'DELETE' },
 			],
 			correct: 'A',
 		},
 		{
 			id: 3,
+			bloom: 'C1 - Mengingat',
 			question: 'Status code HTTP 404 menunjukkan bahwa...',
 			options: [
-				{ key: 'A', text: 'Resource yang diminta tidak ditemukan' },
+				{ key: 'A', text: 'Resource yang diminta tidak ditemukan di server' },
 				{ key: 'B', text: 'Server mengalami kesalahan internal' },
-				{ key: 'C', text: 'Permintaan berhasil dilakukan' },
+				{ key: 'C', text: 'Permintaan berhasil dilakukan dan konten dimuat' },
 				{ key: 'D', text: 'Akses ditolak karena masalah otorisasi' },
+				{ key: 'E', text: 'Permintaan dialihkan ke URI permanen lain' },
 			],
 			correct: 'A',
 		},
 		{
 			id: 4,
+			bloom: 'C4 - Menganalisis',
 			question:
 				'Manakah di bawah ini yang merupakan ciri khas dari arsitektur Stateless pada REST API?',
 			options: [
 				{
 					key: 'A',
-					text: 'Setiap request dari client harus berisi semua informasi yang dibutuhkan server',
+					text: 'Setiap request dari client harus berisi semua informasi yang dibutuhkan server untuk memprosesnya',
 				},
 				{
 					key: 'B',
@@ -72,18 +79,24 @@ const QUIZ_DATA = {
 					key: 'D',
 					text: 'Server secara otomatis mengingat request sebelumnya dari IP yang sama',
 				},
+				{
+					key: 'E',
+					text: 'Komunikasi antar node harus melalui WebSocket koneksi presisten terus-menerus',
+				},
 			],
 			correct: 'A',
 		},
 		{
 			id: 5,
+			bloom: 'C2 - Memahami',
 			question:
 				'Format data manakah yang paling umum digunakan untuk pertukaran data pada RESTful API?',
 			options: [
-				{ key: 'A', text: 'JSON' },
+				{ key: 'A', text: 'JSON (JavaScript Object Notation)' },
 				{ key: 'B', text: 'XML' },
 				{ key: 'C', text: 'YAML' },
 				{ key: 'D', text: 'CSV' },
+				{ key: 'E', text: 'Binary ProtoBuf' },
 			],
 			correct: 'A',
 		},
@@ -544,16 +557,31 @@ const QuizPage = () => {
 										<HelpCircle size={22} />
 									</div>
 									<div>
-										<span
-											className="d-block fw-bold text-uppercase"
-											style={{
-												fontSize: '0.75rem',
-												color: 'var(--muted, #64748B)',
-												letterSpacing: '0.05em',
-											}}
-										>
-											PERTANYAAN
-										</span>
+										<div className="d-flex align-items-center gap-2 mb-1">
+											<span
+												className="fw-bold text-uppercase"
+												style={{
+													fontSize: '0.75rem',
+													color: 'var(--muted, #64748B)',
+													letterSpacing: '0.05em',
+												}}
+											>
+												PERTANYAAN
+											</span>
+											{currentQ.bloom && (
+												<span
+													className="badge"
+													style={{
+														fontSize: '0.7rem',
+														backgroundColor: '#e0e7ff',
+														color: '#4338ca',
+														fontWeight: 700,
+													}}
+												>
+													Bloom: {currentQ.bloom}
+												</span>
+											)}
+										</div>
 										<h4
 											style={{
 												fontSize: '1rem',

@@ -74,6 +74,10 @@ const ReflectionPage = () => {
 	const navigate = useNavigate();
 
 	const [selectedOutcomeKey, setSelectedOutcomeKey] = useState('outcome1');
+	const [keyTakeaway, setKeyTakeaway] = useState('');
+	const [strategyImprovement, setStrategyImprovement] = useState('');
+	const [confidenceLevel, setConfidenceLevel] = useState(4);
+	const [isReflectionSaved, setIsReflectionSaved] = useState(false);
 	const currentOutcome = OUTCOME_DATA[selectedOutcomeKey];
 
 	const moduleTitle = 'Web Application Architecture & REST API Design';
@@ -110,6 +114,81 @@ const ReflectionPage = () => {
 
 						{/* 2. Review Lesson Terkait */}
 						<LessonReview currentOutcome={currentOutcome} />
+
+						{/* Form Refleksi Metakognitif Diri (SRL Fase 3) */}
+						<div className="bg-white p-4 rounded-3 border shadow-sm my-4">
+							<div className="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3">
+								<div>
+									<h2 className="h6 fw-bold text-dark mb-1">
+										Jurnal Refleksi Mandiri (Self-Reflection Form)
+									</h2>
+									<p className="text-muted small mb-0">
+										Evaluasi proses belajarmu untuk memperkuat retensi memori jangka panjang dan metakognisi.
+									</p>
+								</div>
+								{isReflectionSaved && (
+									<span className="badge bg-success-subtle text-success px-3 py-2 fw-semibold">
+										Refleksi Tersimpan ✓
+									</span>
+								)}
+							</div>
+
+							<div className="mb-3">
+								<label className="form-label small fw-bold text-dark">
+									1. Apa konsep utama yang paling kamu kuasai dari modul ini?
+								</label>
+								<textarea
+									rows={2}
+									className="form-control form-control-sm"
+									placeholder="Contoh: Perbedaan metode PUT vs PATCH serta penerapan idempotensi pada REST API..."
+									value={keyTakeaway}
+									onChange={(e) => setKeyTakeaway(e.target.value)}
+								/>
+							</div>
+
+							<div className="mb-3">
+								<label className="form-label small fw-bold text-dark">
+									2. Apa kendala yang dihadapi dan strategi apa yang akan kamu perbaiki di modul selanjutnya?
+								</label>
+								<textarea
+									rows={2}
+									className="form-control form-control-sm"
+									placeholder="Contoh: Perlu mengalokasikan waktu 5 menit lebih banyak untuk membaca dokumentasi RFC sebelum kuis..."
+									value={strategyImprovement}
+									onChange={(e) => setStrategyImprovement(e.target.value)}
+								/>
+							</div>
+
+							<div className="d-flex align-items-center justify-content-between pt-2">
+								<div className="d-flex align-items-center gap-2">
+									<span className="small text-muted fw-semibold">Tingkat Keyakinan Diri:</span>
+									{[1, 2, 3, 4, 5].map((lvl) => (
+										<button
+											key={lvl}
+											type="button"
+											onClick={() => setConfidenceLevel(lvl)}
+											className={`btn btn-sm ${
+												confidenceLevel === lvl ? 'btn-primary' : 'btn-outline-secondary'
+											}`}
+											style={{ width: 32, height: 32, padding: 0 }}
+										>
+											{lvl}
+										</button>
+									))}
+								</div>
+
+								<button
+									type="button"
+									onClick={() => {
+										setIsReflectionSaved(true);
+										setTimeout(() => setIsReflectionSaved(false), 3000);
+									}}
+									className="btn btn-primary btn-sm px-4 fw-semibold"
+								>
+									Simpan Refleksi SRL
+								</button>
+							</div>
+						</div>
 
 						{/* 3. Rekomendasi Section */}
 						<Rekomendasi currentOutcome={currentOutcome} />
