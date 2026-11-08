@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
 	Award,
 	ShieldCheck,
@@ -13,6 +14,7 @@ import {
 	Sparkles,
 	Coins,
 	X,
+	Eye,
 } from 'lucide-react';
 
 const ACHIEVED_BADGES = [
@@ -52,11 +54,43 @@ const ACHIEVED_BADGES = [
 		earnedAt: '2026-02-28',
 		rarity: 'Gold Tier',
 	},
+	{
+		id: 'bdg-05',
+		title: 'API Architect Apprentice',
+		desc: 'Menyelesaikan modul Web Application Architecture & REST API Design dengan predikat sangat baik.',
+		icon: '🏅',
+		category: 'System Architecture',
+		earnedAt: 'Hari ini',
+		rarity: 'Verified Micro-Credential',
+	},
 ];
 
 const CERTIFICATES = [
 	{
+		id: 'cert-103',
+		pathId: 'lp-1',
+		title: 'Full-Stack AI-Powered Web Architecture',
+		issuedBy: 'KampusX Institute of Technology',
+		date: 'Hari ini',
+		credentialId: 'KX-CERT-2026-LP1-8921',
+		status: 'Verified on Blockchain',
+		contractAddress: '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
+		tokenId: '204',
+		txHash: '0x8f2a1b9c3491901988b6a12b7a0d4c9f138e64ce91a82f349a12b7a0d4c9f138',
+		payload: {
+			standard: 'ERC-1155',
+			network: 'Polygon PoS',
+			recipientName: 'Learner KampusX',
+			courseId: 'lp-1',
+			score: 94,
+			srlReadiness: 'SIAP',
+			completedAt: 1772437920,
+			issuerSignature: '0x3b89e13f9c094271829aef104928bfa982c731049bca728104812f8e192a01947b19401928401928401928',
+		},
+	},
+	{
 		id: 'cert-101',
+		pathId: 'lp-arch',
 		title: 'Professional Microlearning in Web Application Architecture',
 		issuedBy: 'KampusX Decentralized Learning Hub',
 		date: '28 Februari 2026',
@@ -78,6 +112,7 @@ const CERTIFICATES = [
 	},
 	{
 		id: 'cert-102',
+		pathId: 'lp-srl',
 		title: 'Foundations of Self-Regulated Learning (SRL)',
 		issuedBy: 'KampusX Cognitive Pedagogy Lab',
 		date: '15 Februari 2026',
@@ -100,6 +135,7 @@ const CERTIFICATES = [
 ];
 
 const BadgeCertificatePage = () => {
+	const navigate = useNavigate();
 	const [selectedCert, setSelectedCert] = useState(null);
 	const [copied, setCopied] = useState(false);
 
@@ -211,11 +247,16 @@ const BadgeCertificatePage = () => {
 									className="px-4 py-2 text-xs font-semibold rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition flex items-center gap-1.5"
 								>
 									<FileCode className="w-3.5 h-3.5" />
-									Lihat Payload Smart Contract
+									Payload On-Chain
 								</button>
-								<button className="px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5 shadow-xs">
-									<Download className="w-3.5 h-3.5" />
-									Unduh PDF
+								<button
+									onClick={() =>
+										navigate(`/learner/learning-paths/${cert.pathId || 'lp-1'}/certificate`)
+									}
+									className="px-4 py-2 text-xs font-semibold rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5 shadow-xs"
+								>
+									<Eye className="w-3.5 h-3.5" />
+									Buka & Cetak Sertifikat
 								</button>
 							</div>
 						</div>

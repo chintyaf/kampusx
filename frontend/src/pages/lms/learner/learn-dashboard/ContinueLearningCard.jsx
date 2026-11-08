@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import ModuleThumb from './ModuleThumb';
 import { SRL_PHASES } from './learningUtils';
@@ -14,16 +15,33 @@ const CTA_LABEL = {
  * (Forethought → Performance → Self-Reflection) dan konteks sesi yang sedang berjalan.
  */
 const ContinueLearningCard = ({ module, onContinue, onViewAll }) => {
-	const { forethought, performance } = module.session || {};
-	const currentIdx = SRL_PHASES.findIndex((p) => p.key === module.srlPhase);
-	const progress = Math.round((module.lessonsDone / module.lessonTotal) * 100);
-	const estimated = forethought?.estimatedTime || 0;
-	const studied = performance ? Math.round(performance.accumulatedSeconds / 60) : 0;
-	const timePct = estimated ? Math.min(100, Math.round((studied / estimated) * 100)) : 0;
+	const navigate = useNavigate();
+	const { forethought, performance } = module?.session || {};
+	const currentIdx = SRL_PHASES.findIndex((p) => p.key === module?.srlPhase);
+	const progress = module?.lessonTotal ? Math.round((module.lessonsDone / module.lessonTotal) * 100) : 60;
+
+	const handleContinue = () => {
+		if (onContinue) {
+			onContinue();
+		} else {
+			const targetModule = module?.id === 'mod-rest-api' ? 'mod-arch-101' : (module?.id || 'mod-arch-101');
+			navigate(`/learner/modules/${targetModule}`);
+		}
+	};
+
+	const handleViewAll = () => {
+		if (onViewAll) {
+			onViewAll();
+		} else {
+			navigate('/explore-microlearning');
+		}
+	};
 
 	return (
 		<section className="ld-card ld-active">
-			<ModuleThumb module={module} className="ld-active-thumb" />
+			<div style={{ cursor: 'pointer' }} onClick={handleContinue}>
+				<ModuleThumb module={module} className="ld-active-thumb" />
+			</div>
 
 			<div className="ld-active-body">
 				<div className="ld-chips">
@@ -34,7 +52,9 @@ const ContinueLearningCard = ({ module, onContinue, onViewAll }) => {
 					</span>
 				</div>
 
-				<h2 className="ld-active-title">{module.title}</h2>
+				<h2 className="ld-active-title" style={{ cursor: 'pointer' }} onClick={handleContinue}>
+					{module.title}
+				</h2>
 				<p className="ld-sub">
 					Lesson {module.currentLesson} dari {module.lessonTotal} · {module.lessonTitle}
 				</p>
@@ -48,13 +68,12 @@ const ContinueLearningCard = ({ module, onContinue, onViewAll }) => {
 				<div className="ld-progress">
 					<div className="ld-progress-bar" style={{ width: `${progress}%` }} />
 				</div>
-		
 
 				<div className="ld-actions">
-					<button type="button" className="ld-btn ld-btn-primary" onClick={onContinue}>
+					<button type="button" className="ld-btn ld-btn-primary" onClick={handleContinue}>
 						<Icon name="play" size={14} /> {CTA_LABEL[module.srlPhase] || 'Lanjutkan Belajar'}
 					</button>
-					<button type="button" className="ld-link" onClick={onViewAll}>
+					<button type="button" className="ld-link" onClick={handleViewAll}>
 						Lihat semua modul <Icon name="arrow-right" size={14} />
 					</button>
 				</div>

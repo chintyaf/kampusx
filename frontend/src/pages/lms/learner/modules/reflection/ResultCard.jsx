@@ -61,7 +61,7 @@ const ScoreDoughnut = ({ score, color }) => {
 	);
 };
 
-const ResultCard = ({ currentOutcome }) => {
+const ResultCard = ({ currentOutcome, onAction }) => {
 	if (!currentOutcome) return null;
 
 	return (
@@ -389,6 +389,7 @@ const ResultCard = ({ currentOutcome }) => {
 				}}
 			>
 				<Button
+					onClick={onAction}
 					style={{
 						backgroundColor: currentOutcome.themeColor,
 						borderColor: currentOutcome.themeColor,

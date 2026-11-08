@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Card, Badge, Button, ProgressBar, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { MOCK_LEARNING_PATH } from './learning-path/mockData';
+import { useNavigate, useParams } from 'react-router-dom';
+import { MOCK_LEARNING_PATH, getLearningPath } from './learning-path/mockData';
 import LearningHeader from '@/pages/lms/learner/learning-path/LearningHeader';
 import LearningSRLGoal from '@/pages/lms/learner/learning-path/LearningSRLGoal';
 import LearningModule from '@/pages/lms/learner/learning-path/LearningModule';
+import LearningCert from '@/pages/lms/learner/learning-path/LearningCert';
+import LearningBadges from '@/pages/lms/learner/learning-path/LearningBadges';
+import LearningAnalytics from '@/pages/lms/learner/learning-path/LearningAnalytics';
+import OrganizerCard from '@/pages/lms/learner/learning-path/OrganizerCard';
 import {
 	CheckCircle2,
 	Clock,
@@ -38,7 +42,9 @@ import '@/pages/lms/lms.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const LearningPathDetail = () => {
+	const { pathId = 'lp-1' } = useParams();
 	const navigate = useNavigate();
+	const currentPath = getLearningPath(pathId);
 
 	// --- SRL Forethought State ---
 	const [selectedHours, setSelectedHours] = useState('3');
@@ -74,12 +80,6 @@ const LearningPathDetail = () => {
 		}).format(targetDate);
 	};
 
-	// SVG Radial Gauge Calculations
-	const radius = 46;
-	const circumference = 2 * Math.PI * radius;
-	const strokeDashoffset =
-		circumference - (MOCK_LEARNING_PATH.metrics.progressPercent / 100) * circumference;
-
 	return (
 		<div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', paddingBottom: '5rem' }}>
 			{/* Render komponen header */}
@@ -91,26 +91,15 @@ const LearningPathDetail = () => {
 			{/* ====================================================================
             2. MAIN CONTENT & SIDEBAR SECTION (col-lg-8 & col-lg-4)
             ==================================================================== */}
-			<Container className="mt-5">
-				<Row>
+			<Container className="mt-4">
+				<Row className="g-4">
 					{/* ================================================================
                     A. KOLOM UTAMA (col-lg-8)
                     ================================================================ */}
-					<Col lg={12}>
-						{/* 1. WIDGET SRL: "Set Your Learning Goals" (Forethought Phase) */}
-						{/* <LearningSRLGoal
-							selectedHours={selectedHours}
-							setSelectedHours={setSelectedHours}
-							selectedWeeks={selectedWeeks}
-							setSelectedWeeks={setSelectedWeeks}
-							goalSaved={goalSaved}
-							handleSaveGoal={handleSaveGoal}
-							getProjectedDate={getProjectedDate}
-						/> */}
-
+					<Col lg={8}>
 						{/* 2. WIDGET ROADMAP: "Module Roadmap" (Timeline Interactive) */}
 						<LearningModule
-							modules={MOCK_LEARNING_PATH.modules}
+							modules={currentPath.modules}
 							expandedModules={expandedModules}
 							onToggleModule={toggleModuleExpand}
 						/>
@@ -120,15 +109,22 @@ const LearningPathDetail = () => {
                     B. KOLOM SIDEBAR (col-lg-4)
                     ================================================================ */}
 					<Col lg={4}>
-						{/* 1. LEARNING ANALYTICS & PROGRESS WIDGET */}
+						{/* 1. KAMPUSX CERTIFICATE PREVIEW CARD (FITUR KLAIM SERTIFIKAT KELULUSAN) */}
+						<LearningCert
+							pathId={pathId}
+							progressPercent={currentPath.metrics.progressPercent}
+							totalModules={currentPath.metrics.moduleCount}
+							completedModules={currentPath.metrics.completedModules}
+						/>
 
-						{/* 2. INSTRUCTOR CARD */}
+						{/* 2. EARNABLE BADGES GRID */}
+						<LearningBadges badges={currentPath.badges} />
 
-						{/* 3. EARNABLE BADGES GRID */}
+						{/* 3. LEARNING ANALYTICS & PROGRESS WIDGET */}
+						<LearningAnalytics metrics={currentPath.metrics} />
 
-						{/* 4. KAMPUSX CERTIFICATE PREVIEW CARD */}
-
-						{/* 5. "WHAT YOU'LL LEARN" CHECKLIST */}
+						{/* 4. INSTRUCTOR CARD */}
+						<OrganizerCard instructor={currentPath.instructor} />
 					</Col>
 				</Row>
 			</Container>

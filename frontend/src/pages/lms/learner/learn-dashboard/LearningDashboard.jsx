@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
 
@@ -34,6 +35,24 @@ import '@/pages/lms/learningDashboard.css';
  */
 const LearningDashboard = () => {
 	const { user } = useAuth();
+	const navigate = useNavigate();
+
+	const handleOpenModule = (m) => {
+		const targetId = m?.targetModuleId || m?.moduleId || (m?.id === 'rec-1' || m?.id === 'rec-2' ? 'mod-arch-101' : m?.id);
+		navigate(`/learner/modules/${targetId || 'mod-arch-101'}`);
+	};
+
+	const handleContinueActive = () => {
+		navigate('/learner/modules/mod-arch-101');
+	};
+
+	const handleExploreAll = () => {
+		navigate('/explore-microlearning');
+	};
+
+	const handleViewCertificate = () => {
+		navigate('/learner/learning-paths/lp-1/certificate');
+	};
 
 	// Ringkasan learning analytics di header (diturunkan dari data enrollment).
 	const stats = useMemo(() => {
@@ -72,9 +91,21 @@ const LearningDashboard = () => {
 				<Row className="g-4">
 					<Col lg={8}>
 						<div className="ld-stack">
-							<ContinueLearningCard module={mockActiveModule} />
-							<RecommendedModules modules={mockRecommendedModules} />
-							<EnrolledModules modules={mockEnrolledModules} />
+							<ContinueLearningCard
+								module={mockActiveModule}
+								onContinue={handleContinueActive}
+								onViewAll={handleExploreAll}
+							/>
+							<RecommendedModules
+								modules={mockRecommendedModules}
+								onOpen={handleOpenModule}
+								onExploreAll={handleExploreAll}
+							/>
+							<EnrolledModules
+								modules={mockEnrolledModules}
+								onContinue={handleOpenModule}
+								onViewCertificate={handleViewCertificate}
+							/>
 							<SRLHistory sessions={mockSRLHistory} />
 						</div>
 					</Col>
@@ -83,7 +114,10 @@ const LearningDashboard = () => {
 						<div className="ld-stack">
 							<LearningReadinessWidget readiness={mockLearningReadiness} />
 							<SkillMatrixWidget data={mockSkillProfile} />
-							<BadgesWidget data={mockAchievements} />
+							<BadgesWidget
+								data={mockAchievements}
+								onViewCertificate={handleViewCertificate}
+							/>
 						</div>
 					</Col>
 				</Row>

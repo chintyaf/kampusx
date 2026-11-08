@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import ModuleThumb from './ModuleThumb';
 import { READINESS_LEVELS, SRL_PHASES, getReadinessLevel } from './learningUtils';
@@ -32,8 +33,26 @@ const getPageItems = (current, total) => {
  * Learning path Member: progres lesson, fase SRL aktif, skor kuis terakhir, dan Readiness Level per modul.
  */
 const EnrolledModules = ({ modules = [], onContinue, onViewCertificate }) => {
+	const navigate = useNavigate();
 	const [tab, setTab] = useState('all');
 	const [page, setPage] = useState(1);
+
+	const handleContinue = (m) => {
+		if (onContinue) {
+			onContinue(m);
+		} else {
+			const targetId = m.id === 'enr-1' ? 'mod-arch-101' : m.id;
+			navigate(`/learner/modules/${targetId}`);
+		}
+	};
+
+	const handleViewCert = (m) => {
+		if (onViewCertificate) {
+			onViewCertificate(m);
+		} else {
+			navigate('/learner/learning-paths/lp-1/certificate');
+		}
+	};
 
 	const counts = useMemo(
 		() => ({
@@ -137,7 +156,7 @@ const EnrolledModules = ({ modules = [], onContinue, onViewCertificate }) => {
 									<button
 										type="button"
 										className="ld-btn ld-btn-sm ld-btn-outline"
-										onClick={() => onViewCertificate?.(m)}
+										onClick={() => handleViewCert(m)}
 									>
 										<Icon name="award" size={14} /> Lihat Sertifikat
 									</button>
@@ -145,7 +164,7 @@ const EnrolledModules = ({ modules = [], onContinue, onViewCertificate }) => {
 									<button
 										type="button"
 										className="ld-btn ld-btn-sm ld-btn-primary"
-										onClick={() => onContinue?.(m)}
+										onClick={() => handleContinue(m)}
 									>
 										<Icon name="play" size={12} /> Lanjutkan
 									</button>

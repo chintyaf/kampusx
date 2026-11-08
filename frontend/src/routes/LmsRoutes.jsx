@@ -15,6 +15,8 @@ import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
 import ForethoughtPage from '@/pages/lms/learner/modules/forethought/ForethoughtPage';
 import QuizPage from '@/pages/lms/learner/modules/quiz/QuizPage';
 import ReflectionPage from '@/pages/lms/learner/modules/reflection/ReflectionPage';
+import ModuleCompletionPage from '@/pages/lms/learner/modules/completion/ModuleCompletionPage';
+import LearningPathCertificatePage from '@/pages/lms/learner/certificate/LearningPathCertificatePage';
 import AnalyticsPage from '@/pages/lms/learner/analytics/AnalyticsPage';
 import BadgeCertificatePage from '@/pages/lms/learner/badges/BadgeCertificatePage';
 import SettingsPage from '@/pages/lms/learner/settings/SettingsPage';
@@ -51,6 +53,7 @@ export const LmsRoutes = () => {
 					<Route path="learning-paths">
 						<Route index element={<LearningPathDetail />} />
 						<Route path=":pathId" element={<LearningPathDetail />} />
+						<Route path=":pathId/certificate" element={<LearningPathCertificatePage />} />
 					</Route>
 
 					{/* Group Prefix: /learner/modules/:moduleId */}
@@ -59,7 +62,10 @@ export const LmsRoutes = () => {
 						<Route path="forethought" element={<ForethoughtPage />} />
 						<Route path="quiz" element={<QuizPage />} />
 						<Route path="reflection" element={<ReflectionPage />} />
+						<Route path="completed" element={<ModuleCompletionPage />} />
 					</Route>
+
+					<Route path="certificate/:pathId" element={<LearningPathCertificatePage />} />
 
 					{/* Learner Profile & Settings */}
 					<Route path="analytics" element={<AnalyticsPage />} />

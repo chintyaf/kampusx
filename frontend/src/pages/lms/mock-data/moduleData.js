@@ -170,6 +170,10 @@ export const MODULE_DATA_REGISTRY = {
 // Aliases for registry lookups (e.g., 'mod-1' -> 'mod-arch-101')
 MODULE_DATA_REGISTRY['mod-1'] = MODULE_DATA_REGISTRY['mod-arch-101'];
 MODULE_DATA_REGISTRY['1'] = MODULE_DATA_REGISTRY['mod-arch-101'];
+MODULE_DATA_REGISTRY['mod-rest-api'] = MODULE_DATA_REGISTRY['mod-arch-101'];
+MODULE_DATA_REGISTRY['enr-1'] = MODULE_DATA_REGISTRY['mod-arch-101'];
+MODULE_DATA_REGISTRY['rec-1'] = MODULE_DATA_REGISTRY['mod-arch-101'];
+MODULE_DATA_REGISTRY['rec-2'] = MODULE_DATA_REGISTRY['mod-arch-101'];
 
 /**
  * Fallback module generator if non-registered ID is visited

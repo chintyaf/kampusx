@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Button, Row, Col } from 'react-bootstrap';
-import { ChevronLeft, Sliders } from 'lucide-react';
+import { ChevronLeft, Sliders, Award, Sparkles, ArrowRight } from 'lucide-react';
 import ResultCard from './ResultCard';
 import LessonReview from './LessonReview';
 import Rekomendasi from './Rekomendasi';
@@ -110,7 +110,23 @@ const ReflectionPage = () => {
 				<Row className="justify-content-center ">
 					<Col lg={10} className='gap-3'>
 						{/* 1. Hasil Evaluasi Quiz Card */}
-						<ResultCard currentOutcome={currentOutcome} />
+						<ResultCard
+							currentOutcome={currentOutcome}
+							onAction={() => {
+								if (currentOutcome.score >= currentOutcome.passingScore) {
+									navigate(`/learner/modules/${moduleId}/completed`, {
+										state: {
+											score: currentOutcome.score,
+											readiness: currentOutcome.badgeText,
+											duration: currentOutcome.duration,
+										},
+									});
+								} else {
+									// Tinjau materi
+									navigate(`/learner/modules/${moduleId}`);
+								}
+							}}
+						/>
 
 						{/* 2. Review Lesson Terkait */}
 						<LessonReview currentOutcome={currentOutcome} />
@@ -159,7 +175,7 @@ const ReflectionPage = () => {
 								/>
 							</div>
 
-							<div className="d-flex align-items-center justify-content-between pt-2">
+							<div className="d-flex align-items-center justify-content-between pt-2 flex-wrap gap-2">
 								<div className="d-flex align-items-center gap-2">
 									<span className="small text-muted fw-semibold">Tingkat Keyakinan Diri:</span>
 									{[1, 2, 3, 4, 5].map((lvl) => (
@@ -177,16 +193,36 @@ const ReflectionPage = () => {
 									))}
 								</div>
 
-								<button
-									type="button"
-									onClick={() => {
-										setIsReflectionSaved(true);
-										setTimeout(() => setIsReflectionSaved(false), 3000);
-									}}
-									className="btn btn-primary btn-sm px-4 fw-semibold"
-								>
-									Simpan Refleksi SRL
-								</button>
+								<div className="d-flex align-items-center gap-2">
+									<button
+										type="button"
+										onClick={() => {
+											setIsReflectionSaved(true);
+											setTimeout(() => setIsReflectionSaved(false), 3000);
+										}}
+										className="btn btn-outline-primary btn-sm px-3 fw-semibold"
+									>
+										Simpan Refleksi SRL
+									</button>
+
+									<button
+										type="button"
+										onClick={() => {
+											navigate(`/learner/modules/${moduleId}/completed`, {
+												state: {
+													score: currentOutcome.score,
+													readiness: currentOutcome.badgeText,
+													duration: currentOutcome.duration,
+												},
+											});
+										}}
+										className="btn btn-warning text-dark btn-sm px-3.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm"
+									>
+										<Award size={16} />
+										Selesaikan Modul & Klaim Badge
+										<ArrowRight size={14} />
+									</button>
+								</div>
 							</div>
 						</div>
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 
 // Status pengiriman payload kredensial ke modul Smart Contract.
@@ -12,7 +13,16 @@ const CREDENTIAL_STATUS = {
  * Badge pencapaian dan kredensial digital (sertifikat + status pencatatan Smart Contract).
  */
 const BadgesWidget = ({ data, onViewCertificate }) => {
+	const navigate = useNavigate();
 	const earned = data.badges.filter((b) => b.earned).length;
+
+	const handleViewCert = (c) => {
+		if (onViewCertificate) {
+			onViewCertificate(c);
+		} else {
+			navigate('/learner/learning-paths/lp-1/certificate');
+		}
+	};
 
 	return (
 		<section className="ld-card">
@@ -48,7 +58,7 @@ const BadgesWidget = ({ data, onViewCertificate }) => {
 							key={c.id}
 							type="button"
 							className="ld-cred"
-							onClick={() => onViewCertificate?.(c)}
+							onClick={() => handleViewCert(c)}
 						>
 							<span className="ld-cred-info">
 								<strong>{c.module}</strong>
