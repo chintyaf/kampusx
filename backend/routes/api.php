@@ -18,6 +18,9 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\EventMaterialController;
 use App\Http\Controllers\Api\Organizer\OrganizerEventController;
+use App\Http\Controllers\Api\Organizer\OrganizerLearningPathController;
+use App\Http\Controllers\Api\Organizer\OrganizerModuleController;
+use App\Http\Controllers\Api\Organizer\OrganizerLessonController;
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
@@ -74,6 +77,10 @@ Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengekseku
 Route::get('/certificate/verify/{ticket_code}', [EventCertificateController::class, 'verifyCertificate']);
 Route::get('/certificate/render/{ticket_code}', [EventCertificateController::class, 'getCertificateRenderData']);
 Route::get('/certificate/background/{eventId}', [EventCertificateController::class, 'getBackgroundPublic']);
+
+// Learning Paths (Public / Learner Explore)
+Route::get('/learning-paths', [OrganizerLearningPathController::class, 'publicIndex']);
+Route::get('/learning-paths/{id}', [OrganizerLearningPathController::class, 'publicShow']);
 
 Route::get('/test', function () {
     return response()->json('hallo', 200);
@@ -203,6 +210,51 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'organizerIndex'])->middleware(CheckEventOrganizer::class);
             Route::post('/events/{id}/announcements', [EventAnnouncementController::class, 'store'])->middleware(CheckEventOrganizer::class);
             Route::delete('/events/{id}/announcements/{announcementId}', [EventAnnouncementController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
+
+            // ====================================================
+            // LMS Microlearning Management (Learning Path, Module, Lesson)
+            // ====================================================
+            // Learning Paths
+            Route::prefix('learning-paths')->group(function () {
+                Route::get('/', [OrganizerLearningPathController::class, 'index']);
+                Route::post('/', [OrganizerLearningPathController::class, 'store']);
+                Route::get('/{id}', [OrganizerLearningPathController::class, 'show']);
+                Route::match(['put', 'post'], '/{id}', [OrganizerLearningPathController::class, 'update']);
+                Route::delete('/{id}', [OrganizerLearningPathController::class, 'destroy']);
+                Route::match(['put', 'post'], '/{id}/curriculum', [OrganizerLearningPathController::class, 'saveCurriculum']);
+
+                // Modules nested under Learning Path
+                Route::get('/{learningPathId}/modules', [OrganizerModuleController::class, 'index']);
+                Route::post('/{learningPathId}/modules', [OrganizerModuleController::class, 'store']);
+                Route::post('/{learningPathId}/modules/reorder', [OrganizerModuleController::class, 'reorder']);
+            });
+
+            // Singular alias /learning-path/{id}
+            Route::prefix('learning-path')->group(function () {
+                Route::get('/{id}', [OrganizerLearningPathController::class, 'show']);
+                Route::match(['put', 'post'], '/{id}', [OrganizerLearningPathController::class, 'update']);
+                Route::delete('/{id}', [OrganizerLearningPathController::class, 'destroy']);
+                Route::match(['put', 'post'], '/{id}/curriculum', [OrganizerLearningPathController::class, 'saveCurriculum']);
+            });
+
+            // Modules direct CRUD
+            Route::prefix('modules')->group(function () {
+                Route::get('/{id}', [OrganizerModuleController::class, 'show']);
+                Route::put('/{id}', [OrganizerModuleController::class, 'update']);
+                Route::delete('/{id}', [OrganizerModuleController::class, 'destroy']);
+
+                // Lessons nested under Module
+                Route::get('/{moduleId}/lessons', [OrganizerLessonController::class, 'index']);
+                Route::post('/{moduleId}/lessons', [OrganizerLessonController::class, 'store']);
+                Route::post('/{moduleId}/lessons/reorder', [OrganizerLessonController::class, 'reorder']);
+            });
+
+            // Lessons direct CRUD
+            Route::prefix('lessons')->group(function () {
+                Route::get('/{id}', [OrganizerLessonController::class, 'show']);
+                Route::match(['put', 'post'], '/{id}', [OrganizerLessonController::class, 'update']);
+                Route::delete('/{id}', [OrganizerLessonController::class, 'destroy']);
+            });
         });
 
         // Endpoint: Organizer Kelola Tim Institusinya (Manage Institution Member)

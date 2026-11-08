@@ -11,7 +11,8 @@ return new class extends Migration
         // 1. Quizzes
         Schema::create('quizzes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('module_id')->constrained('modules')->onDelete('cascade');
+            $table->foreignId('module_id')->nullable()->constrained('modules')->onDelete('cascade');
+            $table->foreignId('lesson_id')->nullable()->constrained('lessons')->onDelete('cascade');
             $table->string('title', 200);
             $table->text('description')->nullable();
             $table->string('bloom_level', 50)->nullable();
@@ -72,10 +73,12 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('quiz_answers');
         Schema::dropIfExists('quiz_attempts');
         Schema::dropIfExists('question_options');
         Schema::dropIfExists('quiz_questions');
         Schema::dropIfExists('quizzes');
+        Schema::enableForeignKeyConstraints();
     }
 };

@@ -48,6 +48,43 @@ class User extends Authenticatable
         return $this->hasMany(Event::class, 'organizer_id');
     }
 
+    public function learningPaths(): HasMany
+    {
+        return $this->hasMany(LearningPath::class, 'created_by');
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'user_id');
+    }
+
+    public function enrolledLearningPaths(): BelongsToMany
+    {
+        return $this->belongsToMany(LearningPath::class, 'enrollments', 'user_id', 'learning_path_id')
+            ->withPivot(['status', 'enrolled_at', 'completed_at', 'last_accessed_at'])
+            ->withTimestamps();
+    }
+
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class, 'user_id');
+    }
+
+    public function readinessPredictions(): HasMany
+    {
+        return $this->hasMany(ReadinessPrediction::class, 'user_id');
+    }
+
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(Recommendation::class, 'user_id');
+    }
+
+    public function latestReadiness(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ReadinessPrediction::class, 'user_id')->latestOfMany();
+    }
+
     // User bisa punya banyak institusi (via pivot)
  // app/Models/User.php
 

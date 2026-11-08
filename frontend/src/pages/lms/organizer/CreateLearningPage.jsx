@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '@/api/axios';
 import {
 	Save,
 	CheckCircle,
@@ -270,15 +271,23 @@ const CreateLearningPage = () => {
 
 		setIsSaving(true);
 		try {
-			// TODO: ganti dengan request ke backend, contoh:
-			// const formData = new FormData();
-			// formData.append('title', title.trim());
-			// formData.append('description', description.trim());
-			// formData.append('categories', JSON.stringify(categories));
-			// formData.append('cover', imageCover.file);
-			// const { data } = await api.post('/organizer/learning-paths', formData);
-			// const learningId = data.id;
-			const learningId = '123';
+			const formData = new FormData();
+			formData.append('title', title.trim());
+			formData.append('description', description.trim());
+			if (categories.length > 0) {
+				formData.append('category', categories[0]);
+				formData.append('categories', JSON.stringify(categories));
+			}
+			if (imageCover?.file) {
+				formData.append('thumbnail', imageCover.file);
+			}
+			formData.append('status', 'draft');
+
+			const response = await api.post('/organizer/learning-paths', formData, {
+				headers: { 'Content-Type': 'multipart/form-data' },
+			});
+			const responseData = response.data?.data || response.data;
+			const learningId = responseData?.id || '1';
 
 			setIsSaved(true);
 			redirectTimer.current = setTimeout(() => {
@@ -286,7 +295,10 @@ const CreateLearningPage = () => {
 				navigate(`/organizer/learning-path/${learningId}`);
 			}, 1200);
 		} catch (err) {
-			setSubmitError('Draf gagal disimpan. Periksa koneksi Anda lalu coba lagi.');
+			console.error('Gagal menyimpan draf learning path:', err);
+			setSubmitError(
+				err.response?.data?.message || 'Draf gagal disimpan. Periksa koneksi Anda lalu coba lagi.',
+			);
 		} finally {
 			setIsSaving(false);
 		}

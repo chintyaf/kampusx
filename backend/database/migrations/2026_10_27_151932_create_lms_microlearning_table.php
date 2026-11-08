@@ -12,9 +12,11 @@ return new class extends Migration
         Schema::create('learning_paths', function (Blueprint $table) {
             $table->id();
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('event_id')->nullable()->constrained('events')->nullOnDelete();
             $table->string('title', 200);
             $table->text('description')->nullable();
-            $table->string('category', 100);
+            $table->string('category', 100)->nullable();
+            $table->json('categories')->nullable();
             $table->string('thumbnail', 500)->nullable();
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
             $table->timestamps();
@@ -38,10 +40,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('module_id')->constrained('modules')->onDelete('cascade');
             $table->string('title', 200);
+            $table->string('type', 50)->default('article'); // 'article', 'video', 'microlearning', 'quiz'
             $table->longText('content')->nullable();
             $table->text('summary')->nullable();
             $table->integer('order_index')->default(1);
             $table->unsignedSmallInteger('duration_minutes')->default(0);
+            $table->unsignedInteger('xp')->default(0);
+            $table->string('video_url', 500)->nullable();
+            $table->json('attachments')->nullable();
+            $table->enum('status', ['draft', 'published'])->default('published');
             $table->timestamps();
         });
 
@@ -81,11 +88,13 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('enrollments');
         Schema::dropIfExists('lesson_skills');
         Schema::dropIfExists('skills');
         Schema::dropIfExists('lessons');
         Schema::dropIfExists('modules');
         Schema::dropIfExists('learning_paths');
+        Schema::enableForeignKeyConstraints();
     }
 };

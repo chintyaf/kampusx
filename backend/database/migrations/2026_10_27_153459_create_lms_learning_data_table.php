@@ -70,10 +70,12 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('recommendations');
         Schema::dropIfExists('readiness_predictions');
         Schema::dropIfExists('learning_activities');
         Schema::dropIfExists('srl_reflections');
         Schema::dropIfExists('srl_forethoughts');
+        Schema::enableForeignKeyConstraints();
     }
 };
