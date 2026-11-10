@@ -38,6 +38,30 @@ class SoulboundTokenService
 
         // Kredensial bawaan realistis sesuai skripsi Bab 2 & 3
         $initialTokens = [
+            '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d' => [
+                'tokenId' => '#SBT-2026-0041',
+                'ticketCode' => 'CERT-2026-0041',
+                'title' => 'Advanced AI & Deep Learning Specialist',
+                'studentName' => 'Ahmad Fauzi',
+                'studentWallet' => '0x3a4b98F12c09Ad6E9b7E185c899d214C718b89Fc',
+                'issuer' => 'KampusX Verified Authority & Universitas Gadjah Mada',
+                'skillCategory' => 'Python & Machine Learning',
+                'cognitiveScore' => 98,
+                'txHash' => '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d',
+                'liveOnChainTx' => '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d',
+                'contractAddress' => self::CONTRACT_ADDRESS,
+                'minterAddress' => '0x94df082f40d50be91f2d611ba794565d77fc3336',
+                'blockNumber' => 51351780,
+                'confirmations' => 1840,
+                'mintedDate' => '28 Sep 2026, 14:30 WIB',
+                'status' => 'Success',
+                'isLocked' => true,
+                'standard' => 'ERC-5192 (Soulbound / Non-Transferable)',
+                'gasUsed' => 22730,
+                'gasPriceGwei' => 29.9,
+                'polygonscanUrl' => 'https://amoy.polygonscan.com/tx/0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d',
+                'tokenURI' => 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi/metadata-0041.json'
+            ],
             '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c' => [
                 'tokenId' => '#SBT-2026-0041',
                 'ticketCode' => 'CERT-2026-0041',
@@ -48,6 +72,7 @@ class SoulboundTokenService
                 'skillCategory' => 'Python & Machine Learning',
                 'cognitiveScore' => 98,
                 'txHash' => '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c',
+                'liveOnChainTx' => '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d',
                 'contractAddress' => self::CONTRACT_ADDRESS,
                 'minterAddress' => self::MINTER_ADDRESS,
                 'blockNumber' => 58219044,
@@ -58,6 +83,7 @@ class SoulboundTokenService
                 'standard' => 'ERC-5192 (Soulbound / Non-Transferable)',
                 'gasUsed' => 84219,
                 'gasPriceGwei' => 28.5,
+                'polygonscanUrl' => 'https://amoy.polygonscan.com/tx/0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d',
                 'tokenURI' => 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi/metadata-0041.json'
             ],
             '0x43a81290bb3914a87c10b65f419c832e0192847aef92153e1a902cbb3918a4d7' => [

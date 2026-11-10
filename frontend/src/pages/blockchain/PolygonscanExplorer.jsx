@@ -50,6 +50,7 @@ const DEFAULT_TX_DATA = {
   gasUsed: 84219,
   gasLimit: 120000,
   nonce: 41,
+  liveOnChainTx: '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d',
   rawTokenURI: 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi/metadata-0041.json'
 };
 
@@ -212,7 +213,7 @@ const PolygonscanExplorer = () => {
               <ArrowLeft size={14} /> Kembali ke Aplikasi
             </button>
             <a
-              href={`https://amoy.polygonscan.com/tx/${txData.txHash}`}
+              href={`https://amoy.polygonscan.com/tx/${txData.liveOnChainTx || '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d'}`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-outline-primary btn-sm rounded-pill px-3 d-flex align-items-center gap-1"

@@ -79,23 +79,36 @@ const ZeroTrustModal = ({ show, onHide, sbtData, studentName, onOpenFileModal })
             </Button>
           )}
 
-          <div className="d-flex gap-2">
+          <div className="d-flex flex-column gap-2">
+            <div className="d-flex gap-2">
+              <Button
+                variant="outline-secondary"
+                className="w-50 rounded-pill py-2"
+                onClick={onHide}
+              >
+                Tutup
+              </Button>
+              <Button
+                variant="dark"
+                className="w-50 rounded-pill py-2 d-flex align-items-center justify-content-center gap-1.5"
+                onClick={() => {
+                  const tx = sbtData.txHash || '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c';
+                  window.open(`/blockchain/explorer/tx/${tx}`, '_blank');
+                }}
+              >
+                KampusX Explorer <ExternalLink size={14} />
+              </Button>
+            </div>
             <Button
-              variant="outline-secondary"
-              className="w-100 rounded-pill py-2"
-              onClick={onHide}
-            >
-              Tutup
-            </Button>
-            <Button
-              variant="dark"
-              className="w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-2"
+              variant="outline-primary"
+              className="w-100 rounded-pill py-2 d-flex align-items-center justify-content-center gap-1.5 fw-semibold"
+              style={{ fontSize: '12.5px' }}
               onClick={() => {
-                const tx = sbtData.txHash || '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c';
-                window.open(`/blockchain/explorer/tx/${tx}`, '_blank');
+                const liveTx = '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d';
+                window.open(`https://amoy.polygonscan.com/tx/${liveTx}`, '_blank');
               }}
             >
-              Cek di Polygonscan <ExternalLink size={14} />
+              Buka di Polygonscan Live (amoy.polygonscan.com) <ExternalLink size={14} />
             </Button>
           </div>
         </div>

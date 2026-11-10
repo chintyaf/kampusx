@@ -70,22 +70,35 @@ Route::get('/events/explore', [EventController::class, 'index']); // Diubah ke i
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 // Certificate Public Verification & Rendering
-// Route::get('/user/certificates/', [EventCertificateController::class, 'show']);
-Route::get('/certificate/verify/{ticket_code}', [EventCertificateController::class, 'verifyCertificate']);
+Route::get('/certificates/{verification_id}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
+Route::get('/v1/certificates/{verification_id}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
+Route::get('/certificate/verify/{ticket_code}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
 Route::get('/certificate/render/{ticket_code}', [EventCertificateController::class, 'getCertificateRenderData']);
 Route::get('/certificate/background/{eventId}', [EventCertificateController::class, 'getBackgroundPublic']);
 
 // ==========================================
+// THESIS E2E FLOW ROUTES (Gamifikasi, Seat-Locking, Bandit, Webhooks)
+// ==========================================
+Route::post('/webhook/srl-graduated', [\App\Http\Controllers\Api\Webhook\GamificationWebhookController::class, 'srlGraduated']);
+Route::post('/webhook/payment-success', [\App\Http\Controllers\Api\Webhook\PaymentWebhookController::class, 'paymentSuccess']);
+Route::get('/leaderboard', [\App\Http\Controllers\Api\LeaderboardController::class, 'index']);
+Route::get('/checkout/bandit-reward/{eventId}', [\App\Http\Controllers\Api\BanditRewardController::class, 'getPersonalizedReward']);
+Route::post('/checkout/create-pending', [\App\Http\Controllers\Api\Webhook\PaymentWebhookController::class, 'createPendingOrder']);
+Route::post('/events/{id}/lock-seat', [\App\Http\Controllers\Api\SeatLockController::class, 'lockSeat']);
+Route::post('/events/{id}/release-seat', [\App\Http\Controllers\Api\SeatLockController::class, 'releaseSeat']);
+
 // BLOCKCHAIN & SOULBOUND TOKEN (SBT) - RUMUSAN MASALAH 2
 // ==========================================
 Route::post('/v1/credentials/trigger-mint', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'triggerMint']);
 Route::get('/v1/blockchain/verify/{identifier}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'verify']);
+Route::get('/blockchain/verify/{identifier}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'verify']);
 Route::get('/v1/blockchain/polygonscan/{txHash}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getPolygonscanData']);
 
 // ==========================================
 // JOB MATCHING & RECRUITER VIEW - RUMUSAN MASALAH 4
 // ==========================================
 Route::post('/v1/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
+Route::post('/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
 Route::post('/v1/talents/send-offer', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'sendRecruiterOffer']);
 
 Route::get('/test', function () {

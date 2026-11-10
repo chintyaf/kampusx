@@ -16,6 +16,7 @@ import {
 import QRCode from 'react-qr-code';
 import { Link } from 'react-router-dom';
 import html2pdf from 'html2pdf.js';
+import LogoKampusX from '@/assets/images/logo/Logo_KampusX.svg';
 
 const CertificateFileModal = ({
   show,
@@ -257,33 +258,11 @@ const CertificateFileModal = ({
             <div style={{ position: 'relative', zIndex: 2 }} className="text-center">
               {/* KampusX Official Logo & Badge */}
               <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
-                <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    backgroundColor: '#00699e',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 900,
-                    fontSize: '18px'
-                  }}
-                >
-                  K
-                </div>
-                <span
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: 800,
-                    letterSpacing: '3px',
-                    color: '#00699e',
-                    fontFamily: "'Plus Jakarta Sans', sans-serif"
-                  }}
-                >
-                  KAMPUSX
-                </span>
+                <img
+                  src={LogoKampusX}
+                  alt="KampusX Logo"
+                  style={{ height: '34px', width: 'auto', objectFit: 'contain' }}
+                />
                 <span
                   style={{
                     fontSize: '11px',

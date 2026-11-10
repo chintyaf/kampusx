@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Container, Row, Col, Badge } from 'react-bootstrap';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Container, Row, Col, Badge, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import api from '../../../api/axios';
 import {
   Trophy,
   Crown,
@@ -233,10 +234,45 @@ const LeaderboardPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   // Filter Tier state
   const [selectedTier, setSelectedTier] = useState('ALL');
+  // Dynamic API state
+  const [apiLeaderboard, setApiLeaderboard] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Ambil data aktif berdasarkan timeframe terpilih
-  const currentData = MOCK_LEADERBOARD_DATA[timeframe];
-  const { currentUser, topThree, tableRanks, periodLabel, daysRemaining } = currentData;
+  // Fetch data dinamis dari /api/leaderboard
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLeaderboard = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get('/leaderboard', {
+          params: {
+            timeframe,
+            tier: selectedTier
+          }
+        });
+        if (isMounted && response?.data?.data) {
+          setApiLeaderboard(response.data.data);
+        }
+      } catch (err) {
+        console.warn('Leaderboard API offline, menggunakan fallback dummy:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+    return () => { isMounted = false; };
+  }, [timeframe, selectedTier]);
+
+  const fallbackData = MOCK_LEADERBOARD_DATA[timeframe] || MOCK_LEADERBOARD_DATA.bulanan;
+  const currentData = apiLeaderboard || fallbackData;
+  const {
+    currentUser = fallbackData.currentUser,
+    topThree = fallbackData.topThree,
+    tableRanks = fallbackData.tableRanks,
+    periodLabel = fallbackData.periodLabel,
+    daysRemaining = fallbackData.daysRemaining
+  } = currentData;
 
   const currentUserName = user?.name ? `Kamu (${user.name})` : currentUser.name;
   const currentUserInitials = user?.name
@@ -289,7 +325,19 @@ const LeaderboardPage = () => {
         {/* ==================== 1. HEADER SECTION ==================== */}
         <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
           <div>
-            <h1 className="leaderboard-title mb-1">Leaderboard</h1>
+            <div className="d-flex align-items-center gap-2">
+              <h1 className="leaderboard-title mb-1">Leaderboard</h1>
+              {/* {apiLeaderboard ? (
+                <Badge bg="success" style={{ fontSize: '11px', padding: '4px 8px', fontWeight: 500 }}>
+                  ● Live Data
+                </Badge>
+              ) : (
+                <Badge bg="secondary" style={{ fontSize: '11px', padding: '4px 8px', fontWeight: 500 }}>
+                  Demo Mode
+                </Badge>
+              )}
+              {loading && <Spinner animation="border" size="sm" variant="primary" />} */}
+            </div>
             <p className="leaderboard-subtitle mb-0">
               Kumpulkan poin dari setiap event dan microlearning untuk naik peringkat!
             </p>
