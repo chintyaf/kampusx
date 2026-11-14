@@ -132,7 +132,7 @@ const ReflectionPage = () => {
 						<LessonReview currentOutcome={currentOutcome} />
 
 						{/* Form Refleksi Metakognitif Diri (SRL Fase 3) */}
-						<div className="bg-white p-4 rounded-3 border shadow-sm my-4">
+						{/* <div className="bg-white p-4 rounded-3 border shadow-sm my-4">
 							<div className="d-flex align-items-center justify-content-between pb-3 border-bottom mb-3">
 								<div>
 									<h2 className="h6 fw-bold text-dark mb-1">
@@ -224,7 +224,7 @@ const ReflectionPage = () => {
 									</button>
 								</div>
 							</div>
-						</div>
+						</div> */}
 
 						{/* 3. Rekomendasi Section */}
 						<Rekomendasi currentOutcome={currentOutcome} />

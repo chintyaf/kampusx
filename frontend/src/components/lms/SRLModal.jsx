@@ -474,9 +474,9 @@ const SRLModal = () => {
 								penguasaan materi.
 							</p>
 
-							<div className="srlm-reward">
+							{/* <div className="srlm-reward">
 								<Trophy size={16} /> +50 XP SRL Mastery
-							</div>
+							</div> */}
 						</div>
 					</div>
 				) : (

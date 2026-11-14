@@ -37,21 +37,25 @@ class Lesson extends Model
         'updated_at' => 'datetime',
     ];
 
-    public function module(): BelongsTo
-    {
-        return $this->belongsTo(Module::class, 'module_id');
-    }
-
-    public function skills(): BelongsToMany
-    {
-        return $this->belongsToMany(Skill::class, 'lesson_skills', 'lesson_id', 'skill_id')
-            ->withPivot('relevance_weight')
-            ->withTimestamps();
-    }
 
     public function quizzes(): HasMany
     {
         return $this->hasMany(Quiz::class, 'lesson_id');
     }
-}
 
+    public function module(): BelongsTo
+    {
+        return $this->belongsTo(Module::class, 'module_id');
+    }
+
+    // Keep skills relationship
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Skill::class,
+            'lesson_skills',
+            'lesson_id',
+            'skill_id'
+        )->withPivot('relevance_weight')->withTimestamps();
+    }
+}

@@ -118,7 +118,7 @@ const LearningDashboard = () => {
 
 					<Col lg={3}>
 						<div className="ld-stack">
-							<LearningReadinessWidget readiness={mockLearningReadiness} />
+							{/* <LearningReadinessWidget readiness={mockLearningReadiness} /> */}
 							<StudyInsightsWidget sessions={mockSRLHistory} />
 							<SkillMatrixWidget data={mockSkillProfile} />
 							<BadgesWidget

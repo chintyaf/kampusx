@@ -78,7 +78,6 @@ class LearningPath extends Model
             return $this->thumbnail;
         }
 
-        return url('storage/' . ltrim($this->thumbnail, '/'));
+        return url('storage/lms/learning-path/' . ltrim($this->thumbnail, '/'));
     }
 }
-

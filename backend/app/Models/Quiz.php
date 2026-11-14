@@ -30,24 +30,25 @@ class Quiz extends Model
         'updated_at' => 'datetime',
     ];
 
-    public function module(): BelongsTo
-    {
-        return $this->belongsTo(Module::class, 'module_id');
-    }
 
     public function lesson(): BelongsTo
     {
         return $this->belongsTo(Lesson::class, 'lesson_id');
     }
 
-    public function questions(): HasMany
-    {
-        return $this->hasMany(QuizQuestion::class, 'quiz_id')->orderBy('order_index', 'asc');
-    }
-
     public function attempts(): HasMany
     {
         return $this->hasMany(QuizAttempt::class, 'quiz_id');
     }
-}
 
+    public function module(): BelongsTo
+    {
+        return $this->belongsTo(Module::class, 'module_id');
+    }
+
+    public function questions(): HasMany
+    {
+        return $this->hasMany(QuizQuestion::class, 'quiz_id')
+            ->orderBy('order_index', 'asc');
+    }
+}

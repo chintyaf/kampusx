@@ -51,6 +51,16 @@ use App\Http\Controllers\Api\EventDashboard\EventAttendanceController;
 // use App\Http\Controllers\CommitteeController;
 use App\Http\Controllers\Api\CommitteeController;
 
+// LMS -- MICROLEARNING
+use App\Http\Controllers\Api\LMS\LearningPathController;
+use App\Http\Controllers\Api\LMS\ModuleController;
+use App\Http\Controllers\Api\LMS\LessonController;
+use App\Http\Controllers\Api\LMS\SkillController;
+use App\Http\Controllers\Api\LMS\LessonSkillController;
+use App\Http\Controllers\Api\LMS\EnrollmentController;
+
+
+
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
 // ==========================================
@@ -145,7 +155,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/member/points/history', [\App\Http\Controllers\Api\Member\PointTransactionController::class, 'history']);
     Route::post('/global-rewards/redeem', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'redeemGlobalReward']);
     Route::get('/global-rewards', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'globalRewardsList']);
-    
+
     // Member Local Rewards Catalog & Redemption
     Route::get('/events/{event_id}/local-rewards', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'getLocalRewards']);
     Route::post('/events/{event_id}/local-rewards/redeem', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'redeemLocalReward']);
@@ -214,46 +224,13 @@ Route::middleware('auth:sanctum')->group(function () {
             // ====================================================
             // LMS Microlearning Management (Learning Path, Module, Lesson)
             // ====================================================
-            // Learning Paths
-            Route::prefix('learning-paths')->group(function () {
-                Route::get('/', [OrganizerLearningPathController::class, 'index']);
-                Route::post('/', [OrganizerLearningPathController::class, 'store']);
-                Route::get('/{id}', [OrganizerLearningPathController::class, 'show']);
-                Route::match(['put', 'post'], '/{id}', [OrganizerLearningPathController::class, 'update']);
-                Route::delete('/{id}', [OrganizerLearningPathController::class, 'destroy']);
-                Route::match(['put', 'post'], '/{id}/curriculum', [OrganizerLearningPathController::class, 'saveCurriculum']);
-
-                // Modules nested under Learning Path
-                Route::get('/{learningPathId}/modules', [OrganizerModuleController::class, 'index']);
-                Route::post('/{learningPathId}/modules', [OrganizerModuleController::class, 'store']);
-                Route::post('/{learningPathId}/modules/reorder', [OrganizerModuleController::class, 'reorder']);
-            });
-
-            // Singular alias /learning-path/{id}
-            Route::prefix('learning-path')->group(function () {
-                Route::get('/{id}', [OrganizerLearningPathController::class, 'show']);
-                Route::match(['put', 'post'], '/{id}', [OrganizerLearningPathController::class, 'update']);
-                Route::delete('/{id}', [OrganizerLearningPathController::class, 'destroy']);
-                Route::match(['put', 'post'], '/{id}/curriculum', [OrganizerLearningPathController::class, 'saveCurriculum']);
-            });
-
-            // Modules direct CRUD
-            Route::prefix('modules')->group(function () {
-                Route::get('/{id}', [OrganizerModuleController::class, 'show']);
-                Route::put('/{id}', [OrganizerModuleController::class, 'update']);
-                Route::delete('/{id}', [OrganizerModuleController::class, 'destroy']);
-
-                // Lessons nested under Module
-                Route::get('/{moduleId}/lessons', [OrganizerLessonController::class, 'index']);
-                Route::post('/{moduleId}/lessons', [OrganizerLessonController::class, 'store']);
-                Route::post('/{moduleId}/lessons/reorder', [OrganizerLessonController::class, 'reorder']);
-            });
-
-            // Lessons direct CRUD
-            Route::prefix('lessons')->group(function () {
-                Route::get('/{id}', [OrganizerLessonController::class, 'show']);
-                Route::match(['put', 'post'], '/{id}', [OrganizerLessonController::class, 'update']);
-                Route::delete('/{id}', [OrganizerLessonController::class, 'destroy']);
+            Route::prefix('lms')->group(function () {
+                Route::apiResource('learning-paths', LearningPathController::class);
+                Route::apiResource('modules', ModuleController::class);
+                Route::apiResource('lessons', LessonController::class);
+                Route::apiResource('skills', SkillController::class);
+                Route::apiResource('lesson-skills', LessonSkillController::class);
+                Route::apiResource('enrollments', EnrollmentController::class);
             });
         });
 

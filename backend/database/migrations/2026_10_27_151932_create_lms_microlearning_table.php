@@ -14,11 +14,18 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('event_id')->nullable()->constrained('events')->nullOnDelete();
             $table->string('title', 200);
+            $table->string('slug', 220)->unique()->nullable();
             $table->text('description')->nullable();
+
+            // this could be removed
             $table->string('category', 100)->nullable();
             $table->json('categories')->nullable();
+
             $table->string('thumbnail', 500)->nullable();
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->timestamp('published_at')->nullable();
+
+            // tambahkan slug, published at
             $table->timestamps();
         });
 

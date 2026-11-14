@@ -37,7 +37,8 @@ class Module extends Model
 
     public function lessons(): HasMany
     {
-        return $this->hasMany(Lesson::class, 'module_id')->orderBy('order_index', 'asc');
+        return $this->hasMany(Lesson::class, 'module_id')
+            ->orderBy('order_index', 'asc');
     }
 
     public function quizzes(): HasMany
@@ -45,4 +46,3 @@ class Module extends Model
         return $this->hasMany(Quiz::class, 'module_id');
     }
 }
-
