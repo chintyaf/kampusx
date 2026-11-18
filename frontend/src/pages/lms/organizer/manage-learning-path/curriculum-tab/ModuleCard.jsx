@@ -38,6 +38,7 @@ const ModuleCard = ({
 			borderRadius: 'var(--radius-lg, 14px)',
 			overflow: 'hidden',
 			...dnd.overStyle(`m-${m.id}`),
+			padding: '0px',
 		}}
 	>
 		{/* Header module */}
@@ -134,8 +135,6 @@ const ModuleCard = ({
 				<HoverButton
 					onClick={onDelete}
 					style={{
-						background: 'none',
-						border: 'none',
 						padding: 0,
 						gap: 4,
 						fontSize: 'var(--font-sm, 14px)',
@@ -248,25 +247,6 @@ const ModuleCard = ({
 					>
 						Module ini masih kosong.
 					</p>
-				)}
-
-				{!searching && (
-					<HoverButton
-						onClick={onAddContent}
-						className="justify-content-center mt-2"
-						style={{
-							padding: 14,
-							border: '2px dashed var(--bahama-blue-300, #7fb8d4)',
-							backgroundColor: 'var(--bahama-blue-50, #f0f8fc)',
-							borderRadius: 'var(--radius-md, 10px)',
-							color: 'var(--color-primary, #006699)',
-							fontWeight: 600,
-							fontSize: 'var(--font-sm, 14px)',
-						}}
-						hoverStyle={{ backgroundColor: 'var(--bahama-blue-100, #d9edf7)' }}
-					>
-						<Plus size={16} /> Add Lesson / Quiz to Module {m.number}
-					</HoverButton>
 				)}
 			</Card.Body>
 		)}
