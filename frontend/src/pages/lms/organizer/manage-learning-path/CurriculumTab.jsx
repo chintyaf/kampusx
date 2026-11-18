@@ -99,6 +99,7 @@ const CurriculumTab = ({ id, modules, onModulesChange }) => {
 						onClick={() => {
 							// TODO: Masukkan link halaman AI Generate (pakai `id`)
 							navigate('/TODO');
+
 						}}
 					>
 						<Sparkles size={16} /> Generate with AI

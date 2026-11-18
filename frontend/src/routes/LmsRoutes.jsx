@@ -29,8 +29,13 @@ import DashboardPage from '@/pages/lms/organizer/dashboard/DashboardPage';
 import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
 import CreateLearningPage from '@/pages/lms/organizer/CreateLearningPage';
 
-import EditModulePage from '@/pages/lms/organizer/microlearning-editor/EditModulePage';
-import EditLessonPage from '@/pages/lms/organizer/microlearning-editor/EditLessonPage';
+import LmsEditorLayout from '@/pages/lms/organizer/lms-editor/layout/LmsEditorLayout';
+import EditModulePage from '@/pages/lms/organizer/lms-editor/EditModulePage';
+import ModuleInfoPage from '@/pages/lms/organizer/lms-editor/ModuleInfoPage';
+import LessonEditorPage from '@/pages/lms/organizer/lms-editor/LessonEditorPage';
+import QuizEditorPage from '@/pages/lms/organizer/lms-editor/QuizEditorPage';
+
+import EditLessonPage from '@/pages/lms/organizer/EditLessonPage';
 
 import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
@@ -90,6 +95,7 @@ export const LmsRoutes = () => {
 						<Route path="learning-paths" element={<LearningPathsPage />} />
 						<Route path="learning-path/add" element={<CreateLearningPage />} />
 
+						{/* LEARNING PATH EDIT */}
 						<Route path="learning-path/:learningId" element={<ManageLearningPathPage />} />
 						<Route path="learning-path/:learningId/edit" element={<EditLearningPathPage />} />
 						{/* ==== */}
@@ -104,15 +110,22 @@ export const LmsRoutes = () => {
 			</Route>
 
 			<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
+				<Route path="/organizer/learning-path/:learningId/modules/:moduleId" element={<LmsEditorLayout />}>
+					<Route index element={<Navigate to="info" replace />} />
+					<Route path="info" element={<ModuleInfoPage />} />
+					<Route path="lessons/:lessonId" element={<LessonEditorPage />} />
+					<Route path="quiz" element={<QuizEditorPage />} />
+				</Route>
+
 				<Route path="/organizer">
 					{/* MODULE */}
-					<Route path="learning-path/:learningId/module/:moduleId" element={<EditModulePage />} />
+					{/* <Route path="learning-path/:learningId/module/:moduleId" element={<EditModulePage />} /> */}
 
 					{/* ==== */}
 
 					{/* LESSON */}
-					<Route path="learning-path/:learningId/edit-module/:moduleId/:lessonId" element={<EditLessonPage />} />
-					<Route path="modules/:moduleId" element={<EditLessonPage />} />
+					{/* <Route path="learning-path/:learningId/edit-module/:moduleId/:lessonId" element={<EditLessonPage />} /> */}
+					{/* <Route path="modules/:moduleId" element={<EditLessonPage />} /> */}
 					{/* ==== */}
 				</Route>
 			</Route>
