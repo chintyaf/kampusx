@@ -1,91 +1,44 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Award, ArrowRight } from 'lucide-react';
+import { Row, Col } from 'react-bootstrap';
+import BadgeForm from './certificate-tab/BadgeForm';
+import CriteriaManager from './certificate-tab/CriteriaManager';
+import BadgeList from './certificate-tab/BadgeList';
+import { INITIAL_BADGES, T } from './certificate-tab/config';
 
-const T = {
-	card: 'var(--card, #ffffff)',
-	neutral: 'var(--neutral-text, #64748b)',
-	border: 'var(--neutral-border, #e2e8f0)',
-	primary: 'var(--color-primary, #006699)',
-	primaryTint: 'var(--bahama-blue-100, #d9edf7)',
-	white: 'var(--color-white, #ffffff)',
-	fsm: 'var(--font-sm, 14px)',
-	fmd: 'var(--font-md, 16px)',
-	rMd: 'var(--radius-md, 10px)',
-	rLg: 'var(--radius-lg, 14px)',
-};
+// id: learningId (disimpan di tiap badge, siap dipakai untuk API)
+const CertificateTab = ({ id: learningId }) => {
+	const [badges, setBadges] = useState(INITIAL_BADGES);
+	const [criteria, setCriteria] = useState({
+		minScore: 75,
+		forethought: true,
+		reflection: true,
+		autoMint: true,
+	});
 
-// props:
-//   id     : learningId
-//   routes : objek ROUTES dari ManageLearningPathPage
-const CertificateTab = ({ id, routes }) => {
-	const navigate = useNavigate();
-	const [hover, setHover] = useState(false);
+	const handleCreate = (values) =>
+		setBadges([{ id: Date.now(), learningId, issued: 0, ...criteria, ...values }, ...badges]);
 
 	return (
-		<div
-			style={{
-				background: T.card,
-				border: `1px solid ${T.border}`,
-				borderRadius: T.rLg,
-				padding: '48px 24px',
-				textAlign: 'center',
-			}}
-		>
-			<div
-				style={{
-					width: 48,
-					height: 48,
-					margin: '0 auto 16px',
-					borderRadius: T.rMd,
-					background: T.primaryTint,
-					color: T.primary,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-				}}
-			>
-				<Award size={24} />
+		<div className="d-grid gap-4">
+			<div>
+				<h2 className="h5 fw-bold m-0">Certificate & Badges</h2>
+				<p className="m-0" style={{ color: T.muted, fontSize: T.fsm }}>
+					Atur kriteria kelulusan, lalu terbitkan badge dan sertifikat untuk peserta Learning Path ini.
+				</p>
 			</div>
-			<h2 style={{ margin: '0 0 6px', fontSize: T.fmd, fontWeight: 700 }}>
-				Certificate & Badges
-			</h2>
-			<p
-				style={{
-					margin: '0 auto 20px',
-					maxWidth: 460,
-					fontSize: T.fsm,
-					color: T.neutral,
-					lineHeight: 1.5,
-				}}
-			>
-				Atur kriteria kelulusan, lalu terbitkan badge dan sertifikat untuk peserta yang
-				menyelesaikan Learning Path ini.
-			</p>
-			<button
-				type="button"
-				onClick={() => navigate(routes.badges(id))}
-				onMouseEnter={() => setHover(true)}
-				onMouseLeave={() => setHover(false)}
-				style={{
-					display: 'inline-flex',
-					alignItems: 'center',
-					gap: 8,
-					padding: '9px 18px',
-					backgroundColor: T.primary,
-					color: T.white,
-					border: 'none',
-					borderRadius: T.rMd,
-					fontSize: T.fsm,
-					fontWeight: 600,
-					fontFamily: 'inherit',
-					cursor: 'pointer',
-					filter: hover ? 'brightness(0.92)' : 'none',
-					transition: 'filter .15s',
-				}}
-			>
-				Kelola Badge & Sertifikat <ArrowRight size={16} />
-			</button>
+
+			<Row className="g-4">
+				<Col lg={8} className="d-grid gap-4 align-content-start">
+					<BadgeForm onCreate={handleCreate} />
+					<CriteriaManager
+						criteria={criteria}
+						onChange={(patch) => setCriteria({ ...criteria, ...patch })}
+					/>
+				</Col>
+				<Col lg={4}>
+					<BadgeList badges={badges} />
+				</Col>
+			</Row>
 		</div>
 	);
 };

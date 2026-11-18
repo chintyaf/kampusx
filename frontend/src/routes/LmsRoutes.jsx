@@ -54,10 +54,7 @@ export const LmsRoutes = () => {
 					<Route path="learning-paths">
 						<Route index element={<LearningPathDetail />} />
 						<Route path=":pathId" element={<LearningPathDetail />} />
-						<Route
-							path=":pathId/certificate"
-							element={<LearningPathCertificatePage />}
-						/>
+						<Route path=":pathId/certificate" element={<LearningPathCertificatePage />} />
 					</Route>
 
 					{/* Group Prefix: /learner/modules/:moduleId */}
@@ -96,28 +93,24 @@ export const LmsRoutes = () => {
 						{/* LEARNING PATH */}
 						<Route path="learning-paths" element={<LearningPathsPage />} />
 						<Route path="learning-path/add" element={<CreateLearningPage />} />
-						<Route path="/learning-path">
-							<Route path=":learningId" element={<ManageLearningPathPage />} />
-							<Route path=":learningId/edit" element={<EditLearningPathPage />} />
 
-							{/* MODULE */}
-							<Route
-								path=":learningId/edit-module/:moduleId"
-								element={<EditModulePage />}
-							/>
+						<Route path="learning-path/:learningId" element={<ManageLearningPathPage />} />
+						<Route path="learning-path/:learningId/edit" element={<EditLearningPathPage />} />
+						{/* ==== */}
 
-							{/* LESSON */}
-							<Route
-								path=":learningId/edit-module/:moduleId/:lessonId"
-								element={<EditLessonPage />}
-							/>
-							<Route path="modules/:moduleId" element={<EditLessonPage />} />
+						{/* MODULE */}
+						<Route path="learning-path/:learningId/edit-module/:moduleId" element={<EditModulePage />} />
+						{/* ==== */}
 
-							{/* AI STUDIO */}
-							<Route path="ai-studio">
-								<Route path="upload" element={<UploadPage />} />
-								<Route path="review" element={<ReviewPage />} />
-							</Route>
+						{/* LESSON */}
+						<Route path="learning-path/:learningId/edit-module/:moduleId/:lessonId" element={<EditLessonPage />} />
+						<Route path="modules/:moduleId" element={<EditLessonPage />} />
+						{/* ==== */}
+
+						{/* AI STUDIO */}
+						<Route path="ai-studio">
+							<Route path="upload" element={<UploadPage />} />
+							<Route path="review" element={<ReviewPage />} />
 						</Route>
 					</Route>
 				</Route>

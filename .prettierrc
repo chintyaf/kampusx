@@ -11,5 +11,10 @@
 	"semi": true,
 	"endOfLine": "lf",
 	"quoteProps": "as-needed",
-	"overrides": [{ "files": ["frontend/src/routes/index.jsx"], "options": { "printWidth": 400 } }]
+	"overrides": [
+		{
+			"files": ["frontend/src/routes/index.jsx", "frontend/src/routes/LmsRoutes.jsx"],
+			"options": { "printWidth": 400 }
+		}
+	]
 }

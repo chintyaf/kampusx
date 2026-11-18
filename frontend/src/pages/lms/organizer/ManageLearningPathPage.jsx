@@ -1,58 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { Container, Nav } from 'react-bootstrap';
-
+import api from '@/api/axios';
+import { Container, Nav, Spinner, Alert } from 'react-bootstrap';
 import { notify } from '@/utils/notify';
 
 import ManageLearningHeader from './manage-learning-path/ManageLearningHeader';
-
 import CurriculumTab from './manage-learning-path/CurriculumTab';
 import CertificateTab from './manage-learning-path/CertificateTab';
 import LinkedEventTab from './manage-learning-path/LinkedEventsTab';
 import AnalyticTab from './manage-learning-path/AnalyticTab';
 
+// ==================================
+// ROUTES
+// ==================================
+
 const ORG = '/organizer';
 
-const lp = (id) => `${ORG}/learning-path/${id}`;
+const lp = (learningId) => `${ORG}/learning-path/${learningId}`;
 
 const ROUTES = {
 	list: `${ORG}/learning-paths`,
 
-	preview: (id) => `/learner/learning-paths/${id}`,
+	preview: (learningId) => `/learner/learning-paths/${learningId}`,
 
-	editModule: (id, moduleId) => `${lp(id)}/edit-module/${moduleId}`,
+	editModule: (learningId, moduleId) => `${lp(learningId)}/edit-module/${moduleId}`,
 
-	newLessonManual: (id, moduleId) => `${lp(id)}/edit-module/${moduleId}/new?method=manual`,
+	newLessonManual: (learningId, moduleId) =>
+		`${lp(learningId)}/edit-module/${moduleId}/new?method=manual`,
 
-	editLesson: (id, moduleId, lessonId) => `${ORG}/modules/${moduleId}?lesson=${lessonId}`,
+	editLesson: (learningId, moduleId, lessonId) => `${ORG}/modules/${moduleId}?lesson=${lessonId}`,
 
-	newQuiz: (id, moduleId) => `${lp(id)}/edit-module/${moduleId}/new?tab=quiz`,
+	newQuiz: (learningId, moduleId) => `${lp(learningId)}/edit-module/${moduleId}/new?tab=quiz`,
 
-	editQuiz: (id, moduleId, quizId) => `${lp(id)}/edit-module/${moduleId}/${quizId}?tab=quiz`,
+	editQuiz: (learningId, moduleId, quizId) =>
+		`${lp(learningId)}/edit-module/${moduleId}/${quizId}?tab=quiz`,
 
-	newLessonAI: (id, moduleId) => `${ORG}/ai-studio/upload?learningId=${id}&moduleId=${moduleId}`,
+	newLessonAI: (learningId, moduleId) =>
+		`${ORG}/ai-studio/upload?learningId=${learningId}&moduleId=${moduleId}`,
 
-	aiGenerate: (id) => `${ORG}/ai-studio/upload?learningId=${id}`,
+	aiGenerate: (learningId) => `${ORG}/ai-studio/upload?learningId=${learningId}`,
 
-	badges: (id) => `${ORG}/badges?learningId=${id}`,
+	badges: (learningId) => `${ORG}/badges?learningId=${learningId}`,
 
-	events: (id) => `${ORG}/content?learningId=${id}`,
+	events: (learningId) => `${ORG}/content?learningId=${learningId}`,
 
-	analytics: (id) => `${ORG}/logs?learningId=${id}`,
+	analytics: (learningId) => `${ORG}/logs?learningId=${learningId}`,
 };
 
 // ==================================
-// LEARNING PATH DATA
+// DATA MAPPING
 // ==================================
 
-const LEARNING_PATH = {
-	title: 'Intro to Machine Learning',
-	collectionName: 'Intro to Machine Learning (Collection)',
-	status: 'Published',
-	linkedEvent: 'AI Summit 2026',
-	enrolledStudents: 847,
-};
+// Convert API lesson to CurriculumTab structure
+const mapLesson = (lesson) => ({
+	...lesson,
+
+	id: lesson.id,
+	type: 'lesson',
+
+	// API: microlearning
+	// UI: micro
+	format: lesson.type === 'microlearning' ? 'micro' : lesson.type,
+
+	title: lesson.title,
+	minutes: lesson.duration_minutes ?? 0,
+});
+
+// Convert API module to CurriculumTab structure
+const mapModule = (module) => ({
+	...module,
+
+	id: module.id,
+	name: module.title,
+
+	items: (module.lessons || []).map(mapLesson),
+});
+
+// Convert API learning path response
+const mapLearningPath = (data) => ({
+	...data,
+
+	title: data.title,
+	collectionName: data.title,
+	status: data.status,
+
+	linkedEvent: data.event?.title ?? null,
+
+	enrolledStudents: data.enrollments_count ?? 0,
+
+	modules: (data.modules || []).map(mapModule),
+});
 
 // ==================================
 // TAB CONFIGURATION
@@ -78,101 +116,138 @@ const TABS = [
 ];
 
 // ==================================
-// INITIAL MODULE DATA
-// ==================================
-
-const INITIAL_MODULES = [
-	{
-		id: 1,
-		name: 'Fundamentals of Python',
-		items: [
-			{
-				id: 'l1',
-				type: 'lesson',
-				format: 'article',
-				title: 'Introduction to Variables',
-				minutes: 5,
-			},
-			{
-				id: 'l2',
-				type: 'lesson',
-				format: 'micro',
-				title: 'Data Structures Overview',
-				minutes: 8,
-			},
-			{
-				id: 'q1',
-				type: 'quiz',
-				title: 'Reflection Quiz: Python Basics',
-				questions: 5,
-				passScore: 80,
-			},
-		],
-	},
-	{
-		id: 2,
-		name: 'Supervised Learning Techniques',
-		items: [
-			{
-				id: 'l3',
-				type: 'lesson',
-				format: 'article',
-				title: 'Regression Basics',
-				minutes: 6,
-			},
-			{
-				id: 'l4',
-				type: 'lesson',
-				format: 'micro',
-				title: 'Classification Overview',
-				minutes: 7,
-			},
-			{
-				id: 'l5',
-				type: 'lesson',
-				format: 'article',
-				title: 'Decision Trees',
-				minutes: 9,
-			},
-			{
-				id: 'l6',
-				type: 'lesson',
-				format: 'micro',
-				title: 'Model Evaluation Metrics',
-				minutes: 8,
-			},
-			{
-				id: 'q2',
-				type: 'quiz',
-				title: 'Reflection Quiz: Supervised Learning',
-				questions: 6,
-				passScore: 75,
-			},
-		],
-	},
-];
-
-// ==================================
 // MAIN COMPONENT
 // ==================================
 
 const ManageLearningPathPage = () => {
-	const { id } = useParams();
+	const { learningId } = useParams();
+
+	// ----------------------------------
+	// STATE
+	// ----------------------------------
 
 	const [activeTab, setActiveTab] = useState('curriculum');
-	const [modules, setModules] = useState(INITIAL_MODULES);
 
-	// Update modules from CurriculumTab.
+	const [learningPath, setLearningPath] = useState(null);
+	const [modules, setModules] = useState([]);
+
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
+
+	// ----------------------------------
+	// FETCH LEARNING PATH
+	// ----------------------------------
+
+	useEffect(() => {
+		let isMounted = true;
+
+		const fetchLearningPathData = async () => {
+			setLoading(true);
+			setError(null);
+
+			try {
+				const response = await api.get(`organizer/lms/learning-paths/${learningId}`);
+				const result = response.data;
+
+				if (!result.success || !result.data) {
+					throw new Error(result.message || 'Learning path tidak ditemukan.');
+				}
+
+				const mappedData = mapLearningPath(result.data);
+
+				if (isMounted) {
+					setLearningPath(mappedData);
+					setModules(mappedData.modules);
+				}
+			} catch (err) {
+				console.error('Gagal mengambil data learning path:', err);
+
+				if (isMounted) {
+					const message =
+						err.response?.data?.message ||
+						err.message ||
+						'Gagal mengambil data learning path.';
+
+					setError(message);
+
+					notify('error', 'Terjadi Kesalahan', message);
+				}
+			} finally {
+				if (isMounted) {
+					setLoading(false);
+				}
+			}
+		};
+
+		if (learningId) {
+			fetchLearningPathData();
+		} else {
+			setError('Learning ID tidak ditemukan.');
+			setLoading(false);
+		}
+
+		return () => {
+			isMounted = false;
+		};
+	}, [learningId]);
+
+	// ----------------------------------
+	// UPDATE MODULES
+	// ----------------------------------
+
 	const handleModulesChange = (updater) => {
 		setModules((previousModules) =>
 			typeof updater === 'function' ? updater(previousModules) : updater,
 		);
 	};
 
-	// Show notification from CurriculumTab.
+	// ----------------------------------
+	// NOTIFICATION
+	// ----------------------------------
+
 	const showToast = (message, type = 'success') => {
 		notify(type, type === 'error' ? 'Terjadi Kesalahan' : 'Berhasil', message);
 	};
+
+	// ==================================
+	// LOADING STATE
+	// ==================================
+
+	if (loading) {
+		return (
+			<div
+				className="d-flex flex-column justify-content-center align-items-center"
+				style={{
+					minHeight: '70vh',
+					gap: '12px',
+				}}
+			>
+				<Spinner animation="border" variant="primary" />
+
+				<span className="text-muted">Memuat learning path...</span>
+			</div>
+		);
+	}
+
+	// ==================================
+	// ERROR STATE
+	// ==================================
+
+	if (error || !learningPath) {
+		return (
+			<Container fluid className="px-5 py-4">
+				<Alert variant="danger">
+					<Alert.Heading>Gagal Memuat Learning Path</Alert.Heading>
+
+					{error || 'Data learning path tidak tersedia.'}
+				</Alert>
+			</Container>
+		);
+	}
+
+	// ==================================
+	// MAIN RENDER
+	// ==================================
 
 	return (
 		<div
@@ -184,14 +259,16 @@ const ManageLearningPathPage = () => {
 		>
 			<Container fluid className="px-5 py-4 my-2">
 				{/* PAGE HEADER */}
+
 				<ManageLearningHeader
-					id={id}
-					learningPath={LEARNING_PATH}
+					id={learningId}
+					learningPath={learningPath}
 					modules={modules}
 					onLinkedEventClick={() => setActiveTab('linked-event')}
 				/>
 
 				{/* TAB NAVIGATION */}
+
 				<div
 					className="mb-4"
 					style={{
@@ -227,12 +304,11 @@ const ManageLearningPathPage = () => {
 					</Nav>
 				</div>
 
-				{/* TAB CONTENT */}
+				{/* CURRICULUM TAB */}
 
-				{/* Curriculum remains mounted to preserve its local state. */}
 				<div role="tabpanel" hidden={activeTab !== 'curriculum'}>
 					<CurriculumTab
-						id={id}
+						id={learningId}
 						routes={ROUTES}
 						modules={modules}
 						onModulesChange={handleModulesChange}
@@ -240,11 +316,17 @@ const ManageLearningPathPage = () => {
 					/>
 				</div>
 
-				{activeTab === 'certificate' && <CertificateTab id={id} routes={ROUTES} />}
+				{/* CERTIFICATE TAB */}
 
-				{activeTab === 'linked-event' && <LinkedEventTab id={id} routes={ROUTES} />}
+				{activeTab === 'certificate' && <CertificateTab id={learningId} routes={ROUTES} />}
 
-				{activeTab === 'analytics' && <AnalyticTab id={id} routes={ROUTES} />}
+				{/* LINKED EVENT TAB */}
+
+				{activeTab === 'linked-event' && <LinkedEventTab id={learningId} routes={ROUTES} />}
+
+				{/* ANALYTICS TAB */}
+
+				{activeTab === 'analytics' && <AnalyticTab id={learningId} routes={ROUTES} />}
 			</Container>
 		</div>
 	);
