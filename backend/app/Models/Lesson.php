@@ -38,6 +38,11 @@ class Lesson extends Model
     ];
 
 
+    public function quiz(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Quiz::class, 'lesson_id');
+    }
+
     public function quizzes(): HasMany
     {
         return $this->hasMany(Quiz::class, 'lesson_id');

@@ -1,29 +1,29 @@
 import React from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, NavLink } from 'react-router-dom';
 
 import { ChevronLeft, Calendar, Layers, Users, Pencil, Eye } from 'lucide-react';
 
 import { Row, Col, Button, Badge } from 'react-bootstrap';
 
 const STATUS_STYLE = {
-    published: {
-        label: 'Published',
-        bg: '#dcfce7',
-        border: '#76b08b',
-        color: '#166534',
-    },
-    draft: {
-        label: 'Draft',
-        bg: '#fef3c7',
-        border: '#CCBC7B',
-        color: '#b86f0a',
-    },
-    archived: {
-        label: 'Archived',
-        bg: '#e2e8f0',
-        border: '#94a3b8',
-        color: '#334155',
-    },
+	published: {
+		label: 'Published',
+		bg: '#dcfce7',
+		border: '#76b08b',
+		color: '#166534',
+	},
+	draft: {
+		label: 'Draft',
+		bg: '#fef3c7',
+		border: '#CCBC7B',
+		color: '#b86f0a',
+	},
+	archived: {
+		label: 'Archived',
+		bg: '#e2e8f0',
+		border: '#94a3b8',
+		color: '#334155',
+	},
 };
 
 const ManageLearningHeader = ({ id, learningPath, modules = [], onLinkedEventClick }) => {
@@ -100,7 +100,7 @@ const ManageLearningHeader = ({ id, learningPath, modules = [], onLinkedEventCli
 								border: `1px solid ${currentStatus.border}`,
 								color: currentStatus.color,
 								fontSize: 'var(--font-xs, 12px)',
-                                fontWeight : 700
+								fontWeight: 700,
 							}}
 						>
 							<span
@@ -119,9 +119,10 @@ const ManageLearningHeader = ({ id, learningPath, modules = [], onLinkedEventCli
 				<Col xs={12} lg="auto">
 					<div className="d-flex align-items-center flex-wrap gap-2">
 						<Button
+							as={NavLink}
+							to="/organizer/learning-path/1/edit"
 							variant="primary"
 							className="d-inline-flex align-items-center gap-2 fw-semibold"
-							onClick={() => window.open(previewUrl, '_blank', 'noopener')}
 						>
 							<Pencil size={16} />
 							Edit Details

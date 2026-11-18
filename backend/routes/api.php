@@ -58,7 +58,13 @@ use App\Http\Controllers\Api\LMS\LessonController;
 use App\Http\Controllers\Api\LMS\SkillController;
 use App\Http\Controllers\Api\LMS\LessonSkillController;
 use App\Http\Controllers\Api\LMS\EnrollmentController;
-
+use App\Http\Controllers\Api\LMS\QuizController;
+use App\Http\Controllers\Api\LMS\SrlForethoughtController;
+use App\Http\Controllers\Api\LMS\SrlReflectionController;
+use App\Http\Controllers\Api\LMS\LearningActivityController;
+use App\Http\Controllers\Api\LMS\ReadinessPredictionController;
+use App\Http\Controllers\Api\LMS\RecommendationController;
+use App\Http\Controllers\Api\AiContentController;
 
 
 // ==========================================
@@ -115,6 +121,12 @@ Route::post('/v1/staff/kiosk-scan', [\App\Http\Controllers\Api\StaffController::
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // ==========================================
+    // Generative AI LMS Endpoints
+    // ==========================================
+    Route::post('/ai/generate-module', [AiContentController::class, 'storeModule']);
+    Route::post('/modules/{module}/ai/generate-lesson', [AiContentController::class, 'storeLesson']);
 
     // Ambil data user yang sedang login
     Route::get('/user/profile', function (Request $request) {
@@ -228,9 +240,31 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::apiResource('learning-paths', LearningPathController::class);
                 Route::apiResource('modules', ModuleController::class);
                 Route::apiResource('lessons', LessonController::class);
+                Route::apiResource('quiz', QuizController::class);
                 Route::apiResource('skills', SkillController::class);
                 Route::apiResource('lesson-skills', LessonSkillController::class);
+
+
                 Route::apiResource('enrollments', EnrollmentController::class);
+
+                // API utk menerima Generative AI
+                // Generate and store Module with Lessons
+                Route::post(
+                    '/ai/generate-module',
+                    [AiContentController::class, 'storeModule']
+                );
+
+                // Generate and store Lesson inside existing Module
+                Route::post(
+                    '/modules/{module}/ai/generate-lesson',
+                    [AiContentController::class, 'storeLesson']
+                );
+                // API utk menerima Aktivitas Data
+                Route::apiResource('srl-forethoughts', SrlForethoughtController::class);
+                Route::apiResource('srl-reflections', SrlReflectionController::class);
+                Route::apiResource('learning-activities', LearningActivityController::class);
+                Route::apiResource('readiness-predictions', ReadinessPredictionController::class);
+                Route::apiResource('recommendations', RecommendationController::class);
             });
         });
 

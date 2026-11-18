@@ -55,6 +55,11 @@ class Enrollment extends Model
         return $this->hasMany(LearningActivity::class, 'enrollment_id');
     }
 
+    public function learningSessions(): HasMany
+    {
+        return $this->hasMany(SrlLearningSession::class, 'enrollment_id');
+    }
+
     // ----------------------------------------------------------------
     // Accessors
     // ----------------------------------------------------------------

@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->hasMany(Recommendation::class, 'user_id');
     }
 
+    public function srlLearningSessions(): HasMany
+    {
+        return $this->hasMany(SrlLearningSession::class, 'user_id');
+    }
+
     public function latestReadiness(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(ReadinessPrediction::class, 'user_id')->latestOfMany();
