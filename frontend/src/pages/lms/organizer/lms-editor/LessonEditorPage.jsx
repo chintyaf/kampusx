@@ -5,6 +5,7 @@ import { Save, Trash2 } from 'lucide-react';
 import LessonQuizForm from './components/lesson/LessonQuizForm';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
+import LessonContentForm from './components/lesson/LessonContentForm';
 
 const createQuestion = () => ({
 	question_text: '',
@@ -94,10 +95,13 @@ const LessonEditorPage = () => {
 												quest.options && quest.options.length > 0
 													? quest.options.map((opt, optIdx) => ({
 															id: opt.id,
-															option_label: opt.option_label || String.fromCharCode(65 + optIdx),
+															option_label:
+																opt.option_label ||
+																String.fromCharCode(65 + optIdx),
 															option_text: opt.option_text || '',
 															is_correct: Boolean(opt.is_correct),
-															order_index: opt.order_index || optIdx + 1,
+															order_index:
+																opt.order_index || optIdx + 1,
 														}))
 													: ['A', 'B', 'C', 'D'].map((label, idx) => ({
 															option_label: label,
@@ -163,7 +167,8 @@ const LessonEditorPage = () => {
 
 			// 2. Simpan Quiz jika ada pertanyaan atau judul kuis
 			const validQuestions = quiz.questions.filter((q) => q.question_text.trim() !== '');
-			const shouldSaveQuiz = validQuestions.length > 0 || (quiz.title && quiz.title.trim() !== '');
+			const shouldSaveQuiz =
+				validQuestions.length > 0 || (quiz.title && quiz.title.trim() !== '');
 
 			if (shouldSaveQuiz) {
 				const quizPayload = {
@@ -256,7 +261,9 @@ const LessonEditorPage = () => {
 			<div className="d-flex justify-content-between align-items-center mb-4">
 				<div>
 					<h4 className="mb-1">Edit Lesson</h4>
-					<p className="text-secondary mb-0">Kelola materi pembelajaran dan evaluasi lesson.</p>
+					<p className="text-secondary mb-0">
+						Kelola materi pembelajaran dan evaluasi lesson.
+					</p>
 				</div>
 				<Button
 					variant="outline-danger"
@@ -364,47 +371,8 @@ const LessonEditorPage = () => {
 				</Card>
 
 				{/* Konten Pembelajaran */}
-				<Card className="border-0 shadow-sm mb-4">
-					<Card.Body className="p-4">
-						<h5 className="mb-3">Konten Pembelajaran</h5>
-
-						<Form.Group className="mb-3">
-							<Form.Label>Isi Materi</Form.Label>
-							<Form.Control
-								as="textarea"
-								rows={8}
-								name="content"
-								value={lesson.content}
-								onChange={handleLessonChange}
-								placeholder="Tuliskan materi pembelajaran lengkap di sini..."
-							/>
-						</Form.Group>
-
-						<Form.Group className="mb-3">
-							<Form.Label>Ringkasan</Form.Label>
-							<Form.Control
-								as="textarea"
-								rows={3}
-								name="summary"
-								value={lesson.summary}
-								onChange={handleLessonChange}
-								placeholder="Ringkasan singkat materi..."
-							/>
-						</Form.Group>
-
-						<Form.Group className="mb-3">
-							<Form.Label>Video URL</Form.Label>
-							<Form.Control
-								type="url"
-								name="video_url"
-								value={lesson.video_url}
-								onChange={handleLessonChange}
-								placeholder="https://..."
-							/>
-						</Form.Group>
-					</Card.Body>
-				</Card>
-
+				<LessonContentForm lesson={lesson} onChange={handleLessonChange} />
+				
 				{/* Quiz Component */}
 				<LessonQuizForm quiz={quiz} setQuiz={setQuiz} />
 
