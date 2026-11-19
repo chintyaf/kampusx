@@ -3,9 +3,9 @@ import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { Form, Button, Card, Row, Col, Spinner } from 'react-bootstrap';
 import { Save, Trash2 } from 'lucide-react';
 import LessonQuizForm from './components/lesson/LessonQuizForm';
+import LessonContentForm from './components/lesson/LessonContentForm'
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
-import LessonContentForm from './components/lesson/LessonContentForm';
 
 const createQuestion = () => ({
 	question_text: '',
@@ -371,8 +371,9 @@ const LessonEditorPage = () => {
 				</Card>
 
 				{/* Konten Pembelajaran */}
+				{/* Konten Pembelajaran */}
 				<LessonContentForm lesson={lesson} onChange={handleLessonChange} />
-				
+
 				{/* Quiz Component */}
 				<LessonQuizForm quiz={quiz} setQuiz={setQuiz} />
 
