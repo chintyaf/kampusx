@@ -110,6 +110,7 @@ export const LmsRoutes = () => {
 			</Route>
 
 			<Route element={<ProtectedRoute allowedRole={['admin', 'organizer']} />}>
+				{/* LMS EDITOR */}
 				<Route path="/organizer/learning-path/:learningId/modules/:moduleId" element={<LmsEditorLayout />}>
 					<Route index element={<Navigate to="info" replace />} />
 					<Route path="info" element={<ModuleInfoPage />} />

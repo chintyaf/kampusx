@@ -108,6 +108,7 @@ class LessonController extends Controller
         $lesson = Lesson::with([
             'module.learningPath',
             'skills',
+            'quiz.questions.options',
         ])->withCount(['skills'])->findOrFail($id);
 
         return response()->json([

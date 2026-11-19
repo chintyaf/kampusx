@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -8,22 +8,10 @@ import {
 	Settings,
 	HelpCircle,
 	Plus,
+	Loader2,
 } from 'lucide-react';
-
-// Data dummy — nanti ganti dengan data dari API
-const DUMMY_MODULE = {
-	title: 'Web Architecture & REST API Design',
-	lessons: [
-		{ id: 1, title: 'Konsep Dasar Pemrograman & Tipe Data Utama', type: 'Text', duration: 10 },
-		{
-			id: 2,
-			title: 'Tipe Data Logika (Boolean) & Operator Relasional',
-			type: 'Text',
-			duration: 8,
-		},
-		{ id: 3, title: 'Aturan Penamaan Variabel & Assignment Nilai', type: 'Text', duration: 7 },
-	],
-};
+import api from '@/api/axios';
+import { notify } from '@/utils/notify';
 
 const COLORS = {
 	primary: '#0a6a9a',
@@ -53,7 +41,18 @@ const SidebarItem = ({ to, icon, title, subtitle, end }) => (
 	>
 		<div style={{ color: COLORS.primary, flexShrink: 0 }}>{icon}</div>
 		<div style={{ flex: 1, minWidth: 0 }}>
-			<div style={{ fontWeight: 600, fontSize: 15, lineHeight: 1.35 }}>{title}</div>
+			<div
+				style={{
+					fontWeight: 600,
+					fontSize: 14,
+					lineHeight: 1.35,
+					overflow: 'hidden',
+					textOverflow: 'ellipsis',
+					whiteSpace: 'nowrap',
+				}}
+			>
+				{title}
+			</div>
 			{subtitle}
 		</div>
 		<ChevronRight size={18} color={COLORS.muted} />
@@ -64,9 +63,11 @@ const SectionLabel = ({ children }) => (
 	<div
 		style={{
 			padding: '14px 20px 8px',
-			fontSize: 13,
+			fontSize: 12,
 			fontWeight: 700,
 			color: COLORS.muted,
+			textTransform: 'uppercase',
+			letterSpacing: '0.5px',
 			background: COLORS.soft,
 		}}
 	>
@@ -74,8 +75,51 @@ const SectionLabel = ({ children }) => (
 	</div>
 );
 
-const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) => {
-	const base = `/organizer/learning-path/${learningId}/modules/${moduleId}`; // sesuaikan dengan route kamu
+const LmsEditorSidebar = ({
+	moduleId,
+	learningId,
+	module,
+	refreshModule,
+	loading,
+}) => {
+	const navigate = useNavigate();
+	const [creatingLesson, setCreatingLesson] = useState(false);
+	const base = `/organizer/learning-path/${learningId}/modules/${moduleId}`;
+
+	const lessons = module?.lessons || [];
+
+	const handleAddLesson = async () => {
+		if (creatingLesson) return;
+		try {
+			setCreatingLesson(true);
+			const nextOrder = lessons.length + 1;
+			const res = await api.post('/organizer/lms/lessons', {
+				module_id: Number(moduleId),
+				title: `Lesson ${nextOrder}`,
+				type: 'article',
+				duration_minutes: 10,
+				order_index: nextOrder,
+				status: 'draft',
+			});
+
+			if (res.data?.success && res.data?.data) {
+				notify('success', 'Berhasil', 'Lesson baru berhasil dibuat');
+				if (refreshModule) {
+					await refreshModule();
+				}
+				navigate(`${base}/lessons/${res.data.data.id}`);
+			}
+		} catch (error) {
+			console.error('Error creating lesson:', error);
+			notify(
+				'error',
+				'Gagal',
+				error.response?.data?.message || 'Gagal menambahkan lesson baru.',
+			);
+		} finally {
+			setCreatingLesson(false);
+		}
+	};
 
 	return (
 		<aside
@@ -102,9 +146,19 @@ const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) =
 						marginBottom: 12,
 					}}
 				>
-					<ChevronLeft size={18} /> Kembali
+					<ChevronLeft size={18} /> Kembali ke Learning Path
 				</NavLink>
-				<h5 style={{ margin: 0, fontWeight: 700, color: COLORS.text }}>{module.title}</h5>
+				<h5
+					style={{
+						margin: 0,
+						fontWeight: 700,
+						color: COLORS.text,
+						fontSize: 16,
+						lineHeight: 1.4,
+					}}
+				>
+					{loading && !module ? 'Memuat Module...' : module?.title || 'Module Editor'}
+				</h5>
 			</div>
 
 			{/* 1. Tab Module (metadata) */}
@@ -119,8 +173,8 @@ const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) =
 			/>
 
 			{/* 2. Daftar Lesson */}
-			<SectionLabel>Lesson</SectionLabel>
-			{module.lessons.map((lesson) => (
+			<SectionLabel>Lesson ({lessons.length})</SectionLabel>
+			{lessons.map((lesson) => (
 				<SidebarItem
 					key={lesson.id}
 					to={`${base}/lessons/${lesson.id}`}
@@ -134,9 +188,10 @@ const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) =
 								gap: 6,
 								color: COLORS.muted,
 								marginTop: 4,
+								textTransform: 'capitalize',
 							}}
 						>
-							{lesson.type} • <Clock size={13} /> {lesson.duration} min
+							{lesson.type || 'Article'} • <Clock size={13} /> {lesson.duration_minutes || 0} min
 						</small>
 					}
 				/>
@@ -145,12 +200,13 @@ const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) =
 			{/* Tombol tambah lesson */}
 			<button
 				type="button"
-				onClick={() => console.log('Tambah lesson')}
+				onClick={handleAddLesson}
+				disabled={creatingLesson}
 				style={{
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
-					gap: 6,
+					gap: 8,
 					width: '100%',
 					padding: '14px 20px',
 					border: 'none',
@@ -159,10 +215,19 @@ const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) =
 					color: COLORS.primary,
 					fontWeight: 600,
 					fontSize: 14,
-					cursor: 'pointer',
+					cursor: creatingLesson ? 'not-allowed' : 'pointer',
+					opacity: creatingLesson ? 0.7 : 1,
 				}}
 			>
-				<Plus size={18} /> Tambah Lesson
+				{creatingLesson ? (
+					<>
+						<Loader2 size={18} className="animate-spin" /> Menambahkan...
+					</>
+				) : (
+					<>
+						<Plus size={18} /> Tambah Lesson
+					</>
+				)}
 			</button>
 
 			{/* 3. Tab Kuis */}
@@ -172,7 +237,11 @@ const LmsEditorSidebar = ({ moduleId = 1, learningId, module = DUMMY_MODULE }) =
 				icon={<HelpCircle size={22} />}
 				title="Kuis Module"
 				subtitle={
-					<small style={{ color: COLORS.muted }}>Kelola soal & pengaturan kuis</small>
+					<small style={{ color: COLORS.muted }}>
+						{module?.quizzes?.length
+							? `${module.quizzes.length} kuis tersedia`
+							: 'Kelola soal & pengaturan kuis'}
+					</small>
 				}
 			/>
 		</aside>
