@@ -66,6 +66,12 @@ use App\Http\Controllers\Api\LMS\ReadinessPredictionController;
 use App\Http\Controllers\Api\LMS\RecommendationController;
 use App\Http\Controllers\Api\AiContentController;
 
+// ====================================================
+// LMS Microlearning Management
+// ====================================================
+Route::prefix('lms')->group(function () {
+    require __DIR__ . '/api-lms.php';
+});
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)

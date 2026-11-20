@@ -22,7 +22,7 @@ const lp = (learningId) => `${ORG}/learning-path/${learningId}`;
 const ROUTES = {
 	list: `${ORG}/learning-paths`,
 
-	preview: (learningId) => `/learner/learning-paths/${learningId}`,
+	preview: (learningId) => `/learner	/learning-paths/${learningId}`,
 
 	editModule: (learningId, moduleId) => `${lp(learningId)}/edit-module/${moduleId}`,
 

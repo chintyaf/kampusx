@@ -57,7 +57,7 @@ const ManageLearningHeader = ({ id, learningPath, modules = [], onLinkedEventCli
 				</Button>
 
 				<RouterLink
-					to="/organizer/learning-paths"
+					to="/organizer/microlearning"
 					className="text-decoration-none"
 					style={{
 						color: 'var(--neutral-text, #64748b)',

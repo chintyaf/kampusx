@@ -1,5 +1,8 @@
 import React from 'react';
+
 import { Form, Card } from 'react-bootstrap';
+
+import MarkdownEditor from './MarkdownEditor';
 
 const LessonContentForm = ({ lesson, onChange }) => {
 	return (
@@ -9,11 +12,10 @@ const LessonContentForm = ({ lesson, onChange }) => {
 
 				<Form.Group className="mb-3">
 					<Form.Label>Isi Materi</Form.Label>
-					<Form.Control
-						as="textarea"
-						rows={8}
+
+					<MarkdownEditor
 						name="content"
-						value={lesson.content}
+						value={lesson.content ?? ''}
 						onChange={onChange}
 						placeholder="Tuliskan materi pembelajaran lengkap di sini..."
 					/>
@@ -21,11 +23,12 @@ const LessonContentForm = ({ lesson, onChange }) => {
 
 				<Form.Group className="mb-3">
 					<Form.Label>Ringkasan</Form.Label>
+
 					<Form.Control
 						as="textarea"
 						rows={3}
 						name="summary"
-						value={lesson.summary}
+						value={lesson.summary ?? ''}
 						onChange={onChange}
 						placeholder="Ringkasan singkat materi..."
 					/>
@@ -33,10 +36,11 @@ const LessonContentForm = ({ lesson, onChange }) => {
 
 				<Form.Group className="mb-3">
 					<Form.Label>Video URL</Form.Label>
+
 					<Form.Control
 						type="url"
 						name="video_url"
-						value={lesson.video_url}
+						value={lesson.video_url ?? ''}
 						onChange={onChange}
 						placeholder="https://..."
 					/>

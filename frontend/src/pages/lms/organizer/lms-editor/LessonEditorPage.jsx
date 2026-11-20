@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
-import { Form, Button, Card, Row, Col, Spinner } from 'react-bootstrap';
-import { Save, Trash2 } from 'lucide-react';
+import { Form, Button, Card, Row, Col, Spinner, Nav, Badge } from 'react-bootstrap';
+import { Save, Trash2, BookOpen, ListChecks } from 'lucide-react';
 import LessonQuizForm from './components/lesson/LessonQuizForm';
-import LessonContentForm from './components/lesson/LessonContentForm'
+import LessonContentForm from './components/lesson/LessonContentForm';
 import api from '@/api/axios';
 import { notify } from '@/utils/notify';
 
@@ -34,6 +34,7 @@ const LessonEditorPage = () => {
 	const navigate = useNavigate();
 	const { refreshModule } = useOutletContext() || {};
 
+	const [activeTab, setActiveTab] = useState('lesson'); // 'lesson' | 'quiz'
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [deleting, setDeleting] = useState(false);
@@ -146,6 +147,14 @@ const LessonEditorPage = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		// Field "required" di tab yang tidak tampil tidak ikut divalidasi browser,
+		// jadi judul dicek manual di sini.
+		if (!lesson.title.trim()) {
+			setActiveTab('lesson');
+			notify('error', 'Judul Kosong', 'Judul lesson wajib diisi.');
+			return;
+		}
+
 		try {
 			setSaving(true);
 
@@ -256,6 +265,8 @@ const LessonEditorPage = () => {
 		);
 	}
 
+	const questionCount = quiz.questions.filter((q) => q.question_text.trim() !== '').length;
+
 	return (
 		<div>
 			<div className="d-flex justify-content-between align-items-center mb-4">
@@ -280,103 +291,132 @@ const LessonEditorPage = () => {
 				</Button>
 			</div>
 
+			{/* Tabs */}
+			<Nav
+				variant="tabs"
+				className="mb-4"
+				activeKey={activeTab}
+				onSelect={(key) => key && setActiveTab(key)}
+			>
+				<Nav.Item>
+					<Nav.Link eventKey="lesson" className="d-flex align-items-center gap-2">
+						<BookOpen size={16} />
+						Lesson
+					</Nav.Link>
+				</Nav.Item>
+				<Nav.Item>
+					<Nav.Link eventKey="quiz" className="d-flex align-items-center gap-2">
+						<ListChecks size={16} />
+						Kuis
+						{questionCount > 0 && (
+							<Badge bg={activeTab === 'quiz' ? 'primary' : 'secondary'} pill>
+								{questionCount}
+							</Badge>
+						)}
+					</Nav.Link>
+				</Nav.Item>
+			</Nav>
+
 			<Form onSubmit={handleSubmit}>
-				{/* Informasi Lesson */}
-				<Card className="border-0 shadow-sm mb-4">
-					<Card.Body className="p-4">
-						<h5 className="mb-3">Informasi Lesson</h5>
+				{activeTab === 'lesson' && (
+					<>
+						{/* Informasi Lesson */}
+						<Card className="border-0 shadow-sm mb-4">
+							<Card.Body className="p-4">
+								<h5 className="mb-3">Informasi Lesson</h5>
 
-						<Form.Group className="mb-3">
-							<Form.Label>Judul Lesson</Form.Label>
-							<Form.Control
-								name="title"
-								value={lesson.title}
-								onChange={handleLessonChange}
-								maxLength={200}
-								placeholder="Masukkan judul lesson..."
-								required
-							/>
-						</Form.Group>
-
-						<Row>
-							<Col md={6}>
 								<Form.Group className="mb-3">
-									<Form.Label>Tipe Materi</Form.Label>
-									<Form.Select
-										name="type"
-										value={lesson.type}
-										onChange={handleLessonChange}
-									>
-										<option value="article">Artikel</option>
-										<option value="video">Video</option>
-										<option value="microlearning">Microlearning</option>
-									</Form.Select>
-								</Form.Group>
-							</Col>
-
-							<Col md={6}>
-								<Form.Group className="mb-3">
-									<Form.Label>Durasi (Menit)</Form.Label>
+									<Form.Label>Judul Lesson</Form.Label>
 									<Form.Control
-										type="number"
-										min={0}
-										name="duration_minutes"
-										value={lesson.duration_minutes}
+										name="title"
+										value={lesson.title}
 										onChange={handleLessonChange}
+										maxLength={200}
+										placeholder="Masukkan judul lesson..."
+										required
 									/>
 								</Form.Group>
-							</Col>
 
-							<Col md={4}>
-								<Form.Group className="mb-3">
-									<Form.Label>Urutan</Form.Label>
-									<Form.Control
-										type="number"
-										min={1}
-										name="order_index"
-										value={lesson.order_index}
-										onChange={handleLessonChange}
-									/>
-								</Form.Group>
-							</Col>
+								<Row>
+									<Col md={6}>
+										<Form.Group className="mb-3">
+											<Form.Label>Tipe Materi</Form.Label>
+											<Form.Select
+												name="type"
+												value={lesson.type}
+												onChange={handleLessonChange}
+											>
+												<option value="article">Artikel</option>
+												<option value="video">Video</option>
+												<option value="microlearning">Microlearning</option>
+											</Form.Select>
+										</Form.Group>
+									</Col>
 
-							<Col md={4}>
-								<Form.Group className="mb-3">
-									<Form.Label>XP</Form.Label>
-									<Form.Control
-										type="number"
-										min={0}
-										name="xp"
-										value={lesson.xp}
-										onChange={handleLessonChange}
-									/>
-								</Form.Group>
-							</Col>
+									<Col md={6}>
+										<Form.Group className="mb-3">
+											<Form.Label>Durasi (Menit)</Form.Label>
+											<Form.Control
+												type="number"
+												min={0}
+												name="duration_minutes"
+												value={lesson.duration_minutes}
+												onChange={handleLessonChange}
+											/>
+										</Form.Group>
+									</Col>
 
-							<Col md={4}>
-								<Form.Group className="mb-3">
-									<Form.Label>Status</Form.Label>
-									<Form.Select
-										name="status"
-										value={lesson.status}
-										onChange={handleLessonChange}
-									>
-										<option value="draft">Draft</option>
-										<option value="published">Published</option>
-									</Form.Select>
-								</Form.Group>
-							</Col>
-						</Row>
-					</Card.Body>
-				</Card>
+									<Col md={4}>
+										<Form.Group className="mb-3">
+											<Form.Label>Urutan</Form.Label>
+											<Form.Control
+												type="number"
+												min={1}
+												name="order_index"
+												value={lesson.order_index}
+												onChange={handleLessonChange}
+											/>
+										</Form.Group>
+									</Col>
 
-				{/* Konten Pembelajaran */}
-				{/* Konten Pembelajaran */}
-				<LessonContentForm lesson={lesson} onChange={handleLessonChange} />
+									<Col md={4}>
+										<Form.Group className="mb-3">
+											<Form.Label>XP</Form.Label>
+											<Form.Control
+												type="number"
+												min={0}
+												name="xp"
+												value={lesson.xp}
+												onChange={handleLessonChange}
+											/>
+										</Form.Group>
+									</Col>
 
-				{/* Quiz Component */}
-				<LessonQuizForm quiz={quiz} setQuiz={setQuiz} />
+									<Col md={4}>
+										<Form.Group className="mb-3">
+											<Form.Label>Status</Form.Label>
+											<Form.Select
+												name="status"
+												value={lesson.status}
+												onChange={handleLessonChange}
+											>
+												<option value="draft">Draft</option>
+												<option value="published">Published</option>
+											</Form.Select>
+										</Form.Group>
+									</Col>
+								</Row>
+							</Card.Body>
+						</Card>
 
+						{/* Konten Pembelajaran */}
+						<LessonContentForm lesson={lesson} onChange={handleLessonChange} />
+					</>
+				)}
+
+				{activeTab === 'quiz' && <LessonQuizForm quiz={quiz} setQuiz={setQuiz} />}
+
+				{/* Tombol simpan tampil di kedua tab */}
 				<div className="d-flex justify-content-end mb-4">
 					<Button type="submit" disabled={saving}>
 						{saving ? (
