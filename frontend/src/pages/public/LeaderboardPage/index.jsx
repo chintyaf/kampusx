@@ -286,10 +286,11 @@ const LeaderboardPage = () => {
     : currentUser.initials;
 
   // Hitung persentase progress user menuju peringkat di atasnya
-  const pointsRemaining = Math.max(0, currentUser.nextRankPoints - currentUser.points);
+  const targetPoints = Math.max(currentUser?.nextRankPoints || 0, (currentUser?.points || 0) + 50);
+  const pointsRemaining = Math.max(0, targetPoints - (currentUser?.points || 0));
   const progressPercent = Math.min(
     100,
-    Math.round((currentUser.points / currentUser.nextRankPoints) * 100)
+    Math.round(((currentUser?.points || 0) / targetPoints) * 100)
   );
 
   // Helper render Tier Badge

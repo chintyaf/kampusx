@@ -27,11 +27,18 @@ class SoulboundToken extends Model
         'skill_category',
         'token_uri',
         'status',
+        'minting_status',
+        'is_revoked',
+        'revocation_reason',
+        'revoked_at',
+        'credential_code',
         'minted_at',
     ];
 
     protected $casts = [
         'minted_at' => 'datetime',
+        'revoked_at' => 'datetime',
+        'is_revoked' => 'boolean',
         'cognitive_score' => 'integer',
     ];
 

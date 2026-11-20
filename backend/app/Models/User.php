@@ -166,26 +166,44 @@ class User extends Authenticatable
         return $this->hasMany(SoulboundToken::class, 'user_id');
     }
 
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'student_badges', 'user_id', 'badge_id')
+                    ->withPivot('unlocked_at')
+                    ->withTimestamps();
+    }
+
+    public function studentBadges(): HasMany
+    {
+        return $this->hasMany(StudentBadge::class, 'user_id');
+    }
+
+    public function rewardDecisionLogs(): HasMany
+    {
+        return $this->hasMany(RewardDecisionLog::class, 'user_id');
+    }
+
+    public function externalAchievements(): HasMany
+    {
+        return $this->hasMany(ExternalAchievement::class, 'user_id');
+    }
+
     /**
-     * Hitung tier berdasarkan poin sesuai spesifikasi gamifikasi skripsi:
-     * - Bronze   : 0 - 999 poin
-     * - Silver   : 1000 - 2499 poin
-     * - Gold     : 2500 - 4499 poin
-     * - Platinum : >= 4500 poin
+     * Hitung tier berdasarkan poin sesuai spesifikasi gamifikasi Tugas Akhir:
+     * - Silver   : 0 - 499 poin
+     * - Gold     : 500 - 999 poin
+     * - Platinum : >= 1000 poin
      */
     public function calculateTier(): string
     {
         $currentPoints = (int) ($this->points ?? 0);
-        if ($currentPoints >= 4500) {
+        if ($currentPoints >= 1000) {
             return 'Platinum';
         }
-        if ($currentPoints >= 2500) {
+        if ($currentPoints >= 500) {
             return 'Gold';
         }
-        if ($currentPoints >= 1000) {
-            return 'Silver';
-        }
-        return 'Bronze';
+        return 'Silver';
     }
 
     /**

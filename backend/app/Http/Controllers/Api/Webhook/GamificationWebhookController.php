@@ -67,14 +67,48 @@ class GamificationWebhookController extends Controller
             );
 
             // Hitung ranking terkini user
-            $currentRank = User::where('points', '>', $user->points)->count() + 1;
+            $currentRank = User::where('role', 'participant')->where('points', '>', $user->points)->count() + 1;
+
+            // Eksekusi Step 7: Otomatisasi Minting Soulbound Token (ERC-5192) ke Polygon Ledger
+            $sbtService = app(\App\Services\Blockchain\SoulboundTokenService::class);
+            $sbtTitle = 'Certified Specialist: ' . ($validated['skill_category'] ?? 'Self-Regulated Learning Mastery');
+            $sbtReceipt = $sbtService->mintSoulboundToken([
+                'user_id'        => $user->id,
+                'modul_id'       => $validated['modul_id'],
+                'score'          => $score,
+                'status_lulus'   => true,
+                'student_name'   => $user->name,
+                'wallet_address' => '0x' . substr(hash('sha256', $user->email . 'wallet'), 0, 40),
+                'title'          => $sbtTitle,
+                'skill_category' => $validated['skill_category'] ?? 'Artificial Intelligence'
+            ]);
+
+            // Sinkronkan ke tabel soulbound_tokens database
+            \App\Models\SoulboundToken::updateOrCreate(
+                ['user_id' => $user->id, 'title' => $sbtTitle],
+                [
+                    'ticket_code'      => $sbtReceipt['ticketCode'],
+                    'token_id'         => $sbtReceipt['tokenId'],
+                    'issuer'           => 'KampusX Verified Credentials & Pedagogy Center',
+                    'tx_hash'          => $sbtReceipt['txHash'],
+                    'contract_address' => \App\Services\Blockchain\SoulboundTokenService::CONTRACT_ADDRESS,
+                    'wallet_address'   => $sbtReceipt['studentWallet'],
+                    'block_number'     => $sbtReceipt['blockNumber'],
+                    'standard'         => 'ERC-5192 (Soulbound / Non-Transferable)',
+                    'cognitive_score'  => $score,
+                    'skill_category'   => $validated['skill_category'] ?? 'Artificial Intelligence',
+                    'token_uri'        => $sbtReceipt['tokenURI'] ?? 'ipfs://token.json',
+                    'status'           => 'Success',
+                    'minted_at'        => now(),
+                ]
+            );
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
                 'status'  => 'success',
-                'message' => 'Validasi modul AI SRL berhasil! Global Points ditambahkan dan Tier berhasil dihitung ulang.',
+                'message' => 'Validasi modul AI SRL berhasil! Global Points ditambahkan, Tier diperbarui, dan Soulbound Token diterbitkan.',
                 'data'    => [
                     'user_id'        => $user->id,
                     'student_name'   => $user->name,
@@ -87,7 +121,15 @@ class GamificationWebhookController extends Controller
                     'current_tier'   => $result['current_tier'],
                     'tier_upgraded'  => $result['tier_upgraded'],
                     'current_rank'   => $currentRank,
-                    'skill_category' => $validated['skill_category'] ?? 'General Competency'
+                    'skill_category' => $validated['skill_category'] ?? 'General Competency',
+                    'sbt'            => [
+                        'token_id'        => $sbtReceipt['tokenId'],
+                        'title'           => $sbtReceipt['title'],
+                        'tx_hash'         => $sbtReceipt['txHash'],
+                        'standard'        => 'ERC-5192 (Soulbound Token)',
+                        'block_number'    => $sbtReceipt['blockNumber'],
+                        'network'         => 'Polygon POS Amoy Testnet',
+                    ]
                 ]
             ], 200);
 
@@ -99,5 +141,75 @@ class GamificationWebhookController extends Controller
                 'message' => 'Gagal memproses webhook kelulusan AI SRL: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * POST /api/webhook/add-instant-points
+     * Simulator poin cepat untuk demo presentasi langsung tanpa harus menunggu event/microlearning.
+     */
+    public function addInstantPoints(Request $request)
+    {
+        $userId = $request->input('user_id');
+        $amount = (int) $request->input('points', 300);
+        $reason = $request->input('reason', 'Poin Instan Simulasi Presentasi Prototype');
+
+        $user = null;
+        if ($userId) {
+            $user = User::find($userId);
+        }
+        if (!$user) {
+            $user = $request->user() ?: auth('sanctum')->user() ?: User::where('role', 'participant')->whereIn('email', ['2372016@maranatha.ac.id', 'part@kampusx.com'])->first();
+        }
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User tidak ditemukan.'], 404);
+        }
+
+        $result = $user->addPoints($amount, $reason);
+        $newRank = User::where('role', 'participant')->where('points', '>', $user->points)->count() + 1;
+
+        return response()->json([
+            'success' => true,
+            'message' => "Berhasil menambahkan {$amount} Global Points ke akun {$user->name}!",
+            'data'    => [
+                'user_id'        => $user->id,
+                'user_name'      => $user->name,
+                'points_added'   => $amount,
+                'total_points'   => $result['total_points'],
+                'previous_tier'  => $result['previous_tier'],
+                'current_tier'   => $result['current_tier'],
+                'tier_upgraded'  => $result['tier_upgraded'],
+                'rank'           => $newRank,
+            ]
+        ], 200);
+    }
+
+    /**
+     * POST /api/webhook/reset-demo
+     * Reset status demo user ke kondisi awal (Silver Tier, 2450 Poin) untuk rehearsal / demo baru.
+     */
+    public function resetDemo(Request $request)
+    {
+        $emails = ['2372016@maranatha.ac.id', 'part@kampusx.com'];
+        $updated = [];
+        foreach ($emails as $email) {
+            $user = User::where('email', $email)->first();
+            if ($user) {
+                $user->points = 2450;
+                $user->tier = 'Silver';
+                $user->save();
+                $updated[] = "{$user->name} ({$email})";
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status demo user berhasil di-reset ke Silver Tier (2.450 Poin)!',
+            'data'    => [
+                'users'        => $updated,
+                'initial_tier' => 'Silver',
+                'points'       => 2450
+            ]
+        ], 200);
     }
 }

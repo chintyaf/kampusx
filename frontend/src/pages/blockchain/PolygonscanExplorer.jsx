@@ -213,27 +213,31 @@ const PolygonscanExplorer = () => {
               <ArrowLeft size={14} /> Kembali ke Aplikasi
             </button>
             <a
-              href={`https://amoy.polygonscan.com/tx/${txData.liveOnChainTx || '0x4c1413dd81bfd856bdc0fd8cdc174c757e55a3c2d9cd9cfda88c61adae3f272d'}`}
+              href="https://amoy.polygonscan.com/address/0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32"
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-outline-primary btn-sm rounded-pill px-3 d-flex align-items-center gap-1"
             >
-              <ExternalLink size={14} /> Open Live Polygonscan
+              <ExternalLink size={14} /> Lihat Smart Contract di Polygonscan
             </a>
           </div>
         </div>
 
         {/* Transaction Title */}
         <div className="mb-4">
-          <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-            <span>Transaction Details</span>
-            <Badge bg="success" className="px-2.5 py-1 fw-semibold" style={{ fontSize: '12px' }}>
-              <CheckCircle2 size={13} className="me-1" /> Verified On-Chain
-            </Badge>
-          </h4>
-          <p className="text-muted small mb-0">
-            Bukti transaksi pencatatan permanen kredensial Soulbound Token (ERC-5192) pada ledger terdesentralisasi Polygon.
-          </p>
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div>
+              <h4 className="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <span>Transaction Details</span>
+                <Badge bg="success" className="px-2.5 py-1 fw-semibold" style={{ fontSize: '12px' }}>
+                  <CheckCircle2 size={13} className="me-1" /> Verified by Ledger (ERC-5192 Locked)
+                </Badge>
+              </h4>
+              <p className="text-muted small mb-0">
+                Pencatatan kriptografis kredensial Soulbound Token (ERC-5192) pada jaringan Polygon Amoy Testnet (Chain ID 80002).
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Transaction Overview Card */}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Ticket;
 use Carbon\Carbon;
 
 /**
@@ -36,8 +37,9 @@ class LeaderboardController extends Controller
             $daysRemaining = $now->endOfMonth()->diffInDays($now) . ' hari ' . ($now->endOfMonth()->diffInHours($now) % 24) . ' jam';
         }
 
-        // Ambil semua user terurut berdasarkan poin
+        // Ambil semua user participant terurut berdasarkan poin
         $query = User::query()
+            ->where('role', 'participant')
             ->with(['university', 'soulboundTokens'])
             ->withCount(['tickets' => function ($q) {
                 $q->where('status', 'active');
@@ -91,41 +93,42 @@ class LeaderboardController extends Controller
         $topThree = array_slice($mappedRanks, 0, 3);
         $tableRanks = array_slice($mappedRanks, 3);
 
-        // Jika user login ditemukan, lengkapi data progress menuju ranking di atasnya
-        if ($currentUser) {
-            $userRankIndex = array_search($currentUser->id, array_column($mappedRanks, 'id'));
+        $activeUser = $currentUser ?: User::where('role', 'participant')
+            ->whereIn('email', ['2372016@maranatha.ac.id', 'part@kampusx.com'])
+            ->first() ?: User::where('role', 'participant')->first();
+
+        if ($activeUser) {
+            $userRankIndex = array_search($activeUser->id, array_column($mappedRanks, 'id'));
             $userRankNumber = ($userRankIndex !== false) ? ($userRankIndex + 1) : count($mappedRanks) + 1;
             
-            $nextRankPoints = $currentUser->points + 500;
+            $nextRankPoints = $activeUser->points + 50;
             $nextRank = max(1, $userRankNumber - 1);
             if ($userRankIndex > 0) {
                 $nextRankPoints = $mappedRanks[$userRankIndex - 1]['points'];
             }
 
             $currentUserData = [
-                'id'              => $currentUser->id,
-                'name'            => 'Kamu (' . $currentUser->name . ')',
-                'initials'        => $currentUserRankInfo['initials'] ?? 'KM',
+                'id'              => $activeUser->id,
+                'name'            => 'Kamu (' . $activeUser->name . ')',
+                'initials'        => collect(explode(' ', $activeUser->name))->filter()->map(fn($p) => strtoupper(substr($p, 0, 1)))->take(2)->implode(''),
                 'rank'            => $userRankNumber,
-                'points'          => (int) $currentUser->points,
+                'points'          => (int) $activeUser->points,
                 'nextRankPoints'  => $nextRankPoints,
                 'nextRank'        => $nextRank,
-                'tier'            => $currentUser->tier ?? $currentUser->calculateTier(),
-                'campus'          => $currentUser->university ? $currentUser->university->name : 'Universitas Indonesia',
+                'tier'            => $activeUser->tier ?? $activeUser->calculateTier(),
+                'campus'          => $activeUser->university ? $activeUser->university->name : 'Universitas Kristen Maranatha',
                 'major'           => 'Teknik Informatika',
-                'eventsAttended'  => $currentUserRankInfo['eventsAttended'] ?? 0,
+                'eventsAttended'  => Ticket::where('participant_id', $activeUser->id)->count(),
                 'trend'           => 'up',
                 'trendCount'      => '+3 peringkat'
             ];
         } else {
-            // Guest fallback currentUser memakai peringkat pertama atau sampel
-            $fallback = $topThree[0] ?? [
-                'id' => 0, 'name' => 'Tamu KampusX', 'initials' => 'TM', 'rank' => 1,
-                'points' => 0, 'nextRankPoints' => 500, 'nextRank' => 1, 'tier' => 'Bronze',
-                'campus' => 'KampusX University', 'major' => 'Mahasiswa', 'eventsAttended' => 0,
-                'trend' => 'neutral', 'trendCount' => '0 peringkat'
+            $currentUserData = [
+                'id' => 0, 'name' => 'Kamu (Mahasiswa Demo)', 'initials' => 'KM', 'rank' => 12,
+                'points' => 2450, 'nextRankPoints' => 2500, 'nextRank' => 11, 'tier' => 'Silver',
+                'campus' => 'Universitas Kristen Maranatha', 'major' => 'Teknik Informatika',
+                'eventsAttended' => 5, 'trend' => 'up', 'trendCount' => '+3 peringkat'
             ];
-            $currentUserData = $fallback;
         }
 
         return response()->json([

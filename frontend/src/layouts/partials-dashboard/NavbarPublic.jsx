@@ -119,21 +119,33 @@ const NavbarPublic = () => {
 
 				{/* Desktop Navigation Links */}
 				<Nav className="d-none d-lg-flex mx-auto gap-4 align-items-center">
-					<NavLink to="/" style={linkStyle} end>
+					{/* <NavLink to="/" style={linkStyle} end>
 						Home
-					</NavLink>
+					</NavLink> */}
 					<NavLink to="/explore-events" style={linkStyle}>
 						Eksplor Event
 					</NavLink>
 					<NavLink to="/explore-microlearning" style={linkStyle}>
 						Eksplor Kelas
 					</NavLink>
+					<NavLink to="/gamification" style={linkStyle}>
+						Gamifikasi
+					</NavLink>
+					{/* <NavLink to="/rewards" style={linkStyle}>
+						Reward AI
+					</NavLink> */}
 					<NavLink to="/leaderboard" style={linkStyle}>
 						Leaderboard
 					</NavLink>
-					<NavLink to="/talents" style={linkStyle}>
-						Talent
+					<NavLink to="/my-portfolio" style={linkStyle}>
+						Portofolio
 					</NavLink>
+					<NavLink to="/recruiter/dashboard" style={linkStyle}>
+						Rekruter
+					</NavLink>
+					{/* <NavLink to="/talents" style={linkStyle}>
+						Talent
+					</NavLink> */}
 					{user && (
 						<>
 							<NavLink to="/bookmarks" style={linkStyle}>
@@ -262,6 +274,22 @@ const NavbarPublic = () => {
 								<Compass size={18} />
 								<span>Eksplor Event</span>
 							</NavLink>
+							<NavLink to="/gamification" style={mobileLinkStyle} onClick={handleClose}>
+								<Trophy size={18} />
+								<span>Gamifikasi</span>
+							</NavLink>
+							<NavLink to="/rewards" style={mobileLinkStyle} onClick={handleClose}>
+								<Gift size={18} />
+								<span>Reward</span>
+							</NavLink>
+							<NavLink to="/my-portfolio" style={mobileLinkStyle} onClick={handleClose}>
+								<Award size={18} />
+								<span>Portofolio</span>
+							</NavLink>
+							<NavLink to="/recruiter/dashboard" style={mobileLinkStyle} onClick={handleClose}>
+								<Users size={18} />
+								<span>Portal Rekruter</span>
+							</NavLink>
 							<NavLink
 								to="/leaderboard"
 								style={mobileLinkStyle}
@@ -270,14 +298,14 @@ const NavbarPublic = () => {
 								<Trophy size={18} />
 								<span>Leaderboard</span>
 							</NavLink>
-							<NavLink
+							{/* <NavLink
 								to="/talents"
 								style={mobileLinkStyle}
 								onClick={handleClose}
 							>
 								<Users size={18} />
 								<span>Direktori Talent</span>
-							</NavLink>
+							</NavLink> */}
 							{user && (
 								<>
 									<NavLink

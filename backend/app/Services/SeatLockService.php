@@ -2,199 +2,281 @@
 
 namespace App\Services;
 
+use App\Models\Event;
+use App\Models\EventSeat;
 use App\Models\EventTicket;
-use App\Models\Order;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 /**
- * Service untuk mengelola Seat-Locking Kuota Tiket Event Berbasis Redis Atomic SETNX
- * Sesuai Rumusan Masalah 1 & Flow 2: Mencegah Race Condition (Overbooking) selama 15 Menit.
+ * Service untuk mengelola Seat-Locking Kuota & Denah Kursi Event Berbasis Redis Atomic SETNX.
+ * Mencegah Race Condition (Overbooking) selama 15 Menit.
+ * Sesuai Bagian 6 Tugas Akhir.
  */
 class SeatLockService
 {
-    const DEFAULT_LOCK_TTL = 900; // 15 Menit = 900 Detik
+    public const DEFAULT_LOCK_TTL = 900; // 15 Menit = 900 Detik
 
     /**
-     * Mengunci 1 kuota kursi event secara atomik menggunakan Redis SETNX (atau SET ... EX 900 NX).
+     * Mengambil denah kursi suatu event beserta status realtime (AVAILABLE, RESERVED, BOOKED)
      */
-    public function lockSeat(int $eventId, int $ticketId, int $userId, int $ttlSeconds = self::DEFAULT_LOCK_TTL): array
+    public function getSeats(int $eventId, ?int $userId = null): array
     {
-        $lockKey = "seat_lock:event_{$eventId}:ticket_{$ticketId}:user_{$userId}";
-        $activeLocksSetKey = "seat_locks_active:ticket_{$ticketId}";
+        // 1. Bersihkan reservasi kedaluwarsa terlebih dahulu
+        $this->cleanupExpiredLocks($eventId);
 
-        // 1. Ambil data kapasitas tiket dari database
-        $ticket = EventTicket::where('id', $ticketId)->where('event_id', $eventId)->first();
-        if (!$ticket) {
-            // Fallback cari tiket default untuk event ini jika ID berbeda tipe/string
-            $ticket = EventTicket::where('event_id', $eventId)->first();
+        // 2. Pastikan kursi di-generate jika belum tersedia (Default 24 kursi: Baris A, B, C)
+        $seatCount = EventSeat::where('event_id', $eventId)->count();
+        if ($seatCount === 0) {
+            $this->initializeEventSeats($eventId);
         }
 
-        $capacity = $ticket ? ($ticket->capacity ?? 50) : 50;
+        $seats = EventSeat::where('event_id', $eventId)
+            ->orderBy('seat_number', 'asc')
+            ->get();
 
-        // 2. Hitung jumlah tiket yang sudah terjual (order status paid / active)
-        $soldCount = DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.event_id', $eventId)
-            ->whereIn('orders.status', ['paid', 'active'])
-            ->sum('order_items.quantity') ?? 0;
+        $now = Carbon::now();
 
-        // 3. Hitung jumlah kursi yang sedang dikunci oleh peserta lain
-        $activeLocksCount = $this->getActiveLocksCount($ticket ? $ticket->id : $ticketId, $userId);
+        $mapped = $seats->map(function ($seat) use ($userId, $now) {
+            $isMine = ($userId && $seat->locked_by_user_id === $userId);
+            $remainingSeconds = ($seat->locked_until && $seat->locked_until->isFuture())
+                ? $now->diffInSeconds($seat->locked_until)
+                : 0;
 
-        $availableSeats = $capacity - ($soldCount + $activeLocksCount);
+            return [
+                'id'                => $seat->id,
+                'seat_number'       => $seat->seat_number,
+                'status'            => $seat->status, // AVAILABLE, RESERVED, BOOKED
+                'is_mine'           => $isMine,
+                'locked_until'      => $seat->locked_until ? $seat->locked_until->toISOString() : null,
+                'remaining_seconds' => $remainingSeconds,
+            ];
+        });
 
-        // Jika kuota sudah habis / terkunci penuh
-        if ($availableSeats <= 0) {
+        $availableCount = $mapped->where('status', 'AVAILABLE')->count();
+        $reservedCount = $mapped->where('status', 'RESERVED')->count();
+        $bookedCount = $mapped->where('status', 'BOOKED')->count();
+
+        return [
+            'event_id'        => $eventId,
+            'total_seats'     => $mapped->count(),
+            'available_count' => $availableCount,
+            'reserved_count'  => $reservedCount,
+            'booked_count'    => $bookedCount,
+            'seats'           => $mapped->values(),
+        ];
+    }
+
+    /**
+     * Mengunci 1 nomor kursi spesifik menggunakan Redis Atomic SETNX
+     */
+    public function lockSeatNumber(int $eventId, string $seatNumber, int $userId, int $ttlSeconds = self::DEFAULT_LOCK_TTL): array
+    {
+        $this->cleanupExpiredLocks($eventId);
+
+        $seat = EventSeat::where('event_id', $eventId)
+            ->where('seat_number', $seatNumber)
+            ->first();
+
+        if (!$seat) {
             return [
                 'success' => false,
-                'status'  => 'full',
-                'message' => 'Tiket Penuh! Seluruh kuota kursi sedang dipesan atau dikunci oleh peserta lain.',
-                'available' => 0,
-                'capacity' => $capacity,
+                'status'  => 'not_found',
+                'message' => "Kursi {$seatNumber} tidak ditemukan pada event ini.",
             ];
         }
 
-        // 4. Generate Lock Token Kriptografis Unik
+        if ($seat->status === 'BOOKED') {
+            return [
+                'success' => false,
+                'status'  => 'booked',
+                'message' => "Kursi {$seatNumber} sudah dibeli (BOOKED) oleh peserta lain.",
+            ];
+        }
+
+        if ($seat->status === 'RESERVED' && $seat->locked_by_user_id !== $userId) {
+            return [
+                'success' => false,
+                'status'  => 'reserved',
+                'message' => "Kursi {$seatNumber} sedang dikunci oleh peserta lain selama 15 menit.",
+            ];
+        }
+
+        $lockKey = "seat_lock:event_{$eventId}:seat_{$seatNumber}";
         $lockToken = 'LOCK-' . strtoupper(Str::random(12)) . '-' . time();
         $lockPayload = json_encode([
-            'token'      => $lockToken,
-            'user_id'    => $userId,
-            'event_id'   => $eventId,
-            'ticket_id'  => $ticketId,
-            'locked_at'  => now()->toISOString(),
-            'expires_at' => now()->addSeconds($ttlSeconds)->toISOString(),
+            'token'       => $lockToken,
+            'user_id'     => $userId,
+            'event_id'    => $eventId,
+            'seat_number' => $seatNumber,
+            'locked_at'   => now()->toISOString(),
+            'expires_at'  => now()->addSeconds($ttlSeconds)->toISOString(),
         ]);
 
         $acquired = false;
         $driverUsed = 'redis';
 
-        // 5. Eksekusi Atomic SETNX ke Redis
+        // 1. Coba eksekusi Redis Atomic SET ... EX 900 NX
         try {
             $redis = Redis::connection();
-            // Redis SET key value EX 900 NX adalah standar atomic SETNX dengan expiry
             $setResult = $redis->set($lockKey, $lockPayload, 'EX', $ttlSeconds, 'NX');
-            
             $acquired = ($setResult === true || $setResult === 1 || $setResult === 'OK' || (string)$setResult === 'OK');
-            
-            // Jika user sebelumnya sudah punya lock yang masih valid, perpanjang lock
+
+            // Jika user sebelumnya sudah punya lock yang sama, perpanjang
             if (!$acquired) {
                 $existing = $redis->get($lockKey);
                 if ($existing) {
                     $existingData = json_decode($existing, true);
                     if (isset($existingData['user_id']) && $existingData['user_id'] == $userId) {
-                        $lockToken = $existingData['token'] ?? $lockToken;
                         $acquired = true;
                     }
                 }
             }
-
-            if ($acquired) {
-                $redis->sadd($activeLocksSetKey, $userId);
-                $redis->expire($activeLocksSetKey, $ttlSeconds + 60);
-            }
         } catch (\Throwable $e) {
-            // Graceful High-Availability Fallback: Jika Redis server offline di lingkungan lokal,
-            // gunakan Cache Lock atomik Laravel (MySQL cache_locks driver).
+            // Graceful High-Availability Fallback ke Laravel Cache Atomic Lock
             $driverUsed = 'cache_fallback';
             $lock = Cache::lock($lockKey, $ttlSeconds);
             $acquired = $lock->get();
-
-            if (!$acquired) {
-                // Cek apakah lock milik user yang sama
-                $existingData = Cache::get("data_{$lockKey}");
-                if ($existingData && ($existingData['user_id'] ?? null) == $userId) {
-                    $acquired = true;
-                    $lockToken = $existingData['token'] ?? $lockToken;
-                }
-            } else {
-                Cache::put("data_{$lockKey}", [
-                    'token'      => $lockToken,
-                    'user_id'    => $userId,
-                    'event_id'   => $eventId,
-                    'ticket_id'  => $ticketId,
-                    'expires_at' => now()->addSeconds($ttlSeconds)->toISOString()
-                ], $ttlSeconds);
-            }
         }
 
         if (!$acquired) {
             return [
                 'success' => false,
                 'status'  => 'conflict',
-                'message' => 'Tiket sedang dalam proses penguncian oleh pengguna lain. Silakan coba kembali dalam beberapa saat.',
+                'message' => "Gagal mengunci kursi {$seatNumber}. Kursi baru saja dipilih oleh peserta lain.",
             ];
         }
 
+        // 2. Sinkronkan status RESERVED ke database MySQL
+        $seat->update([
+            'status'            => 'RESERVED',
+            'locked_by_user_id' => $userId,
+            'lock_token'        => $lockToken,
+            'locked_until'      => Carbon::now()->addSeconds($ttlSeconds),
+        ]);
+
         return [
-            'success'     => true,
-            'status'      => 'locked',
-            'message'     => 'Kursi berhasil dikunci secara atomik selama 15 menit via Redis SETNX!',
-            'lock_token'  => $lockToken,
-            'lock_key'    => $lockKey,
-            'expires_at'  => now()->addSeconds($ttlSeconds)->toISOString(),
-            'ttl_seconds' => $ttlSeconds,
-            'driver'      => $driverUsed,
-            'available'   => max(0, $availableSeats - 1),
-            'capacity'    => $capacity
+            'success'           => true,
+            'status'            => 'RESERVED',
+            'message'           => "Kursi {$seatNumber} berhasil diamankan selama 15 menit (Redis Atomic Lock aktif).",
+            'data'              => [
+                'seat_number'       => $seatNumber,
+                'lock_token'        => $lockToken,
+                'expires_at'        => Carbon::now()->addSeconds($ttlSeconds)->toISOString(),
+                'ttl_seconds'       => $ttlSeconds,
+                'driver'            => $driverUsed,
+            ]
         ];
     }
 
     /**
-     * Membebaskan lock kursi (misal saat checkout selesai, dibatalkan, atau pembayaran sukses).
+     * Membebaskan lock kursi (kembali AVAILABLE)
      */
-    public function releaseSeatLock(int $eventId, int $ticketId, int $userId): bool
+    public function releaseSeatNumber(int $eventId, string $seatNumber, int $userId): array
     {
-        $lockKey = "seat_lock:event_{$eventId}:ticket_{$ticketId}:user_{$userId}";
-        $activeLocksSetKey = "seat_locks_active:ticket_{$ticketId}";
+        $lockKey = "seat_lock:event_{$eventId}:seat_{$seatNumber}";
 
         try {
-            $redis = Redis::connection();
-            $redis->del($lockKey);
-            $redis->srem($activeLocksSetKey, $userId);
-            return true;
+            Redis::connection()->del($lockKey);
         } catch (\Throwable $e) {
-            try {
-                Cache::lock($lockKey)->forceRelease();
-                Cache::forget("data_{$lockKey}");
-                return true;
-            } catch (\Throwable $ex) {
-                return false;
-            }
+            Cache::forget($lockKey);
         }
+
+        $seat = EventSeat::where('event_id', $eventId)
+            ->where('seat_number', $seatNumber)
+            ->where('locked_by_user_id', $userId)
+            ->first();
+
+        if ($seat && $seat->status === 'RESERVED') {
+            $seat->update([
+                'status'            => 'AVAILABLE',
+                'locked_by_user_id' => null,
+                'lock_token'        => null,
+                'locked_until'      => null,
+            ]);
+        }
+
+        return [
+            'success' => true,
+            'message' => "Kursi {$seatNumber} berhasil dilepaskan dan kembali tersedia.",
+        ];
     }
 
     /**
-     * Menghitung active locks untuk tiket tertentu, mengabaikan user pemanggil jika diberikan.
+     * Mengubah status kursi menjadi BOOKED setelah pembayaran terverifikasi
      */
-    public function getActiveLocksCount(int $ticketId, ?int $ignoreUserId = null): int
+    public function confirmBooking(int $eventId, string $seatNumber, int $userId): array
     {
-        $activeLocksSetKey = "seat_locks_active:ticket_{$ticketId}";
+        $lockKey = "seat_lock:event_{$eventId}:seat_{$seatNumber}";
 
         try {
-            $redis = Redis::connection();
-            $members = $redis->smembers($activeLocksSetKey);
-            if (empty($members)) return 0;
-
-            $activeCount = 0;
-            foreach ($members as $uid) {
-                if ($ignoreUserId && (int)$uid === (int)$ignoreUserId) {
-                    continue;
-                }
-                // Verifikasi apakah key lock individual masih hidup (belum expired)
-                $keys = $redis->keys("seat_lock:event_*:ticket_{$ticketId}:user_{$uid}");
-                if (!empty($keys)) {
-                    $activeCount++;
-                } else {
-                    $redis->srem($activeLocksSetKey, $uid);
-                }
-            }
-            return $activeCount;
+            Redis::connection()->del($lockKey);
         } catch (\Throwable $e) {
-            // Fallback query active locks dari cache
-            return 0;
+            Cache::forget($lockKey);
         }
+
+        $seat = EventSeat::where('event_id', $eventId)
+            ->where('seat_number', $seatNumber)
+            ->first();
+
+        if ($seat) {
+            $seat->update([
+                'status'            => 'BOOKED',
+                'locked_by_user_id' => $userId,
+                'lock_token'        => null,
+                'locked_until'      => null,
+            ]);
+        }
+
+        return [
+            'success' => true,
+            'status'  => 'BOOKED',
+            'message' => "Kursi {$seatNumber} resmi terbeli (BOOKED).",
+            'seat'    => $seat,
+        ];
+    }
+
+    /**
+     * Membersihkan lock yang sudah kedaluwarsa secara otomatis
+     */
+    protected function cleanupExpiredLocks(int $eventId): void
+    {
+        EventSeat::where('event_id', $eventId)
+            ->where('status', 'RESERVED')
+            ->where('locked_until', '<', Carbon::now())
+            ->update([
+                'status'            => 'AVAILABLE',
+                'locked_by_user_id' => null,
+                'lock_token'        => null,
+                'locked_until'      => null,
+            ]);
+    }
+
+    /**
+     * Inisialisasi awal 24 kursi default untuk event baru (Baris A1-A8, B1-B8, C1-C8)
+     */
+    protected function initializeEventSeats(int $eventId): void
+    {
+        $rows = ['A', 'B', 'C'];
+        $cols = 8;
+        $insertData = [];
+
+        foreach ($rows as $r) {
+            for ($c = 1; $c <= $cols; $c++) {
+                $seatNum = "{$r}{$c}";
+                $insertData[] = [
+                    'event_id'    => $eventId,
+                    'seat_number' => $seatNum,
+                    'status'      => ($seatNum === 'A1' || $seatNum === 'A2') ? 'BOOKED' : 'AVAILABLE',
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
+                ];
+            }
+        }
+
+        EventSeat::insert($insertData);
     }
 }

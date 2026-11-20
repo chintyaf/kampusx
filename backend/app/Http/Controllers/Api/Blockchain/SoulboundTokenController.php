@@ -109,44 +109,63 @@ class SoulboundTokenController extends Controller
      */
     public function getPolygonscanData(Request $request, string $txHash)
     {
-        $token = $this->sbtService->verifyCredential($txHash);
+        $res = $this->sbtService->verifyCredential($txHash);
 
-        if (!$token) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Transaction Hash not found on Polygon Amoy Ledger.'
-            ], 404);
+        if (!$res || empty($res['is_valid']) || empty($res['details'])) {
+            $sbt = \App\Models\SoulboundToken::with('user')
+                ->where('tx_hash', $txHash)
+                ->orWhere('ticket_code', $txHash)
+                ->orWhere('token_id', $txHash)
+                ->orWhere('credential_code', $txHash)
+                ->first();
+
+            if ($sbt) {
+                $res = [
+                    'is_valid' => true,
+                    'details'  => $this->sbtService->formatCredentialResponse($sbt)
+                ];
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Transaction Hash not found on Polygon Amoy Ledger.'
+                ], 404);
+            }
         }
+
+        $d = $res['details'];
 
         return response()->json([
             'success' => true,
             'data' => [
-                'txHash' => $token['txHash'],
-                'status' => 'Success',
-                'blockNumber' => $token['blockNumber'],
-                'confirmations' => $token['confirmations'] ?? 142,
-                'timestamp' => $token['mintedDate'],
-                'from' => $token['minterAddress'] ?? SoulboundTokenService::MINTER_ADDRESS,
-                'to' => $token['contractAddress'] ?? SoulboundTokenService::CONTRACT_ADDRESS,
-                'interactedWith' => 'KampusXSoulboundToken (ERC-5192)',
-                'tokensMinted' => [
-                    'standard' => 'ERC-5192',
-                    'tokenId' => $token['tokenId'],
-                    'ticketCode' => $token['ticketCode'],
-                    'recipient' => $token['studentWallet'],
-                    'recipientName' => $token['studentName'],
-                    'title' => $token['title'],
-                    'skillCategory' => $token['skillCategory'] ?? 'Technology',
-                    'cognitiveScore' => $token['cognitiveScore'] ?? 95,
-                    'isLocked' => true
+                'txHash'          => $d['tx_hash'],
+                'status'          => $d['is_revoked'] ? 'Revoked' : 'Success',
+                'blockNumber'     => (int) ($d['block_number'] ?? 58219044),
+                'confirmations'   => 142,
+                'timestamp'       => $d['minted_at_formatted'] ?? ($d['minted_at'] ?? '28 Sep 2026, 14:30 WIB'),
+                'from'            => $d['minter_address'] ?? SoulboundTokenService::MINTER_ADDRESS,
+                'fromLabel'       => 'KampusX: Academic Authority Minter',
+                'to'              => $d['contract_address'] ?? SoulboundTokenService::CONTRACT_ADDRESS,
+                'toLabel'         => 'Contract: KampusXSoulboundToken (ERC-5192)',
+                'tokensMinted'    => [
+                    'standard'       => $d['standard'] ?? 'ERC-5192 (Soulbound / Non-Transferable)',
+                    'tokenId'        => $d['token_id'],
+                    'ticketCode'     => $d['ticket_code'] ?? $d['credential_code'],
+                    'recipient'      => $d['student_wallet'],
+                    'recipientName'  => $d['student_name'],
+                    'title'          => $d['title'],
+                    'skillCategory'  => $d['skill_category'] ?? 'Technology',
+                    'cognitiveScore' => $d['cognitive_score'] ?? 95,
+                    'isLocked'       => true,
                 ],
-                'value' => '0 POL (0 MATIC)',
-                'transactionFee' => '0.0024 POL',
-                'gasPrice' => ($token['gasPriceGwei'] ?? 28.5) . ' Gwei',
-                'gasUsed' => $token['gasUsed'] ?? 84219,
-                'gasLimit' => 120000,
-                'nonce' => 41,
-                'rawTokenURI' => $token['tokenURI'] ?? 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi/token.json'
+                'value'           => '0 POL (0 MATIC)',
+                'transactionFee'  => '0.0024 POL',
+                'gasPrice'        => '28.5 Gwei',
+                'gasUsed'         => $d['gas_used'] ?? 84219,
+                'gasLimit'        => 120000,
+                'nonce'           => 41,
+                'rawTokenURI'     => $d['token_uri'] ?? 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi/token.json',
+                'contractUrl'     => SoulboundTokenService::EXPLORER_ADDR . SoulboundTokenService::CONTRACT_ADDRESS,
+                'network'         => SoulboundTokenService::NETWORK_NAME,
             ]
         ], 200);
     }
@@ -161,6 +180,7 @@ class SoulboundTokenController extends Controller
         // 1. Cari di tabel soulbound_tokens dengan relasi user
         $sbt = \App\Models\SoulboundToken::with('user')
             ->where('ticket_code', $verification_id)
+            ->orWhere('credential_code', $verification_id)
             ->orWhere('token_id', $verification_id)
             ->orWhere('token_id', '#' . $verification_id)
             ->orWhere('tx_hash', $verification_id)

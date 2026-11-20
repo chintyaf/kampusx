@@ -29,7 +29,36 @@ const CertificateVerificationPage = () => {
       try {
         if (ticketCode) {
           // 1. Query endpoint GET /api/certificates/{verification_id} langsung ke soulbound_tokens dan users table
-          const res = await api.get(`/certificates/${ticketCode}`).catch(() => null);
+          let res = await api.get(`/certificates/${ticketCode}`).catch(() => null);
+
+          // Coba fallback endpoint /public/credentials/:ticketCode/verify
+          if (!res?.data?.success) {
+            const pubRes = await api.get(`/public/credentials/${ticketCode}/verify`).catch(() => null);
+            if (pubRes?.data?.success && pubRes.data.details) {
+              const d = pubRes.data.details;
+              res = {
+                data: {
+                  success: true,
+                  data: {
+                    ticket_code: d.credential_code || d.ticket_code,
+                    student_name: d.student_name,
+                    event_title: d.title,
+                    issuer: d.issuer,
+                    tx_hash: d.tx_hash,
+                    timestamp: d.minted_at_formatted,
+                    timestamp_date: d.minted_at,
+                    token_id: d.token_id,
+                    contract_address: d.contract_address,
+                    wallet_address: d.student_wallet,
+                    block_number: d.block_number,
+                    standard: d.standard,
+                    status: d.is_revoked ? 'REVOKED' : (d.minting_status || 'active'),
+                    polygonscan_url: d.polygonscan_url
+                  }
+                }
+              };
+            }
+          }
 
           if (res?.data?.success && res.data.data) {
             const apiData = res.data.data;

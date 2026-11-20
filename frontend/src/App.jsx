@@ -3,6 +3,7 @@ import AppRoutes from "./routes";
 import { AuthProvider } from './context/AuthContext';
 import { LoadingProvider } from './context/LoadingContext';
 import ScrollToTop from './components/ScrollToTop';
+// import ThesisPrototypeFloatingBar from './components/ThesisPrototypeFloatingBar';
 
 function App() {
     return (
@@ -11,6 +12,7 @@ function App() {
                 <BrowserRouter>
                     <ScrollToTop />
                     <AppRoutes />
+                    {/* <ThesisPrototypeFloatingBar /> */}
                 </BrowserRouter>
             </LoadingProvider>
         </AuthProvider>
