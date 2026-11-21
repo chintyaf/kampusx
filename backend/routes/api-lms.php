@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\Lms\LessonController;
 use App\Http\Controllers\Api\Lms\QuizController;
 use App\Http\Controllers\Api\Lms\SkillController;
 use App\Http\Controllers\Api\Lms\LessonSkillController;
-use App\Http\Controllers\Api\Lms\AiContentController;
+// use App\Http\Controllers\Api\Lms\AiContentController;
 use App\Http\Controllers\Api\Lms\EnrollmentController;
 use App\Http\Controllers\Api\Lms\SrlForethoughtController;
 use App\Http\Controllers\Api\Lms\SrlReflectionController;
@@ -31,8 +31,8 @@ Route::prefix('lms')->group(function () {
         Route::apiResource('lesson-skills', LessonSkillController::class);
 
         // Generative AI
-        Route::post('/ai/generate-module', [AiContentController::class, 'storeModule']);
-        Route::post('/modules/{module}/ai/generate-lesson', [AiContentController::class, 'storeLesson']);
+        // Route::post('/ai/generate-module', [AiContentController::class, 'storeModule']);
+        // Route::post('/modules/{module}/ai/generate-lesson', [AiContentController::class, 'storeLesson']);
     });
 
     // ------------------------------------------------

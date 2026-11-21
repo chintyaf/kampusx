@@ -21,9 +21,6 @@ const ModuleCard = ({
 	onToggle,
 	onEdit,
 	onDelete,
-	onAddContent,
-	onEditItem,
-	onDeleteItem,
 	onDropOnModule,
 	onDropOnItem,
 }) => {
@@ -125,7 +122,7 @@ const ModuleCard = ({
 
 				<Stack direction="horizontal" gap={3} className="flex-grow-0">
 					<HoverButton
-						onClick={() => navigate('/organizer/learning-path/1/modules/1/info')}
+						onClick={onEdit}
 						style={{
 							background: 'none',
 							border: 'none',

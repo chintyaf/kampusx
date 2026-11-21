@@ -101,14 +101,14 @@ const TABS = [
 		key: 'curriculum',
 		label: 'Curriculum Builder',
 	},
-	{
-		key: 'certificate',
-		label: 'Certificate & Badges',
-	},
-	{
-		key: 'linked-event',
-		label: 'Linked Event & Rules',
-	},
+	// {
+	// 	key: 'certificate',
+	// 	label: 'Certificate & Badges',
+	// },
+	// {
+	// 	key: 'linked-event',
+	// 	label: 'Linked Event & Rules',
+	// },
 	{
 		key: 'analytics',
 		label: 'Analytics & Students',
@@ -308,7 +308,7 @@ const ManageLearningPathPage = () => {
 
 				<div role="tabpanel" hidden={activeTab !== 'curriculum'}>
 					<CurriculumTab
-						id={learningId}
+						learningId={learningId}
 						routes={ROUTES}
 						modules={modules}
 						onModulesChange={handleModulesChange}

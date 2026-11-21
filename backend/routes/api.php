@@ -69,9 +69,7 @@ use App\Http\Controllers\Api\AiContentController;
 // ====================================================
 // LMS Microlearning Management
 // ====================================================
-Route::prefix('lms')->group(function () {
-    require __DIR__ . '/api-lms.php';
-});
+require __DIR__ . '/api-lms.php';
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
