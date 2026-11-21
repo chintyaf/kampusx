@@ -19,17 +19,20 @@ class LearningPath extends Model
         'created_by',
         'event_id',
         'title',
+        'slug',
         'description',
         'category',
         'categories',
         'thumbnail',
         'status',
+        'published_at',
     ];
 
     protected $casts = [
-        'categories' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'categories'   => 'array',
+        'published_at' => 'datetime',
+        'created_at'   => 'datetime',
+        'updated_at'   => 'datetime',
     ];
 
     protected $appends = [
@@ -66,6 +69,11 @@ class LearningPath extends Model
         return $this->belongsToMany(User::class, 'enrollments', 'learning_path_id', 'user_id')
             ->withPivot(['status', 'enrolled_at', 'completed_at', 'last_accessed_at'])
             ->withTimestamps();
+    }
+
+    public function completions(): HasMany
+    {
+        return $this->hasMany(LearningCompletion::class, 'learning_path_id');
     }
 
     public function getThumbnailUrlAttribute(): ?string

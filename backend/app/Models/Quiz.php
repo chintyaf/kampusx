@@ -21,25 +21,16 @@ class Quiz extends Model
         'bloom_level',
         'time_limit_minutes',
         'passing_score',
+        'is_published',
     ];
 
     protected $casts = [
         'time_limit_minutes' => 'integer',
-        'passing_score' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'passing_score'      => 'decimal:2',
+        'is_published'       => 'boolean',
+        'created_at'         => 'datetime',
+        'updated_at'         => 'datetime',
     ];
-
-
-    public function lesson(): BelongsTo
-    {
-        return $this->belongsTo(Lesson::class, 'lesson_id');
-    }
-
-    public function attempts(): HasMany
-    {
-        return $this->hasMany(QuizAttempt::class, 'quiz_id');
-    }
 
     public function module(): BelongsTo
     {
@@ -50,5 +41,10 @@ class Quiz extends Model
     {
         return $this->hasMany(QuizQuestion::class, 'quiz_id')
             ->orderBy('order_index', 'asc');
+    }
+
+    public function attempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class, 'quiz_id');
     }
 }

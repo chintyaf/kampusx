@@ -19,6 +19,7 @@ class QuizAttempt extends Model
         'quiz_id',
         'attempt_number',
         'score',
+        'is_passed',
         'started_at',
         'completed_at',
         'status',
@@ -27,6 +28,7 @@ class QuizAttempt extends Model
     protected $casts = [
         'score'          => 'decimal:2',
         'attempt_number' => 'integer',
+        'is_passed'      => 'boolean',
         'started_at'     => 'datetime',
         'completed_at'   => 'datetime',
         'created_at'     => 'datetime',
@@ -68,8 +70,11 @@ class QuizAttempt extends Model
 
     public function getPassedAttribute(): bool
     {
+        if ($this->is_passed !== null) {
+            return (bool) $this->is_passed;
+        }
+
         $passingScore = $this->quiz?->passing_score ?? 70.00;
         return (float) $this->score >= (float) $passingScore;
     }
 }
-

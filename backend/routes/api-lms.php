@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\Lms\SrlReflectionController;
 use App\Http\Controllers\Api\Lms\LearningActivityController;
 use App\Http\Controllers\Api\Lms\ReadinessPredictionController;
 use App\Http\Controllers\Api\Lms\RecommendationController;
+use App\Http\Controllers\Api\LMS\LearningDashboardController;
+use App\Http\Controllers\Api\LMS\CredentialApiController;
 
 // ====================================================
 // LMS Microlearning Management
@@ -38,6 +40,7 @@ Route::prefix('lms')->group(function () {
     // Member: Enrollment, Aktivitas SRL & Personalisasi
     // ------------------------------------------------
     Route::middleware('auth:sanctum')->prefix('member')->group(function () {
+        Route::get('dashboard', [LearningDashboardController::class, 'index']);
         Route::apiResource('enrollments', EnrollmentController::class);
 
         Route::apiResource('learning-activities', LearningActivityController::class);
@@ -45,7 +48,11 @@ Route::prefix('lms')->group(function () {
         Route::apiResource('recommendations', RecommendationController::class);
     });
 
+    // Learner Dashboard (Pusat Microlearning /learning)
+    Route::get('/learner/dashboard', [LearningDashboardController::class, 'index']);
 
+
+    // API Kredensial
     Route::post(
         '/learning-paths/{learningPathId}/send-credential',
         [CredentialApiController::class, 'sendCredential']

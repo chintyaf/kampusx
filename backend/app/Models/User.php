@@ -85,6 +85,31 @@ class User extends Authenticatable
         return $this->hasMany(SrlLearningSession::class, 'user_id');
     }
 
+    public function learningActivities(): HasMany
+    {
+        return $this->hasMany(LearningActivity::class, 'user_id');
+    }
+
+    public function learningHistories(): HasMany
+    {
+        return $this->hasMany(LearningHistory::class, 'user_id');
+    }
+
+    public function learningCompletions(): HasMany
+    {
+        return $this->hasMany(LearningCompletion::class, 'user_id');
+    }
+
+    public function lmsUserBadges(): HasMany
+    {
+        return $this->hasMany(LmsUserBadge::class, 'user_id');
+    }
+
+    public function lmsUserCertificates(): HasMany
+    {
+        return $this->hasMany(LmsUserCertificate::class, 'user_id');
+    }
+
     public function latestReadiness(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(ReadinessPrediction::class, 'user_id')->latestOfMany();

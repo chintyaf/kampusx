@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Module extends Model
 {
@@ -25,9 +26,9 @@ class Module extends Model
 
     protected $casts = [
         'learning_outcomes' => 'array',
-        'order_index' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'order_index'       => 'integer',
+        'created_at'        => 'datetime',
+        'updated_at'        => 'datetime',
     ];
 
     public function learningPath(): BelongsTo
@@ -41,8 +42,23 @@ class Module extends Model
             ->orderBy('order_index', 'asc');
     }
 
+    public function quiz(): HasOne
+    {
+        return $this->hasOne(Quiz::class, 'module_id');
+    }
+
     public function quizzes(): HasMany
     {
         return $this->hasMany(Quiz::class, 'module_id');
+    }
+
+    public function completions(): HasMany
+    {
+        return $this->hasMany(LearningCompletion::class, 'module_id');
+    }
+
+    public function srlLearningSessions(): HasMany
+    {
+        return $this->hasMany(SrlLearningSession::class, 'module_id');
     }
 }

@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-use App\Models\Lms\LearningPath;
-use App\Models\Lms\LearningCompletion;
-use App\Models\Lms\Lesson;
-use App\Models\Lms\Quiz;
+use App\Models\LearningPath;
+use App\Models\LearningCompletion;
+use App\Models\Lesson;
+use App\Models\Quiz;
 
 class CredentialApiController extends Controller
 {

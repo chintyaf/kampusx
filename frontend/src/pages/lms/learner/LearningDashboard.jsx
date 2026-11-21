@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
+import api from '@/api/axios';
 
 import LearningHeader from '@/pages/lms/learner/learn-dashboard/LearningHeader';
 import ContinueLearningCard from '@/pages/lms/learner/learn-dashboard/ContinueLearningCard';
@@ -35,8 +36,48 @@ import '@/pages/lms/learningDashboard.css';
  *  Sidebar : Learning Readiness → profil kompetensi & skill gap → badge & kredensial digital
  */
 const LearningDashboard = () => {
-	const { user } = useAuth();
+	const { user: authUser } = useAuth();
 	const navigate = useNavigate();
+
+	const [loading, setLoading] = useState(true);
+	const [dashboardData, setDashboardData] = useState(null);
+
+	// Fetch data agregasi dari backend LMS API
+	useEffect(() => {
+		let isMounted = true;
+
+		const fetchDashboardData = async () => {
+			try {
+				const response = await api.get('/lms/learner/dashboard');
+				if (isMounted && response?.data?.success && response?.data?.data) {
+					setDashboardData(response.data.data);
+				}
+			} catch (err) {
+				console.warn('Gagal memuat data dari API LMS dashboard, menggunakan fallback data:', err);
+			} finally {
+				if (isMounted) {
+					setLoading(false);
+				}
+			}
+		};
+
+		fetchDashboardData();
+
+		return () => {
+			isMounted = false;
+		};
+	}, []);
+
+	// Data gabungan (prioritaskan data dari API, fallback ke mock)
+	const userProfile = dashboardData?.userLearningProfile || mockUserLearningProfile;
+	const activeModule = dashboardData?.activeModule || mockActiveModule;
+	const recommendedModules = dashboardData?.recommendedModules || mockRecommendedModules;
+	const enrolledModules = dashboardData?.enrolledModules || mockEnrolledModules;
+	const srlHistory = dashboardData?.srlHistory || mockSRLHistory;
+	const skillProfile = dashboardData?.skillProfile || mockSkillProfile;
+	const achievements = dashboardData?.achievements || mockAchievements;
+	const learningReadiness = dashboardData?.learningReadiness || mockLearningReadiness;
+	const currentUser = dashboardData?.user || authUser;
 
 	// Handlers navigasi untuk kartu dan tombol
 	const handleOpenModule = (m) => {
@@ -45,20 +86,25 @@ const LearningDashboard = () => {
 	};
 
 	const handleContinueActive = () => {
-		navigate('/learner/modules/mod-arch-101');
+		const targetId = activeModule?.targetModuleId || activeModule?.id || 'mod-arch-101';
+		navigate(`/learner/modules/${targetId}`);
 	};
 
 	const handleExploreAll = () => {
 		navigate('/explore-microlearning');
 	};
 
-	const handleViewCertificate = () => {
+	const handleViewCertificate = (c) => {
 		navigate('/learner/learning-paths/lp-1/certificate');
 	};
 
-	// Ringkasan learning analytics di header (diturunkan dari data enrollment).
+	// Ringkasan learning analytics di header (diturunkan dari data enrollment atau API stats).
 	const stats = useMemo(() => {
-		const quizScores = mockEnrolledModules.map((m) => m.lastQuizScore).filter(Boolean);
+		if (dashboardData?.stats && Array.isArray(dashboardData.stats) && dashboardData.stats.length > 0) {
+			return dashboardData.stats;
+		}
+
+		const quizScores = enrolledModules.map((m) => m.lastQuizScore).filter(Boolean);
 		const avgQuiz = quizScores.length
 			? Math.round(quizScores.reduce((a, b) => a + b, 0) / quizScores.length)
 			: 0;
@@ -66,31 +112,42 @@ const LearningDashboard = () => {
 			{
 				icon: 'book-open',
 				label: 'Modul berjalan',
-				value: mockEnrolledModules.filter((m) => m.status === 'in_progress').length,
+				value: enrolledModules.filter((m) => m.status === 'in_progress').length,
 				tone: 'primary',
 			},
 			{
 				icon: 'check-circle',
 				label: 'Lesson selesai',
-				value: mockEnrolledModules.reduce((t, m) => t + m.lessonsDone, 0),
+				value: enrolledModules.reduce((t, m) => t + (m.lessonsDone || 0), 0),
 				tone: 'success',
 			},
 			{ icon: 'trending-up', label: 'Rata-rata skor kuis', value: avgQuiz, tone: 'purple' },
 			{
 				icon: 'award',
 				label: 'Sertifikat',
-				value: mockEnrolledModules.filter((m) => m.status === 'completed').length,
+				value: enrolledModules.filter((m) => m.status === 'completed').length,
 				tone: 'warning',
 			},
 		];
-	}, []);
+	}, [dashboardData?.stats, enrolledModules]);
+
+	if (loading && !dashboardData) {
+		return (
+			<div className="learning-dashboard-wrapper">
+				<Container className="py-5 text-center">
+					<Spinner animation="border" variant="primary" role="status" />
+					<p className="mt-3 text-muted">Memuat pusat microlearning...</p>
+				</Container>
+			</div>
+		);
+	}
 
 	return (
 		<div className="learning-dashboard-wrapper">
 			<Container className="py-4">
 				<LearningHeader
-					user={user}
-					streak={mockUserLearningProfile.currentStreak}
+					user={currentUser}
+					streak={userProfile.currentStreak}
 					stats={stats}
 				/>
 
@@ -98,31 +155,31 @@ const LearningDashboard = () => {
 					<Col lg={9}>
 						<div className="ld-stack">
 							<ContinueLearningCard
-								module={mockActiveModule}
+								module={activeModule}
 								onContinue={handleContinueActive}
 								onViewAll={handleExploreAll}
 							/>
 							<RecommendedModules
-								modules={mockRecommendedModules}
+								modules={recommendedModules}
 								onOpen={handleOpenModule}
 								onExploreAll={handleExploreAll}
 							/>
 							<EnrolledModules
-								modules={mockEnrolledModules}
+								modules={enrolledModules}
 								onContinue={handleOpenModule}
 								onViewCertificate={handleViewCertificate}
 							/>
-							<SRLHistory sessions={mockSRLHistory} />
+							<SRLHistory sessions={srlHistory} />
 						</div>
 					</Col>
 
 					<Col lg={3}>
 						<div className="ld-stack">
-							{/* <LearningReadinessWidget readiness={mockLearningReadiness} /> */}
-							<StudyInsightsWidget sessions={mockSRLHistory} />
-							<SkillMatrixWidget data={mockSkillProfile} />
+							{/* <LearningReadinessWidget readiness={learningReadiness} /> */}
+							<StudyInsightsWidget sessions={srlHistory} />
+							<SkillMatrixWidget data={skillProfile} />
 							<BadgesWidget
-								data={mockAchievements}
+								data={achievements}
 								onViewCertificate={handleViewCertificate}
 							/>
 						</div>

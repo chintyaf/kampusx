@@ -18,11 +18,13 @@ class ReadinessPrediction extends Model
         'model_version',
         'readiness_score',
         'readiness_level',
+        'features',
         'predicted_at',
     ];
 
     protected $casts = [
         'readiness_score' => 'decimal:5',
+        'features'        => 'array',
         'predicted_at'    => 'datetime',
         'created_at'      => 'datetime',
         'updated_at'      => 'datetime',
@@ -69,4 +71,3 @@ class ReadinessPrediction extends Model
         return self::LEVELS[$this->readiness_level] ?? $this->readiness_level;
     }
 }
-
