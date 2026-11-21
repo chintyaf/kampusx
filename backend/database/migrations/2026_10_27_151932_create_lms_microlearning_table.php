@@ -91,6 +91,75 @@ return new class extends Migration
             $table->timestamp('last_accessed_at')->nullable();
             $table->timestamps();
         });
+
+        
+                /*
+        |--------------------------------------------------------------------------
+        | 6. Badges
+        |--------------------------------------------------------------------------
+        | Master data badge yang tersedia di sistem.
+        */
+
+        Schema::create('badges', function (Blueprint $table) {
+            $table->id();
+
+            $table->string('code', 100)->unique();
+            $table->string('name', 150);
+            $table->text('description')->nullable();
+
+            // Icon atau gambar badge
+            $table->string('icon', 500)->nullable();
+            $table->string('image', 500)->nullable();
+
+            // Contoh:
+            // {"type":"learning_path","required_count":1}
+            // {"type":"module","required_count":5}
+            $table->json('criteria')->nullable();
+
+            $table->unsignedInteger('xp_reward')->default(0);
+
+            $table->enum('status', [
+                'active',
+                'inactive'
+            ])->default('active');
+
+            $table->timestamps();
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | 7. User Badges
+        |--------------------------------------------------------------------------
+        | Riwayat badge yang diperoleh Member.
+        */
+
+        Schema::create('user_badges', function (Blueprint $table) {
+            $table->id();
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
+            $table->foreignId('badge_id')
+                ->constrained('badges')
+                ->cascadeOnDelete();
+
+            // Pencapaian yang menyebabkan badge diberikan
+            $table->foreignId('completion_id')
+                ->nullable()
+                ->constrained('learning_completions')
+                ->nullOnDelete();
+
+            $table->timestamp('awarded_at');
+
+            $table->timestamps();
+
+            // Satu badge hanya dapat diperoleh satu kali
+            $table->unique(['user_id', 'badge_id']);
+
+            $table->index(['user_id', 'awarded_at']);
+        });
     }
 
     public function down(): void

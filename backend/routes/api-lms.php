@@ -22,12 +22,11 @@ Route::prefix('lms')->group(function () {
     // ------------------------------------------------
     // Organizer: Manajemen Konten & Generative AI
     // ------------------------------------------------
-    Route::prefix('organizer')->group(function () {
+    Route::middleware('role:organizer,admin')->prefix('organizer')->group(function () {
         Route::apiResource('learning-paths', LearningPathController::class);
         Route::apiResource('modules', ModuleController::class);
         Route::apiResource('lessons', LessonController::class);
         Route::apiResource('quiz', QuizController::class);
-        Route::apiResource('skills', SkillController::class);
         Route::apiResource('lesson-skills', LessonSkillController::class);
 
         // Generative AI
@@ -38,14 +37,18 @@ Route::prefix('lms')->group(function () {
     // ------------------------------------------------
     // Member: Enrollment, Aktivitas SRL & Personalisasi
     // ------------------------------------------------
-    Route::prefix('member')->group(function () {
+    Route::middleware('auth:sanctum')->prefix('member')->group(function () {
         Route::apiResource('enrollments', EnrollmentController::class);
 
-        Route::apiResource('srl-forethoughts', SrlForethoughtController::class);
-        Route::apiResource('srl-reflections', SrlReflectionController::class);
         Route::apiResource('learning-activities', LearningActivityController::class);
         Route::apiResource('readiness-predictions', ReadinessPredictionController::class);
         Route::apiResource('recommendations', RecommendationController::class);
     });
+
+
+    Route::post(
+        '/learning-paths/{learningPathId}/send-credential',
+        [CredentialApiController::class, 'sendCredential']
+    );
 
 });
