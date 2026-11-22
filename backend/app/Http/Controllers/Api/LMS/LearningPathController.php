@@ -191,4 +191,52 @@ class LearningPathController extends Controller
             'message' => 'Learning path deleted successfully.',
         ], 200);
     }
+
+    /**
+     * Display learning paths belonging to the authenticated organizer.
+     */
+    public function organizerIndex(Request $request)
+    {
+        // Ambil ID organizer dari user yang login (atau fallback dari query param jika belum pakai auth)
+        $organizerId = $request->user()?->id ?? $request->input('organizer_id');
+
+        if (!$organizerId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Organizer ID or authentication is required.',
+            ], 401);
+        }
+
+        $query = LearningPath::with(['creator', 'event'])
+            ->withCount(['modules', 'enrollments'])
+            ->where(function ($q) use ($organizerId) {
+                // 1. Learning path yang dibuat langsung oleh organizer ini
+                $q->where('created_by', $organizerId)
+                // 2. (Opsional) Atau yang terhubung ke event milik organizer ini
+                // Sesuaikan 'user_id' / 'organizer_id' dengan nama kolom di tabel events kamu
+                ->orWhereHas('event', function ($eventQuery) use ($organizerId) {
+                    $eventQuery->where('user_id', $organizerId);
+                });
+            });
+
+        // Search by title
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $learningPaths = $query
+            ->latest()
+            ->paginate($request->input('per_page', 10));
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Organizer learning paths retrieved successfully.',
+            'data' => $learningPaths,
+        ], 200);
+    }
 }

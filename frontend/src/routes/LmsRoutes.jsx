@@ -11,7 +11,7 @@ import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPa
 import LearningDashboard from '@/pages/lms/learner/LearningDashboard';
 import ModuleDetailPage from '@/pages/lms/learner/ModuleDetailPage';
 import LessonViewerPage from '@/pages/lms/learner/LessonViewerPage';
-import LearningPathDetail from '@/pages/lms/learner/LearningPathDetail';
+import LearningPathDetailPage from '@/pages/lms/learner/LearningPathDetailPage';
 import ForethoughtPage from '@/pages/lms/learner/modules/forethought/ForethoughtPage';
 import QuizPage from '@/pages/lms/learner/modules/quiz/QuizPage';
 import ReflectionPage from '@/pages/lms/learner/modules/reflection/ReflectionPage';
@@ -56,8 +56,7 @@ export const LmsRoutes = () => {
 
 					{/* Group Prefix: /learner/learning-paths */}
 					<Route path="learning-paths">
-						<Route index element={<LearningPathDetail />} />
-						<Route path=":pathId" element={<LearningPathDetail />} />
+						<Route path=":pathId" element={<LearningPathDetailPage />} />
 						<Route path=":pathId/certificate" element={<LearningPathCertificatePage />} />
 					</Route>
 
@@ -79,6 +78,7 @@ export const LmsRoutes = () => {
 				</Route>
 
 				{/* Direct Lesson Shortcuts */}
+				<Route path="learner/learning-paths/:learningId/lessons/:lessonId" element={<LessonViewerPage />} />
 				<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
 				<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
 			</Route>

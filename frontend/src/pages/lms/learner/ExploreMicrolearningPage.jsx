@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Offcanvas, Pagination } from 'react-bootstrap';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Container, Row, Col, Card, Button, Offcanvas, Pagination, Spinner } from 'react-bootstrap';
 import { Search, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import api from '@/api/axios';
 
 import '@/pages/lms/lms.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -13,17 +14,26 @@ import ExploreTopBar from './explore-lms/ExploreTopBar';
 import ExploreGridCard from './explore-lms/ExploreGridCard';
 import ExploreListCard from './explore-lms/ExploreListCard';
 
-// Data & constants
-import { MOCK_EXPLORE_ITEMS } from './explore-lms/mockData';
-
 const ITEMS_PER_PAGE = 9;
 
 /**
  * ExploreMicrolearningPage
  * Halaman utama eksplorasi katalog microlearning KampusX.
+ *
+ * Endpoint yang dipakai:
+ * - GET    /lms/explore                    -> katalog + opsi filter (item boleh punya field `isBookmarked`)
+ * - POST   /lms/bookmarks                  -> body: { type, id }
+ * - DELETE /lms/bookmarks/:type/:id
+ * (Sesuaikan path bookmark dengan route backend kamu.)
  */
 const ExploreMicrolearningPage = () => {
 	const navigate = useNavigate();
+
+	// --- API Items & Loading State ---
+	const [items, setItems] = useState([]);
+	const [apiFilters, setApiFilters] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [fetchError, setFetchError] = useState(null);
 
 	// --- Search & Tab States ---
 	const [searchQuery, setSearchQuery] = useState('');
@@ -43,30 +53,122 @@ const ExploreMicrolearningPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [showMobileFilter, setShowMobileFilter] = useState(false);
 
-	// --- Bookmarks State ---
-	const [bookmarkedIds, setBookmarkedIds] = useState(() => new Set(['mod-1', 'les-1']));
+	// --- Bookmarks State (diisi dari API) ---
+	const [bookmarkedIds, setBookmarkedIds] = useState(() => new Set());
+	const bookmarkedIdsRef = useRef(bookmarkedIds);
+	const pendingBookmarksRef = useRef(new Set()); // cegah klik ganda saat request berjalan
+
+	useEffect(() => {
+		bookmarkedIdsRef.current = bookmarkedIds;
+	}, [bookmarkedIds]);
+
+	// Fetch data katalog explore dari backend API
+	const fetchExploreCatalog = useCallback(async (isMountedRef) => {
+		setLoading(true);
+		setFetchError(null);
+
+		try {
+			const response = await api.get('/lms/explore');
+
+			if (isMountedRef && !isMountedRef.current) return;
+
+			if (response?.data?.success) {
+				if (Array.isArray(response.data.data)) {
+					const data = response.data.data;
+					setItems(data);
+					// Status bookmark berasal dari backend (field: isBookmarked)
+					setBookmarkedIds(new Set(data.filter((i) => i.isBookmarked).map((i) => i.id)));
+				}
+				if (response.data.filters) {
+					setApiFilters(response.data.filters);
+				}
+			} else {
+				setFetchError('Katalog tidak dapat dimuat. Silakan coba lagi.');
+			}
+		} catch (error) {
+			console.error('Gagal memuat katalog explore dari API:', error);
+			if (!isMountedRef || isMountedRef.current) {
+				setFetchError('Gagal memuat katalog. Periksa koneksi lalu coba lagi.');
+			}
+		} finally {
+			if (!isMountedRef || isMountedRef.current) {
+				setLoading(false);
+			}
+		}
+	}, []);
+
+	const isMountedRef = useRef(true);
+
+	useEffect(() => {
+		isMountedRef.current = true;
+		fetchExploreCatalog(isMountedRef);
+
+		return () => {
+			isMountedRef.current = false;
+		};
+	}, [fetchExploreCatalog]);
 
 	// Scroll ke atas layar setiap kali halaman berubah
 	useEffect(() => {
 		window.scrollTo({
 			top: 0,
-			behavior: 'smooth', // ganti 'auto' kalau mau langsung tanpa animasi smooth
+			behavior: 'smooth',
 		});
 	}, [currentPage]);
 
 	// --- Event Handlers (Dioptimasi dengan useCallback) ---
-	const toggleBookmark = useCallback((e, id) => {
-		e.stopPropagation();
-		setBookmarkedIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
+	const toggleBookmark = useCallback(
+		async (e, id) => {
+			e?.stopPropagation?.();
+
+			if (pendingBookmarksRef.current.has(id)) return;
+
+			const item = items.find((i) => i.id === id);
+			if (!item) return;
+
+			const targetId = item.rawId || id;
+			const wasBookmarked = bookmarkedIdsRef.current.has(id);
+
+			pendingBookmarksRef.current.add(id);
+
+			// Optimistic update: UI langsung berubah
+			setBookmarkedIds((prev) => {
+				const next = new Set(prev);
+				if (wasBookmarked) {
+					next.delete(id);
+				} else {
+					next.add(id);
+				}
+				return next;
+			});
+
+			try {
+				if (wasBookmarked) {
+					await api.delete(`/lms/bookmarks/${item.type}/${targetId}`);
+				} else {
+					await api.post('/lms/bookmarks', { type: item.type, id: targetId });
+				}
+			} catch (error) {
+				console.error('Gagal memperbarui bookmark:', error);
+
+				// Rollback jika request gagal
+				if (isMountedRef.current) {
+					setBookmarkedIds((prev) => {
+						const next = new Set(prev);
+						if (wasBookmarked) {
+							next.add(id);
+						} else {
+							next.delete(id);
+						}
+						return next;
+					});
+				}
+			} finally {
+				pendingBookmarksRef.current.delete(id);
 			}
-			return next;
-		});
-	}, []);
+		},
+		[items],
+	);
 
 	const toggleArrayItem = useCallback((setter, item) => {
 		setter((prev) => (prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]));
@@ -88,12 +190,16 @@ const ExploreMicrolearningPage = () => {
 
 	const handleNavigateItem = useCallback(
 		(item) => {
+			const targetId =
+				item.rawId ||
+				item.id?.replace(/^(lp-|mod-|les-|cur-lp-|cur-mod-|cur-les-)/, '') ||
+				item.id;
 			if (item.type === 'learning_path') {
-				navigate(`/learner/learning-paths/${item.id}`);
+				navigate(`/learner/learning-paths/${targetId}`);
 			} else if (item.type === 'module') {
-				navigate(`/learner/modules/${item.id}`);
+				navigate(`/learner/modules/${targetId}`);
 			} else {
-				navigate(`/learner/lessons/${item.id}`);
+				navigate(`/learner/lessons/${targetId}`);
 			}
 		},
 		[navigate],
@@ -103,13 +209,13 @@ const ExploreMicrolearningPage = () => {
 	const tabCounts = useMemo(() => {
 		const query = searchQuery.trim().toLowerCase();
 		const baseList = query
-			? MOCK_EXPLORE_ITEMS.filter(
+			? items.filter(
 					(item) =>
 						item.title.toLowerCase().includes(query) ||
-						item.description.toLowerCase().includes(query) ||
-						item.category.toLowerCase().includes(query),
+						(item.description && item.description.toLowerCase().includes(query)) ||
+						(item.category && item.category.toLowerCase().includes(query)),
 				)
-			: MOCK_EXPLORE_ITEMS;
+			: items;
 
 		return {
 			all: baseList.length,
@@ -117,20 +223,21 @@ const ExploreMicrolearningPage = () => {
 			module: baseList.filter((i) => i.type === 'module').length,
 			lesson: baseList.filter((i) => i.type === 'lesson').length,
 		};
-	}, [searchQuery]);
+	}, [searchQuery, items]);
 
 	const filteredItems = useMemo(() => {
 		const query = searchQuery.trim().toLowerCase();
 
-		return MOCK_EXPLORE_ITEMS.filter((item) => {
+		return items.filter((item) => {
 			if (activeTab !== 'all' && item.type !== activeTab) return false;
 
 			if (query) {
 				const matchesQuery =
 					item.title.toLowerCase().includes(query) ||
-					item.description.toLowerCase().includes(query) ||
-					item.category.toLowerCase().includes(query) ||
-					item.tags.some((t) => t.toLowerCase().includes(query));
+					(item.description && item.description.toLowerCase().includes(query)) ||
+					(item.category && item.category.toLowerCase().includes(query)) ||
+					(Array.isArray(item.tags) &&
+						item.tags.some((t) => t.toLowerCase().includes(query)));
 				if (!matchesQuery) return false;
 			}
 
@@ -145,6 +252,7 @@ const ExploreMicrolearningPage = () => {
 			return true;
 		});
 	}, [
+		items,
 		searchQuery,
 		activeTab,
 		selectedTopics,
@@ -159,20 +267,20 @@ const ExploreMicrolearningPage = () => {
 		const list = [...filteredItems];
 		switch (sortBy) {
 			case 'newest':
-				return list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+				return list.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
 			case 'popular':
-				return list.sort((a, b) => b.enrolledCount - a.enrolledCount);
+				return list.sort((a, b) => (b.enrolledCount || 0) - (a.enrolledCount || 0));
 			case 'rating':
-				return list.sort((a, b) => b.rating - a.rating);
+				return list.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 			case 'duration_asc':
-				return list.sort((a, b) => a.durationMinutes - b.durationMinutes);
+				return list.sort((a, b) => (a.durationMinutes || 0) - (b.durationMinutes || 0));
 			case 'relevance':
 			default:
 				return list.sort((a, b) => {
 					if (a.aiRecommended !== b.aiRecommended) {
 						return a.aiRecommended ? -1 : 1;
 					}
-					return b.rating - a.rating;
+					return (b.rating || 0) - (a.rating || 0);
 				});
 		}
 	}, [filteredItems, sortBy]);
@@ -187,8 +295,8 @@ const ExploreMicrolearningPage = () => {
 	const activeChips = useMemo(() => {
 		const chips = [];
 
-		const addArrayChips = (items, keyPrefix, setter) => {
-			items.forEach((item) => {
+		const addArrayChips = (categoryItems, keyPrefix, setter) => {
+			categoryItems.forEach((item) => {
 				chips.push({
 					key: `${keyPrefix}-${item}`,
 					label: item,
@@ -246,6 +354,10 @@ const ExploreMicrolearningPage = () => {
 			setCurrentPage,
 			handleResetFilters,
 			toggleArrayItem,
+			topicOptions: apiFilters?.topics || [],
+			levelOptions: apiFilters?.levels || [],
+			durationOptions: apiFilters?.durations || [],
+			mediaOptions: apiFilters?.media || [],
 		}),
 		[
 			activeChips,
@@ -257,6 +369,7 @@ const ExploreMicrolearningPage = () => {
 			weeklyGoalOnly,
 			handleResetFilters,
 			toggleArrayItem,
+			apiFilters,
 		],
 	);
 
@@ -297,7 +410,35 @@ const ExploreMicrolearningPage = () => {
 						/>
 
 						{/* 3. KATALOG HASIL PENCARIAN */}
-						{paginatedItems.length === 0 ? (
+						{fetchError && items.length === 0 ? (
+							<Card className="border-0 shadow-sm text-center p-5 my-3 bg-white explore-sidebar-card">
+								<h4 className="fw-bold text-dark mb-2">Katalog gagal dimuat</h4>
+								<p
+									className="text-muted mx-auto mb-4"
+									style={{ maxWidth: '440px', fontSize: '0.9rem' }}
+								>
+									{fetchError}
+								</p>
+								<div>
+									<Button
+										variant="primary"
+										className="fw-semibold px-4 py-2 rounded-3 shadow-sm btn-lms-primary"
+										onClick={() => fetchExploreCatalog(isMountedRef)}
+									>
+										Coba Lagi
+									</Button>
+								</div>
+							</Card>
+						) : loading && items.length === 0 ? (
+							<Card className="border-0 shadow-sm text-center p-5 my-3 bg-white explore-sidebar-card">
+								<div className="py-5">
+									<Spinner animation="border" variant="primary" role="status" />
+									<p className="mt-3 text-muted">
+										Memuat katalog materi pembelajaran...
+									</p>
+								</div>
+							</Card>
+						) : paginatedItems.length === 0 ? (
 							<Card className="border-0 shadow-sm text-center p-5 my-3 bg-white explore-sidebar-card">
 								<div className="explore-empty-icon mb-3">
 									<Search size={32} />
@@ -406,7 +547,7 @@ const ExploreMicrolearningPage = () => {
 					</Offcanvas.Title>
 				</Offcanvas.Header>
 				<Offcanvas.Body className="p-3" style={{ overflowY: 'auto' }}>
-					<FilterSidebarContent {...filterSidebarProps} />
+					<FilterSidebarContent {...filterSidebarProps} idPrefix="mobile" />
 					<div className="mt-4 pt-3 border-top">
 						<Button
 							variant="primary"

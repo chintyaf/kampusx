@@ -1,38 +1,26 @@
 import React, { useState } from 'react';
-import { Card, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import {
-	CheckCircle2,
-	Clock,
-	BookOpen,
-	RotateCcw,
-	ChevronDown,
-	Video,
-	FileText,
-	HelpCircle,
-	Brain,
-	ArrowRight,
-} from 'lucide-react';
+import { Card } from 'react-bootstrap';
 
 import '@/pages/lms/lms.css';
 import ModuleCard from './ModuleCard';
 
-// ============================================================================
-// 2. MAIN COMPONENT
-// ============================================================================
+const LearningModule = ({
+	modules = [],
+	pathId,
+	isAuthenticated = false,
+	expandedModules: externalExpanded,
+	onToggleModule,
+}) => {
+	const [internalExpanded, setInternalExpanded] = useState({});
 
-const LearningModule = ({ modules = [], expandedModules: externalExpanded, onToggleModule }) => {
-	const [internalExpanded, setInternalExpanded] = useState({ 1: true });
+	// Dikontrol halaman jika props diberikan, kalau tidak pakai state internal
+	const expandedState = externalExpanded ?? internalExpanded;
 
-	const expandedState = externalExpanded || internalExpanded;
-	const handleToggle = (moduleNumber) => {
+	const handleToggle = (moduleId) => {
 		if (onToggleModule) {
-			onToggleModule(moduleNumber);
+			onToggleModule(moduleId);
 		} else {
-			setInternalExpanded((prev) => ({
-				...prev,
-				[moduleNumber]: !prev[moduleNumber],
-			}));
+			setInternalExpanded((prev) => ({ ...prev, [moduleId]: !prev[moduleId] }));
 		}
 	};
 
@@ -46,26 +34,37 @@ const LearningModule = ({ modules = [], expandedModules: externalExpanded, onTog
 			<div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
 				<div>
 					<h3 className="fw-bold mb-1" style={{ fontSize: '1.35rem', color: '#0B2545' }}>
-						Module Roadmap
+						Roadmap Modul
 					</h3>
 					<p className="text-muted small mb-0">
-						{totalCount} Modul berurutan yang dirancang untuk membangun pemahaman AI
-						Engineering bertahap.
+						{totalCount} modul berurutan yang dirancang untuk membangun pemahaman secara
+						bertahap.
 					</p>
 				</div>
-				<span className="badge px-3 py-2 rounded-pill bg-light text-dark border fw-semibold small shadow-sm">
-					{completedCount} of {totalCount} Completed ({progressPercent}%)
-				</span>
+
+				{isAuthenticated && totalCount > 0 && (
+					<span className="badge px-3 py-2 rounded-pill bg-light text-dark border fw-semibold small shadow-sm">
+						{completedCount} dari {totalCount} selesai ({progressPercent}%)
+					</span>
+				)}
 			</div>
 
 			{/* List Roadmap Modul */}
 			<div className="d-flex flex-column gap-3">
+				{totalCount === 0 && (
+					<div className="text-center text-muted small py-4">
+						Belum ada modul yang dipublikasikan.
+					</div>
+				)}
+
 				{modules.map((mod) => (
 					<ModuleCard
-						key={mod.id || mod.number}
+						key={mod.id}
 						module={mod}
-						isExpanded={!!expandedState[mod.number]}
-						onToggle={() => handleToggle(mod.number)}
+						pathId={pathId}
+						isAuthenticated={isAuthenticated}
+						isExpanded={!!expandedState[mod.id]}
+						onToggle={() => handleToggle(mod.id)}
 					/>
 				))}
 			</div>

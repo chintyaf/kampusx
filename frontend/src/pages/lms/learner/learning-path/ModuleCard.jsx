@@ -1,9 +1,7 @@
 import React from 'react';
-import { Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
 	CheckCircle2,
-	Clock,
 	BookOpen,
 	RotateCcw,
 	ChevronDown,
@@ -12,35 +10,20 @@ import {
 	HelpCircle,
 	Brain,
 	ArrowRight,
+	Lock,
+	LogIn,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 // ============================================================================
 // 1. LESSON COMPONENTS
 // ============================================================================
 
-// Configuration lookup for cleaner code & scalable styles
 const LESSON_TYPE_CONFIG = {
-	video: {
-		icon: Video,
-		className: 'bg-primary-subtle text-primary',
-	},
-	article: {
-		icon: FileText,
-		className: 'bg-info-subtle text-info',
-	},
-	quiz: {
-		icon: HelpCircle,
-		className: 'bg-warning-subtle text-warning',
-	},
-	reflection: {
-		icon: Brain,
-		style: { backgroundColor: '#F3E8FF', color: '#8B5CF6' },
-	},
-	default: {
-		icon: FileText,
-		className: 'bg-light text-secondary',
-	},
+	video: { icon: Video, className: 'bg-primary-subtle text-primary' },
+	article: { icon: FileText, className: 'bg-info-subtle text-info' },
+	quiz: { icon: HelpCircle, className: 'bg-warning-subtle text-warning' },
+	reflection: { icon: Brain, style: { backgroundColor: '#F3E8FF', color: '#8B5CF6' } },
+	default: { icon: FileText, className: 'bg-light text-secondary' },
 };
 
 const LessonIcon = ({ type }) => {
@@ -50,25 +33,23 @@ const LessonIcon = ({ type }) => {
 	return (
 		<div
 			className={`rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 ${config.className || ''}`}
-			style={{
-				width: '28px',
-				height: '28px',
-				...config.style,
-			}}
+			style={{ width: '28px', height: '28px', ...config.style }}
 		>
 			<IconComponent size={15} />
 		</div>
 	);
 };
 
-export const LessonCard = ({ lesson }) => {
-	return (
-		<div className="lms-lesson-item p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-sm-hover">
+export const LessonCard = ({ lesson, to, locked = false }) => {
+	const isCompleted = !!lesson?.is_completed;
+
+	const content = (
+		<>
 			<div className="d-flex align-items-center gap-3 min-w-0">
 				<LessonIcon type={lesson?.type} />
 				<span
 					className={`fw-medium text-truncate ${
-						lesson?.completed ? 'text-decoration-line-through text-muted' : 'text-dark'
+						isCompleted ? 'text-decoration-line-through text-muted' : 'text-dark'
 					}`}
 					style={{ fontSize: '14px' }}
 				>
@@ -76,23 +57,54 @@ export const LessonCard = ({ lesson }) => {
 				</span>
 			</div>
 			<div className="d-flex align-items-center gap-2 flex-shrink-0">
-				<span className="text-muted small">{lesson?.duration}</span>
-				{lesson?.completed && (
-					<CheckCircle2 size={15} className="text-success lms-pop-in" />
+				{lesson?.is_preview && !isCompleted && (
+					<span className="badge bg-light text-muted border">Preview</span>
 				)}
+				{locked && <Lock size={14} className="text-muted" aria-label="Terkunci" />}
+				{isCompleted && <CheckCircle2 size={15} className="text-success lms-pop-in" />}
 			</div>
-		</div>
+		</>
+	);
+
+	const className =
+		'lms-lesson-item p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-sm-hover';
+
+	if (locked || !to) {
+		return <div className={`${className} opacity-75`}>{content}</div>;
+	}
+
+	return (
+		<Link to={to} className={`${className} text-decoration-none`}>
+			{content}
+		</Link>
 	);
 };
 
 // ============================================================================
 // 2. MODULE COMPONENT
 // ============================================================================
-const ModuleCard = ({ module, isExpanded, onToggle }) => {
-	const navigate = useNavigate();
+
+const ModuleCard = ({ module, pathId, isAuthenticated = false, isExpanded, onToggle }) => {
+	const location = useLocation();
+
+	const lessons = module?.lessons ?? [];
+	const totalLessons = module?.total_lessons ?? lessons.length;
+	const completedLessons = module?.completed_lessons ?? 0;
+	const progressPercent = module?.progress_percent ?? 0;
 
 	const isCompleted = module?.status === 'completed';
 	const isInProgress = module?.status === 'in_progress';
+
+	const lessonPath = (lesson) => `/learner/learning-paths/${pathId}/lessons/${lesson.id}`;
+
+	// Lesson berikutnya di modul ini: yang belum selesai, atau yang pertama
+	const nextLesson = lessons.find((l) => !l.is_completed) ?? lessons[0] ?? null;
+
+	const actionLabel = isCompleted
+		? 'Ulas Modul'
+		: isInProgress
+			? 'Lanjutkan Modul'
+			: 'Mulai Modul';
 
 	const circleStyle = {
 		width: '38px',
@@ -102,6 +114,9 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 		border: `1.5px solid ${isCompleted ? '#A7F3D0' : isInProgress ? '#BAE6FD' : '#E2E8F0'}`,
 		fontSize: '0.9rem',
 	};
+
+	const actionClassName =
+		'btn btn-primary btn-sm lms-btn-action fw-semibold px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 border-0 text-decoration-none';
 
 	return (
 		<div
@@ -113,6 +128,8 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 			<div
 				className="lms-card-header d-flex align-items-center justify-content-between gap-3 p-3 select-none"
 				onClick={onToggle}
+				role="button"
+				aria-expanded={isExpanded}
 			>
 				<div className="d-flex align-items-center gap-3 min-w-0">
 					<div
@@ -138,8 +155,16 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 								className="text-muted text-uppercase fw-bold"
 								style={{ fontSize: '0.72rem' }}
 							>
-								Module {module?.number}
+								Modul {module?.order_index}
 							</span>
+							{module?.difficulty_level && (
+								<span
+									className="badge bg-light text-muted border text-capitalize"
+									style={{ fontSize: '0.65rem' }}
+								>
+									{module.difficulty_level}
+								</span>
+							)}
 						</div>
 
 						<h5
@@ -149,16 +174,11 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 							{module?.title}
 						</h5>
 
-						<div
-							className="d-flex align-items-center gap-3 text-muted small"
-							style={{ fontSize: '0.75rem' }}
-						>
-							<span>{module?.lessonCount} Lessons</span>
-							<span>•</span>
-							<span className="d-flex align-items-center gap-1">
-								<Clock size={12} />
-								{module?.duration}
-							</span>
+						<div className="text-muted small" style={{ fontSize: '0.75rem' }}>
+							{isAuthenticated
+								? `${completedLessons}/${totalLessons} lesson selesai`
+								: `${totalLessons} lesson`}
+							{isAuthenticated && progressPercent > 0 && ` • ${progressPercent}%`}
 						</div>
 					</div>
 				</div>
@@ -175,36 +195,64 @@ const ModuleCard = ({ module, isExpanded, onToggle }) => {
 			<div className={`lms-accordion-content ${isExpanded ? 'lms-accordion-open' : ''}`}>
 				<div>
 					<div className="border-top bg-light p-4">
-						<p
-							className="text-muted small mb-3 pt-1 lms-fade-in"
-							style={{ lineHeight: 1.5 }}
-						>
-							{module?.description}
-						</p>
+						{module?.description && (
+							<p
+								className="text-muted small mb-3 pt-1 lms-fade-in"
+								style={{ lineHeight: 1.5 }}
+							>
+								{module.description}
+							</p>
+						)}
+
+						{/* Learning outcomes (hanya jika berupa array) */}
+						{Array.isArray(module?.learning_outcomes) &&
+							module.learning_outcomes.length > 0 && (
+								<ul className="small text-muted ps-3 mb-3">
+									{module.learning_outcomes.map((outcome, idx) => (
+										<li key={idx}>{outcome}</li>
+									))}
+								</ul>
+							)}
 
 						{/* Lesson Items */}
 						<div className="d-flex flex-column gap-2 mb-3">
-							{module?.lessons?.map((les, idx) => (
-								<LessonCard key={idx} lesson={les} />
-							))}
+							{lessons.length === 0 && (
+								<div className="text-muted small">Belum ada lesson.</div>
+							)}
+							{lessons.map((lesson) => {
+								// Guest hanya bisa membuka lesson preview
+								const locked = !isAuthenticated && !lesson.is_preview;
+								return (
+									<LessonCard
+										key={lesson.id}
+										lesson={lesson}
+										locked={locked}
+										to={lessonPath(lesson)}
+									/>
+								);
+							})}
 						</div>
 
-						{/* Action Link */}
-						<div className="d-flex justify-content-end pt-1">
-							<Link
-								to={`/learner/lesson/les-1`}
-								className="btn btn-primary btn-sm lms-btn-action fw-semibold px-3 py-2 rounded-3 d-inline-flex align-items-center gap-2 border-0 text-decoration-none"
-							>
-								<span>
-									{isCompleted
-										? 'Review Module'
-										: isInProgress
-											? 'Continue Module'
-											: 'Start Module'}
-								</span>
-								<ArrowRight size={14} className="lms-btn-icon" />
-							</Link>
-						</div>
+						{/* Action */}
+						{nextLesson && (
+							<div className="d-flex justify-content-end pt-1">
+								{isAuthenticated ? (
+									<Link to={lessonPath(nextLesson)} className={actionClassName}>
+										<span>{actionLabel}</span>
+										<ArrowRight size={14} className="lms-btn-icon" />
+									</Link>
+								) : (
+									<Link
+										to="/login"
+										state={{ from: location }}
+										className={actionClassName}
+									>
+										<LogIn size={14} />
+										<span>Login untuk Mulai</span>
+									</Link>
+								)}
+							</div>
+						)}
 					</div>
 				</div>
 			</div>

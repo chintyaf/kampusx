@@ -280,10 +280,10 @@ const ExploreHeader = ({
 					</div>
 
 					{/* View Switcher */}
-					{/* <div className="bg-white btn-group border rounded-3 p-1 flex-shrink-0">
+					<div className="bg-white btn-group border rounded-3 p-1 flex-shrink-0">
 						<button
 							type="button"
-							className={`btn btn-sm border-0 py-1 px-2 rounded-2 ${viewMode === 'grid' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
+							className={`btn btn-sm border-0 py-1 px-2 rounded-2 ${viewMode === 'grid' ? 'bg-primary-subtle text-primary shadow-sm' : 'text-muted'}`}
 							onClick={() => setViewMode('grid')}
 							title="Grid View"
 						>
@@ -291,13 +291,13 @@ const ExploreHeader = ({
 						</button>
 						<button
 							type="button"
-							className={`btn btn-sm border-0 py-1 px-2 rounded-2 ${viewMode === 'list' ? 'bg-white shadow-sm text-primary' : 'text-muted'}`}
+							className={`btn btn-sm border-0 py-1 px-2 rounded-2 ${viewMode === 'list' ? 'bg-primary-subtle text-primary shadow-sm' : 'text-muted'}`}
 							onClick={() => setViewMode('list')}
 							title="List View"
 						>
 							<List size={15} />
 						</button>
-					</div> */}
+					</div>
 				</div>
 			</div>
 		</div>

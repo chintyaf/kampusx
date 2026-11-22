@@ -1,48 +1,63 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { Flame } from 'lucide-react';
-import { MOCK_LEARNING_PATH } from './mockData';
+import { Layers, BookOpen, Award } from 'lucide-react';
 
-const LearningAnalytics = ({
-	metrics = MOCK_LEARNING_PATH.metrics,
-}) => {
-	const progressPercent = metrics.progressPercent || 33;
-	const radius = 46;
-	const circumference = 2 * Math.PI * radius;
-	const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
+const RADIUS = 46;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const StatItem = ({ icon: Icon, value, label }) => (
+	<div
+		className="flex-fill text-center rounded-3 py-2 px-1"
+		style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}
+	>
+		<Icon size={16} style={{ color: '#028090' }} />
+		<div className="fw-bold text-dark" style={{ fontSize: '1.05rem', lineHeight: 1.2 }}>
+			{value}
+		</div>
+		<div className="text-muted" style={{ fontSize: '0.7rem' }}>
+			{label}
+		</div>
+	</div>
+);
+
+const LearningAnalytics = ({ metrics = {} }) => {
+	const {
+		progressPercent = 0,
+		moduleCount = 0,
+		completedModules = 0,
+		lessonCount = 0,
+		completedLessons = 0,
+		averageScore = null,
+	} = metrics;
+
+	const percent = clamp(Number(progressPercent) || 0, 0, 100);
+	const strokeDashoffset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
+	const hasScore = averageScore !== null && averageScore !== undefined;
 
 	return (
 		<Card
 			className="border-0 shadow-sm rounded-4 p-4 mb-4 bg-white"
 			style={{ borderRadius: '16px' }}
 		>
-			<div className="d-flex align-items-center justify-content-between mb-3">
-				<h5 className="fw-bold mb-0 text-slate-900" style={{ fontSize: '1.05rem' }}>
-					Learning Analytics & Progress
-				</h5>
-				<span className="badge bg-light text-muted border small">Live</span>
-			</div>
+			<h5 className="fw-bold mb-3 text-dark" style={{ fontSize: '1.05rem' }}>
+				Learning Analytics & Progress
+			</h5>
 
-			{/* Radial Progress Gauge */}
+			{/* Radial progress */}
 			<div className="d-flex align-items-center justify-content-center my-3">
-				<div
-					style={{
-						position: 'relative',
-						width: '120px',
-						height: '120px',
-					}}
-				>
+				<div style={{ position: 'relative', width: '120px', height: '120px' }}>
 					<svg
-						style={{
-							transform: 'rotate(-90deg)',
-							width: '100%',
-							height: '100%',
-						}}
+						viewBox="0 0 120 120"
+						style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}
+						role="img"
+						aria-label={`Progres ${percent} persen`}
 					>
 						<circle
 							cx="60"
 							cy="60"
-							r={radius}
+							r={RADIUS}
 							fill="none"
 							stroke="#E2E8F0"
 							strokeWidth="8"
@@ -50,11 +65,11 @@ const LearningAnalytics = ({
 						<circle
 							cx="60"
 							cy="60"
-							r={radius}
+							r={RADIUS}
 							fill="none"
 							stroke="#028090"
 							strokeWidth="8"
-							strokeDasharray={circumference}
+							strokeDasharray={CIRCUMFERENCE}
 							strokeDashoffset={strokeDashoffset}
 							strokeLinecap="round"
 							style={{ transition: 'stroke-dashoffset 0.5s ease' }}
@@ -73,55 +88,40 @@ const LearningAnalytics = ({
 							className="fw-bold text-dark"
 							style={{ fontSize: '1.5rem', lineHeight: 1 }}
 						>
-							{progressPercent}%
+							{percent}%
 						</div>
 						<div
 							className="text-muted"
 							style={{ fontSize: '0.68rem', fontWeight: 600 }}
 						>
-							COMPLETED
+							SELESAI
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div className="text-center mb-3">
-				<div className="fw-semibold text-dark small">
-					{metrics.completedModules} of {metrics.moduleCount} Modules Finished
-				</div>
-				<div className="text-muted small">
-					Average Quiz Score:{' '}
-					<strong>{metrics.averageQuizScore}/100</strong>
-				</div>
+			<div className="text-center fw-semibold text-dark small mb-3">
+				{completedModules} dari {moduleCount} modul selesai
 			</div>
 
-			{/* Learning Streak Card */}
-			<div
-				className="p-3 rounded-3 d-flex align-items-center gap-3 border"
-				style={{
-					background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
-					borderColor: '#FED7AA',
-				}}
-			>
-				<div
-					className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-					style={{
-						width: '40px',
-						height: '40px',
-						backgroundColor: '#EA580C',
-						color: '#FFF',
-					}}
-				>
-					<Flame size={20} fill="currentColor" />
-				</div>
-				<div>
-					<div className="fw-bold text-dark small" style={{ color: '#C2410C' }}>
-						🔥 {metrics.currentStreakDays}-Day Learning Streak!
-					</div>
-					<div className="text-muted" style={{ fontSize: '0.75rem' }}>
-						Keep going — next milestone unlocked at 7 days.
-					</div>
-				</div>
+			<div className="d-flex gap-2">
+				<StatItem
+					icon={Layers}
+					value={`${completedModules}/${moduleCount}`}
+					label="Modul"
+				/>
+				<StatItem
+					icon={BookOpen}
+					value={`${completedLessons}/${lessonCount}`}
+					label="Lesson"
+				/>
+				{hasScore && (
+					<StatItem
+						icon={Award}
+						value={Math.round(averageScore)}
+						label="Rata-rata skor"
+					/>
+				)}
 			</div>
 		</Card>
 	);

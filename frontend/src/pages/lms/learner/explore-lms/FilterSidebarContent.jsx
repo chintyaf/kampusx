@@ -1,7 +1,32 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 import { Filter, RotateCcw, Sparkles, Target } from 'lucide-react';
-import { TOPIC_OPTIONS, LEVEL_OPTIONS, DURATION_OPTIONS, MEDIA_OPTIONS } from './mockData';
+
+const DEFAULT_TOPICS = [
+	'Programming',
+	'Web Development',
+	'AI & Data',
+	'Cloud & DevOps',
+	'Software Engineering',
+	'Soft Skills & Leadership',
+];
+
+const DEFAULT_LEVELS = ['Pemula', 'Menengah', 'Lanjutan'];
+
+const DEFAULT_DURATIONS = [
+	{ label: '< 10 Menit', value: '< 10 Menit' },
+	{ label: '10 - 30 Menit', value: '10-30 Menit' },
+	{ label: '30 - 60 Menit', value: '30-60 Menit' },
+	{ label: '1 - 3 Jam', value: '1-3 Jam' },
+	{ label: '> 3 Jam', value: '> 3 Jam' },
+];
+
+const DEFAULT_MEDIA = [
+	{ label: 'Video Pembelajaran', value: 'Video' },
+	{ label: 'Artikel & Ringkasan', value: 'Artikel' },
+	{ label: 'Kuis Interaktif', value: 'Kuis Interaktif' },
+	{ label: 'Interactive Coding', value: 'Interactive Coding' },
+];
 
 /**
  * FilterSidebarContent
@@ -16,6 +41,10 @@ const FilterSidebarContent = ({
 	selectedMedia = [],
 	aiRecommendedOnly = false,
 	weeklyGoalOnly = false,
+	topicOptions = DEFAULT_TOPICS,
+	levelOptions = DEFAULT_LEVELS,
+	durationOptions = DEFAULT_DURATIONS,
+	mediaOptions = DEFAULT_MEDIA,
 	setSelectedTopics,
 	setSelectedLevels,
 	setSelectedDurations,
@@ -44,14 +73,13 @@ const FilterSidebarContent = ({
 			)}
 		</div>
 
-
-		{/* 2. Topik / Kategori */}
+		{/* 1. Topik / Kategori dari Database */}
 		<div>
 			<div className="fw-bold text-dark small text-uppercase mb-2 explore-filter-heading">
 				Topik & Keahlian
 			</div>
 			<div className="d-flex flex-column gap-2">
-				{TOPIC_OPTIONS.map((topic) => (
+				{(topicOptions && topicOptions.length > 0 ? topicOptions : DEFAULT_TOPICS).map((topic) => (
 					<Form.Check
 						key={topic}
 						type="checkbox"
@@ -64,13 +92,13 @@ const FilterSidebarContent = ({
 			</div>
 		</div>
 
-		{/* 3. Level Kesulitan */}
+		{/* 2. Level Kesulitan */}
 		<div className="pt-3 border-top">
 			<div className="fw-bold text-dark small text-uppercase mb-2 explore-filter-heading">
 				Tingkat Kesulitan
 			</div>
 			<div className="d-flex flex-column gap-2">
-				{LEVEL_OPTIONS.map((lvl) => (
+				{(levelOptions && levelOptions.length > 0 ? levelOptions : DEFAULT_LEVELS).map((lvl) => (
 					<Form.Check
 						key={lvl}
 						type="checkbox"
@@ -83,13 +111,13 @@ const FilterSidebarContent = ({
 			</div>
 		</div>
 
-		{/* 4. Durasi Belajar */}
+		{/* 3. Durasi Belajar */}
 		<div className="pt-3 border-top">
 			<div className="fw-bold text-dark small text-uppercase mb-2 explore-filter-heading">
 				Estimasi Durasi
 			</div>
 			<div className="d-flex flex-column gap-2">
-				{DURATION_OPTIONS.map((dur) => (
+				{(durationOptions && durationOptions.length > 0 ? durationOptions : DEFAULT_DURATIONS).map((dur) => (
 					<Form.Check
 						key={dur.value}
 						type="checkbox"
@@ -104,13 +132,13 @@ const FilterSidebarContent = ({
 			</div>
 		</div>
 
-		{/* 5. Tipe Konten / Media */}
+		{/* 4. Tipe Konten / Media */}
 		<div className="pt-3 border-top">
 			<div className="fw-bold text-dark small text-uppercase mb-2 explore-filter-heading">
 				Format Media
 			</div>
 			<div className="d-flex flex-column gap-2">
-				{MEDIA_OPTIONS.map((med) => (
+				{(mediaOptions && mediaOptions.length > 0 ? mediaOptions : DEFAULT_MEDIA).map((med) => (
 					<Form.Check
 						key={med.value}
 						type="checkbox"
