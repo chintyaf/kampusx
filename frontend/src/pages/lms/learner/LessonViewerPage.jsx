@@ -15,6 +15,8 @@ import { getModuleLessons, getLessonDetail, completeLesson } from './lesson/less
 // Styles
 import '@/pages/lms/lessonViewer.css';
 
+import useSRLMaterialTracker from '@/hooks/useSRLMaterialTracker';
+
 // Ubah response API ke bentuk yang dipakai komponen (snake_case + alias camelCase)
 const normalizeLesson = (lesson, moduleId) => ({
 	...lesson,
@@ -32,6 +34,8 @@ const getErrorMessage = (err) => {
 
 const LessonViewerPage = () => {
 	const { slug, moduleId, lessonId } = useParams();
+	// di dalam komponen, setelah lessonId didapat dari useParams()
+	useSRLMaterialTracker('lesson', lessonId ? Number(lessonId) : null);
 	const navigate = useNavigate();
 
 	const mainContentRef = useRef(null);

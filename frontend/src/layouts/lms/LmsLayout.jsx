@@ -3,8 +3,8 @@ import { Outlet, useLocation, matchPath } from 'react-router-dom';
 import NavbarMember from '../partials-dashboard/NavbarMember.jsx';
 import NavbarLesson from '../partials-dashboard/NavbarLesson.jsx';
 import Footer from '../partials-dashboard/Footer';
-import SRLModal from '@/components/lms/SRLModal';
-import SRLTriggerButton from '@/components/lms/SRLTriggerButton';
+import SRLModal from '@/components/lms/srl-modal/SRLModal';
+import SRLTriggerButton from '@/components/lms/srl-modal/SRLTriggerButton';
 import { SRLProvider } from '@/context/SRLContext';
 
 // Cek apakah URL mengarah ke LessonViewerPage (/learner/learning-paths/:slug/modules/:moduleId/lessons/:lessonId?)

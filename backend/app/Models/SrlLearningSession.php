@@ -2,22 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SrlLearningSession extends Model
 {
     use HasFactory;
 
-    protected $table = 'srl_learning_sessions';
-
     protected $fillable = [
-        'enrollment_id',
         'user_id',
-        'module_id',
-        'lesson_id',
         'status',
         'current_phase',
         'goal',
@@ -36,108 +32,74 @@ class SrlLearningSession extends Model
         'future_adjustment',
     ];
 
-    protected $casts = [
-        'strategies'          => 'array',
-        'factors'             => 'array',
-        'estimated_minutes'   => 'integer',
-        'confidence_level'    => 'integer',
-        'accumulated_seconds' => 'integer',
-        'focus_level'         => 'integer',
-        'started_at'          => 'datetime',
-        'ended_at'            => 'datetime',
-        'created_at'          => 'datetime',
-        'updated_at'          => 'datetime',
-    ];
-
-    // Status siklus sesi
-    const STATUS_PLANNED     = 'planned';
-    const STATUS_IN_PROGRESS = 'in_progress';
-    const STATUS_COMPLETED   = 'completed';
-    const STATUS_ABANDONED   = 'abandoned';
-
-    // Fase SRL sesuai 3 fase Zimmerman
-    const PHASE_FORETHOUGHT = 'forethought';
-    const PHASE_PERFORMANCE = 'performance';
-    const PHASE_REFLECTION  = 'reflection';
-
-    // Opsi capaian target
-    const GOAL_ACHIEVED = 'tercapai';
-    const GOAL_PARTIAL  = 'sebagian';
-    const GOAL_UNMET    = 'belum';
-
-    // ----------------------------------------------------------------
-    // Relasi
-    // ----------------------------------------------------------------
-
-    public function enrollment(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(Enrollment::class, 'enrollment_id');
+        return [
+            'strategies' => 'array',
+            'factors' => 'array',
+            'estimated_minutes' => 'integer',
+            'confidence_level' => 'integer',
+            'started_at' => 'datetime',
+            'ended_at' => 'datetime',
+            'accumulated_seconds' => 'integer',
+            'focus_level' => 'integer',
+        ];
     }
+
+    // --- Relationships ---
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class);
     }
 
-    public function module(): BelongsTo
+    public function materials(): HasMany
     {
-        return $this->belongsTo(Module::class, 'module_id');
+        return $this->hasMany(SrlSessionMaterial::class, 'srl_learning_session_id');
     }
 
-    public function lesson(): BelongsTo
+    // --- Query Scopes ---
+
+    public function scopeInProgress(Builder $query): Builder
     {
-        return $this->belongsTo(Lesson::class, 'lesson_id');
+        return $query->where('status', 'in_progress');
     }
 
-    // ----------------------------------------------------------------
-    // Scopes
-    // ----------------------------------------------------------------
-
-    public function scopeActive(Builder $query): Builder
+    public function scopeOngoing(Builder $query): Builder
     {
-        return $query->where('status', self::STATUS_IN_PROGRESS);
+        return $query->whereIn('status', ['planned', 'in_progress']);
     }
 
-    public function scopeCompleted(Builder $query): Builder
-    {
-        return $query->where('status', self::STATUS_COMPLETED);
-    }
+    // --- Helper untuk Mencatat Materi yang Dipelajari ---
 
-    // ----------------------------------------------------------------
-    // Accessors
-    // ----------------------------------------------------------------
+    public function trackMaterial(
+        Model $target,
+        string $activityType = 'viewed',
+        int $additionalSeconds = 0,
+        bool $isCompleted = false,
+        array $metadata = []
+    ): SrlSessionMaterial {
+        $material = $this->materials()->firstOrNew([
+            'target_type' => $target->getMorphClass(),
+            'target_id' => $target->getKey(),
+        ]);
 
-    /**
-     * Durasi aktual dalam satuan menit (dibulatkan ke atas).
-     */
-    public function getDurationMinutesAttribute(): int
-    {
-        return $this->accumulated_seconds > 0
-            ? (int) ceil($this->accumulated_seconds / 60)
-            : 0;
-    }
+        if (! $material->exists) {
+            $material->started_at = now();
+            $material->duration_seconds = 0;
+        }
 
-    /**
-     * Target waktu belajar dalam satuan detik.
-     */
-    public function getTargetSecondsAttribute(): int
-    {
-        return ($this->estimated_minutes ?? 25) * 60;
-    }
+        $material->activity_type = $activityType;
+        $material->duration_seconds += max(0, $additionalSeconds);
+        $material->is_completed = $material->is_completed || $isCompleted;
+        $material->ended_at = now();
 
-    /**
-     * Cek apakah target waktu belajar telah tercapai/terlewati.
-     */
-    public function getIsTargetTimeReachedAttribute(): bool
-    {
-        return $this->accumulated_seconds >= $this->target_seconds;
-    }
+        if (! empty($metadata)) {
+            $material->metadata = array_merge($material->metadata ?? [], $metadata);
+        }
 
-    /**
-     * Cek apakah sesi saat ini sedang aktif berjalan.
-     */
-    public function getIsSessionActiveAttribute(): bool
-    {
-        return $this->status === self::STATUS_IN_PROGRESS;
+        $material->save();
+
+        return $material;
     }
 }

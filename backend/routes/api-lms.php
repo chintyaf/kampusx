@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -19,6 +18,7 @@ use App\Http\Controllers\Api\Lms\CredentialApiController;
 use App\Http\Controllers\Api\Lms\LearnerLessonViewController;
 use App\Http\Controllers\Api\Lms\LearnerQuizController;
 use App\Http\Controllers\Api\Lms\LearnerQuizResultController;
+use App\Http\Controllers\Api\Lms\SrlLearningSessionController;
 
 // ====================================================
 // LMS Microlearning
@@ -70,6 +70,17 @@ Route::prefix('lms')->group(function () {
         Route::apiResource('readiness-predictions', ReadinessPredictionController::class);
         Route::apiResource('recommendations', RecommendationController::class);
 
+        // Self-Regulated Learning (SRL) Sessions
+        Route::prefix('srl-sessions')->group(function () {
+            Route::get('active', [SrlLearningSessionController::class, 'active']);
+            Route::post('/', [SrlLearningSessionController::class, 'store']);
+            Route::patch('{srlLearningSession}/start', [SrlLearningSessionController::class, 'start']);
+            Route::patch('{srlLearningSession}/progress', [SrlLearningSessionController::class, 'syncProgress']);
+            Route::post('{srlLearningSession}/materials', [SrlLearningSessionController::class, 'trackMaterial']);
+            Route::patch('{srlLearningSession}/reflect', [SrlLearningSessionController::class, 'reflect']);
+            Route::patch('{srlLearningSession}/abandon', [SrlLearningSessionController::class, 'abandon']);
+        });
+
         Route::post(
             'learning-paths/{learningPathId}/send-credential',
             [CredentialApiController::class, 'sendCredential']
@@ -84,7 +95,6 @@ Route::prefix('lms')->group(function () {
 
             // Tandai selesai (return progress untuk toast)
             Route::post('lessons/{lessonId}/complete', [LearnerLessonViewController::class, 'complete']);
-
 
             // di dalam Route::prefix('modules/{moduleId}')->group(...) milik 'member'
             Route::prefix('quiz')->group(function () {
