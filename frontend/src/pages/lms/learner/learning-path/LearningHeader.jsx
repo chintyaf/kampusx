@@ -129,34 +129,28 @@ const LearningHeader = ({
 		>
 			<Container>
 				{/* Breadcrumb */}
-				<nav aria-label="breadcrumb" className="mb-3">
+				<nav
+					aria-label="breadcrumb"
+					className="mb-3"
+					style={{ '--bs-breadcrumb-divider-color': MUTED }}
+				>
 					<ol className="breadcrumb mb-0" style={{ fontSize: '0.85rem' }}>
 						<li className="breadcrumb-item">
-							<Link to="/" style={{ color: MUTED, textDecoration: 'none' }}>
+							<Link to="/learning" style={{ color: MUTED, textDecoration: 'none' }}>
 								Home
 							</Link>
-						</li>
-						<li className="breadcrumb-item">
-							<Link
-								to="/explore-microlearning"
-								style={{ color: MUTED, textDecoration: 'none' }}
-							>
-								Explore
-							</Link>
-						</li>
-						<li className="breadcrumb-item">
-							<span style={{ color: MUTED }}>Learning Paths</span>
 						</li>
 						<li
 							className="breadcrumb-item active"
 							aria-current="page"
 							style={{ color: '#E2E8F0' }}
 						>
-							{title}
+							Learning Paths
 						</li>
+						<li className="breadcrumb-item" aria-hidden="true" />
 					</ol>
 				</nav>
-
+				
 				<Row className="align-items-center g-4">
 					<Col lg={8}>
 						<h1

@@ -13,15 +13,10 @@ class LMSSeeder extends Seeder
     {
         DB::transaction(function () {
             $now = Carbon::now();
+            $userId = 3;
 
-            // User ID 2 sebagai Learning Path creator.
-            $userId = 2;
-
-            $userExists = DB::table('users')
-                ->where('id', $userId)
-                ->exists();
-
-            if (!$userExists) {
+            // Validate user
+            if (!DB::table('users')->where('id', $userId)->exists()) {
                 throw new RuntimeException(
                     "User with ID {$userId} does not exist."
                 );
@@ -40,6 +35,7 @@ class LMSSeeder extends Seeder
                 ],
                 [
                     'event_id' => null,
+                    'slug' => 'fundamentals-of-python-programming',
                     'description' => 'Learn the fundamentals of Python programming, including variables, data types, and basic programming concepts.',
                     'category' => 'Programming',
                     'categories' => json_encode([
@@ -49,8 +45,9 @@ class LMSSeeder extends Seeder
                     ]),
                     'thumbnail' => null,
                     'status' => 'published',
-                    'created_at' => $now,
+                    'published_at' => $now,
                     'updated_at' => $now,
+                    'created_at' => $now,
                 ]
             );
 
@@ -104,41 +101,88 @@ class LMSSeeder extends Seeder
                 [
                     'type' => 'microlearning',
 
-                    'content' => <<<'HTML'
-<h2>Variables in Python</h2>
+                    'content' => <<<'MARKDOWN'
+# Variables and Data Types
 
-<p>
-    A variable is a named reference used to store data.
-    Variables allow programmers to store and manipulate
-    information throughout a program.
-</p>
+## 1. Variables in Python
 
-<h3>Example</h3>
+A **variable** is a named reference used to store data. Variables allow programmers to store and manipulate information throughout a program.
 
-<pre><code>name = "Chintya"
+Variables are created when a value is assigned using the assignment operator (`=`).
+
+### Example
+
+```python
+name = "Chintya"
 age = 21
 height = 160.5
-is_student = True</code></pre>
+is_student = True
+```
 
-<h2>Basic Data Types</h2>
+In the example above:
 
-<ul>
-    <li><strong>String:</strong> Used to store text data.</li>
-    <li><strong>Integer:</strong> Used to store whole numbers.</li>
-    <li><strong>Float:</strong> Used to store decimal numbers.</li>
-    <li><strong>Boolean:</strong> Used to store True or False values.</li>
-</ul>
+- `name` stores a text value.
+- `age` stores a whole number.
+- `height` stores a decimal number.
+- `is_student` stores a Boolean value.
 
-<h2>Summary</h2>
+## 2. Basic Data Types
 
-<p>
-    Python variables store data, while data types determine
-    the kind of value that a variable can contain.
-</p>
-HTML,
+Python provides several built-in data types to represent different kinds of values.
 
-                    'summary' => 'Learn how to declare variables and identify basic Python data types such as String, Integer, Float, and Boolean.',
+| Data Type | Description | Example |
+|---|---|---|
+| String (`str`) | Stores text data. | `"Hello"` |
+| Integer (`int`) | Stores whole numbers. | `21` |
+| Float (`float`) | Stores decimal numbers. | `160.5` |
+| Boolean (`bool`) | Stores `True` or `False`. | `True` |
 
+### Example
+
+```python
+student_name = "Chintya"
+student_age = 21
+student_height = 160.5
+is_enrolled = True
+
+print(student_name)
+print(student_age)
+print(student_height)
+print(is_enrolled)
+```
+
+## 3. Checking Data Types
+
+Python provides the `type()` function to identify the data type of a variable.
+
+### Example
+
+```python
+name = "Chintya"
+age = 21
+
+print(type(name))  # <class 'str'>
+print(type(age))   # <class 'int'>
+```
+
+## 4. Summary
+
+- Variables are used to store and reference data.
+- Python uses the `=` operator to assign values.
+- Data types determine the kind of value stored in a variable.
+- Common data types include String, Integer, Float, and Boolean.
+- The `type()` function identifies the data type of a variable.
+
+## 5. Reflection
+
+Consider the following questions:
+
+1. What is the difference between an Integer and a Float?
+2. Why are variables important in programming?
+3. What data type would you use to store a student's enrollment status?
+MARKDOWN,
+
+                    'summary' => 'Learn how to declare variables, identify basic Python data types, and use the type() function.',
                     'order_index' => 1,
                     'duration_minutes' => 8,
                     'xp' => 15,
@@ -150,11 +194,6 @@ HTML,
                 ]
             );
 
-            $lessonId = DB::table('lessons')
-                ->where('module_id', $moduleId)
-                ->where('title', 'Variables and Data Types')
-                ->value('id');
-
             /*
             |--------------------------------------------------------------------------
             | 4. QUIZ
@@ -164,14 +203,14 @@ HTML,
             DB::table('quizzes')->updateOrInsert(
                 [
                     'module_id' => $moduleId,
-                    'title' => 'Python Fundamentals Quiz',
                 ],
                 [
-                    'lesson_id' => null,
+                    'title' => 'Python Fundamentals Quiz',
                     'description' => 'Assess your understanding of Python variables and basic data types.',
                     'bloom_level' => 'Understanding',
                     'time_limit_minutes' => 10,
                     'passing_score' => 70.00,
+                    'is_published' => true,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]
@@ -179,85 +218,89 @@ HTML,
 
             $quizId = DB::table('quizzes')
                 ->where('module_id', $moduleId)
-                ->where('title', 'Python Fundamentals Quiz')
                 ->value('id');
 
             /*
             |--------------------------------------------------------------------------
-            | 5. QUIZ QUESTION
+            | 5. QUIZ QUESTIONS & OPTIONS
             |--------------------------------------------------------------------------
             */
 
-            DB::table('quiz_questions')->updateOrInsert(
+            $questions = [
                 [
-                    'quiz_id' => $quizId,
                     'question_text' => 'Which data type is used to store whole numbers in Python?',
-                ],
-                [
                     'bloom_level' => 'Remembering',
                     'explanation' => 'The int data type represents integer values or whole numbers in Python.',
-                    'order_index' => 1,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]
-            );
-
-            $questionId = DB::table('quiz_questions')
-                ->where('quiz_id', $quizId)
-                ->where(
-                    'question_text',
-                    'Which data type is used to store whole numbers in Python?'
-                )
-                ->value('id');
-
-            /*
-            |--------------------------------------------------------------------------
-            | 6. QUESTION OPTIONS
-            |--------------------------------------------------------------------------
-            */
-
-            $options = [
-                [
-                    'option_label' => 'A',
-                    'option_text' => 'String',
-                    'is_correct' => false,
-                    'order_index' => 1,
+                    'options' => [
+                        ['A', 'String', false],
+                        ['B', 'Float', false],
+                        ['C', 'Integer', true],
+                        ['D', 'Boolean', false],
+                    ],
                 ],
                 [
-                    'option_label' => 'B',
-                    'option_text' => 'Float',
-                    'is_correct' => false,
-                    'order_index' => 2,
+                    'question_text' => 'Which Python function is used to identify the data type of a variable?',
+                    'bloom_level' => 'Remembering',
+                    'explanation' => 'The type() function returns the data type of a given object.',
+                    'options' => [
+                        ['A', 'print()', false],
+                        ['B', 'type()', true],
+                        ['C', 'input()', false],
+                        ['D', 'str()', false],
+                    ],
                 ],
                 [
-                    'option_label' => 'C',
-                    'option_text' => 'Integer',
-                    'is_correct' => true,
-                    'order_index' => 3,
-                ],
-                [
-                    'option_label' => 'D',
-                    'option_text' => 'Boolean',
-                    'is_correct' => false,
-                    'order_index' => 4,
+                    'question_text' => 'Which variable declaration stores a Boolean value?',
+                    'bloom_level' => 'Understanding',
+                    'explanation' => 'Boolean values in Python are represented by True and False.',
+                    'options' => [
+                        ['A', 'age = 21', false],
+                        ['B', 'name = "Python"', false],
+                        ['C', 'height = 160.5', false],
+                        ['D', 'is_student = True', true],
+                    ],
                 ],
             ];
 
-            foreach ($options as $option) {
-                DB::table('question_options')->updateOrInsert(
+            foreach ($questions as $index => $question) {
+                $order = $index + 1;
+
+                DB::table('quiz_questions')->updateOrInsert(
                     [
-                        'question_id' => $questionId,
-                        'option_label' => $option['option_label'],
+                        'quiz_id' => $quizId,
+                        'order_index' => $order,
                     ],
                     [
-                        'option_text' => $option['option_text'],
-                        'is_correct' => $option['is_correct'],
-                        'order_index' => $option['order_index'],
+                        'question_text' => $question['question_text'],
+                        'bloom_level' => $question['bloom_level'],
+                        'explanation' => $question['explanation'],
                         'created_at' => $now,
                         'updated_at' => $now,
                     ]
                 );
+
+                $questionId = DB::table('quiz_questions')
+                    ->where('quiz_id', $quizId)
+                    ->where('order_index', $order)
+                    ->value('id');
+
+                foreach ($question['options'] as $optionIndex => $option) {
+                    DB::table('question_options')->updateOrInsert(
+                        [
+                            'question_id' => $questionId,
+                            'option_label' => $option[0],
+                        ],
+                        [
+                            'option_text' => $option[1],
+                            'is_correct' => $option[2],
+                            'order_index' => $optionIndex + 1,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]
+                    );
+                }
             }
+
         });
 
         $this->command->info('LMS dummy data seeded successfully.');

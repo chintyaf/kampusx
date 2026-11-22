@@ -84,7 +84,7 @@ export const LessonCard = ({ lesson, to, locked = false }) => {
 // 2. MODULE COMPONENT
 // ============================================================================
 
-const ModuleCard = ({ module, pathId, isAuthenticated = false, isExpanded, onToggle }) => {
+const ModuleCard = ({ module, pathId, slug, isAuthenticated = false, isExpanded, onToggle }) => {
 	const location = useLocation();
 
 	const lessons = module?.lessons ?? [];
@@ -95,7 +95,22 @@ const ModuleCard = ({ module, pathId, isAuthenticated = false, isExpanded, onTog
 	const isCompleted = module?.status === 'completed';
 	const isInProgress = module?.status === 'in_progress';
 
-	const lessonPath = (lesson) => `/learner/learning-paths/${pathId}/lessons/${lesson.id}`;
+	// Mendukung prop `slug` maupun `pathId` sebagai parameter `:slug` di URL
+	const pathSlug = slug ?? pathId;
+	const moduleBasePath = `/learner/learning-paths/${pathSlug}/modules/${module?.id}`;
+
+	const lessonPath = (lesson) => {
+		switch (lesson?.type) {
+			case 'forethought':
+				return `${moduleBasePath}/forethought`;
+			case 'quiz':
+				return `${moduleBasePath}/quiz`;
+			case 'reflection':
+				return `${moduleBasePath}/reflection`;
+			default:
+				return `${moduleBasePath}/lessons/${lesson.id}`;
+		}
+	};
 
 	// Lesson berikutnya di modul ini: yang belum selesai, atau yang pertama
 	const nextLesson = lessons.find((l) => !l.is_completed) ?? lessons[0] ?? null;

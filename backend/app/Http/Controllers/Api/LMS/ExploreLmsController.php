@@ -47,6 +47,7 @@ class ExploreLmsController extends Controller
             $items->push([
                 'id'                 => 'lp-' . $lp->id,
                 'rawId'              => $lp->id,
+                'slug'              => $lp->slug,
                 'type'               => 'learning_path',
                 'title'              => $lp->title,
                 'description'        => $lp->description ?? 'Jalur belajar terstruktur untuk menguasai keahlian secara komprehensif.',

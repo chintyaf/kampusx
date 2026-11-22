@@ -13,8 +13,8 @@ import ModuleDetailPage from '@/pages/lms/learner/ModuleDetailPage';
 import LessonViewerPage from '@/pages/lms/learner/LessonViewerPage';
 import LearningPathDetailPage from '@/pages/lms/learner/LearningPathDetailPage';
 import ForethoughtPage from '@/pages/lms/learner/modules/forethought/ForethoughtPage';
-import QuizPage from '@/pages/lms/learner/modules/quiz/QuizPage';
-import ReflectionPage from '@/pages/lms/learner/modules/reflection/ReflectionPage';
+import QuizPage from '@/pages/lms/learner/QuizPage';
+import ReflectionPage from '@/pages/lms/learner/ReflectionPage';
 import ModuleCompletionPage from '@/pages/lms/learner/modules/completion/ModuleCompletionPage';
 import LearningPathCertificatePage from '@/pages/lms/learner/certificate/LearningPathCertificatePage';
 import AnalyticsPage from '@/pages/lms/learner/analytics/AnalyticsPage';
@@ -54,19 +54,19 @@ export const LmsRoutes = () => {
 					<Route path="explore" element={<ExploreMicrolearningPage />} />
 					<Route path="dashboard" element={<Navigate to="/learning" replace />} />
 
-					{/* Group Prefix: /learner/learning-paths */}
-					<Route path="learning-paths">
-						<Route path=":pathId" element={<LearningPathDetailPage />} />
-						<Route path=":pathId/certificate" element={<LearningPathCertificatePage />} />
-					</Route>
+					<Route path="learning-paths/:slug">
+						<Route index element={<LearningPathDetailPage />} />
+						<Route path="certificate" element={<LearningPathCertificatePage />} />
 
-					{/* Group Prefix: /learner/modules/:moduleId */}
-					<Route path="module/:moduleId">
-						<Route index element={<ModuleDetailPage />} />
-						<Route path="forethought" element={<ForethoughtPage />} />
-						<Route path="quiz" element={<QuizPage />} />
-						<Route path="reflection" element={<ReflectionPage />} />
-						<Route path="completed" element={<ModuleCompletionPage />} />
+						{/* /learner/learning-paths/:slug/modules/:moduleId */}
+						<Route path="modules/:moduleId">
+							<Route index element={<ModuleDetailPage />} />
+							<Route path="forethought" element={<ForethoughtPage />} />
+							<Route path="lessons/:lessonId?" element={<LessonViewerPage />} />
+							<Route path="quiz" element={<QuizPage />} />
+							<Route path="reflection" element={<ReflectionPage />} />
+							<Route path="completed" element={<ModuleCompletionPage />} />
+						</Route>
 					</Route>
 
 					<Route path="certificate/:pathId" element={<LearningPathCertificatePage />} />
@@ -77,10 +77,7 @@ export const LmsRoutes = () => {
 					<Route path="settings" element={<SettingsPage />} />
 				</Route>
 
-				{/* Direct Lesson Shortcuts */}
-				<Route path="learner/learning-paths/:learningId/lessons/:lessonId" element={<LessonViewerPage />} />
-				<Route path="learner/:moduleId/:lessonId" element={<LessonViewerPage />} />
-				<Route path="learner/lessons/:lessonId" element={<LessonViewerPage />} />
+				{/* 3 rute "Direct Lesson Shortcuts" lama dihapus */}
 			</Route>
 
 			{/* 2. ORGANIZER DOMAIN */}

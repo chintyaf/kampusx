@@ -190,16 +190,31 @@ const ExploreMicrolearningPage = () => {
 
 	const handleNavigateItem = useCallback(
 		(item) => {
-			const targetId =
-				item.rawId ||
-				item.id?.replace(/^(lp-|mod-|les-|cur-lp-|cur-mod-|cur-les-)/, '') ||
-				item.id;
+			const targetId = item.rawId || item.id;
+
+			const learningPathSlug =
+				item.type === 'learning_path'
+					? item.slug || targetId
+					: item.learningPathSlug || item.learning_path_slug || item.pathSlug;
+
 			if (item.type === 'learning_path') {
-				navigate(`/learner/learning-paths/${targetId}`);
+				navigate(`/learner/learning-paths/${learningPathSlug}`);
 			} else if (item.type === 'module') {
-				navigate(`/learner/modules/${targetId}`);
+				if (learningPathSlug) {
+					navigate(`/learner/learning-paths/${learningPathSlug}/modules/${targetId}`);
+				} else {
+					navigate(`/learner/modules/${targetId}`);
+				}
 			} else {
-				navigate(`/learner/lessons/${targetId}`);
+				const moduleId = item.moduleId || item.module_id || item.rawModuleId;
+
+				if (learningPathSlug && moduleId) {
+					navigate(
+						`/learner/learning-paths/${learningPathSlug}/modules/${moduleId}/lessons/${targetId}`,
+					);
+				} else {
+					navigate(`/learner/lessons/${targetId}`);
+				}
 			}
 		},
 		[navigate],

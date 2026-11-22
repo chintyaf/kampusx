@@ -6,14 +6,13 @@ import { Container, Row, Col } from 'react-bootstrap';
 import { getModuleData } from '@/pages/lms/mock-data/mockData';
 import ModuleHeader from '@/pages/lms/learner/modules/detail-module/ModuleHeader';
 import ModuleLesson from '@/pages/lms/learner/modules/detail-module/ModuleLesson';
-import SRLForethoughtModal from '@/components/lms/SRLForethoughtModal';
 
 /**
  * ModuleDetailPage
- * Halaman Akses & Overview Modul Microlearning dengan SRL Forethought Interceptor
+ * Halaman Akses & Overview Modul Microlearning
  */
 const ModuleDetailPage = () => {
-	const { moduleId = 'mod-arch-101' } = useParams();
+	const { slug, moduleId = 'mod-arch-101' } = useParams();
 	const navigate = useNavigate();
 
 	const moduleData = getModuleData(moduleId);
@@ -21,30 +20,28 @@ const ModuleDetailPage = () => {
 	const [isBookmarked, setIsBookmarked] = useState(false);
 	const [lessonFilter, setLessonFilter] = useState('all'); // 'all' | 'uncompleted'
 
-	// --- STATE INTERSEPTOR SRL FORETHOUGHT ---
-	const [isForethoughtOpen, setIsForethoughtOpen] = useState(false);
-	const [targetLessonId, setTargetLessonId] = useState(null);
-
 	/**
-	 * 1. Pemicu Akses Modul (Action Trigger)
-	 * Menahan navigasi langsung dan menampilkan modal SRL Forethought
+	 * Navigasi langsung ke halaman lesson atau quiz sesuai LmsRoutes
 	 */
-	const handleInitiateLearning = (lessonId) => {
-		const target = lessonId || moduleData?.currentLessonId || moduleData?.lessons?.[0]?.id;
-		setTargetLessonId(target);
-		setIsForethoughtOpen(true);
-	};
+	const handleNavigateToLesson = (lessonOrId) => {
+		const resolvedId =
+			typeof lessonOrId === 'object' && lessonOrId !== null ? lessonOrId.id : lessonOrId;
 
-	/**
-	 * 4. Transisi ke Fase Performance (Navigation Unlock)
-	 * Menutup modal perencanaan dan mengalihkan pengguna ke Halaman Materi/Lesson
-	 */
-	const handleForethoughtComplete = (payload) => {
-		setIsForethoughtOpen(false);
+		const lessonDestination =
+			resolvedId || moduleData?.currentLessonId || moduleData?.lessons?.[0]?.id || 'les-01';
 
-		// Redirect ke halaman lesson materi aktif (Fase Performance)
-		const lessonDestination = targetLessonId || moduleData?.currentLessonId || 'les-01';
-		navigate(`/learner/lessons/${lessonDestination}`);
+		if (typeof lessonOrId === 'object' && lessonOrId?.type === 'quiz') {
+			const quizPath = slug
+				? `/learner/learning-paths/${slug}/modules/${moduleId}/quiz`
+				: 'quiz';
+			navigate(quizPath);
+			return;
+		}
+
+		const lessonPath = slug
+			? `/learner/learning-paths/${slug}/modules/${moduleId}/lessons/${lessonDestination}`
+			: `lessons/${lessonDestination}`;
+		navigate(lessonPath);
 	};
 
 	const filteredLessons = moduleData.lessons.filter((les) => {
@@ -59,7 +56,7 @@ const ModuleDetailPage = () => {
 			{/* 1. HERO BANNER / HEADER MODUL */}
 			<ModuleHeader
 				moduleData={moduleData}
-				handleNavigateToLesson={handleInitiateLearning}
+				handleNavigateToLesson={handleNavigateToLesson}
 				isBookmarked={isBookmarked}
 				setIsBookmarked={setIsBookmarked}
 			/>
@@ -74,21 +71,11 @@ const ModuleDetailPage = () => {
 							filteredLessons={filteredLessons}
 							lessonFilter={lessonFilter}
 							setLessonFilter={setLessonFilter}
-							handleNavigateToLesson={handleInitiateLearning}
+							handleNavigateToLesson={handleNavigateToLesson}
 						/>
 					</Col>
 				</Row>
 			</Container>
-
-			{/* 3. MODAL POP-UP FORM FORETHOUGHT (Interseptor Pre-Learning) */}
-			<SRLForethoughtModal
-				isOpen={isForethoughtOpen}
-				onClose={() => setIsForethoughtOpen(false)}
-				onComplete={handleForethoughtComplete}
-				enrollmentId={moduleData?.enrollmentId || 1}
-				recommendedTime={15}
-				moduleTitle={moduleData?.title}
-			/>
 		</div>
 	);
 };

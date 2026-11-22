@@ -88,4 +88,32 @@ class LearningPath extends Model
 
         return url('storage/lms/learning-path/' . ltrim($this->thumbnail, '/'));
     }
+
+    // Di dalam class LearningPath (app/Models/LearningPath.php)
+    public static function findByIdOrSlug(string $idOrSlug): self
+    {
+        return static::when(
+            is_numeric($idOrSlug),
+            fn ($q) => $q->where('id', $idOrSlug),
+            fn ($q) => $q->where('slug', $idOrSlug)
+        )->firstOrFail();
+    }
+
+
+
+    protected static function booted(): void
+    {
+        static::creating(function (LearningPath $path) {
+            if (!$path->slug) {
+                $base = Str::slug($path->title);
+                $slug = $base;
+                $i = 2;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = "{$base}-{$i}";
+                    $i++;
+                }
+                $path->slug = $slug;
+            }
+        });
+    }
 }

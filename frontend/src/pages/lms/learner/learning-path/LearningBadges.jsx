@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, Row, Col, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Award, Lock, Sparkles, Brain, Layers, Flame, ShieldCheck } from 'lucide-react';
-import { MOCK_LEARNING_PATH } from './mockData';
 
 const ICON_MAP = {
 	Brain: Brain,
@@ -13,7 +12,7 @@ const ICON_MAP = {
 	Award: Award,
 };
 
-const LearningBadges = ({ badges = MOCK_LEARNING_PATH.badges }) => {
+const LearningBadges = ({ badges}) => {
 	const navigate = useNavigate();
 	const unlockedCount = badges.filter((b) => b.unlocked).length;
 
@@ -61,7 +60,10 @@ const LearningBadges = ({ badges = MOCK_LEARNING_PATH.badges }) => {
 								>
 									{b.unlocked ? <IconComp size={18} /> : <Lock size={15} />}
 								</div>
-								<div className="fw-bold text-slate-800 text-truncate w-100" style={{ fontSize: '0.78rem' }}>
+								<div
+									className="fw-bold text-slate-800 text-truncate w-100"
+									style={{ fontSize: '0.78rem' }}
+								>
 									{b.name}
 								</div>
 								<div className="text-muted" style={{ fontSize: '0.68rem' }}>

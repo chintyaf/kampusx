@@ -194,4 +194,6 @@ class PublicLearningPathController extends Controller
     {
         return response()->json(['success' => false, 'message' => $message], 404);
     }
+
+    
 }

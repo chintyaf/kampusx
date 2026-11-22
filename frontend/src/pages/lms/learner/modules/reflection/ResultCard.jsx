@@ -245,7 +245,7 @@ const ResultCard = ({ currentOutcome, onAction }) => {
 											fontWeight: 700,
 										}}
 									>
-										{currentOutcome.metrics.correct} Benar
+										{currentOutcome.metrics?.correct ?? 0} Benar
 									</span>
 								</div>
 
@@ -268,7 +268,7 @@ const ResultCard = ({ currentOutcome, onAction }) => {
 											fontWeight: 700,
 										}}
 									>
-										{currentOutcome.metrics.wrong} Salah
+										{currentOutcome.metrics?.wrong ?? 0} Salah
 									</span>
 								</div>
 
@@ -291,7 +291,7 @@ const ResultCard = ({ currentOutcome, onAction }) => {
 											fontWeight: 700,
 										}}
 									>
-										{currentOutcome.metrics.unanswered} Terlewat
+										{currentOutcome.metrics?.unanswered ?? 0} Terlewat
 									</span>
 								</div>
 
@@ -314,7 +314,7 @@ const ResultCard = ({ currentOutcome, onAction }) => {
 											fontWeight: 700,
 										}}
 									>
-										{currentOutcome.duration || '08m 45s'}
+										{currentOutcome.duration || '-'}
 									</span>
 								</div>
 							</div>

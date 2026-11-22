@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\Lms\PublicLearningPathController;
 use App\Http\Controllers\Api\Lms\LearnerLearningPathController;
 use App\Http\Controllers\Api\Lms\LearningDashboardController;
 use App\Http\Controllers\Api\Lms\CredentialApiController;
+use App\Http\Controllers\Api\Lms\LearnerLessonViewController;
+use App\Http\Controllers\Api\Lms\LearnerQuizController;
+use App\Http\Controllers\Api\Lms\LearnerQuizResultController;
 
 // ====================================================
 // LMS Microlearning
@@ -71,5 +74,29 @@ Route::prefix('lms')->group(function () {
             'learning-paths/{learningPathId}/send-credential',
             [CredentialApiController::class, 'sendCredential']
         );
+
+        Route::prefix('modules/{moduleId}')->group(function () {
+            // Sidebar: info modul, daftar lesson, progress, info kuis
+            Route::get('lessons', [LearnerLessonViewController::class, 'index']);
+
+            // Konten lesson aktif + prev/next
+            Route::get('lessons/{lessonId}', [LearnerLessonViewController::class, 'show']);
+
+            // Tandai selesai (return progress untuk toast)
+            Route::post('lessons/{lessonId}/complete', [LearnerLessonViewController::class, 'complete']);
+
+
+            // di dalam Route::prefix('modules/{moduleId}')->group(...) milik 'member'
+            Route::prefix('quiz')->group(function () {
+                Route::get('/', [LearnerQuizController::class, 'show']);
+                Route::post('start', [LearnerQuizController::class, 'start']);
+                Route::get('attempts/{attemptId}', [LearnerQuizController::class, 'result']);
+                Route::put('attempts/{attemptId}/answers', [LearnerQuizController::class, 'saveAnswer']);
+                Route::post('attempts/{attemptId}/submit', [LearnerQuizController::class, 'submit']);
+            });
+
+            // Hasil Refleksi & Evaluasi setelah mengerjakan kuis
+            Route::get('reflection', [LearnerQuizResultController::class, 'show']);
+        });
     });
 });

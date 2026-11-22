@@ -1,47 +1,16 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 import ExploreGridCard from '@/pages/lms/learner/explore-lms/ExploreGridCard';
 
-const RECOMMENDATIONS_DATA = [
-	{
-		id: '1',
-		type: 'lesson',
-		title: 'REST API Stateless Fundamentals',
-		description:
-			'Pelajari kembali konsep stateless, request mandiri, dan batas tanggung jawab client-server.',
-		durationLabel: '12 Menit',
-		thumbnail:
-			'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=800&auto=format&fit=crop',
-	},
-	{
-		id: '2',
-		type: 'learning_path',
-		title: 'HTTP Methods & Status Codes',
-		description:
-			'Bangun pemahaman menyeluruh tentang method, response, status code, dan pola komunikasi REST.',
-		moduleCount: 2,
-		lessonCount: 6,
-		durationLabel: '1.5 Jam',
-		thumbnail:
-			'https://images.unsplash.com/photo-1516259762381-22954d7d3ad2?q=80&w=800&auto=format&fit=crop',
-	},
-	{
-		id: '3',
-		type: 'module',
-		title: 'JSON Data Exchange for REST API',
-		description:
-			'Kuasai struktur JSON, serialization, dan praktik pertukaran data yang aman pada REST API.',
-		lessonCount: 4,
-		level: 'Menengah',
-		durationLabel: '40 Menit',
-		isEnrolled: false,
-		thumbnail:
-			'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=800&auto=format&fit=crop',
-	},
-];
-
-const Rekomendasi = () => {
+const Rekomendasi = ({ recommendations = [] }) => {
+	const { slug, moduleId } = useParams();
+	const navigate = useNavigate();
 	const [bookmarkedIds, setBookmarkedIds] = useState([]);
+
+	if (!Array.isArray(recommendations) || recommendations.length === 0) {
+		return null;
+	}
 
 	const handleToggleBookmark = (e, id) => {
 		setBookmarkedIds((prev) =>
@@ -50,11 +19,31 @@ const Rekomendasi = () => {
 	};
 
 	const handleNavigate = (item) => {
-		console.log('Navigating to:', item.title);
+		const targetSlug = item.learningPathSlug || slug;
+		const targetModuleId = item.moduleId || moduleId;
+
+		if (item.type === 'lesson' && targetSlug && targetModuleId) {
+			navigate(
+				`/learner/learning-paths/${targetSlug}/modules/${targetModuleId}/lessons/${item.id}`,
+			);
+			return;
+		}
+
+		if (item.type === 'module' && targetSlug) {
+			navigate(`/learner/learning-paths/${targetSlug}/modules/${item.id}`);
+			return;
+		}
+
+		if (item.type === 'learning_path') {
+			navigate(`/learner/learning-paths/${item.slug || item.id}`);
+			return;
+		}
+
+		navigate('/learner/explore');
 	};
 
 	return (
-		<Container className="py-2 px-0">
+		<Container className="py-2 px-0 mt-4">
 			<div className="mb-4">
 				<span
 					className="text-uppercase fw-bold text-primary small d-block mb-1"
@@ -75,13 +64,13 @@ const Rekomendasi = () => {
 					</div>
 
 					<span className="fw-semibold text-primary small text-nowrap">
-						{RECOMMENDATIONS_DATA.length} materi direkomendasikan
+						{recommendations.length} materi direkomendasikan
 					</span>
 				</div>
 			</div>
 
 			<Row className="g-4">
-				{RECOMMENDATIONS_DATA.map((item) => (
+				{recommendations.map((item) => (
 					<Col key={item.id} xs={12} md={6} lg={4}>
 						<ExploreGridCard
 							item={item}

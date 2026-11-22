@@ -28,10 +28,12 @@
         "react-easy-crop": "^5.5.7",
         "react-hot-toast": "^2.6.0",
         "react-leaflet": "^5.0.0",
+        "react-markdown": "^10.1.0",
         "react-qr-code": "^2.0.18",
         "react-router-dom": "^7.13.1",
         "react-select": "^5.10.2",
-        "recharts": "^3.8.1"
+        "recharts": "^3.8.1",
+        "remark-gfm": "^4.0.1"
     },
     "devDependencies": {
         "@eslint/js": "^9.39.1",

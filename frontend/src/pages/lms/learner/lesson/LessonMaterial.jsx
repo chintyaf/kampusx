@@ -1,129 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Clock, Target, Lightbulb, BookOpen, Timer } from 'lucide-react';
-import { Card, Badge, Spinner, Alert } from 'react-bootstrap';
+import { Card, Badge, Alert } from 'react-bootstrap';
 
+import LessonContent from './LessonContent';
 import '@/pages/lms/lessonContent.css';
-
-/* ==========================================================================
-   HELPER: Normalisasi HTML lesson (lesson.html tetap polos / unstyled)
-   ========================================================================== */
-
-/**
- * Menghapus indentasi bawaan dari blok kode tanpa merusak indentasi aslinya.
- * Kasus khusus: baris pertama sering membawa indentasi tag HTML,
- * sedangkan baris lainnya tidak.
- */
-const dedent = (text = '') => {
-	const lines = text.replace(/\t/g, '    ').split('\n');
-	while (lines.length && !lines[0].trim()) lines.shift();
-	while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
-	if (!lines.length) return '';
-
-	const indentOf = (l) => l.match(/^ */)[0].length;
-	const rest = lines.slice(1).filter((l) => l.trim());
-	const restMin = rest.length ? Math.min(...rest.map(indentOf)) : 0;
-
-	if (indentOf(lines[0]) > restMin) lines[0] = lines[0].trimStart();
-
-	const min = Math.min(...lines.filter((l) => l.trim()).map(indentOf));
-	return lines.map((l) => l.slice(min).replace(/\s+$/, '')).join('\n');
-};
-
-const LANG_BY_EXT = {
-	py: 'Python',
-	js: 'JavaScript',
-	ts: 'TypeScript',
-	java: 'Java',
-	cpp: 'C++',
-	c: 'C',
-	html: 'HTML',
-	css: 'CSS',
-	sql: 'SQL',
-	php: 'PHP',
-};
-
-/** Bungkus <pre> dengan header (label bahasa + tombol salin). */
-const buildCodeBlock = (doc, pre) => {
-	const code = pre.querySelector('code');
-	const source = dedent((code || pre).textContent);
-
-	if (code) {
-		// Buang whitespace nyasar antara <pre> dan <code>
-		[...pre.childNodes].forEach((n) => {
-			if (n !== code && n.nodeType === 3 && !n.textContent.trim()) {
-				pre.removeChild(n);
-			}
-		});
-		code.textContent = source;
-	} else {
-		pre.textContent = source;
-	}
-
-	// Deteksi bahasa & nama file dari komentar "File: xxx.ext" atau class language-xxx
-	const fileMatch = source.match(/^\s*(?:#|\/\/|--)\s*File:\s*(\S+)/i);
-	const filename = fileMatch?.[1] || '';
-	const ext = filename.split('.').pop().toLowerCase();
-	const classLang = code && [...code.classList].find((c) => c.startsWith('language-'));
-	const lang = LANG_BY_EXT[ext] || (classLang ? classLang.replace('language-', '') : 'Kode');
-
-	const wrap = doc.createElement('div');
-	wrap.className = 'lesson-code';
-
-	const header = doc.createElement('div');
-	header.className = 'lesson-code-header';
-
-	const label = doc.createElement('span');
-	label.className = 'lesson-code-lang';
-	label.textContent = filename ? `${lang} · ${filename}` : lang;
-
-	const btn = doc.createElement('button');
-	btn.type = 'button';
-	btn.className = 'lesson-code-copy';
-	btn.setAttribute('data-copy', '');
-	btn.textContent = 'Salin';
-
-	header.append(label, btn);
-	pre.parentNode.insertBefore(wrap, pre);
-	wrap.append(header, pre);
-};
-
-const normalizeLessonHtml = (html = '') => {
-	if (!html) return '';
-
-	// 1. Perbaiki typo tag seperti <h2"> -> <h2>
-	const fixed = html.replace(/<h([1-6])"/gi, '<h$1');
-	const doc = new DOMParser().parseFromString(fixed, 'text/html');
-
-	// 2. Blok kode: rapikan + bungkus dengan header
-	doc.querySelectorAll('pre').forEach((pre) => buildCodeBlock(doc, pre));
-
-	// 3. Tabel scrollable di layar kecil
-	doc.querySelectorAll('table').forEach((table) => {
-		const wrap = doc.createElement('div');
-		wrap.className = 'lesson-table-wrap';
-		table.parentNode.insertBefore(wrap, table);
-		wrap.appendChild(table);
-	});
-
-	// 4. Link eksternal dibuka di tab baru
-	doc.querySelectorAll('a[href^="http"]').forEach((a) => {
-		a.setAttribute('target', '_blank');
-		a.setAttribute('rel', 'noopener noreferrer');
-	});
-
-	return doc.body.innerHTML;
-};
 
 const formatTime = (totalSeconds) => {
 	const mins = Math.floor(totalSeconds / 60);
 	const secs = totalSeconds % 60;
 	return `${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
 };
-
-/* ==========================================================================
-   COMPONENT
-   ========================================================================== */
 
 const LessonMaterial = ({ data = [], item, forethoughtData, onCompleteLesson }) => {
 	const { lessonId } = useParams();
@@ -142,7 +29,7 @@ const LessonMaterial = ({ data = [], item, forethoughtData, onCompleteLesson }) 
 		return () => clearInterval(timer);
 	}, [currentLesson.id]);
 
-	// Fetch konten HTML dengan guard race condition
+	// Fetch konten Markdown dengan guard race condition
 	useEffect(() => {
 		if (!currentLesson.contentUrl) {
 			setFetchedContent('');
@@ -153,15 +40,16 @@ const LessonMaterial = ({ data = [], item, forethoughtData, onCompleteLesson }) 
 		setLoading(true);
 
 		fetch(currentLesson.contentUrl)
-			.then((res) => res.text())
-			.then((html) => {
-				if (!cancelled) setFetchedContent(html);
+			.then((res) => {
+				if (!res.ok) throw new Error(`HTTP ${res.status}`);
+				return res.text();
+			})
+			.then((md) => {
+				if (!cancelled) setFetchedContent(md);
 			})
 			.catch((err) => {
-				console.error('Gagal memuat file HTML lesson:', err);
-				if (!cancelled) {
-					setFetchedContent('<p class="text-danger">Gagal memuat materi lesson.</p>');
-				}
+				console.error('Gagal memuat file Markdown lesson:', err);
+				if (!cancelled) setFetchedContent('_Gagal memuat materi lesson._');
 			})
 			.finally(() => {
 				if (!cancelled) setLoading(false);
@@ -172,31 +60,7 @@ const LessonMaterial = ({ data = [], item, forethoughtData, onCompleteLesson }) 
 		};
 	}, [currentLesson.contentUrl]);
 
-	const htmlContent = useMemo(
-		() => normalizeLessonHtml(currentLesson.content || fetchedContent),
-		[currentLesson.content, fetchedContent],
-	);
-
-	// Tombol "Salin" pada blok kode (event delegation)
-	const handleContentClick = async (e) => {
-		const btn = e.target.closest('[data-copy]');
-		if (!btn) return;
-
-		const pre = btn.closest('.lesson-code')?.querySelector('pre');
-		if (!pre) return;
-
-		try {
-			await navigator.clipboard.writeText(pre.textContent);
-			btn.textContent = 'Tersalin ✓';
-			btn.classList.add('is-copied');
-			setTimeout(() => {
-				btn.textContent = 'Salin';
-				btn.classList.remove('is-copied');
-			}, 1500);
-		} catch (err) {
-			console.error('Gagal menyalin kode:', err);
-		}
-	};
+	const markdown = currentLesson.content || fetchedContent;
 
 	return (
 		<Card
@@ -294,19 +158,8 @@ const LessonMaterial = ({ data = [], item, forethoughtData, onCompleteLesson }) 
 					</Alert>
 				)}
 
-				{/* D. MAIN CONTENT */}
-				{loading ? (
-					<div className="py-5 text-center text-muted d-flex flex-column align-items-center gap-2">
-						<Spinner animation="border" variant="primary" size="sm" />
-						<span style={{ fontSize: 'var(--font-sm)' }}>Memuat konten lesson...</span>
-					</div>
-				) : htmlContent ? (
-					<div
-						className="lesson-body-content"
-						onClick={handleContentClick}
-						dangerouslySetInnerHTML={{ __html: htmlContent }}
-					/>
-				) : null}
+				{/* D. MAIN CONTENT (Markdown) */}
+				<LessonContent markdown={markdown} loading={loading} />
 
 				{/* E. PERTANYAAN REFLEKSI */}
 				{currentLesson.reflectionQuestion && (

@@ -42,9 +42,9 @@ const mergeModules = (publicModules = [], progress) => {
 };
 
 const LearningPathDetailPage = () => {
-	const { pathId } = useParams();
+	// 1. Sesuaikan dengan parameter :slug di React Router
+	const { slug } = useParams();
 	const { isAuthenticated, loading: authLoading } = useAuth();
-	// di dalam komponen
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -65,7 +65,7 @@ const LearningPathDetailPage = () => {
 	const [isBookmarked, setIsBookmarked] = useState(false);
 
 	useEffect(() => {
-		if (!pathId || authLoading) return; // tunggu status login pasti
+		if (!slug || authLoading) return;
 
 		let isCancelled = false;
 
@@ -74,10 +74,10 @@ const LearningPathDetailPage = () => {
 			setErrorMessage('');
 
 			try {
-				const publicBase = `lms/public/learning-paths/${pathId}`;
-				const memberBase = `lms/member/learning-paths/${pathId}`;
+				// 2. Gunakan leading slash '/' & parameter slug
+				const publicBase = `/lms/public/learning-paths/${slug}`;
+				const memberBase = `/lms/member/learning-paths/${slug}`;
 
-				// Publik wajib berhasil. Data member opsional: gagal tidak menjatuhkan halaman.
 				const [pathRes, contentRes, progressRes, achievementsRes] = await Promise.all([
 					api.get(publicBase),
 					api.get(`${publicBase}/content`),
@@ -99,7 +99,6 @@ const LearningPathDetailPage = () => {
 					achievements: achievementsRes?.data?.data ?? EMPTY_MEMBER.achievements,
 				});
 
-				// Buka modul yang sedang berjalan, atau modul pertama
 				const merged = mergeModules(contentData.modules, progressData);
 				const active = merged.find((m) => m.status === 'in_progress') ?? merged[0];
 				setExpandedModules(active ? { [active.id]: true } : {});
@@ -122,14 +121,13 @@ const LearningPathDetailPage = () => {
 		return () => {
 			isCancelled = true;
 		};
-	}, [pathId, isAuthenticated, authLoading, reloadKey]);
+	}, [slug, isAuthenticated, authLoading, reloadKey]);
 
 	const modules = useMemo(
 		() => mergeModules(content.modules, member.progress),
 		[content.modules, member.progress],
 	);
 
-	// Metrics publik (jumlah modul/lesson) ditimpa metrics member jika ada
 	const metrics = useMemo(
 		() => ({
 			moduleCount: content.metrics?.moduleCount ?? 0,
@@ -142,9 +140,9 @@ const LearningPathDetailPage = () => {
 		[content.metrics, member.progress],
 	);
 
-	// Lesson pertama yang belum selesai, atau lesson pertama jika semuanya sudah selesai
+	// 3. Sisipkan moduleId ke setiap lesson agar bisa dipakai untuk navigasi
 	const nextLesson = useMemo(() => {
-		const lessons = modules.flatMap((m) => m.lessons);
+		const lessons = modules.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleId: m.id })));
 		return lessons.find((l) => !l.is_completed) ?? lessons[0] ?? null;
 	}, [modules]);
 
@@ -154,7 +152,10 @@ const LearningPathDetailPage = () => {
 			return;
 		}
 		if (nextLesson) {
-			navigate(`/learner/learning-paths/${pathId}/lessons/${nextLesson.id}`);
+			// 4. Sesuaikan dengan nested route: learning-paths/:slug/modules/:moduleId/lessons/:lessonId
+			navigate(
+				`/learner/learning-paths/${slug}/modules/${nextLesson.moduleId}/lessons/${nextLesson.id}`,
+			);
 		}
 	};
 
@@ -197,9 +198,11 @@ const LearningPathDetailPage = () => {
 			<Container className="mt-4">
 				<Row className="g-4">
 					<Col lg={8}>
+						{/* Kirim slug sebagai pathId agar link di dalam LearningModule otomatis memakai slug */}
 						<LearningModule
 							modules={modules}
-							pathId={pathId}
+							pathId={slug}
+							slug={slug}
 							expandedModules={expandedModules}
 							onToggleModule={toggleModuleExpand}
 							isAuthenticated={isAuthenticated}
@@ -210,7 +213,8 @@ const LearningPathDetailPage = () => {
 						{isAuthenticated && (
 							<>
 								<LearningCert
-									pathId={pathId}
+									pathId={slug}
+									slug={slug}
 									certificate={member.achievements.certificate}
 									progressPercent={metrics.progressPercent}
 									totalModules={metrics.moduleCount}

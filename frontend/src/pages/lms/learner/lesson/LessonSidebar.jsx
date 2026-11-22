@@ -10,8 +10,10 @@ const LessonSidebar = ({
 	completedLessonIds: externalCompleted,
 	onSelectLesson,
 }) => {
-	const { moduleId = 'mod-arch-101', lessonId = 'les-4' } = useParams();
+	const { slug, moduleId = 'mod-arch-101', lessonId = 'les-4' } = useParams();
 	const navigate = useNavigate();
+
+	const moduleBaseUrl = `/learner/learning-paths/${slug}/modules/${moduleId}`;
 
 	const activeLessonId = currentLessonId || lessonId;
 	// Cari lesson yang sedang aktif
@@ -27,10 +29,8 @@ const LessonSidebar = ({
 	const handleSelectLesson = (id) => {
 		if (onSelectLesson) {
 			onSelectLesson(id);
-		} else if (moduleId) {
-			navigate(`/learner/${moduleId}/${id}`);
-		} else {
-			navigate(`/learner/lessons/${id}`);
+		} else if (slug && moduleId) {
+			navigate(`${moduleBaseUrl}/lessons/${id}`);
 		}
 	};
 
@@ -42,9 +42,11 @@ const LessonSidebar = ({
 		<div className="d-flex flex-column h-100" style={{ backgroundColor: 'var(--card)' }}>
 			{/* --- Sidebar Header --- */}
 			<div className="p-3 border-bottom flex-shrink-0">
+
+				{/* TODO : I feel like this could work as a breadcrumb */}
 				<div className="d-flex align-items-center justify-content-between mb-2">
 					<Link
-						to={`/learner/modules/${moduleId}`}
+						to={moduleBaseUrl}
 						className="text-decoration-none d-inline-flex align-items-center gap-1"
 						style={{
 							fontSize: 'var(--font-xs)',
@@ -52,7 +54,7 @@ const LessonSidebar = ({
 						}}
 					>
 						<ChevronLeft size={14} style={{ color: 'var(--text-muted)' }} />
-						<span>Kembali</span>
+						<span>Learning Path</span>
 					</Link>
 				</div>
 
@@ -133,7 +135,7 @@ const LessonSidebar = ({
 					<div className="lesson-quiz-label">Evaluasi</div>
 
 					<Link
-						to={`/learner/modules/${moduleId}/quiz`}
+						to={`${moduleBaseUrl}/quiz`}
 						className="lesson-quiz-link d-flex align-items-center gap-3 px-3 pb-3 pt-2 text-decoration-none"
 					>
 						<span className="lesson-quiz-icon d-inline-flex align-items-center justify-content-center flex-shrink-0">

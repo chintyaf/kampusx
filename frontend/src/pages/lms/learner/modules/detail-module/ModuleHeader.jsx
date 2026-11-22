@@ -1,9 +1,52 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Layers, Clock, BookOpen, Zap, Play, Bookmark, Share2, ChevronLeft } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import {
+	Layers,
+	Clock,
+	BookOpen,
+	Zap,
+	Play,
+	Bookmark,
+	Share2,
+	Check,
+	ChevronLeft,
+} from 'lucide-react';
 
 const ModuleHeader = ({ moduleData, handleNavigateToLesson, isBookmarked, setIsBookmarked }) => {
+	const { slug } = useParams();
+	const [isCopied, setIsCopied] = useState(false);
+	const copyTimeoutRef = useRef(null);
+
+	useEffect(() => {
+		return () => {
+			if (copyTimeoutRef.current) {
+				clearTimeout(copyTimeoutRef.current);
+			}
+		};
+	}, []);
+
 	if (!moduleData) return null;
+
+	const backToLearningPath = slug ? `/learner/learning-paths/${slug}` : '/learning';
+
+	const handleShare = async () => {
+		if (!navigator.clipboard) return;
+
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			setIsCopied(true);
+
+			if (copyTimeoutRef.current) {
+				clearTimeout(copyTimeoutRef.current);
+			}
+
+			copyTimeoutRef.current = setTimeout(() => {
+				setIsCopied(false);
+			}, 2000);
+		} catch (err) {
+			console.error('Gagal menyalin tautan:', err);
+		}
+	};
 
 	return (
 		<section
@@ -21,7 +64,7 @@ const ModuleHeader = ({ moduleData, handleNavigateToLesson, isBookmarked, setIsB
 					style={{ fontSize: 'var(--font-sm)' }}
 				>
 					<Link
-						to="/learning"
+						to={backToLearningPath}
 						className="d-inline-flex align-items-center gap-1 text-decoration-none fw-semibold"
 						style={{ color: 'var(--primary)' }}
 					>
@@ -207,8 +250,9 @@ const ModuleHeader = ({ moduleData, handleNavigateToLesson, isBookmarked, setIsB
 							>
 								<Play size={15} fill="currentColor" />
 								<span>
-									Lanjutkan ke Lesson{' '}
-									{moduleData.currentLessonId?.replace('les-', '')}
+									{moduleData.currentLessonId
+										? `Lanjutkan ke Lesson ${moduleData.currentLessonId.replace('les-', '')}`
+										: 'Mulai Belajar'}
 								</span>
 							</button>
 
@@ -246,20 +290,22 @@ const ModuleHeader = ({ moduleData, handleNavigateToLesson, isBookmarked, setIsB
 									className="btn w-50 py-1 d-inline-flex align-items-center justify-content-center gap-1 fw-medium"
 									style={{
 										fontSize: 'var(--font-xs)',
-										borderColor: 'var(--neutral-border)',
-										color: 'var(--neutral-text)',
-										backgroundColor: 'var(--card)',
+										borderColor: isCopied
+											? 'var(--success-border-color)'
+											: 'var(--neutral-border)',
+										color: isCopied
+											? 'var(--success-text)'
+											: 'var(--neutral-text)',
+										backgroundColor: isCopied
+											? 'var(--success-bg)'
+											: 'var(--card)',
 										borderRadius: 'var(--radius-md)',
+										transition: 'all 0.2s ease',
 									}}
-									onClick={() => {
-										if (navigator.clipboard) {
-											navigator.clipboard.writeText(window.location.href);
-											alert('Tautan modul berhasil disalin!');
-										}
-									}}
+									onClick={handleShare}
 								>
-									<Share2 size={14} />
-									<span>Bagikan</span>
+									{isCopied ? <Check size={14} /> : <Share2 size={14} />}
+									<span>{isCopied ? 'Tautan disalin' : 'Bagikan'}</span>
 								</button>
 							</div>
 						</div>

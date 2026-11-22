@@ -1,38 +1,15 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Badge, Button } from 'react-bootstrap';
 import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-// Sample dummy data jika tidak ada data dari props
-const DEFAULT_REMEDIAL_LESSONS = [
-	{
-		id: 'l1',
-		lessonNumber: 1,
-		title: 'Lesson 1 — Dasar HTTP & REST API',
-		status: 'Terlewat',
-		question:
-			'Manakah protokol yang paling umum digunakan untuk komunikasi antara client dan server pada REST API?',
-		userAnswer: 'Belum dijawab',
-		correctAnswer: 'HTTP/HTTPS',
-		actionText: 'Pelajari Lesson 1',
-	},
-	{
-		id: 'l2',
-		lessonNumber: 2,
-		title: 'Lesson 2 — HTTP Methods & Status Codes',
-		status: 'Salah',
-		question:
-			'HTTP Method manakah yang bersifat idempotent dan digunakan untuk memperbarui resource secara keseluruhan?',
-		userAnswer: 'POST',
-		correctAnswer: 'PUT',
-		actionText: 'Pelajari Lesson 2',
-	},
-];
-
-const LessonReview = ({ currentOutcome, remedialLessons = DEFAULT_REMEDIAL_LESSONS }) => {
+const LessonReview = ({ currentOutcome, remedialLessons = [], onSelectLesson }) => {
+	const { slug, moduleId } = useParams();
+	const navigate = useNavigate();
 	const [currentIndex, setCurrentIndex] = useState(0);
 
-	const remedialCount = currentOutcome?.remedialCount ?? remedialLessons.length;
-	const lessons = remedialLessons.slice(0, remedialCount);
+	const lessons = Array.isArray(remedialLessons) ? remedialLessons : [];
+	const remedialCount = currentOutcome?.remedialCount ?? lessons.length;
 
 	const handlePrev = () => {
 		setCurrentIndex((prev) => Math.max(prev - 1, 0));
@@ -40,6 +17,20 @@ const LessonReview = ({ currentOutcome, remedialLessons = DEFAULT_REMEDIAL_LESSO
 
 	const handleNext = () => {
 		setCurrentIndex((prev) => Math.min(prev + 1, lessons.length - 1));
+	};
+
+	const handleOpenLesson = (lesson) => {
+		if (onSelectLesson) {
+			onSelectLesson(lesson);
+			return;
+		}
+
+		const targetLessonId = lesson.lessonId || lesson.id;
+		if (slug && moduleId && targetLessonId) {
+			navigate(
+				`/learner/learning-paths/${slug}/modules/${moduleId}/lessons/${targetLessonId}`,
+			);
+		}
 	};
 
 	// Tampilan jika semua lesson sudah dikuasai (tidak ada remedial)
@@ -175,18 +166,20 @@ const LessonReview = ({ currentOutcome, remedialLessons = DEFAULT_REMEDIAL_LESSO
 					}}
 				>
 					<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						<span
-							style={{
-								background: '#FEF3C7',
-								color: '#78350F',
-								fontSize: '0.75rem',
-								fontWeight: 700,
-								padding: '2px 8px',
-								borderRadius: 6,
-							}}
-						>
-							{currentLesson.lessonNumber}
-						</span>
+						{currentLesson.lessonNumber && (
+							<span
+								style={{
+									background: '#FEF3C7',
+									color: '#78350F',
+									fontSize: '0.75rem',
+									fontWeight: 700,
+									padding: '2px 8px',
+									borderRadius: 6,
+								}}
+							>
+								{currentLesson.lessonNumber}
+							</span>
+						)}
 						<span
 							style={{
 								fontSize: '0.95rem',
@@ -198,21 +191,23 @@ const LessonReview = ({ currentOutcome, remedialLessons = DEFAULT_REMEDIAL_LESSO
 						</span>
 					</div>
 
-					<Badge
-						bg="warning-subtle"
-						className="text-warning-emphasis"
-						style={{
-							fontSize: '0.72rem',
-							borderRadius: 50,
-							padding: '4px 10px',
-							display: 'flex',
-							alignItems: 'center',
-							gap: 4,
-							fontWeight: 600,
-						}}
-					>
-						<AlertCircle size={12} /> {currentLesson.status}
-					</Badge>
+					{currentLesson.status && (
+						<Badge
+							bg="warning-subtle"
+							className="text-warning-emphasis"
+							style={{
+								fontSize: '0.72rem',
+								borderRadius: 50,
+								padding: '4px 10px',
+								display: 'flex',
+								alignItems: 'center',
+								gap: 4,
+								fontWeight: 600,
+							}}
+						>
+							<AlertCircle size={12} /> {currentLesson.status}
+						</Badge>
+					)}
 				</div>
 
 				<p
@@ -267,6 +262,7 @@ const LessonReview = ({ currentOutcome, remedialLessons = DEFAULT_REMEDIAL_LESSO
 				<div>
 					<Button
 						size="sm"
+						onClick={() => handleOpenLesson(currentLesson)}
 						style={{
 							backgroundColor: '#0284C7',
 							borderColor: '#0284C7',
@@ -280,7 +276,7 @@ const LessonReview = ({ currentOutcome, remedialLessons = DEFAULT_REMEDIAL_LESSO
 							color: '#FFFFFF',
 						}}
 					>
-						<span>{currentLesson.actionText}</span>
+						<span>{currentLesson.actionText || 'Pelajari Lesson'}</span>
 						<ChevronRight size={14} />
 					</Button>
 				</div>
