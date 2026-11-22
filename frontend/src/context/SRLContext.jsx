@@ -4,20 +4,23 @@ import axios from '@/api/axios';
 const SRLContext = createContext();
 
 const BASE = '/lms/member/srl-sessions';
-const AUTO_SYNC_MS = 30000;
+const AUTO_SYNC_MS = 30000; // sync berkala saat timer berjalan
+const DEBOUNCE_MS = 1500; // sync setelah user berhenti mengubah catatan/fokus/jeda
 
+// Nama field mengikuti yang dipakai komponen fase (bukan nama kolom DB)
 const initialSRLData = {
 	forethought: {
 		goal: '',
 		motivation: '',
-		strategies: [],
-		estimatedMinutes: 25,
-		confidenceLevel: null,
+		estimatedTime: 25,
+		confidence: null,
 	},
 	performance: {
 		notes: '',
 		focusLevel: null,
 		accumulatedSeconds: 0,
+		startedAt: null,
+		hasStarted: false,
 	},
 	reflection: {
 		goalAchievement: '', // 'tercapai' | 'sebagian' | 'belum'
@@ -36,7 +39,7 @@ const readJSON = (key, fallback) => {
 	}
 };
 
-// Ambil pesan error paling informatif dari response Laravel
+// Pesan error paling informatif dari response Laravel
 const getErrorMessage = (e, fallback = 'Terjadi kesalahan. Coba lagi.') => {
 	const data = e?.response?.data;
 	if (data?.errors) {
@@ -44,6 +47,41 @@ const getErrorMessage = (e, fallback = 'Terjadi kesalahan. Coba lagi.') => {
 		if (Array.isArray(first) && first[0]) return first[0];
 	}
 	return data?.message || fallback;
+};
+
+// Total detik belajar, termasuk timer yang sedang berjalan
+const getElapsedSeconds = (p = {}) =>
+	Math.max(
+		0,
+		Math.floor(
+			(p.accumulatedSeconds || 0) + (p.startedAt ? (Date.now() - p.startedAt) / 1000 : 0),
+		),
+	);
+
+// Ubah data form Forethought -> payload sesuai validasi backend
+const buildStartPayload = (d = {}) => {
+	const goal = String(d.goal ?? d.sessionGoal ?? '')
+		.trim()
+		.slice(0, 1000);
+	const strategiesRaw = Array.isArray(d.selectedStrategies)
+		? d.selectedStrategies
+		: Array.isArray(d.plan)
+			? d.plan
+			: [];
+	const minutes = Math.min(300, Math.max(5, Math.round(Number(d.estimatedTime) || 25)));
+	const conf = Math.round(Number(d.confidence));
+
+	return {
+		goal,
+		motivation:
+			String(d.motivation ?? '')
+				.trim()
+				.slice(0, 1000) || null,
+		strategies: strategiesRaw.map((s) => String(s).trim().slice(0, 255)).filter(Boolean),
+		estimated_minutes: minutes,
+		confidence_level: conf >= 1 && conf <= 5 ? conf : null,
+		start_immediately: true,
+	};
 };
 
 export const SRLProvider = ({ children }) => {
@@ -75,10 +113,6 @@ export const SRLProvider = ({ children }) => {
 		() => localStorage.getItem('srl_session_id') || null,
 	);
 
-	const [timerRunning, setTimerRunning] = useState(
-		() => readJSON('srl_timer_running', false) === true,
-	);
-
 	// Ref supaya fungsi async & interval selalu membaca nilai terbaru
 	const sessionIdRef = useRef(sessionId);
 	const srlDataRef = useRef(srlData);
@@ -103,38 +137,15 @@ export const SRLProvider = ({ children }) => {
 	}, [srlData]);
 
 	useEffect(() => {
-		localStorage.setItem('srl_timer_running', JSON.stringify(timerRunning));
-	}, [timerRunning]);
-
-	useEffect(() => {
 		if (sessionId) localStorage.setItem('srl_session_id', String(sessionId));
 		else localStorage.removeItem('srl_session_id');
 	}, [sessionId]);
 
-	// ── Timer (hidup di context, jadi tetap jalan saat modal ditutup) ──
-	// Memakai selisih timestamp agar akurat walau tab di-throttle browser.
-	const timerActive = timerRunning && isSessionActive && currentPhase === 'performance';
-
-	useEffect(() => {
-		if (!timerActive) return undefined;
-		const startTs = Date.now();
-		const base = srlDataRef.current.performance.accumulatedSeconds || 0;
-		const id = setInterval(() => {
-			const elapsed = Math.floor((Date.now() - startTs) / 1000);
-			setSrlData((prev) => ({
-				...prev,
-				performance: { ...prev.performance, accumulatedSeconds: base + elapsed },
-			}));
-		}, 1000);
-		return () => clearInterval(id);
-	}, [timerActive]);
-
-	// Auto-sync ke backend tiap 30 detik selama timer berjalan
-	useEffect(() => {
-		if (!timerActive) return undefined;
-		const id = setInterval(() => syncRef.current?.(), AUTO_SYNC_MS);
-		return () => clearInterval(id);
-	}, [timerActive]);
+	// ── Turunan state untuk UI ───────────────────────────────
+	const perf = srlData.performance;
+	const isTimerRunning = perf.startedAt !== null && perf.startedAt !== undefined;
+	const isPaused =
+		isSessionActive && currentPhase === 'performance' && perf.hasStarted && !isTimerRunning;
 
 	// ── Reset lokal ──────────────────────────────────────────
 	const clearSession = () => {
@@ -142,13 +153,11 @@ export const SRLProvider = ({ children }) => {
 		setCurrentPhase('forethought');
 		setSrlData(initialSRLData);
 		setSessionId(null);
-		setTimerRunning(false);
 		sessionIdRef.current = null;
 		localStorage.removeItem('srl_session_data');
 		localStorage.removeItem('srl_session_active');
 		localStorage.removeItem('srl_current_phase');
 		localStorage.removeItem('srl_session_id');
-		localStorage.removeItem('srl_timer_running');
 	};
 
 	const resetLocal = () => {
@@ -171,7 +180,7 @@ export const SRLProvider = ({ children }) => {
 				return null;
 			}
 
-			// Sesi 'planned' (dibuat tanpa start_immediately) -> mulai sekarang
+			// Sesi 'planned' -> mulai sekarang
 			if (s.status === 'planned') {
 				const started = await axios.patch(`${BASE}/${s.id}/start`);
 				s = started.data?.session ?? s;
@@ -183,35 +192,50 @@ export const SRLProvider = ({ children }) => {
 			sessionIdRef.current = String(s.id);
 			setIsSessionActive(true);
 
-			// Fase 'reflection' hanya ada di lokal (server baru set saat selesai)
+			// Fase 'reflection' hanya ada di lokal (server baru menandainya saat selesai)
 			setCurrentPhase((prev) =>
 				sameSession && prev === 'reflection' ? 'reflection' : 'performance',
 			);
 
-			// Sesi baru dari backend (mis. ganti perangkat) -> timer lanjut otomatis
-			if (!sameSession) setTimerRunning(true);
+			const strategies = Array.isArray(s.strategies) ? s.strategies : [];
+			const fromServer = {
+				goal: s.goal ?? '',
+				sessionGoal: s.goal ?? '',
+				motivation: s.motivation ?? '',
+				plan: strategies,
+				selectedStrategies: strategies,
+				estimatedTime: s.estimated_minutes ?? 25,
+				confidence: s.confidence_level ?? null,
+			};
 
-			setSrlData((prev) => ({
-				forethought: {
-					goal: s.goal ?? '',
-					motivation: s.motivation ?? '',
-					strategies: s.strategies ?? [],
-					estimatedMinutes: s.estimated_minutes ?? 25,
-					confidenceLevel: s.confidence_level ?? null,
-				},
-				performance: {
-					notes: sameSession ? prev.performance.notes || s.notes || '' : (s.notes ?? ''),
-					focusLevel: sameSession
-						? (prev.performance.focusLevel ?? s.focus_level ?? null)
-						: (s.focus_level ?? null),
-					// Ambil yang terbesar supaya timer tidak mundur
-					accumulatedSeconds: Math.max(
-						sameSession ? prev.performance.accumulatedSeconds || 0 : 0,
-						s.accumulated_seconds || 0,
-					),
-				},
-				reflection: sameSession ? prev.reflection : initialSRLData.reflection,
-			}));
+			setSrlData((prev) => {
+				if (sameSession) {
+					const p = prev.performance;
+					const serverSecs = s.accumulated_seconds || 0;
+					return {
+						...prev,
+						forethought: prev.forethought?.goal ? prev.forethought : fromServer,
+						// Timer lokal yang sedang berjalan tidak disentuh
+						performance:
+							!p.startedAt && serverSecs > (p.accumulatedSeconds || 0)
+								? { ...p, accumulatedSeconds: serverSecs }
+								: p,
+					};
+				}
+				// Sesi dari backend (mis. ganti perangkat / localStorage terhapus):
+				// hasStarted=false -> PerformancePhase otomatis melanjutkan timer
+				return {
+					forethought: fromServer,
+					performance: {
+						notes: s.notes ?? '',
+						focusLevel: s.focus_level ?? null,
+						accumulatedSeconds: s.accumulated_seconds || 0,
+						startedAt: null,
+						hasStarted: false,
+					},
+					reflection: initialSRLData.reflection,
+				};
+			});
 
 			return s;
 		} catch (e) {
@@ -227,36 +251,31 @@ export const SRLProvider = ({ children }) => {
 	}, []);
 
 	// ── API: Phase 1 — Forethought (store) ───────────────────
-	// Return true kalau berhasil, false kalau gagal.
-	const startSession = async () => {
-		const f = srlData.forethought;
+	// formData dikirim dari ForethoughtPhase. Return true bila berhasil.
+	const startSession = async (formData) => {
+		const payload = buildStartPayload(formData ?? srlDataRef.current.forethought);
 
-		if (!f.goal?.trim()) {
-			setApiError('Tujuan belajar wajib diisi.');
+		if (!payload.goal) {
+			setApiError('Target belajar wajib diisi.');
 			return false;
 		}
 
 		setApiError(null);
 		setIsSubmitting(true);
 		try {
-			const minutes = Math.min(
-				300,
-				Math.max(5, Math.round(Number(f.estimatedMinutes) || 25)),
-			);
-			const resp = await axios.post(BASE, {
-				goal: f.goal.trim(),
-				motivation: f.motivation?.trim() || null,
-				strategies: f.strategies?.length ? f.strategies : undefined,
-				estimated_minutes: minutes,
-				confidence_level: f.confidenceLevel || null,
-				start_immediately: true,
-			});
+			const resp = await axios.post(BASE, payload);
 			const id = resp.data?.session?.id ?? null;
+
 			setSessionId(id ? String(id) : null);
 			sessionIdRef.current = id ? String(id) : null;
 			setIsSessionActive(true);
+			// Pastikan data performance & reflection bersih untuk sesi baru
+			setSrlData((prev) => ({
+				...prev,
+				performance: initialSRLData.performance,
+				reflection: initialSRLData.reflection,
+			}));
 			setCurrentPhase('performance');
-			setTimerRunning(true);
 			return true;
 		} catch (e) {
 			console.error('[SRL] startSession gagal:', e?.response?.data ?? e);
@@ -279,17 +298,16 @@ export const SRLProvider = ({ children }) => {
 	};
 
 	// ── API: Phase 2 — syncProgress ──────────────────────────
-	const syncProgress = async (overrides = {}) => {
-		if (!sessionId) return false;
-		const p = srlData.performance;
+	// Selalu membaca state terbaru lewat ref dan menghitung timer yang sedang berjalan.
+	const syncProgress = async () => {
+		const sid = sessionIdRef.current;
+		if (!sid) return false;
+		const p = srlDataRef.current.performance;
 		try {
-			await axios.patch(`${BASE}/${sessionId}/progress`, {
-				accumulated_seconds: Math.max(
-					0,
-					Math.floor(overrides.accumulatedSeconds ?? p.accumulatedSeconds ?? 0),
-				),
-				notes: overrides.notes ?? p.notes ?? null,
-				focus_level: overrides.focusLevel ?? p.focusLevel ?? null,
+			await axios.patch(`${BASE}/${sid}/progress`, {
+				accumulated_seconds: getElapsedSeconds(p),
+				notes: p.notes || null,
+				focus_level: p.focusLevel || null,
 			});
 			return true;
 		} catch (e) {
@@ -299,12 +317,29 @@ export const SRLProvider = ({ children }) => {
 	};
 	syncRef.current = syncProgress;
 
-	// ── Timer controls ───────────────────────────────────────
-	const startTimer = () => setTimerRunning(true);
-	const pauseTimer = () => {
-		setTimerRunning(false);
-		syncProgress();
-	};
+	// Auto-sync setelah user berhenti mengubah catatan / fokus / jeda-lanjut
+	useEffect(() => {
+		if (!isSessionActive || !sessionId || currentPhase !== 'performance') return undefined;
+		const t = setTimeout(() => syncRef.current?.(), DEBOUNCE_MS);
+		return () => clearTimeout(t);
+	}, [
+		perf.notes,
+		perf.focusLevel,
+		perf.accumulatedSeconds,
+		perf.startedAt,
+		isSessionActive,
+		sessionId,
+		currentPhase,
+	]);
+
+	// Auto-sync berkala selama timer berjalan (waktu belajar tidak hilang kalau tab ditutup)
+	const shouldAutoSync =
+		isSessionActive && !!sessionId && currentPhase === 'performance' && isTimerRunning;
+	useEffect(() => {
+		if (!shouldAutoSync) return undefined;
+		const id = setInterval(() => syncRef.current?.(), AUTO_SYNC_MS);
+		return () => clearInterval(id);
+	}, [shouldAutoSync]);
 
 	// ── API: Phase 2 — trackMaterial ─────────────────────────
 	const trackMaterial = async ({
@@ -314,9 +349,10 @@ export const SRLProvider = ({ children }) => {
 		durationSeconds = 0,
 		isCompleted = false,
 	} = {}) => {
-		if (!sessionId || !targetType || !targetId) return null;
+		const sid = sessionIdRef.current;
+		if (!sid || !targetType || !targetId) return null;
 		try {
-			const resp = await axios.post(`${BASE}/${sessionId}/materials`, {
+			const resp = await axios.post(`${BASE}/${sid}/materials`, {
 				target_type: targetType, // 'lesson' | 'module'
 				target_id: targetId,
 				activity_type: activityType,
@@ -332,33 +368,37 @@ export const SRLProvider = ({ children }) => {
 
 	// ── API: Phase 3 — reflect (selesai) ─────────────────────
 	// Return true kalau tersimpan di backend.
-	const reflect = async (overrides = {}) => {
-		if (!sessionId) return false;
-		const r = srlData.reflection;
-		const p = srlData.performance;
+	const reflect = async () => {
+		const sid = sessionIdRef.current;
+		if (!sid) {
+			setApiError('Sesi tidak ditemukan. Tutup lalu mulai sesi baru.');
+			return false;
+		}
+		const { reflection: r, performance: p } = srlDataRef.current;
 
-		const goalAchievement = overrides.goalAchievement ?? r.goalAchievement;
-		if (!goalAchievement) {
-			setApiError('Pilih dulu seberapa tercapai tujuan belajarmu.');
+		if (!r.goalAchievement) {
+			setApiError('Pilih dulu apakah target belajarmu tercapai.');
 			return false;
 		}
 
 		setApiError(null);
 		setIsSubmitting(true);
 		try {
-			await axios.patch(`${BASE}/${sessionId}/reflect`, {
-				goal_achievement: goalAchievement,
-				factors: overrides.factors ?? r.factors ?? [],
-				evaluation: overrides.evaluation ?? r.evaluation ?? null,
-				future_adjustment: overrides.futureAdjustment ?? r.futureAdjustment ?? null,
-				accumulated_seconds: Math.max(0, Math.floor(p.accumulatedSeconds ?? 0)),
-				notes: p.notes ?? null,
-				focus_level: p.focusLevel ?? null,
+			await axios.patch(`${BASE}/${sid}/reflect`, {
+				goal_achievement: r.goalAchievement,
+				factors: (r.factors ?? []).map((f) => String(f).slice(0, 255)),
+				evaluation: r.evaluation?.trim().slice(0, 2000) || null,
+				future_adjustment: r.futureAdjustment?.trim().slice(0, 2000) || null,
+				accumulated_seconds: getElapsedSeconds(p),
+				notes: p.notes || null,
+				focus_level: p.focusLevel || null,
 			});
 			return true;
 		} catch (e) {
 			console.error('[SRL] reflect gagal:', e?.response?.data ?? e);
-			setApiError(getErrorMessage(e, 'Gagal menyimpan refleksi.'));
+			setApiError(
+				getErrorMessage(e, 'Gagal menyimpan refleksi. Data kamu masih aman, coba lagi.'),
+			);
 			return false;
 		} finally {
 			setIsSubmitting(false);
@@ -367,21 +407,26 @@ export const SRLProvider = ({ children }) => {
 
 	// ── API: Abandon ─────────────────────────────────────────
 	const abandon = async () => {
-		if (sessionId) {
+		const sid = sessionIdRef.current;
+		if (sid) {
 			try {
-				await axios.patch(`${BASE}/${sessionId}/abandon`);
+				await axios.patch(`${BASE}/${sid}/abandon`);
 			} catch (e) {
+				const status = e?.response?.status;
 				console.error('[SRL] abandon gagal:', e?.response?.data ?? e);
+				// 403/404 = sesi sudah tidak valid di server, aman untuk direset lokal
+				if (status !== 403 && status !== 404) {
+					setApiError(getErrorMessage(e, 'Gagal membatalkan sesi. Coba lagi.'));
+					return false;
+				}
 			}
 		}
 		resetLocal();
+		return true;
 	};
 
 	// ── Phase navigation ─────────────────────────────────────
-	const goToReflection = () => {
-		setTimerRunning(false); // timer berhenti saat masuk refleksi
-		setCurrentPhase('reflection');
-	};
+	const goToReflection = () => setCurrentPhase('reflection');
 	const backToPerformance = () => setCurrentPhase('performance');
 	const finishSession = () => resetLocal();
 
@@ -414,6 +459,7 @@ export const SRLProvider = ({ children }) => {
 				closeModal,
 				toggleModal,
 				isSessionActive,
+				isPaused,
 				sessionId,
 				currentPhase,
 				setCurrentPhase,
@@ -423,10 +469,6 @@ export const SRLProvider = ({ children }) => {
 				apiError,
 				clearError,
 				isSubmitting,
-				// timer
-				timerRunning,
-				startTimer,
-				pauseTimer,
 				// API actions
 				fetchActiveSession,
 				startSession,

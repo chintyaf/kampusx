@@ -5,7 +5,12 @@ import ForethoughtPhase from './ForethoughtPhase';
 import PerformancePhase from './PerformancePhase';
 import SelfReflectionPhase from './SelfReflectionPhase';
 import './srl.css';
-import './srl-fields.css';
+
+const PHASES = [
+	{ key: 'forethought', label: 'Rencanakan' },
+	{ key: 'performance', label: 'Belajar' },
+	{ key: 'reflection', label: 'Refleksi' },
+];
 
 const PHASE_MOTIVATION = {
 	forethought: {
@@ -34,6 +39,31 @@ const HEADER_CONTENT = {
 	reflection: { title: 'Refleksi Sesi', subtitle: 'Evaluasi pemahaman belajarmu' },
 };
 
+const errorBoxStyle = {
+	display: 'flex',
+	alignItems: 'flex-start',
+	justifyContent: 'space-between',
+	gap: 10,
+	marginBottom: 14,
+	padding: '10px 14px',
+	borderRadius: 'var(--radius)',
+	background: 'var(--error-bg)',
+	border: 'var(--border-w-xs) solid var(--error-border)',
+	color: 'var(--error-heading)',
+	fontSize: 'var(--font-sm)',
+	lineHeight: 1.4,
+};
+
+const errorCloseStyle = {
+	flex: '0 0 auto',
+	display: 'inline-flex',
+	padding: 2,
+	border: 0,
+	background: 'transparent',
+	color: 'inherit',
+	cursor: 'pointer',
+};
+
 const SRLModal = () => {
 	const {
 		isOpen,
@@ -45,10 +75,6 @@ const SRLModal = () => {
 		apiError,
 		clearError,
 		isSubmitting,
-		// timer
-		timerRunning,
-		startTimer,
-		pauseTimer,
 		// API actions
 		startSession,
 		syncProgress,
@@ -72,8 +98,6 @@ const SRLModal = () => {
 		subtitle: 'Kelola target, aktivitas, dan evaluasi belajar Anda',
 	};
 
-	const motivation = PHASE_MOTIVATION[currentPhase];
-
 	// ── Animasi buka/tutup ───────────────────────────────────
 	useEffect(() => {
 		if (isOpen) {
@@ -88,7 +112,6 @@ const SRLModal = () => {
 			}, 200);
 		}
 		return () => clearTimeout(closeTimer.current);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isOpen]);
 
 	useEffect(() => {
@@ -111,7 +134,8 @@ const SRLModal = () => {
 
 	// ── Handler performance -> reflection ────────────────────
 	const handleGoToReflection = async () => {
-		// Simpan progress dulu; kalau gagal tetap lanjut (data masih ada di lokal)
+		// Simpan progress dulu (membaca state terbaru, termasuk timer yang berjalan).
+		// Kalau gagal tetap lanjut, data masih ada di lokal.
 		await syncProgress();
 		clearError();
 		goToReflection();
@@ -129,8 +153,6 @@ const SRLModal = () => {
 			finishSession();
 		}, 2200);
 	};
-
-	const MotivationIcon = motivation?.icon;
 
 	return (
 		<div className="srlm-overlay">
@@ -184,38 +206,18 @@ const SRLModal = () => {
 
 						{/* Body */}
 						<div className="srlm-scroll">
-							{apiError && (
-								<div
-									className="alert alert-warning d-flex justify-content-between align-items-center mx-3 mt-3 mb-0"
-									role="alert"
-								>
-									<span>{apiError}</span>
-									<button
-										type="button"
-										className="btn-close"
-										onClick={clearError}
-										aria-label="Tutup"
-									/>
-								</div>
-							)}
-
 							<div key={currentPhase} className="srlm-phase mt-3">
-								{motivation && (
-									<div className="px-3">
-										<div className={`srlf-motivation srlf-${motivation.tone}`}>
-											<MotivationIcon
-												size={20}
-												style={{ flex: '0 0 auto', marginTop: 2 }}
-											/>
-											<div>
-												<p className="srlf-motivation-title">
-													{motivation.title}
-												</p>
-												<p className="srlf-motivation-quote">
-													“{motivation.quote}”
-												</p>
-											</div>
-										</div>
+								{apiError && (
+									<div style={errorBoxStyle} role="alert">
+										<span>{apiError}</span>
+										<button
+											type="button"
+											style={errorCloseStyle}
+											onClick={clearError}
+											aria-label="Tutup pesan"
+										>
+											<X size={14} />
+										</button>
 									</div>
 								)}
 
@@ -224,7 +226,6 @@ const SRLModal = () => {
 										srlData={srlData}
 										updatePhaseData={updatePhaseData}
 										startSession={startSession}
-										isSubmitting={isSubmitting}
 									/>
 								)}
 
@@ -234,10 +235,6 @@ const SRLModal = () => {
 										updatePhaseData={updatePhaseData}
 										closeModal={closeModal}
 										goToReflection={handleGoToReflection}
-										syncProgress={syncProgress}
-										timerRunning={timerRunning}
-										startTimer={startTimer}
-										pauseTimer={pauseTimer}
 										abandon={abandon}
 									/>
 								)}
