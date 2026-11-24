@@ -29,6 +29,17 @@ import AttendVenuePage from '../pages/public/AttendVenuePage';
 import LeaderboardPage from '../pages/public/LeaderboardPage/index.jsx';
 import TalentDirectory from '../pages/public/TalentDirectory/index.jsx';
 
+// Thesis New Pages
+import GamificationDashboardPage from '@/pages/gamification/GamificationDashboardPage';
+import TierProgressPage from '@/pages/gamification/TierProgressPage';
+import BadgeCollectionPage from '@/pages/gamification/BadgeCollectionPage';
+import RewardCatalogPage from '@/pages/rewards/RewardCatalogPage';
+import CredentialManagementPage from '@/pages/admin/CredentialManagementPage';
+import IntegrationLogsPage from '@/pages/admin/IntegrationLogsPage';
+import MyPortfolioPage from '@/pages/member/MyPortfolioPage';
+import SeatSelectionPage from '@/pages/event/public/SeatSelectionPage';
+import RecruiterDashboardPage from '@/pages/recruiter/RecruiterDashboardPage';
+
 // Pages: Member
 import MemberDashboard from '@/pages/member/MemberDashboard';
 import MyTickets from '@/pages/member/MyTickets';
@@ -51,6 +62,7 @@ import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventP
 import EventVenueQrPage from '@/pages/event/management/EventVenueQrPage/index';
 import CertificateVerificationPage from '../pages/certificate/CertificateVerificationPage';
 import CertificatePublicView from '@/pages/certificate/CertificatePublicView';
+import PolygonscanExplorer from '../pages/blockchain/PolygonscanExplorer';
 
 // Pages: Staff & Test/Misc
 import StaffLogin from '../pages/staff/StaffLogin';
@@ -101,13 +113,33 @@ const AppRoutes = () => {
 					})}
 
 					{/* Test & Public Profile Pages */}
-
 					<Route path="/profile/:id" element={<PublicProfile />} />
 					<Route path="/leaderboard" element={<LeaderboardPage />} />
 					<Route path="/talents" element={<TalentDirectory />} />
+					<Route path="/blockchain/explorer" element={<PolygonscanExplorer />} />
+					<Route path="/blockchain/explorer/:hash" element={<PolygonscanExplorer />} />
+					<Route path="/blockchain/explorer/tx/:hash" element={<PolygonscanExplorer />} />
 
 					<Route path="/attend-venue" element={<AttendVenuePage />} />
 					<Route path="/a/:code" element={<AttendVenuePage />} />
+
+					{/* THESIS SPECIFIC DIRECT ROUTES */}
+					<Route path="/gamification" element={<GamificationDashboardPage />} />
+					<Route path="/tier-progress" element={<TierProgressPage />} />
+					<Route path="/badges" element={<BadgeCollectionPage />} />
+					<Route path="/reward-catalog" element={<RewardCatalogPage />} />
+					<Route path="/rewards" element={<RewardCatalogPage />} />
+					<Route path="/my-portfolio" element={<MyPortfolioPage />} />
+					<Route path="/events/:id/select-seat" element={<SeatSelectionPage />} />
+					<Route path="/event/:id/select-seat" element={<SeatSelectionPage />} />
+					<Route path="/select-seat" element={<SeatSelectionPage />} />
+					<Route path="/recruiter/dashboard" element={<RecruiterDashboardPage />} />
+					<Route path="/recruiter/candidates" element={<RecruiterDashboardPage />} />
+					<Route path="/recruiter/candidate/:id" element={<RecruiterDashboardPage />} />
+					<Route path="/recruiter" element={<RecruiterDashboardPage />} />
+					<Route path="/admin/credential-management" element={<CredentialManagementPage />} />
+					<Route path="/admin/credentials" element={<CredentialManagementPage />} />
+					<Route path="/admin/integration-logs" element={<IntegrationLogsPage />} />
 
 					{/* PROTECTED MEMBER PAGES (Di dalam VisitorLayout/Navbar) */}
 					<Route element={<ProtectedRoute />}>
@@ -119,7 +151,6 @@ const AppRoutes = () => {
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />
 						<Route path="/event-space/:id/survey" element={<SurveyPage />} />
 						<Route path="/notifications" element={<NotificationsPage />} />
-						<Route path="/rewards" element={<GlobalRewardCatalog />} />
 						<Route path="/event-space/:id/rewards" element={<LocalRewardCatalog />} />
 						<Route path="/member/points/history" element={<PointHistory />} />
 					</Route>
@@ -128,7 +159,7 @@ const AppRoutes = () => {
 				<Route element={<ProtectedRoute />}>
 					<Route element={<MemberLayout />}>
 						<Route path="/my-tickets" element={<MyTickets />} />
-						<Route path="/certificates" element={<MemberCertificatePage />} />
+						<Route path="/certificates" element={<MyPortfolioPage />} />
 						<Route path="/apply-organizer" element={<ApplyOrganizerPage />} />
 					</Route>
 				</Route>

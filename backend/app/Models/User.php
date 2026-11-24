@@ -26,6 +26,8 @@ class User extends Authenticatable
         'affiliation_valid_until',
         'is_verified',
         'avatar_path',
+        'points',
+        'tier',
         'university_id' // Just in case they want to update university_id from profile settings
     ];
 
@@ -247,5 +249,85 @@ class User extends Authenticatable
     public function talentPosts(): HasMany
     {
         return $this->hasMany(TalentPost::class, 'user_id');
+    }
+    
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'participant_id');
+    }
+
+    public function soulboundTokens(): HasMany
+    {
+        return $this->hasMany(SoulboundToken::class, 'user_id');
+    }
+
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'student_badges', 'user_id', 'badge_id')
+                    ->withPivot('unlocked_at')
+                    ->withTimestamps();
+    }
+
+    public function studentBadges(): HasMany
+    {
+        return $this->hasMany(StudentBadge::class, 'user_id');
+    }
+
+    public function rewardDecisionLogs(): HasMany
+    {
+        return $this->hasMany(RewardDecisionLog::class, 'user_id');
+    }
+
+    public function externalAchievements(): HasMany
+    {
+        return $this->hasMany(ExternalAchievement::class, 'user_id');
+    }
+
+    /**
+     * Hitung tier berdasarkan poin sesuai spesifikasi gamifikasi Tugas Akhir:
+     * - Silver   : 0 - 499 poin
+     * - Gold     : 500 - 999 poin
+     * - Platinum : >= 1000 poin
+     */
+    public function calculateTier(): string
+    {
+        $currentPoints = (int) ($this->points ?? 0);
+        if ($currentPoints >= 1000) {
+            return 'Platinum';
+        }
+        if ($currentPoints >= 500) {
+            return 'Gold';
+        }
+        return 'Silver';
+    }
+
+    /**
+     * Tambahkan Global Points, rekam transaksi ledger, dan hitung ulang Tier.
+     */
+    public function addPoints(int $amount, string $description = '', ?int $activityId = null, ?int $eventId = null): array
+    {
+        $previousTier = $this->tier ?? $this->calculateTier();
+        $this->points = (int) ($this->points ?? 0) + $amount;
+        $newTier = $this->calculateTier();
+        $this->tier = $newTier;
+        $this->save();
+
+        // Catat di ledger transaksi poin
+        \App\Models\PointTransaction::create([
+            'user_id' => $this->id,
+            'event_id' => $eventId,
+            'activity_id' => $activityId,
+            'amount' => $amount,
+            'type' => 'global',
+            'description' => $description ?: 'Penambahan poin gamifikasi',
+        ]);
+
+        return [
+            'points_awarded' => $amount,
+            'total_points'   => $this->points,
+            'previous_tier'  => $previousTier,
+            'current_tier'   => $newTier,
+            'tier_upgraded'  => $previousTier !== $newTier,
+        ];
     }
 }
