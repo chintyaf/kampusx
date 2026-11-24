@@ -129,6 +129,12 @@ const NavbarLesson = () => {
 					<NavLink to="/explore-microlearning" style={linkStyle}>
 						Eksplor Kelas
 					</NavLink>
+					<NavLink to="/leaderboard" style={linkStyle}>
+						Leaderboard
+					</NavLink>
+					<NavLink to="/talents" style={linkStyle}>
+						Talent
+					</NavLink>
 					{user && (
 						<>
 							<NavLink to="/bookmarks" style={linkStyle}>

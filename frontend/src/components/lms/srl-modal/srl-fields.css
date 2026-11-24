@@ -1,0 +1,244 @@
+.srlf-field {
+	margin-bottom: 20px;
+}
+.srlf-label {
+	display: block;
+	font-weight: 600;
+	font-size: 0.92rem;
+	margin-bottom: 4px;
+}
+.srlf-required {
+	color: #dc3545;
+}
+.srlf-hint {
+	font-size: 0.8rem;
+	color: #6c757d;
+	margin: 0 0 8px;
+}
+.srlf-counter {
+	font-size: 0.75rem;
+	color: #6c757d;
+	text-align: right;
+	margin-top: 2px;
+}
+
+.srlf-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+.srlf-chip {
+	border: 1px solid #ced4da;
+	background: #fff;
+	color: #495057;
+	border-radius: 999px;
+	padding: 6px 14px;
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+.srlf-chip:hover {
+	border-color: #0d6efd;
+}
+.srlf-chip.is-active {
+	background: #0d6efd;
+	border-color: #0d6efd;
+	color: #fff;
+}
+.srlf-custom {
+	display: flex;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+.srlf-rating {
+	display: flex;
+	gap: 8px;
+}
+.srlf-rate {
+	flex: 1;
+	max-width: 56px;
+	height: 42px;
+	border-radius: 10px;
+	border: 1px solid #ced4da;
+	background: #fff;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+.srlf-rate:hover {
+	border-color: #0d6efd;
+}
+.srlf-rate.is-active {
+	background: #0d6efd;
+	border-color: #0d6efd;
+	color: #fff;
+}
+.srlf-rating-labels {
+	display: flex;
+	justify-content: space-between;
+	font-size: 0.75rem;
+	color: #6c757d;
+	margin-top: 4px;
+	max-width: 296px;
+}
+
+.srlf-presets {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 8px;
+}
+
+.srlf-motivation {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	border-radius: 12px;
+	padding: 12px 16px;
+	margin-bottom: 20px;
+}
+.srlf-motivation.srlf-info {
+	background: #e7f1ff;
+	color: #084298;
+}
+.srlf-motivation.srlf-purple {
+	background: #f1e8ff;
+	color: #4c1d95;
+}
+.srlf-motivation-title {
+	font-weight: 600;
+	font-size: 0.9rem;
+	margin: 0;
+}
+.srlf-motivation-quote {
+	font-size: 0.82rem;
+	margin: 2px 0 0;
+	font-style: italic;
+	opacity: 0.9;
+}
+
+.srlf-timer-card {
+	text-align: center;
+	border: 1px solid #e9ecef;
+	border-radius: 16px;
+	padding: 20px;
+	margin-bottom: 20px;
+	background: #fff;
+}
+.srlf-timer-value {
+	font-size: 3rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+.srlf-timer-sub {
+	font-size: 0.85rem;
+	color: #6c757d;
+	margin: 4px 0 12px;
+}
+.srlf-progress {
+	height: 8px;
+	border-radius: 999px;
+	background: #e9ecef;
+	overflow: hidden;
+	margin-bottom: 16px;
+}
+.srlf-progress > div {
+	height: 100%;
+	background: #0d6efd;
+	transition: width 0.4s ease;
+}
+.srlf-progress.is-over > div {
+	background: #198754;
+}
+
+.srlf-goal-box {
+	background: #f8f9fa;
+	border-radius: 12px;
+	padding: 12px 16px;
+	margin-bottom: 20px;
+}
+.srlf-goal-box small {
+	color: #6c757d;
+	display: block;
+}
+.srlf-goal-box p {
+	margin: 2px 0 0;
+	font-weight: 500;
+	white-space: pre-wrap;
+}
+
+.srlf-options {
+	display: grid;
+	gap: 8px;
+}
+.srlf-option {
+	text-align: left;
+	border: 1px solid #ced4da;
+	background: #fff;
+	border-radius: 12px;
+	padding: 12px 16px;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+.srlf-option:hover {
+	border-color: #0d6efd;
+}
+.srlf-option.is-active {
+	border-color: #0d6efd;
+	background: #e7f1ff;
+}
+.srlf-option strong {
+	display: block;
+	font-size: 0.92rem;
+}
+.srlf-option span {
+	font-size: 0.8rem;
+	color: #6c757d;
+}
+
+.srlf-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 8px;
+	padding-bottom: 8px;
+}
+.srlf-actions-right {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.srlf-trigger {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 1040;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	border: none;
+	border-radius: 999px;
+	padding: 12px 18px;
+	background: #0d6efd;
+	color: #fff;
+	font-weight: 600;
+	font-size: 0.9rem;
+	box-shadow: 0 6px 20px rgba(13, 110, 253, 0.35);
+	cursor: pointer;
+	transition: transform 0.15s ease;
+}
+.srlf-trigger:hover {
+	transform: translateY(-2px);
+}
+.srlf-trigger.is-running {
+	background: #198754;
+	box-shadow: 0 6px 20px rgba(25, 135, 84, 0.35);
+}
+.srlf-trigger-time {
+	font-variant-numeric: tabular-nums;
+}

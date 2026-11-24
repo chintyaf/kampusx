@@ -1,169 +1,333 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from 'react-bootstrap';
+import { Button, Alert, Spinner } from 'react-bootstrap';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Import Custom Styles for Clean, Refactored Layout
-// import '@/styles/lessonViewer.css';
-
-import '@/pages/lms/lessonViewer.css';
-
 // Layouts & Components
-import NavbarLesson from '@/layouts/partials-dashboard/NavbarLesson';
 import LessonSidebar from '@/pages/lms/learner/lesson/LessonSidebar';
-import LessonFooter from './lesson/LessonFooter';
 import LessonMaterial from './lesson/LessonMaterial';
-import LessonQuiz from './lesson/LessonQuiz'; // <-- Import Komponen Kuis
-import LessonHeader from './lesson/LessonHeader';
+import LessonQuiz from './lesson/LessonQuiz';
+import { showLessonCompleteToast } from '@/components/lms/LessonCompleteToast';
 
-// Styles & Data
+// API
+import { getModuleLessons, getLessonDetail, completeLesson } from './lesson/lessonViewerService';
+
+// Styles
 import '@/pages/lms/lessonViewer.css';
-import { MODULE_LESSONS_DATA } from './lesson/mockData';
+
+import useSRLMaterialTracker from '@/hooks/useSRLMaterialTracker';
+
+// Ubah response API ke bentuk yang dipakai komponen (snake_case + alias camelCase)
+const normalizeLesson = (lesson, moduleId) => ({
+	...lesson,
+	moduleId,
+	durationMinutes: lesson.duration_minutes,
+	videoUrl: lesson.video_url,
+});
+
+const getErrorMessage = (err) => {
+	const status = err?.response?.status;
+	if (status === 403) return 'Kamu belum terdaftar pada learning path ini.';
+	if (status === 404) return 'Materi tidak ditemukan.';
+	return err?.response?.data?.message || 'Terjadi kesalahan saat memuat materi.';
+};
 
 const LessonViewerPage = () => {
-	const { lessonId } = useParams();
+	const { slug, moduleId, lessonId } = useParams();
+	// di dalam komponen, setelah lessonId didapat dari useParams()
+	useSRLMaterialTracker('lesson', lessonId ? Number(lessonId) : null);
 	const navigate = useNavigate();
 
-	// Ref untuk mengakses elemen scroll container (<main>)
 	const mainContentRef = useRef(null);
+	const redirectTimerRef = useRef(null);
 
-	// State untuk menyimpan index lesson aktif
-	const [currentIndex, setCurrentIndex] = useState(0);
+	// Data modul & daftar lesson (sidebar)
+	const [moduleInfo, setModuleInfo] = useState(null);
+	const [lessons, setLessons] = useState([]);
+	const [completedLessonIds, setCompletedLessonIds] = useState(() => new Set());
+	const [quizInfo, setQuizInfo] = useState(null);
+	const [isLoadingList, setIsLoadingList] = useState(true);
 
-	// Helper function untuk smooth scroll ke paling atas
-	const scrollToTop = () => {
-		if (mainContentRef.current) {
-			mainContentRef.current.scrollTo({
-				top: 0,
-				behavior: 'smooth',
-			});
-		}
-	};
+	// Detail lesson aktif
+	const [lessonDetail, setLessonDetail] = useState(null);
+	const [isLoadingLesson, setIsLoadingLesson] = useState(false);
 
-	// Sinkronisasi index berdasarkan lessonId di URL jika ada
+	const [error, setError] = useState(null);
+	const [actionError, setActionError] = useState(null);
+	const [isCompleting, setIsCompleting] = useState(false);
+
+	const baseModuleUrl = `/learner/learning-paths/${slug}/modules/${moduleId}`;
+	const quizUrl = `${baseModuleUrl}/quiz`;
+
+	// ------------------------------------------------
+	// Fetch daftar lesson (sekali per modul)
+	// ------------------------------------------------
 	useEffect(() => {
-		if (lessonId && MODULE_LESSONS_DATA.length > 0) {
-			const foundIndex = MODULE_LESSONS_DATA.findIndex(
-				(item) => String(item.id) === String(lessonId),
-			);
-			if (foundIndex !== -1) {
-				setCurrentIndex(foundIndex);
+		const controller = new AbortController();
+
+		const load = async () => {
+			setIsLoadingList(true);
+			setError(null);
+			try {
+				const data = await getModuleLessons(moduleId, { signal: controller.signal });
+
+				setModuleInfo(data.module);
+				setLessons(data.lessons.map((l) => normalizeLesson(l, data.module.id)));
+				setCompletedLessonIds(new Set(data.completed_lesson_ids));
+				setQuizInfo(data.quiz);
+			} catch (err) {
+				if (err.code === 'ERR_CANCELED') return;
+				setError(getErrorMessage(err));
+			} finally {
+				if (!controller.signal.aborted) setIsLoadingList(false);
 			}
-		}
+		};
+
+		load();
+		return () => controller.abort();
+	}, [moduleId]);
+
+	// Index lesson aktif diturunkan dari URL, tidak perlu state terpisah
+	const currentIndex = useMemo(
+		() => lessons.findIndex((l) => String(l.id) === String(lessonId)),
+		[lessons, lessonId],
+	);
+
+	// Kalau URL tanpa lessonId / id tidak valid, arahkan ke lesson pertama yang belum selesai
+	useEffect(() => {
+		if (isLoadingList || lessons.length === 0 || currentIndex !== -1) return;
+
+		const target = lessons.find((l) => !completedLessonIds.has(l.id)) || lessons[0];
+		navigate(`${baseModuleUrl}/lessons/${target.id}`, { replace: true });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isLoadingList, lessons, currentIndex, baseModuleUrl, navigate]);
+
+	// ------------------------------------------------
+	// Fetch konten lesson aktif (setiap lessonId berubah)
+	// ------------------------------------------------
+	useEffect(() => {
+		if (!lessonId || isLoadingList || currentIndex === -1) return;
+
+		const controller = new AbortController();
+
+		const load = async () => {
+			setIsLoadingLesson(true);
+			setActionError(null);
+			try {
+				const data = await getLessonDetail(moduleId, lessonId, {
+					signal: controller.signal,
+				});
+				setLessonDetail(normalizeLesson(data, moduleInfo?.id ?? moduleId));
+			} catch (err) {
+				if (err.code === 'ERR_CANCELED') return;
+				setError(getErrorMessage(err));
+			} finally {
+				if (!controller.signal.aborted) setIsLoadingLesson(false);
+			}
+		};
+
+		load();
+		return () => controller.abort();
+	}, [moduleId, lessonId, isLoadingList, currentIndex, moduleInfo?.id]);
+
+	// Scroll ke atas saat materi berpindah
+	useEffect(() => {
+		mainContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 	}, [lessonId]);
 
-	// Triggers smooth scroll ke atas setiap kali index lesson / materi berpindah
-	useEffect(() => {
-		scrollToTop();
-	}, [currentIndex]);
+	// Bersihkan timer redirect saat unmount
+	useEffect(() => () => clearTimeout(redirectTimerRef.current), []);
 
-	const currentLesson = MODULE_LESSONS_DATA[currentIndex] || {};
+	// ------------------------------------------------
+	// Derived state
+	// ------------------------------------------------
+	// Gabungkan item sidebar + detail (hanya jika detail milik lesson aktif)
+	const currentLesson = useMemo(() => {
+		const base = lessons[currentIndex] || {};
+		const detail =
+			lessonDetail && String(lessonDetail.id) === String(lessonId) ? lessonDetail : {};
+		return { ...base, ...detail };
+	}, [lessons, currentIndex, lessonDetail, lessonId]);
 
-	// Cek apakah item aktif adalah kuis / assessment
 	const isQuiz =
 		currentLesson?.type?.toLowerCase() === 'quiz' ||
 		currentLesson?.type?.toLowerCase() === 'assessment';
 
-	// Check batas materi
-	const isFirstLesson = currentIndex === 0;
-	const isLastLesson = currentIndex === MODULE_LESSONS_DATA.length - 1;
+	const isFirstLesson = currentIndex <= 0;
+	const isLastLesson = currentIndex === lessons.length - 1;
 
-	// Handler Navigasi Sebelumnya
+	// ------------------------------------------------
+	// Navigasi
+	// ------------------------------------------------
+	const goToLesson = useCallback(
+		(targetId) => navigate(`${baseModuleUrl}/lessons/${targetId}`),
+		[baseModuleUrl, navigate],
+	);
+
 	const handlePrevious = () => {
-		if (!isFirstLesson) {
-			const prevIndex = currentIndex - 1;
-			const prevLesson = MODULE_LESSONS_DATA[prevIndex];
-			setCurrentIndex(prevIndex);
-
-			if (prevLesson?.id && lessonId) {
-				navigate(`../learner/lesson/${prevLesson.id}`);
-			}
-		}
+		if (!isFirstLesson) goToLesson(lessons[currentIndex - 1].id);
 	};
 
-	// Handler Navigasi Selanjutnya
-	const handleNext = () => {
-		if (!isLastLesson) {
-			const nextIndex = currentIndex + 1;
-			const nextLesson = MODULE_LESSONS_DATA[nextIndex];
-			setCurrentIndex(nextIndex);
+	const handleNext = useCallback(() => {
+		if (!isLastLesson && currentIndex !== -1) goToLesson(lessons[currentIndex + 1].id);
+	}, [currentIndex, isLastLesson, lessons, goToLesson]);
 
-			if (nextLesson?.id && lessonId) {
-				navigate(`../learner/lesson/${nextLesson.id}`);
+	// ------------------------------------------------
+	// Selesaikan lesson (simpan ke backend, lalu toast)
+	// ------------------------------------------------
+	const handleLessonComplete = useCallback(
+		async (metadata = {}) => {
+			if (!currentLesson?.id || isCompleting) return;
+
+			setIsCompleting(true);
+			setActionError(null);
+
+			try {
+				const result = await completeLesson(
+					moduleId,
+					currentLesson.id,
+					metadata.durationSeconds || 0,
+				);
+
+				setCompletedLessonIds(new Set(result.completed_lesson_ids));
+
+				showLessonCompleteToast({
+					lesson: currentLesson,
+					durationSeconds: result.duration_seconds,
+					xpEarned: result.xp_earned,
+					progress: result.progress,
+					isLast: result.is_last,
+					onNext: !result.is_last ? () => goToLesson(result.next_lesson_id) : null,
+					onGoToQuiz: result.is_last ? () => navigate(quizUrl) : null,
+				});
+
+				if (result.is_last) {
+					// Beri jeda agar learner bisa menikmati feedback reward
+					redirectTimerRef.current = setTimeout(() => navigate(quizUrl), 1600);
+				} else {
+					goToLesson(result.next_lesson_id);
+				}
+			} catch (err) {
+				setActionError(
+					err?.response?.data?.message || 'Gagal menyimpan progres. Coba lagi.',
+				);
+			} finally {
+				setIsCompleting(false);
 			}
-		}
-	};
+		},
+		[currentLesson, isCompleting, moduleId, goToLesson, navigate, quizUrl],
+	);
+
+	// ------------------------------------------------
+	// Render
+	// ------------------------------------------------
+	if (isLoadingList) {
+		return (
+			<div className="d-flex flex-grow-1 align-items-center justify-content-center">
+				<Spinner animation="border" variant="primary" />
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="d-flex flex-grow-1 align-items-center justify-content-center p-4">
+				<div className="text-center" style={{ maxWidth: 420 }}>
+					<Alert variant="danger">{error}</Alert>
+					<Button variant="outline-secondary" onClick={() => navigate(-1)}>
+						Kembali
+					</Button>
+				</div>
+			</div>
+		);
+	}
 
 	return (
-		<div className="d-flex flex-column vh-100 overflow-hidden bg-light">
-			<NavbarLesson />
-
-			{/* MAIN CONTAINER (Sidebar + Content Canvas) */}
-			<div
-				className="d-flex flex-grow-1 position-relative w-100 overflow-hidden"
-				style={{ minHeight: 0 }}
+		<div
+			className="d-flex flex-grow-1 position-relative w-100 overflow-hidden"
+			style={{ minHeight: 0 }}
+		>
+			{/* SIDEBAR CONTAINER */}
+			<aside
+				className="d-none d-lg-flex flex-column flex-shrink-0 border-end lesson-sidebar-scroll"
+				style={{
+					width: '300px',
+					fontFamily: 'var(--font)',
+					backgroundColor: 'var(--card)',
+					borderColor: 'var(--neutral-border)',
+				}}
 			>
-				{/* SIDEBAR CONTAINER */}
-				<aside
-					className="d-none d-lg-flex flex-column flex-shrink-0 border-end h-100 lesson-sidebar-scroll"
-					style={{
-						width: '300px',
-						fontFamily: 'var(--font)',
-						backgroundColor: 'var(--card)',
-						borderColor: 'var(--neutral-border)',
-					}}
-				>
-					<LessonSidebar data={MODULE_LESSONS_DATA} />
-				</aside>
+				<LessonSidebar
+					data={lessons}
+					module={moduleInfo}
+					quiz={quizInfo}
+					currentLessonId={currentLesson?.id}
+					completedLessonIds={completedLessonIds}
+					onSelectLesson={goToLesson}
+				/>
+			</aside>
 
-				{/* MAIN CONTENT CANVAS */}
-				<main ref={mainContentRef} className="flex-grow-1 overflow-y-auto p-4">
-					<div className="container p-0" style={{ maxWidth: '960px' }}>
-						{/* KONDISIONAL RENDER: Kuis vs Materi Pelajaran biasa */}
-						<div className="mb-4">
-							{isQuiz ? (
-								<LessonQuiz item={currentLesson} onNext={handleNext} />
-							) : (
-								<LessonMaterial data={MODULE_LESSONS_DATA} />
-							)}
-						</div>
+			{/* MAIN CONTENT CANVAS */}
+			<main ref={mainContentRef} className="flex-grow-1 overflow-y-auto p-4">
+				<div className="container p-0" style={{ maxWidth: '960px' }}>
+					{actionError && (
+						<Alert variant="danger" dismissible onClose={() => setActionError(null)}>
+							{actionError}
+						</Alert>
+					)}
 
-						{/* TOMBOL NAVIGASI SEBELUMNYA & SELANJUTNYA */}
-						<div className="d-flex justify-content-between align-items-center mb-4">
-							<Button
-								variant="outline-secondary"
-								onClick={handlePrevious}
-								disabled={isFirstLesson}
-								className="d-flex align-items-center gap-2 px-3 py-2 fw-medium"
-								style={{
-									color: isFirstLesson ? 'var(--text-muted)' : '',
-									opacity: isFirstLesson ? 0.5 : 1,
-									cursor: isFirstLesson ? 'not-allowed' : 'pointer',
-								}}
-							>
-								<ChevronLeft size={18} />
-								Sebelumnya
-							</Button>
-
-							<Button
-								onClick={handleNext}
-								disabled={isLastLesson}
-								className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
-								style={{
-									backgroundColor: isLastLesson
-										? 'var(--neutral-border)'
-										: 'var(--primary)',
-									opacity: isLastLesson ? 0.6 : 1,
-									cursor: isLastLesson ? 'not-allowed' : 'pointer',
-								}}
-							>
-								Selanjutnya
-								<ChevronRight size={18} />
-							</Button>
-						</div>
+					<div className="mb-4">
+						{isLoadingLesson && !currentLesson?.content ? (
+							<div className="d-flex justify-content-center py-5">
+								<Spinner animation="border" variant="primary" />
+							</div>
+						) : isQuiz ? (
+							<LessonQuiz item={currentLesson} onNext={handleLessonComplete} />
+						) : (
+							<LessonMaterial
+								// key memaksa timer "Waktu Belajar" reset tiap lesson berganti
+								key={currentLesson?.id}
+								item={currentLesson}
+								onCompleteLesson={handleLessonComplete}
+							/>
+						)}
 					</div>
-				</main>
-			</div>
+
+					{/* TOMBOL NAVIGASI */}
+					<div className="d-flex justify-content-between align-items-center mb-4">
+						<Button
+							variant="outline-secondary"
+							onClick={handlePrevious}
+							disabled={isFirstLesson}
+							className="d-flex align-items-center gap-2 px-3 py-2 fw-medium"
+							style={{
+								color: isFirstLesson ? 'var(--text-muted)' : '',
+								opacity: isFirstLesson ? 0.5 : 1,
+								cursor: isFirstLesson ? 'not-allowed' : 'pointer',
+							}}
+						>
+							<ChevronLeft size={18} />
+							Sebelumnya
+						</Button>
+
+						<Button
+							onClick={handleNext}
+							disabled={isLastLesson}
+							className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
+							style={{
+								backgroundColor: isLastLesson
+									? 'var(--neutral-border)'
+									: 'var(--primary)',
+								opacity: isLastLesson ? 0.6 : 1,
+								cursor: isLastLesson ? 'not-allowed' : 'pointer',
+							}}
+						>
+							Selanjutnya
+							<ChevronRight size={18} />
+						</Button>
+					</div>
+				</div>
+			</main>
 		</div>
 	);
 };

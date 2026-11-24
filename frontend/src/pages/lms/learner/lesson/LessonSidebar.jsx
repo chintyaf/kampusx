@@ -1,37 +1,52 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom'; // Sesuaikan import jika diperlukan
-import { ChevronLeft, Play, CheckSquare, Square, Brain, Clock } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import LessonSidebarItem from './LessonSidebarItem';
 import QuizSidebarItem from './QuizSidebarItem';
 
-const LessonSidebar = ({ data = [] }) => {
-	const { moduleId = 'mod-arch-101', lessonId = 'les-4' } = useParams();
+const LessonSidebar = ({
+	data = [],
+	currentLessonId,
+	completedLessonIds: externalCompleted,
+	onSelectLesson,
+}) => {
+	const { slug, moduleId = 'mod-arch-101', lessonId = 'les-4' } = useParams();
 	const navigate = useNavigate();
 
+	const moduleBaseUrl = `/learner/learning-paths/${slug}/modules/${moduleId}`;
+
+	const activeLessonId = currentLessonId || lessonId;
 	// Cari lesson yang sedang aktif
-	const activeLessonIndex = data.findIndex((l) => l.id === lessonId);
+	const activeLessonIndex = data.findIndex((l) => l.id === activeLessonId);
 	const currentLessonIndex = activeLessonIndex !== -1 ? activeLessonIndex : 0;
 	const currentLesson = data[currentLessonIndex] || data[0];
 
-	// Track completed lessons set
-	const [completedLessonIds] = useState(new Set(['les-1', 'les-2', 'les-3']));
+	// Track completed lessons set (prioritaskan external prop)
+	const [localCompletedIds] = useState(new Set(['les-1', 'les-2']));
+	const completedSet = externalCompleted || localCompletedIds;
 
 	// Navigasi ke lesson yang dipilih
 	const handleSelectLesson = (id) => {
-		navigate(`/learner/lesson/${id}`);
+		if (onSelectLesson) {
+			onSelectLesson(id);
+		} else if (slug && moduleId) {
+			navigate(`${moduleBaseUrl}/lessons/${id}`);
+		}
 	};
 
-	// Hitung persentase progress secara aman (mencegah pembagian 0/NaN)
+	// Hitung persentase progress secara aman
 	const totalLessons = data.length;
-	const progressPercent = totalLessons > 0 ? (completedLessonIds.size / totalLessons) * 100 : 0;
+	const progressPercent = totalLessons > 0 ? (completedSet.size / totalLessons) * 100 : 0;
 
 	return (
 		<div className="d-flex flex-column h-100" style={{ backgroundColor: 'var(--card)' }}>
 			{/* --- Sidebar Header --- */}
 			<div className="p-3 border-bottom flex-shrink-0">
+
+				{/* TODO : I feel like this could work as a breadcrumb */}
 				<div className="d-flex align-items-center justify-content-between mb-2">
 					<Link
-						to={`/learner/modules/${moduleId}`}
+						to={moduleBaseUrl}
 						className="text-decoration-none d-inline-flex align-items-center gap-1"
 						style={{
 							fontSize: 'var(--font-xs)',
@@ -39,7 +54,7 @@ const LessonSidebar = ({ data = [] }) => {
 						}}
 					>
 						<ChevronLeft size={14} style={{ color: 'var(--text-muted)' }} />
-						<span>Kembali</span>
+						<span>Learning Path</span>
 					</Link>
 				</div>
 
@@ -53,11 +68,11 @@ const LessonSidebar = ({ data = [] }) => {
 				{/* Mini progress tracker */}
 				<div className="d-flex align-items-center justify-content-between mb-1 small">
 					<span className="fw-bold" style={{ fontSize: '10px', color: 'var(--text)' }}>
-						{completedLessonIds.size} / {totalLessons}
+						{completedSet.size} / {totalLessons} Selesai
 					</span>
 
 					<span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
-						20%
+						{Math.round(progressPercent)}%
 					</span>
 				</div>
 
@@ -73,6 +88,7 @@ const LessonSidebar = ({ data = [] }) => {
 						style={{
 							width: `${progressPercent}%`,
 							backgroundColor: 'var(--primary)',
+							transition: 'width 0.3s ease',
 						}}
 					/>
 				</div>
@@ -89,7 +105,7 @@ const LessonSidebar = ({ data = [] }) => {
 								key={item.id}
 								item={item}
 								isSelected={item.id === currentLesson?.id}
-								isDone={completedLessonIds.has(item.id)}
+								isDone={completedSet.has(item.id)}
 								isPassed={item.score >= (item.passingScore || 70)}
 								score={item.score}
 								onSelect={() => handleSelectLesson(item.id)}
@@ -102,11 +118,38 @@ const LessonSidebar = ({ data = [] }) => {
 							key={item.id}
 							item={item}
 							isSelected={item.id === currentLesson?.id}
-							isDone={completedLessonIds.has(item.id)}
+							isDone={completedSet.has(item.id)}
 							onSelect={() => handleSelectLesson(item.id)}
 						/>
 					);
 				})}
+
+				{/* Quiz Navigation */}
+				<div
+					className=""
+					style={{
+						backgroundColor: '#f8fafc',
+						borderBottom: '1px solid var(--neutral-border, #e2e8f0)',
+					}}
+				>
+					<div className="lesson-quiz-label">Evaluasi</div>
+
+					<Link
+						to={`${moduleBaseUrl}/quiz`}
+						className="lesson-quiz-link d-flex align-items-center gap-3 px-3 pb-3 pt-2 text-decoration-none"
+					>
+						<span className="lesson-quiz-icon d-inline-flex align-items-center justify-content-center flex-shrink-0">
+							<Play size={14} />
+						</span>
+
+						<div className="flex-grow-1" style={{ minWidth: 0 }}>
+							<div className="lesson-quiz-title">Kuis Modul</div>
+							<div className="lesson-quiz-subtitle">Uji pemahamanmu</div>
+						</div>
+
+						<ChevronRight size={16} className="lesson-quiz-chevron flex-shrink-0" />
+					</Link>
+				</div>
 			</div>
 		</div>
 	);

@@ -3,28 +3,45 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 
 // Import Data Mock & Komponen
-import { getModuleData } from '@/pages/lms/learner/modules/detail/mockData';
-import ModuleHeader from '@/pages/lms/learner/modules/detail/ModuleHeader';
-import ModuleLesson from '@/pages/lms/learner/modules/detail/ModuleLesson';
-import ModuleSRL from '@/pages/lms/learner/modules/detail/ModuleSRL';
+import { getModuleData } from '@/pages/lms/mock-data/mockData';
+import ModuleHeader from '@/pages/lms/learner/modules/detail-module/ModuleHeader';
+import ModuleLesson from '@/pages/lms/learner/modules/detail-module/ModuleLesson';
 
 /**
  * ModuleDetailPage
  * Halaman Akses & Overview Modul Microlearning
  */
 const ModuleDetailPage = () => {
-	const { moduleId = 'mod-arch-101' } = useParams();
+	const { slug, moduleId = 'mod-arch-101' } = useParams();
 	const navigate = useNavigate();
 
 	const moduleData = getModuleData(moduleId);
 
 	const [isBookmarked, setIsBookmarked] = useState(false);
-
-	// Filter lessons
 	const [lessonFilter, setLessonFilter] = useState('all'); // 'all' | 'uncompleted'
 
-	const handleNavigateToLesson = (lessonId) => {
-		navigate(`/learner/lesson/${lessonId}`);
+	/**
+	 * Navigasi langsung ke halaman lesson atau quiz sesuai LmsRoutes
+	 */
+	const handleNavigateToLesson = (lessonOrId) => {
+		const resolvedId =
+			typeof lessonOrId === 'object' && lessonOrId !== null ? lessonOrId.id : lessonOrId;
+
+		const lessonDestination =
+			resolvedId || moduleData?.currentLessonId || moduleData?.lessons?.[0]?.id || 'les-01';
+
+		if (typeof lessonOrId === 'object' && lessonOrId?.type === 'quiz') {
+			const quizPath = slug
+				? `/learner/learning-paths/${slug}/modules/${moduleId}/quiz`
+				: 'quiz';
+			navigate(quizPath);
+			return;
+		}
+
+		const lessonPath = slug
+			? `/learner/learning-paths/${slug}/modules/${moduleId}/lessons/${lessonDestination}`
+			: `lessons/${lessonDestination}`;
+		navigate(lessonPath);
 	};
 
 	const filteredLessons = moduleData.lessons.filter((les) => {
@@ -45,11 +62,10 @@ const ModuleDetailPage = () => {
 			/>
 
 			{/* 2. MAIN CONTENT & SIDEBAR SECTION */}
-			<Container className="" style={{ marginTop: '1.5rem' }}>
+			<Container style={{ marginTop: '1.5rem' }}>
 				<Row className="g-4">
-					{/* A. MAIN CONTENT AREA (col-lg-8) */}
 					<Col lg={12}>
-						{/* 2. DAFTAR UNIT PEMBELAJARAN (LESSON ROADMAP) */}
+						{/* DAFTAR UNIT PEMBELAJARAN (LESSON ROADMAP) */}
 						<ModuleLesson
 							moduleData={moduleData}
 							filteredLessons={filteredLessons}
@@ -57,19 +73,6 @@ const ModuleDetailPage = () => {
 							setLessonFilter={setLessonFilter}
 							handleNavigateToLesson={handleNavigateToLesson}
 						/>
-
-						{/* 3. CAPAIAN PEMBELAJARAN (LEARNING OUTCOMES) */}
-					</Col>
-
-					{/* B. SIDEBAR AREA (col-lg-4) */}
-					<Col lg={4}>
-						{/* 1. WIDGET SRL: FASE 1 - FORETHOUGHT & PLANNING */}
-						{/* <ModuleSRL /> */}
-						{/* 1. INSTRUKTUR KELAS */}
-
-						{/* 2. DIGITAL BADGE & SERTIFIKASI CHECKPOINT */}
-
-						{/* 3. SRL TIPS & HABIT BOOSTER */}
 					</Col>
 				</Row>
 			</Container>

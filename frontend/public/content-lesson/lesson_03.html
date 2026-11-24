@@ -1,0 +1,67 @@
+<article class="space-y-6">
+	<section>
+		<h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">
+			1. Aturan Penamaan Variabel (Identifier)
+		</h2>
+		<p class="text-gray-700 text-sm mb-3">
+			Penamaan variabel harus memenuhi batasan sintaks berikut:
+		</p>
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div class="bg-green-50 border border-green-200 p-4 rounded-lg">
+				<h3 class="font-bold text-green-800 mb-2 text-sm">✅ Contoh Nama BENAR</h3>
+				<ul class="list-disc list-inside text-xs text-green-900 space-y-1">
+					<li>Harus dimulai dengan <strong>huruf</strong> atau <code>_</code></li>
+					<li>Tanpa spasi dan tanpa karakter operator</li>
+					<li>Bukan nama kata kunci instruksi (reserved word)</li>
+					<li>
+						<em>Contoh:</em> <code>DataKe1</code>, <code>Data_1</code>,
+						<code>totalNilai</code>
+					</li>
+				</ul>
+			</div>
+			<div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+				<h3 class="font-bold text-red-800 mb-2 text-sm">❌ Contoh Nama SALAH</h3>
+				<ul class="list-disc list-inside text-xs text-red-900 space-y-1">
+					<li><code>$Data</code> (Karakter khusus di awal)</li>
+					<li><code>Data 1</code> (Mengandung spasi)</li>
+					<li><code>Data-1</code> (Mengandung operator minus <code>-</code>)</li>
+					<li><code>input</code> (Reserved word instruksi)</li>
+				</ul>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<h2 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">2. Instruksi Assignment</h2>
+		<p class="text-gray-700 leading-relaxed text-sm mb-3">
+			<strong>Assignment</strong> adalah instruksi menyimpan nilai ke dalam variabel. Tipe
+			data variabel harus bersesuaian dengan tipe data nilai yang disimpan.
+		</p>
+		<div class="bg-gray-100 p-3 rounded font-mono text-xs text-gray-800">
+			&lt;nama1&gt; = &lt;konstanta&gt;<br />
+			&lt;nama1&gt; = &lt;nama2&gt;<br />
+			&lt;nama1&gt; = &lt;ekspresi&gt;
+		</div>
+	</section>
+
+	<section class="mt-6">
+		<h3 class="font-bold text-gray-800 mb-2 flex items-center">
+			<span class="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded mr-2"
+				>Kode Python</span
+			>
+			Instruksi Assignment
+		</h3>
+		<pre
+			class="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-x-auto"
+		><code>def main():
+    nilaiA = 250        # Inisialisasi konstanta integer
+    nilaiY = 20.5       # Inisialisasi konstanta float
+    nilaiB = nilaiA     # Assignment dari variabel lain
+    nilaiC = nilaiA + nilaiB # Assignment dari hasil ekspresi
+
+    print("nilaiC:", nilaiC) # Output: 500
+
+if __name__ == '__main__':
+    main()</code></pre>
+	</section>
+</article>

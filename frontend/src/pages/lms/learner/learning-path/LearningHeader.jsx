@@ -1,23 +1,121 @@
 import React, { useState } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import { Layers, Sparkles, BookOpen, Clock, Star, ShieldCheck, Play, Bookmark } from 'lucide-react';
-import { MOCK_LEARNING_PATH } from './mockData'; // Sesuaikan path ke mockData
+import { Link } from 'react-router-dom';
+import { BookOpen, Layers, Play, Bookmark, LogIn, ImageOff } from 'lucide-react';
 
-const LearningHeader = ({ isBookmarked: externalIsBookmarked, onToggleBookmark }) => {
-	const navigate = useNavigate();
-	const [internalIsBookmarked, setInternalIsBookmarked] = useState(false);
+const ACCENT = '#00A8E8';
+const MUTED = '#94A3B8';
 
-	const isBookmarked =
-		externalIsBookmarked !== undefined ? externalIsBookmarked : internalIsBookmarked;
+const getCtaLabel = (isAuthenticated, progressPercent) => {
+	if (!isAuthenticated) return 'Login untuk Mulai Belajar';
+	if (progressPercent >= 100) return 'Pelajari Kembali';
+	if (progressPercent > 0) return 'Lanjutkan Belajar';
+	return 'Mulai Belajar';
+};
 
-	const handleBookmarkClick = () => {
-		if (onToggleBookmark) {
-			onToggleBookmark();
-		} else {
-			setInternalIsBookmarked(!internalIsBookmarked);
-		}
-	};
+const getInitials = (name = '') =>
+	name
+		.split(' ')
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((word) => word[0].toUpperCase())
+		.join('') || '?';
+
+/** Baris organizer yang minimalis: avatar kecil + nama (link ke profil). */
+const OrganizerLink = ({ instructor }) => {
+	const [imageFailed, setImageFailed] = useState(false);
+
+	if (!instructor) return null;
+
+	const { id, name, avatar_url: avatarUrl, organization_name: organizationName } = instructor;
+	const showImage = avatarUrl && !imageFailed;
+
+	return (
+		<Link
+			to={`/profile/${id}`}
+			className="d-inline-flex align-items-center gap-2 text-decoration-none mb-3"
+			style={{ fontSize: '0.85rem' }}
+		>
+			<span style={{ color: MUTED }}>Dibuat oleh</span>
+
+			{showImage ? (
+				<img
+					src={avatarUrl}
+					alt=""
+					className="rounded-circle flex-shrink-0"
+					style={{ width: '26px', height: '26px', objectFit: 'cover' }}
+					onError={() => setImageFailed(true)}
+				/>
+			) : (
+				<span
+					className="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+					style={{
+						width: '26px',
+						height: '26px',
+						fontSize: '0.65rem',
+						backgroundColor: 'rgba(255, 255, 255, 0.15)',
+						color: '#FFFFFF',
+					}}
+					aria-hidden="true"
+				>
+					{getInitials(name)}
+				</span>
+			)}
+
+			<span className="fw-semibold text-white">{name}</span>
+
+			<span style={{ color: MUTED }}>{organizationName && <> · {organizationName}</>}</span>
+		</Link>
+	);
+};
+
+/** Thumbnail 16:9 dengan placeholder jika kosong atau gagal dimuat. */
+const Thumbnail = ({ src, alt }) => {
+	const [imageFailed, setImageFailed] = useState(false);
+	const showImage = src && !imageFailed;
+
+	return (
+		<div
+			className="ratio ratio-16x9 rounded-4 overflow-hidden"
+			style={{
+				border: '1px solid rgba(255, 255, 255, 0.15)',
+				boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)',
+				backgroundColor: 'rgba(255, 255, 255, 0.06)',
+			}}
+		>
+			{showImage ? (
+				<img
+					src={src}
+					alt={alt}
+					style={{ objectFit: 'cover' }}
+					onError={() => setImageFailed(true)}
+				/>
+			) : (
+				<div className="d-flex align-items-center justify-content-center">
+					<ImageOff size={28} style={{ color: MUTED }} />
+				</div>
+			)}
+		</div>
+	);
+};
+
+const LearningHeader = ({
+	path,
+	metrics,
+	isAuthenticated = false,
+	isBookmarked = false,
+	onToggleBookmark,
+	onStart,
+}) => {
+	const title = path?.title ?? '';
+	const description = path?.description ?? '';
+	const thumbnailUrl = path?.thumbnail_url ?? null;
+	const instructor = path?.instructor ?? null;
+	const moduleCount = metrics?.moduleCount ?? 0;
+	const lessonCount = metrics?.lessonCount ?? 0;
+	const progressPercent = metrics?.progressPercent ?? 0;
+
+	const CtaIcon = isAuthenticated ? Play : LogIn;
 
 	return (
 		<section
@@ -30,71 +128,31 @@ const LearningHeader = ({ isBookmarked: externalIsBookmarked, onToggleBookmark }
 			}}
 		>
 			<Container>
-				{/* Breadcrumb Navigation */}
-				<nav aria-label="breadcrumb" className="mb-3">
+				{/* Breadcrumb */}
+				<nav
+					aria-label="breadcrumb"
+					className="mb-3"
+					style={{ '--bs-breadcrumb-divider-color': MUTED }}
+				>
 					<ol className="breadcrumb mb-0" style={{ fontSize: '0.85rem' }}>
 						<li className="breadcrumb-item">
-							<Link to="/" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+							<Link to="/learning" style={{ color: MUTED, textDecoration: 'none' }}>
 								Home
 							</Link>
-						</li>
-						<li className="breadcrumb-item">
-							<Link
-								to="/explore-microlearning"
-								style={{ color: '#94A3B8', textDecoration: 'none' }}
-							>
-								Explore
-							</Link>
-						</li>
-						<li className="breadcrumb-item">
-							<span style={{ color: '#94A3B8' }}>Learning Paths</span>
 						</li>
 						<li
 							className="breadcrumb-item active"
 							aria-current="page"
 							style={{ color: '#E2E8F0' }}
 						>
-							AI Engineering & RAG Masterclass
+							Learning Paths
 						</li>
+						<li className="breadcrumb-item" aria-hidden="true" />
 					</ol>
 				</nav>
-
+				
 				<Row className="align-items-center g-4">
-					<Col lg={9}>
-						{/* Badge Topik */}
-						<div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
-							<span
-								className="badge px-3 py-1 fw-bold d-inline-flex align-items-center gap-1"
-								style={{
-									backgroundColor: 'rgba(255, 255, 255, 0.15)',
-									color: '#00A8E8',
-									backdropFilter: 'blur(8px)',
-									border: '1px solid rgba(0, 168, 232, 0.35)',
-									fontSize: '0.78rem',
-									borderRadius: '9999px',
-									letterSpacing: '0.04em',
-								}}
-							>
-								<Layers size={13} />
-								<span>🗺️ LEARNING PATH</span>
-							</span>
-
-							<span
-								className="badge px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1"
-								style={{
-									backgroundColor: 'rgba(2, 128, 144, 0.25)',
-									color: '#E0F2FE',
-									border: '1px solid rgba(2, 128, 144, 0.4)',
-									fontSize: '0.78rem',
-									borderRadius: '9999px',
-								}}
-							>
-								<Sparkles size={12} className="text-warning" />
-								<span>AI Recommended Path</span>
-							</span>
-						</div>
-
-						{/* Judul Utama */}
+					<Col lg={8}>
 						<h1
 							className="fw-bold mb-2 text-white"
 							style={{
@@ -103,101 +161,84 @@ const LearningHeader = ({ isBookmarked: externalIsBookmarked, onToggleBookmark }
 								lineHeight: 1.25,
 							}}
 						>
-							{MOCK_LEARNING_PATH.title}
+							{title}
 						</h1>
 
-						{/* Sub-deskripsi */}
-						<p
-							className="text-white-50 mb-3"
-							style={{ fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '820px' }}
-						>
-							{MOCK_LEARNING_PATH.description}
-						</p>
-
-						{/* Metrics Bar */}
-						<div className="d-flex align-items-center gap-2 gap-sm-3 text-white-50 flex-wrap small mb-3">
-							<span className="d-flex align-items-center gap-2 text-white fw-semibold">
-								<BookOpen size={15} style={{ color: '#00A8E8' }} />
-								{MOCK_LEARNING_PATH.metrics.moduleCount} Modules
-							</span>
-							<span>•</span>
-							<span className="d-flex align-items-center gap-2 text-white fw-semibold">
-								<Clock size={15} style={{ color: '#00A8E8' }} />
-								{MOCK_LEARNING_PATH.metrics.totalHours}
-							</span>
-							<span>•</span>
-							<span>{MOCK_LEARNING_PATH.metrics.enrolledCount}</span>
-							<span>•</span>
-							<span className="d-flex align-items-center gap-1 text-warning fw-bold">
-								<Star size={14} fill="#f59e0b" color="#f59e0b" />
-								<span>{MOCK_LEARNING_PATH.metrics.rating}</span>
-								<span className="text-white-50 fw-normal">
-									({MOCK_LEARNING_PATH.metrics.reviewsCount})
-								</span>
-							</span>
-							<span>•</span>
-							<span>Updated {MOCK_LEARNING_PATH.metrics.updatedAt}</span>
-						</div>
-
-						{/* Smart Contract Verification Pill */}
-						<div className="mb-4">
-							<span
-								className="badge px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2 text-wrap text-start"
-								style={{
-									backgroundColor: 'rgba(11, 37, 69, 0.65)',
-									border: '1px solid rgba(0, 168, 232, 0.4)',
-									color: '#E0F2FE',
-									borderRadius: '8px',
-									fontSize: '0.8rem',
-									lineHeight: 1.4,
-								}}
+						{description && (
+							<p
+								className="text-white-50 mb-3"
+								style={{ fontSize: '0.95rem', lineHeight: 1.6, maxWidth: '820px' }}
 							>
-								<ShieldCheck
-									size={16}
-									className="flex-shrink-0"
-									style={{ color: '#00A8E8' }}
-								/>
-								<span>🛡️ 7 Certificates & Blockchain Smart Contract Verified</span>
-							</span>
+								{description}
+							</p>
+						)}
+
+						{/* Organizer */}
+						<div>
+							<OrganizerLink instructor={instructor} />
 						</div>
 
-						{/* CTA Action Buttons */}
+						{/* Metrics */}
+						<div className="d-flex align-items-center gap-2 gap-sm-3 flex-wrap small mb-3">
+							<span className="d-flex align-items-center gap-2 text-white fw-semibold">
+								<Layers size={15} style={{ color: ACCENT }} />
+								{moduleCount} Modul
+							</span>
+							<span className="text-white-50">•</span>
+							<span className="d-flex align-items-center gap-2 text-white fw-semibold">
+								<BookOpen size={15} style={{ color: ACCENT }} />
+								{lessonCount} Lesson
+							</span>
+							{isAuthenticated && progressPercent > 0 && (
+								<>
+									<span className="text-white-50">•</span>
+									<span className="text-white fw-semibold">
+										{progressPercent}% selesai
+									</span>
+								</>
+							)}
+						</div>
+
+						{/* CTA */}
 						<div className="d-flex align-items-center gap-2 flex-column flex-sm-row">
 							<Button
 								variant="primary"
-								className="fw-bold px-4 py-2 rounded-3 shadow-sm d-inline-flex align-items-center justify-content-center gap-2"
+								className="fw-bold px-4 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-2"
 								style={{
 									backgroundColor: '#028090',
 									borderColor: '#028090',
 									fontSize: '0.92rem',
 									boxShadow: '0 4px 14px rgba(2, 128, 144, 0.4)',
 								}}
-								onClick={() => navigate('/learner/modules/mod-1')}
+								onClick={onStart}
+								disabled={lessonCount === 0}
 							>
-								<Play size={16} fill="currentColor" />
-								<span>Continue Path / Start Learning</span>
+								<CtaIcon
+									size={16}
+									fill={isAuthenticated ? 'currentColor' : 'none'}
+								/>
+								<span>{getCtaLabel(isAuthenticated, progressPercent)}</span>
 							</Button>
 
 							<Button
 								variant="outline-light"
-								className="fw-semibold px-3 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-2"
-								style={{
-									backgroundColor: 'rgba(255, 255, 255, 0.08)',
-									borderColor: 'rgba(255, 255, 255, 0.3)',
-									fontSize: '0.92rem',
-								}}
-								onClick={handleBookmarkClick}
+								className="bookmark-btn fw-semibold px-3 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-2"
+								onClick={onToggleBookmark}
+								aria-pressed={isBookmarked}
 							>
 								<Bookmark
 									size={16}
 									color={isBookmarked ? '#f59e0b' : '#FFFFFF'}
 									fill={isBookmarked ? '#f59e0b' : 'transparent'}
 								/>
-								<span>
-									{isBookmarked ? 'Bookmarked' : 'Preview Path / Bookmark'}
-								</span>
+								<span>{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
 							</Button>
 						</div>
+					</Col>
+
+					{/* Thumbnail */}
+					<Col lg={4}>
+						<Thumbnail src={thumbnailUrl} alt={title} />
 					</Col>
 				</Row>
 			</Container>

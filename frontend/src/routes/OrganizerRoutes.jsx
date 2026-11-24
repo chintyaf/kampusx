@@ -8,7 +8,6 @@ import EventOrganizerGuard from '@/components/guards/EventOrganizerGuard';
 import OrgDashboardPage from '../pages/organizer/OrgDashboardPage';
 import ManageInstitutionTeamPage from '../pages/institution/ManageInstitutionTeamPage';
 import ManageAnnouncements from '../pages/organizer/ManageAnnouncements';
-import ContentPage from '@/pages/lms/organizer/content/ContentPage';
 
 import CreateEvent from '@/pages/event/creation/CreateEvent/CreateEvent';
 import EventGeneralInfo from '@/pages/event/creation/detail-event/EventGeneralInfo';
@@ -51,7 +50,6 @@ export const OrganizerRoutes = (
 	<Route path="organizer">
 		{/* Main Organizer Routes */}
 		<Route path="dashboard" element={<OrgDashboardPage />} />
-		<Route path="content" element={<ContentPage />} />
 		<Route path="kelola-tim-institusi" element={<ManageInstitutionTeamPage />} />
 		<Route path="daftar-acara" element={<CreateEvent />} />
 		<Route path="buat-acara" element={<CreateEvent />} />

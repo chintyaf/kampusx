@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import NavbarMember from './partials-dashboard/NavbarMember.jsx';
 import Footer from './partials-dashboard/Footer';
+import ForethoughtModal from '../components/lms/ForethoughtModal';
 
 const MemberLayout = () => {
 	return (

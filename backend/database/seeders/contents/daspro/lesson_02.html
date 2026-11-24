@@ -1,0 +1,54 @@
+<h2>1. Bilangan Logika (Boolean)</h2>
+<p>Tipe data <strong>boolean</strong> memiliki domain harga yang terdiri dari dua nilai: <code>True</code> dan <code>False</code>[cite: 212]. Operator logika utama yang berlaku meliputi <code>and</code> (dan), <code>or</code> (atau), dan <code>not</code> (negasi)[cite: 212].</p>
+
+<p><img src="https://domain.com/storage/lessons/boolean-truth-table.png" alt="Tabel Kebenaran Boolean" class="img-fluid rounded"></p>
+
+<h3>Tabel Kebenaran Operator Logika</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>X</th>
+            <th>Y</th>
+            <th>not X</th>
+            <th>X and Y</th>
+            <th>X or Y</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>True</td><td>True</td><td>False</td><td>True</td><td>True</td></tr>
+        <tr><td>True</td><td>False</td><td>False</td><td>False</td><td>True</td></tr>
+        <tr><td>False</td><td>True</td><td>True</td><td>False</td><td>True</td></tr>
+        <tr><td>False</td><td>False</td><td>True</td><td>False</td><td>False</td></tr>
+    </tbody>
+</table>
+
+<h2>2. Bilangan Bulat (Integer)</h2>
+<p>Tipe data <strong>integer</strong> menampung himpunan bilangan bulat tanpa desimal (contoh konstanta: <code>0</code>, <code>16</code>, <code>-57</code>, <code>1009</code>)[cite: 214]. Tipe data ini mendukung operator aritmatika dan relasional[cite: 214, 215].</p>
+
+<h3>Operator Aritmatika Integer</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Operator</th>
+            <th>Arti</th>
+            <th>Tipe Hasil</th>
+            <th>Contoh</th>
+            <th>Hasil</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><code>+</code></td><td>Tambah</td><td>Integer</td><td>5 + 6</td><td>11</td></tr>
+        <tr><td><code>-</code></td><td>Kurang</td><td>Integer</td><td>10 - 2</td><td>8</td></tr>
+        <tr><td><code>*</code></td><td>Kali</td><td>Integer</td><td>2 * 3</td><td>6</td></tr>
+        <tr><td><code>/</code></td><td>Bagi</td><td>Float</td><td>10 / 3</td><td>3.33</td></tr>
+        <tr><td><code>//</code></td><td>Bagi integer</td><td>Integer</td><td>10 // 3</td><td>3</td></tr>
+        <tr><td><code>%</code></td><td>Sisa bagi</td><td>Integer</td><td>10 % 3</td><td>1</td></tr>
+        <tr><td><code>**</code></td><td>Pangkat</td><td>Integer</td><td>2 ** 3</td><td>8</td></tr>
+    </tbody>
+</table>
+
+<h3>Operator Relasional Integer</h3>
+<p>Operator relasional membandingkan dua nilai dan menghasilkan tipe data <code>Boolean</code>[cite: 215]:</p>
+<ul>
+    <li><code>&lt;</code> (Lebih Kecil), contoh: <code>2 &lt; 5</code> &rarr; <code>True</code>[cite: 215]</li>
+    <li><code>&lt;=</code> (Lebih kecil sama dengan), contoh: <code>5 &lt;= 7</code> &rarr; <code>True</code>

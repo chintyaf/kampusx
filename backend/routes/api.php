@@ -18,6 +18,9 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\EventMaterialController;
 use App\Http\Controllers\Api\Organizer\OrganizerEventController;
+use App\Http\Controllers\Api\Organizer\OrganizerLearningPathController;
+use App\Http\Controllers\Api\Organizer\OrganizerModuleController;
+use App\Http\Controllers\Api\Organizer\OrganizerLessonController;
 use App\Http\Controllers\Api\EventTypeController;
 use App\Http\Controllers\Api\InstitutionController;
 use App\Http\Controllers\Api\CategoryController;
@@ -47,6 +50,26 @@ use App\Http\Controllers\Api\EventDashboard\EventAttendanceController;
 
 // use App\Http\Controllers\CommitteeController;
 use App\Http\Controllers\Api\CommitteeController;
+
+// LMS -- MICROLEARNING
+use App\Http\Controllers\Api\LMS\LearningPathController;
+use App\Http\Controllers\Api\LMS\ModuleController;
+use App\Http\Controllers\Api\LMS\LessonController;
+use App\Http\Controllers\Api\LMS\SkillController;
+use App\Http\Controllers\Api\LMS\LessonSkillController;
+use App\Http\Controllers\Api\LMS\EnrollmentController;
+use App\Http\Controllers\Api\LMS\QuizController;
+use App\Http\Controllers\Api\LMS\SrlForethoughtController;
+use App\Http\Controllers\Api\LMS\SrlReflectionController;
+use App\Http\Controllers\Api\LMS\LearningActivityController;
+use App\Http\Controllers\Api\LMS\ReadinessPredictionController;
+use App\Http\Controllers\Api\LMS\RecommendationController;
+use App\Http\Controllers\Api\AiContentController;
+
+// ====================================================
+// LMS Microlearning Management
+// ====================================================
+require __DIR__ . '/api-lms.php';
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
@@ -153,6 +176,9 @@ Route::get('/v1/blockchain/polygonscan/{txHash}', [\App\Http\Controllers\Api\Blo
 Route::post('/v1/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
 Route::post('/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
 Route::post('/v1/talents/send-offer', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'sendRecruiterOffer']);
+// Learning Paths (Public / Learner Explore)
+Route::get('/learning-paths', [OrganizerLearningPathController::class, 'publicIndex']);
+Route::get('/learning-paths/{id}', [OrganizerLearningPathController::class, 'publicShow']);
 
 Route::get('/test', function () {
     return response()->json('hallo', 200);
@@ -177,6 +203,12 @@ Route::post('/v1/staff/kiosk-scan', [\App\Http\Controllers\Api\StaffController::
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // ==========================================
+    // Generative AI LMS Endpoints
+    // ==========================================
+    Route::post('/ai/generate-module', [AiContentController::class, 'storeModule']);
+    Route::post('/modules/{module}/ai/generate-lesson', [AiContentController::class, 'storeLesson']);
 
     // Ambil data user yang sedang login
     Route::get('/user/profile', function (Request $request) {
@@ -217,7 +249,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/member/points/history', [\App\Http\Controllers\Api\Member\PointTransactionController::class, 'history']);
     Route::post('/global-rewards/redeem', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'redeemGlobalReward']);
     Route::get('/global-rewards', [\App\Http\Controllers\Api\Member\RedemptionController::class, 'globalRewardsList']);
-    
+
     // Member Local Rewards Catalog & Redemption
     Route::get('/events/{event_id}/local-rewards', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'getLocalRewards']);
     Route::post('/events/{event_id}/local-rewards/redeem', [\App\Http\Controllers\Api\Member\LocalRewardController::class, 'redeemLocalReward']);
@@ -282,6 +314,40 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/events/{id}/announcements', [EventAnnouncementController::class, 'organizerIndex'])->middleware(CheckEventOrganizer::class);
             Route::post('/events/{id}/announcements', [EventAnnouncementController::class, 'store'])->middleware(CheckEventOrganizer::class);
             Route::delete('/events/{id}/announcements/{announcementId}', [EventAnnouncementController::class, 'destroy'])->middleware(CheckEventOrganizer::class);
+
+            // ====================================================
+            // LMS Microlearning Management (Learning Path, Module, Lesson)
+            // ====================================================
+            Route::prefix('lms')->group(function () {
+                Route::apiResource('learning-paths', LearningPathController::class);
+                Route::apiResource('modules', ModuleController::class);
+                Route::apiResource('lessons', LessonController::class);
+                Route::apiResource('quiz', QuizController::class);
+                Route::apiResource('skills', SkillController::class);
+                Route::apiResource('lesson-skills', LessonSkillController::class);
+
+
+                Route::apiResource('enrollments', EnrollmentController::class);
+
+                // API utk menerima Generative AI
+                // Generate and store Module with Lessons
+                Route::post(
+                    '/ai/generate-module',
+                    [AiContentController::class, 'storeModule']
+                );
+
+                // Generate and store Lesson inside existing Module
+                Route::post(
+                    '/modules/{module}/ai/generate-lesson',
+                    [AiContentController::class, 'storeLesson']
+                );
+                // API utk menerima Aktivitas Data
+                Route::apiResource('srl-forethoughts', SrlForethoughtController::class);
+                Route::apiResource('srl-reflections', SrlReflectionController::class);
+                Route::apiResource('learning-activities', LearningActivityController::class);
+                Route::apiResource('readiness-predictions', ReadinessPredictionController::class);
+                Route::apiResource('recommendations', RecommendationController::class);
+            });
         });
 
         // Endpoint: Organizer Kelola Tim Institusinya (Manage Institution Member)

@@ -50,6 +50,73 @@ class User extends Authenticatable
         return $this->hasMany(Event::class, 'organizer_id');
     }
 
+    public function learningPaths(): HasMany
+    {
+        return $this->hasMany(LearningPath::class, 'created_by');
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'user_id');
+    }
+
+    public function enrolledLearningPaths(): BelongsToMany
+    {
+        return $this->belongsToMany(LearningPath::class, 'enrollments', 'user_id', 'learning_path_id')
+            ->withPivot(['status', 'enrolled_at', 'completed_at', 'last_accessed_at'])
+            ->withTimestamps();
+    }
+
+    public function quizAttempts(): HasMany
+    {
+        return $this->hasMany(QuizAttempt::class, 'user_id');
+    }
+
+    public function readinessPredictions(): HasMany
+    {
+        return $this->hasMany(ReadinessPrediction::class, 'user_id');
+    }
+
+    public function recommendations(): HasMany
+    {
+        return $this->hasMany(Recommendation::class, 'user_id');
+    }
+
+    public function srlLearningSessions(): HasMany
+    {
+        return $this->hasMany(SrlLearningSession::class, 'user_id');
+    }
+
+    public function learningActivities(): HasMany
+    {
+        return $this->hasMany(LearningActivity::class, 'user_id');
+    }
+
+    public function learningHistories(): HasMany
+    {
+        return $this->hasMany(LearningHistory::class, 'user_id');
+    }
+
+    public function learningCompletions(): HasMany
+    {
+        return $this->hasMany(LearningCompletion::class, 'user_id');
+    }
+
+    public function lmsUserBadges(): HasMany
+    {
+        return $this->hasMany(LmsUserBadge::class, 'user_id');
+    }
+
+    public function lmsUserCertificates(): HasMany
+    {
+        return $this->hasMany(LmsUserCertificate::class, 'user_id');
+    }
+
+    public function latestReadiness(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ReadinessPrediction::class, 'user_id')->latestOfMany();
+    }
+
     // User bisa punya banyak institusi (via pivot)
  // app/Models/User.php
 

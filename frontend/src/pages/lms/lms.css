@@ -412,7 +412,7 @@
 }
 
 .lms-card-header:hover .lms-title {
-	color: #028090 !important;
+	color: var(--color-primary) !important;
 }
 
 /* --- Chevron Rotation Animation --- */
@@ -469,7 +469,7 @@
 
 /* --- Action Button Hover & Icon Move --- */
 .lms-btn-action {
-	background-color: #028090 !important;
+	background-color: var(--color-primary) !important;
 	transition:
 		background-color 0.2s ease,
 		transform 0.2s ease,
@@ -477,7 +477,7 @@
 }
 
 .lms-btn-action:hover {
-	background-color: #026a78 !important;
+	background-color: #00547f !important;
 	transform: translateY(-1px);
 	box-shadow: 0 4px 12px rgba(2, 128, 144, 0.25);
 }
@@ -496,7 +496,6 @@
 
 /* --- Keyframe Animations --- */
 
-
 /* Subtle Pop-in for Completed Checkmarks */
 @keyframes lmsPopIn {
 	0% {
@@ -514,4 +513,20 @@
 
 .lms-pop-in {
 	animation: lmsPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* BookmarkButton.css */
+.bookmark-btn {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 0.92rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.bookmark-btn:hover,
+.bookmark-btn:focus-visible {
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
 }

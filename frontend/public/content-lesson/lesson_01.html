@@ -1,0 +1,65 @@
+<article class="space-y-6">
+    <section>
+        <h2>1. Arsitektur Stored Program Computer</h2>
+        <p>
+            Komputer bekerja berdasarkan prinsip <strong>Stored Program Computer</strong>, di mana data dan instruksi
+            disimpan bersama di dalam memori. Instruksi di dalam program dilaksanakan secara berurutan (sekuensial).
+        </p>
+        <div>
+            <h3>Komponen Utama:</h3>
+            <ul>
+                <li><strong>Input:</strong> Menerima data dan instruksi masukan dari pengguna.</li>
+                <li><strong>Process & Storage:</strong> Mengolah data dalam CPU dan memproses instruksi di memori.</li>
+                <li><strong>Output:</strong> Menampilkan hasil pemrosesan informasi ke piranti keluaran.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <h2">2. Pengertian & Klasifikasi Tipe Data</h2>
+        <p>
+            <strong>Type (Tipe Data)</strong> adalah pola representasi data dalam komputer yang mendefinisikan objek
+            yang diprogram, domain nilai, konvensi konstanta, dan operator yang berlaku.
+        </p>
+        <div>
+            <div>
+                <h3>Tipe Data Dasar (Built-in)</h3>
+                <ul>
+                    <li><strong>Boolean:</strong> Logika (<code>True</code> / <code>False</code>)</li>
+                    <li><strong>Integer:</strong> Bilangan bulat (<code>10</code>, <code>-5</code>)</li>
+                    <li><strong>Float:</strong> Bilangan real (<code>3.14</code>, <code>0.5</code>)</li>
+                    <li><strong>Karakter / String:</strong> Teks (<code>'A'</code>, <code>"Maranatha"</code>)</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Tipe Data Bentukan</h3>
+                <p>Tipe yang disusun pemrogram dari tipe dasar:</p>
+                <ul>
+                    <li>Array / List</li>
+                    <li>Record / Struct / Class</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h3>
+            Deklarasi Data Tipe Dasar
+        </h3>
+        <pre >
+            <code>
+                # File: ContohDeklarasiData.py
+def main():
+    Radius = 10                  # Integer
+    LuasLingk = 22/7 * (10/2)**2 # Float
+    Ketemu = True                # Boolean
+    Nama = "Maranatha"           # String
+    Gender = 'L'                 # String/Char
+
+    print(Radius, LuasLingk, Ketemu, Nama, Gender)
+    return 0
+
+if __name__ == '__main__':
+    main()</code></pre>
+    </section>
+</article>

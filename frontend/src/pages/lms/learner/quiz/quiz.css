@@ -1,0 +1,391 @@
+/* ===== Quiz page — memakai variabel global dari index.css ===== */
+
+.qz-page {
+	background: var(--color-bg);
+	min-height: 100vh;
+	padding-bottom: 64px;
+}
+.qz-center {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+	padding: 64px 0;
+	text-align: center;
+	color: var(--muted);
+	font-size: var(--font-sm);
+}
+
+/* ---------- Buttons (varian primary Bootstrap sudah memakai --color-primary) ---------- */
+.qz-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	border-radius: 10px;
+	font-size: var(--font-sm);
+	font-weight: 600;
+}
+.qz-btn-ghost {
+	background: var(--card);
+	border: 1px solid var(--neutral-border);
+	color: var(--text);
+}
+.qz-btn-ghost:disabled {
+	opacity: 0.5;
+}
+
+/* ---------- Header ---------- */
+.qz-header {
+	position: sticky;
+	top: 0;
+	z-index: 1020;
+	padding: 16px 0;
+	background: var(--card);
+	border-bottom: var(--border-w-xs) solid var(--neutral-border);
+}
+.qz-back {
+	display: flex;
+	align-items: center;
+	padding: 0;
+	background: none;
+	border: 0;
+	color: var(--muted);
+	font-size: var(--font-sm);
+	font-weight: 600;
+}
+.qz-divider {
+	width: 1px;
+	height: 20px;
+	background: var(--neutral-border);
+}
+.qz-type-badge {
+	background: var(--primary-light);
+	color: var(--primary);
+	font-size: var(--font-xs);
+}
+.qz-title {
+	font-size: var(--font-sm);
+	font-weight: 700;
+	color: var(--text);
+}
+.qz-timer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	font-family: monospace;
+	font-size: var(--font-sm);
+	font-weight: 700;
+	color: var(--text);
+	background: var(--neutral-bg);
+	border: 1px solid var(--neutral-border);
+	border-radius: var(--radius-full);
+}
+.qz-timer svg {
+	color: var(--primary);
+}
+.qz-timer.is-low {
+	color: var(--danger-text);
+	background: var(--danger-bg);
+	border-color: var(--danger-border-color);
+}
+.qz-timer.is-low svg {
+	color: var(--danger-text);
+}
+
+/* ---------- Cards ---------- */
+.qz-card {
+	background: var(--card);
+	border: var(--border-w-xs) solid var(--neutral-border);
+	box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+.qz-nav-card {
+	padding: 20px;
+	border-radius: var(--radius-lg);
+}
+.qz-question-card {
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+}
+.qz-card-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 24px;
+	border-bottom: 1px solid var(--neutral-border);
+}
+.qz-card-bar.is-footer {
+	border-bottom: 0;
+	border-top: 1px solid var(--neutral-border);
+}
+.qz-eyebrow {
+	font-size: var(--font-xs);
+	font-weight: 800;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--text);
+}
+.qz-eyebrow.is-muted {
+	color: var(--muted);
+}
+.qz-pass-pill {
+	padding: 4px 16px;
+	font-size: var(--font-xs);
+	font-weight: 600;
+	color: var(--muted);
+	background: var(--card);
+	border: 1px solid var(--neutral-border);
+	border-radius: var(--radius-full);
+}
+.qz-question-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: var(--primary-light);
+	color: var(--primary);
+}
+.qz-bloom {
+	font-size: 0.7rem;
+	font-weight: 700;
+	background: #e0e7ff;
+	color: #4338ca;
+}
+.qz-question-text {
+	margin: 0;
+	font-size: var(--font-md);
+	font-weight: 700;
+	line-height: 1.5;
+	color: var(--text);
+}
+
+/* ---------- Navigator ---------- */
+.qz-nav-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 8px;
+}
+.qz-nav-btn {
+	position: relative;
+	height: 38px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--font-xs);
+	font-weight: 700;
+	color: var(--muted);
+	background: var(--card);
+	border: var(--border-w-xs) solid var(--neutral-border);
+	border-radius: var(--radius-md);
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+.qz-nav-btn.is-answered,
+.qz-dot.is-answered {
+	background: var(--success-bg);
+	border-color: var(--success-border-color);
+	color: var(--success-text);
+}
+.qz-nav-btn.is-flagged,
+.qz-dot.is-flagged {
+	background: var(--warning-bg);
+	border-color: var(--warning-border);
+	color: var(--warning-text);
+}
+.qz-nav-btn.is-current,
+.qz-dot.is-current {
+	background: var(--primary-light);
+	border-color: var(--primary);
+	color: var(--primary);
+}
+.qz-nav-btn.is-current {
+	border-width: var(--border-w-sm);
+}
+.qz-flag-mark {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 6px;
+	height: 6px;
+	border-radius: var(--radius-full);
+	background: var(--warning-text);
+}
+.qz-legend {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid var(--neutral-border);
+	font-size: var(--font-xs);
+	color: var(--muted);
+}
+.qz-legend > div {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.qz-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: var(--radius-xs);
+	border: var(--border-w-xs) solid var(--neutral-border);
+}
+
+/* ---------- Options ---------- */
+.qz-option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px;
+	background: var(--card);
+	border: 1.5px solid var(--neutral-border);
+	border-radius: 12px;
+	cursor: pointer;
+	transition: all 0.15s ease-in-out;
+}
+.qz-option.is-selected {
+	background: var(--bahama-blue-50);
+	border-color: var(--primary);
+}
+.qz-option-key {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: var(--muted);
+	background: var(--neutral-bg);
+}
+.is-selected .qz-option-key {
+	color: #fff;
+	background: var(--primary);
+}
+.qz-option-text {
+	font-size: 0.85rem;
+	line-height: 1.4;
+	color: var(--text);
+}
+.is-selected .qz-option-text {
+	font-weight: 600;
+}
+.qz-option-check {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	border: 2px solid var(--neutral-border);
+	color: #fff;
+}
+.is-selected .qz-option-check {
+	background: var(--primary);
+	border-color: var(--primary);
+}
+
+/* ---------- Footer flag toggle ---------- */
+.qz-flag {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0;
+	background: none;
+	border: 0;
+	font-size: var(--font-sm);
+	font-weight: 600;
+	color: var(--muted);
+}
+.qz-flag.is-flagged {
+	color: var(--warning-text);
+}
+
+/* ---------- Submit modal ---------- */
+.qz-modal-summary {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 16px;
+	padding: 16px;
+	background: var(--neutral-bg);
+	border: 1px solid var(--neutral-border);
+	border-radius: 12px;
+}
+.qz-modal-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: var(--bahama-blue-100);
+	color: var(--bahama-blue-600);
+}
+.qz-modal-icon.is-warning {
+	background: var(--warning-bg);
+	color: var(--warning-text);
+}
+.qz-stat {
+	padding: 16px;
+	text-align: center;
+	background: var(--neutral-bg);
+	border: 1px solid var(--neutral-border);
+	border-radius: 10px;
+}
+.qz-stat.is-success {
+	background: var(--success-bg);
+	border-color: var(--success-border-color);
+}
+.qz-stat.is-warning {
+	background: var(--warning-bg);
+	border-color: var(--warning-border);
+}
+.qz-stat-label {
+	display: block;
+	margin-bottom: 4px;
+	font-size: 0.725rem;
+	font-weight: 700;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+.qz-stat-value {
+	font-size: var(--font-lg);
+	font-weight: 700;
+	color: var(--muted);
+}
+.qz-stat.is-success .qz-stat-value {
+	color: var(--success-text);
+}
+.qz-stat.is-warning .qz-stat-value {
+	color: var(--warning-text);
+}
+.qz-missing {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 16px;
+	padding: 8px 16px;
+	font-size: 0.825rem;
+	color: var(--danger-text);
+	background: var(--error-bg);
+	border: 1px solid var(--error-border);
+	border-radius: var(--radius-md);
+}
+
+.qz-hint {
+	margin-top: 16px;
+	font-size: var(--font-xs);
+	color: var(--warning-text);
+}

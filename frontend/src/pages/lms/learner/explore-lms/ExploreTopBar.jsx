@@ -10,8 +10,6 @@ const ExploreTopBar = ({
 	handleResetFilters = () => {},
 }) => (
 	<>
-
-
 		{/* Active Filter Chips Bar */}
 		{activeChips?.length > 0 && (
 			<div className="d-flex align-items-center gap-2 flex-wrap mb-3 p-3 bg-white rounded-3 border">
