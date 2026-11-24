@@ -24,7 +24,9 @@ class LearnerQuizResultController extends Controller
         $module = Module::with([
             'learningPath',
             'lessons' => fn ($q) => $q->orderBy(
-                Schema::hasColumn('lessons', 'order_index') ? 'order_index' : 'id'
+                Schema::hasColumn('lessons', 'order_index')
+                    ? 'order_index'
+                    : 'id'
             ),
         ])->find($moduleId);
 
@@ -76,10 +78,15 @@ class LearnerQuizResultController extends Controller
         foreach ($questions as $index => $question) {
             $answer = $answers->get($question->id);
             $selected = $answer?->selectedOption;
-            $correctOption = $question->options->firstWhere('is_correct', true);
+
+            $correctOption = $question->options
+                ->firstWhere('is_correct', true);
 
             $isUnanswered = !$answer ||
-                (!$answer->selected_option_id && empty($answer->answer_text));
+                (
+                    !$answer->selected_option_id &&
+                    empty($answer->answer_text)
+                );
 
             $isCorrect = !$isUnanswered && (
                 $answer->is_correct !== null
@@ -95,11 +102,18 @@ class LearnerQuizResultController extends Controller
                 $wrong++;
             }
 
+            // REMEDIAL LESSONS
             if (!$isCorrect) {
-                $lesson = $this->resolveLesson($question, $index, $lessons);
+                $lesson = $this->resolveLesson(
+                    $question,
+                    $index,
+                    $lessons
+                );
 
                 $lessonIndex = $lesson
-                    ? $lessons->search(fn ($item) => $item->id === $lesson->id)
+                    ? $lessons->search(
+                        fn ($item) => $item->id === $lesson->id
+                    )
                     : false;
 
                 $number = $lessonIndex !== false
@@ -111,20 +125,31 @@ class LearnerQuizResultController extends Controller
                     'questionId' => $question->id,
                     'lessonId' => $lesson?->id,
                     'lessonNumber' => $number,
+
                     'title' => $lesson
                         ? "Lesson {$number} — {$lesson->title}"
                         : 'Soal #' . ($index + 1),
-                    'status' => $isUnanswered ? 'Terlewat' : 'Salah',
+
+                    'status' => $isUnanswered
+                        ? 'Terlewat'
+                        : 'Salah',
+
                     'question' => $question->question_text,
+
                     'userAnswer' => $isUnanswered
                         ? 'Belum dijawab'
-                        : ($selected
-                            ? "{$selected->option_label}. {$selected->option_text}"
-                            : ($answer->answer_text ?? 'Belum dijawab')),
+                        : (
+                            $selected
+                                ? "{$selected->option_label}. {$selected->option_text}"
+                                : ($answer->answer_text ?? 'Belum dijawab')
+                        ),
+
                     'correctAnswer' => $correctOption
                         ? "{$correctOption->option_label}. {$correctOption->option_text}"
                         : '-',
+
                     'explanation' => $question->explanation,
+
                     'actionText' => $lesson
                         ? "Pelajari Lesson {$number}"
                         : 'Tinjau Materi',
@@ -141,26 +166,112 @@ class LearnerQuizResultController extends Controller
         );
 
         $passingScore = round($quiz->passing_score ?? 70);
-        $isPassed = $attempt->is_passed ?? ($score >= $passingScore);
+
+        $isPassed = (bool) (
+            $attempt->is_passed ?? ($score >= $passingScore)
+        );
 
         $readiness = $attempt->readinessPrediction?->readiness_level
-            ?? (!$isPassed ? 'belum_siap' : ($score >= 85 ? 'siap' : 'cukup_siap'));
+            ?? (!$isPassed
+                ? 'belum_siap'
+                : ($score >= 85 ? 'siap' : 'cukup_siap'));
+
+        [$themeColor, $headline, $feedback, $cta] = match (true) {
+            !$isPassed => [
+                '#EF4444',
+                'Belum lulus, tapi kamu bisa mengulang',
+                'Tinjau lesson di bawah ini lalu coba kuis lagi. Fokus pada jawaban yang masih keliru.',
+                'Ulangi Modul',
+            ],
+
+            $readiness === 'siap' => [
+                '#10B981',
+                'Luar biasa! Pemahamanmu sudah kuat',
+                'Kamu menguasai materi modul ini dengan sangat baik. Lanjutkan ke tahap berikutnya.',
+                'Lanjutkan',
+            ],
+
+            default => [
+                '#F59E0B',
+                'Lulus, masih ada yang bisa diperkuat',
+                'Kamu sudah memenuhi kriteria kelulusan. Tinjau beberapa lesson di bawah untuk memantapkan pemahaman.',
+                'Lanjutkan',
+            ],
+        };
+
+        // NEXT MODULE
+        $orderCol = Schema::hasColumn('modules', 'order_index')
+            ? 'order_index'
+            : 'id';
+
+        $siblings = Module::where(
+            'learning_path_id',
+            $module->learning_path_id
+        )
+            ->withCount('lessons')
+            ->orderBy($orderCol)
+            ->get()
+            ->values();
+
+        $moduleIdx = $siblings->search(
+            fn ($m) => $m->id === $module->id
+        );
+
+        $nextModule = $moduleIdx !== false
+            ? $siblings->get($moduleIdx + 1)
+            : null;
 
         // RESPONSE
         return response()->json([
             'status' => 'success',
+
             'data' => [
                 'moduleId' => $module->id,
                 'moduleTitle' => $module->title,
                 'quizTitle' => $quiz->title,
                 'attemptId' => $attempt->id,
 
+                'moduleNumber' => $moduleIdx !== false
+                    ? $moduleIdx + 1
+                    : null,
+
+                'totalModules' => $siblings->count(),
+
+                'nextModule' => $nextModule ? [
+                    'id' => $nextModule->id,
+                    'number' => $moduleIdx + 2,
+                    'title' => $nextModule->title,
+                    'description' => $nextModule->description,
+
+                    'duration' => (
+                        $nextModule->duration_minutes
+                        ?? $nextModule->estimated_minutes
+                    )
+                        ? (
+                            ($nextModule->duration_minutes
+                                ?? $nextModule->estimated_minutes) . ' min'
+                        )
+                        : null,
+
+                    'lessonCount' => $nextModule->lessons_count ?? 0,
+                ] : null,
+
                 'outcome' => [
                     'id' => (string) $attempt->id,
                     'score' => $score,
                     'passingScore' => $passingScore,
-                    'isPassed' => (bool) $isPassed,
+                    'isPassed' => $isPassed,
                     'readinessLevel' => $readiness,
+
+                    'badgeText' => strtoupper(
+                        str_replace('_', ' ', $readiness)
+                    ),
+
+                    'themeColor' => $themeColor,
+                    'headline' => $headline,
+                    'feedback' => $feedback,
+                    'ctaPrimaryText' => $cta,
+
                     'metrics' => [
                         'correct' => $correct,
                         'wrong' => $wrong,
@@ -168,22 +279,30 @@ class LearnerQuizResultController extends Controller
                         'total' => $total,
                         'answeredStr' => "{$answered}/{$total} Soal diisi",
                     ],
+
                     'duration' => $this->formatDuration(
                         $attempt->started_at,
                         $attempt->completed_at
                     ),
+
                     'remedialCount' => count($remedialLessons),
                 ],
 
                 'remedialLessons' => $remedialLessons,
-                'recommendations' => $this->getRecommendations($user->id, $module),
+
+                'recommendations' => $this->getRecommendations(
+                    $user->id,
+                    $module
+                ),
             ],
         ]);
     }
 
     // ERROR RESPONSE
-    private function error(string $message, int $code): JsonResponse
-    {
+    private function error(
+        string $message,
+        int $code
+    ): JsonResponse {
         return response()->json([
             'status' => 'error',
             'message' => $message,
@@ -191,8 +310,11 @@ class LearnerQuizResultController extends Controller
     }
 
     // FIND RELATED LESSON
-    private function resolveLesson($question, int $index, $lessons): ?Lesson
-    {
+    private function resolveLesson(
+        $question,
+        int $index,
+        $lessons
+    ): ?Lesson {
         return $lessons->isEmpty()
             ? null
             : (
@@ -202,20 +324,28 @@ class LearnerQuizResultController extends Controller
     }
 
     // FORMAT QUIZ DURATION
-    private function formatDuration(?Carbon $start, ?Carbon $end): string
-    {
+    private function formatDuration(
+        ?Carbon $start,
+        ?Carbon $end
+    ): string {
         if (!$start || !$end) {
             return '-';
         }
 
         $seconds = max(0, $start->diffInSeconds($end));
 
-        return sprintf('%02dm %02ds', intdiv($seconds, 60), $seconds % 60);
+        return sprintf(
+            '%02dm %02ds',
+            intdiv($seconds, 60),
+            $seconds % 60
+        );
     }
 
     // RECOMMENDATIONS
-    private function getRecommendations(int $userId, Module $currentModule): array
-    {
+    private function getRecommendations(
+        int $userId,
+        Module $currentModule
+    ): array {
         $items = [];
 
         $recommendations = Recommendation::where('user_id', $userId)
@@ -225,12 +355,18 @@ class LearnerQuizResultController extends Controller
 
         foreach ($recommendations as $rec) {
             $item = match ($rec->content_type) {
-                'lesson' => Lesson::with('module.learningPath')->find($rec->content_id),
+                'lesson' => Lesson::with('module.learningPath')
+                    ->find($rec->content_id),
+
                 'module' => Module::with('learningPath')
                     ->withCount('lessons')
                     ->find($rec->content_id),
-                'learning_path' => LearningPath::withCount(['modules', 'lessons'])
-                    ->find($rec->content_id),
+
+                'learning_path' => LearningPath::withCount([
+                    'modules',
+                    'lessons',
+                ])->find($rec->content_id),
+
                 default => null,
             };
 
@@ -245,22 +381,39 @@ class LearnerQuizResultController extends Controller
             };
         }
 
-        // FALLBACK RECOMMENDATIONS
+        // FALLBACK LESSON
+        // Prioritas: Learning Path yang sama, kemudian Learning Path lain.
         if (count($items) < 3) {
             $lesson = Lesson::with('module.learningPath')
                 ->where('module_id', '!=', $currentModule->id)
+                ->whereHas(
+                    'module',
+                    fn ($q) => $q->where(
+                        'learning_path_id',
+                        $currentModule->learning_path_id
+                    )
+                )
                 ->when(
                     Schema::hasColumn('lessons', 'is_published'),
                     fn ($q) => $q->where('is_published', true)
                 )
                 ->inRandomOrder()
-                ->first();
+                ->first()
+                ?? Lesson::with('module.learningPath')
+                    ->where('module_id', '!=', $currentModule->id)
+                    ->when(
+                        Schema::hasColumn('lessons', 'is_published'),
+                        fn ($q) => $q->where('is_published', true)
+                    )
+                    ->inRandomOrder()
+                    ->first();
 
             if ($lesson) {
                 $items[] = $this->mapLesson($lesson);
             }
         }
 
+        // FALLBACK MODULE
         if (count($items) < 3) {
             $module = Module::with('learningPath')
                 ->withCount('lessons')
@@ -277,9 +430,17 @@ class LearnerQuizResultController extends Controller
             }
         }
 
+        // FALLBACK LEARNING PATH
         if (count($items) < 3) {
-            $path = LearningPath::withCount(['modules', 'lessons'])
-                ->where('id', '!=', $currentModule->learning_path_id)
+            $path = LearningPath::withCount([
+                'modules',
+                'lessons',
+            ])
+                ->where(
+                    'id',
+                    '!=',
+                    $currentModule->learning_path_id
+                )
                 ->when(
                     Schema::hasColumn('learning_paths', 'is_published'),
                     fn ($q) => $q->where('is_published', true)
@@ -298,19 +459,27 @@ class LearnerQuizResultController extends Controller
     // RECOMMENDATION CARD MAPPERS
     private function mapLesson(Lesson $lesson): array
     {
-        $duration = $lesson->duration_minutes ?? $lesson->estimated_minutes;
+        $duration = $lesson->duration_minutes
+            ?? $lesson->estimated_minutes;
 
         return [
             'id' => (string) $lesson->id,
             'type' => 'lesson',
             'moduleId' => $lesson->module_id,
+
             'learningPathSlug' => $lesson->module?->learningPath?->slug
                 ?? $lesson->module?->learning_path_id,
+
             'title' => $lesson->title,
+
             'description' => $lesson->description
                 ?? $lesson->summary
                 ?? 'Pelajari materi lesson ini untuk memperkuat pemahamanmu.',
-            'durationLabel' => $duration ? "{$duration} Menit" : 'Lesson',
+
+            'durationLabel' => $duration
+                ? "{$duration} Menit"
+                : 'Lesson',
+
             'thumbnail' => $lesson->thumbnail
                 ?? $lesson->image
                 ?? $lesson->module?->thumbnail,
@@ -319,22 +488,30 @@ class LearnerQuizResultController extends Controller
 
     private function mapModule(Module $module): array
     {
-        $duration = $module->duration_minutes ?? $module->estimated_minutes;
+        $duration = $module->duration_minutes
+            ?? $module->estimated_minutes;
 
         return [
             'id' => (string) $module->id,
             'type' => 'module',
+
             'learningPathSlug' => $module->learningPath?->slug
                 ?? $module->learning_path_id,
+
             'title' => $module->title,
+
             'description' => $module->description
                 ?? 'Modul pembelajaran terstruktur untuk memperdalam konsep terkait.',
+
             'lessonCount' => $module->lessons_count ?? 0,
             'level' => $module->level ?? 'Menengah',
+
             'durationLabel' => $duration
                 ? "{$duration} Menit"
                 : (($module->lessons_count ?? 0) . ' Lesson'),
+
             'isEnrolled' => false,
+
             'thumbnail' => $module->thumbnail
                 ?? $module->image
                 ?? $module->learningPath?->thumbnail,
@@ -343,20 +520,26 @@ class LearnerQuizResultController extends Controller
 
     private function mapLearningPath(LearningPath $path): array
     {
-        $duration = $path->duration_minutes ?? $path->estimated_minutes;
+        $duration = $path->duration_minutes
+            ?? $path->estimated_minutes;
 
         return [
             'id' => (string) $path->id,
             'slug' => $path->slug ?? (string) $path->id,
             'type' => 'learning_path',
+
             'title' => $path->title,
+
             'description' => $path->description
                 ?? 'Jalur pembelajaran lengkap untuk menguasai kompetensi terkait.',
+
             'moduleCount' => $path->modules_count ?? 0,
             'lessonCount' => $path->lessons_count ?? 0,
+
             'durationLabel' => $duration
                 ? round($duration / 60, 1) . ' Jam'
                 : (($path->modules_count ?? 0) . ' Modul'),
+
             'thumbnail' => $path->thumbnail ?? $path->image,
         ];
     }

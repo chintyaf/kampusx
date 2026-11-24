@@ -59,24 +59,33 @@ return new class extends Migration
             $table->index(['user_id', 'awarded_at']);
         });
 
-
         Schema::create('lms_user_certificates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('completion_id')->constrained('learning_completions')->cascadeOnDelete();
+
+            $table->foreignId('user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('completion_id')->constrained('learning_completions')->restrictOnDelete();
+
+            // ID unik untuk integrasi API dengan Brigitta
+            $table->uuid('credential_id')->unique();
+
             $table->string('certificate_number', 100)->unique();
             $table->string('title', 200);
             $table->text('description')->nullable();
             $table->string('file_path', 500)->nullable();
+
             $table->timestamp('issued_at')->nullable();
             $table->enum('status', ['pending', 'issued', 'failed', 'revoked'])->default('pending');
-            $table->string('external_credential_id', 150)->nullable();
-            $table->json('external_response')->nullable();
+
+            $table->decimal('score', 5, 2)->nullable();
+            $table->decimal('passing_grade', 5, 2)->nullable();
+
             $table->timestamps();
 
+            // Satu completion menghasilkan maksimal satu sertifikat
             $table->unique('completion_id');
+
             $table->index(['user_id', 'issued_at']);
-            $table->index('status');
+            $table->index(['status', 'updated_at']);
         });
     }
 
