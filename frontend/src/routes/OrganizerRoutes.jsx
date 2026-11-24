@@ -19,6 +19,7 @@ import EventDashboardPage from '@/pages/event/management/EventDashboardPage';
 import EventPosPage from '@/pages/event/management/EventPosPage/index'; // Digunakan untuk Check-in
 import ScannerPage from '../pages/organizer/ScannerPage'; // Disiapkan jika dipanggil dari dalam Check-in
 import EventParticipantList from '@/pages/event/management/EventParticipantListPage/index';
+import EventWaitlistPage from '@/pages/event/management/EventWaitlistPage/index';
 import EventPostMaterial from '@/pages/event/post-event/EventPostMaterialPage/index';
 import EventSurveyPage from '@/pages/event/management/EventSurveyPage/index';
 import EventCertificatePage from '@/pages/event/post-event/certificate/EventCertificatePage.jsx';
@@ -78,6 +79,7 @@ export const OrganizerRoutes = (
 
 			{/* Operasional / Manajemen Peserta */}
 			<Route path="daftar-peserta" element={<EventParticipantList />} />
+			<Route path="waitlist" element={<EventWaitlistPage />} />
 			<Route path="redemptions" element={<ManageRedemptionsPage />} />
 			<Route path="rewards" element={<ManageRewardsPage />} />
 

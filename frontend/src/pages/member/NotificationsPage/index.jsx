@@ -69,6 +69,8 @@ const NotificationsPage = () => {
                     navigate('/apply-organizer', { state: { autoResubmit: true } });
                 } else if (type === 'event_recommendation') {
                     navigate(`/event/${eventSlug || eventId}`);
+                } else if (type === 'waitlist_offered' || type === 'waitlist_joined' || type === 'waitlist_expired') {
+                    navigate(`/event/${eventId}`);
                 } else if (eventId) {
                     const isOrganizerPath = window.location.pathname.startsWith('/organizer');
                     if (isOrganizerPath) {

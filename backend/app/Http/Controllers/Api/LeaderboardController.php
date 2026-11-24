@@ -42,7 +42,7 @@ class LeaderboardController extends Controller
             ->where('role', 'participant')
             ->with(['university', 'soulboundTokens'])
             ->withCount(['tickets' => function ($q) {
-                $q->where('status', 'active');
+                $q->whereIn('status', ['active', 'used', 'completed']);
             }])
             ->orderBy('points', 'desc')
             ->orderBy('id', 'asc');

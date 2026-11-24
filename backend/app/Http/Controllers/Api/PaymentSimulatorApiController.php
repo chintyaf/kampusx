@@ -155,6 +155,19 @@ class PaymentSimulatorApiController extends Controller
      */
     public function callback(Request $request)
     {
+        // Cegah akses publik atau partisipan umum tanpa validasi provider resmi / admin
+        $secretKey = config('app.payment_secret_key');
+        $providedSig = $request->header('X-Simulator-Signature') ?? $request->header('X-Webhook-Secret');
+        $user = $request->user();
+        $isAdmin = $user && in_array($user->role, ['admin']);
+
+        if (!$isAdmin && (!$secretKey || $providedSig !== $secretKey)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak: Callback simulator memerlukan verifikasi signature yang valid atau hak akses administrator.',
+            ], 403);
+        }
+
         $request->validate([
             'order_id' => 'required|string|exists:orders,order_id',
         ]);

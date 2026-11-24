@@ -57,7 +57,11 @@ class SeatLockController extends Controller
     public function lockSeat(Request $request, int $id)
     {
         $user = $this->getActiveUser($request);
-        $seatNumber = $request->input('seat_number', 'B3');
+        $seatNumber = $request->input('seat_number');
+
+        if (!$seatNumber) {
+            $seatNumber = $this->seatLockService->findAvailableSeatNumber($id, $user->id);
+        }
 
         $result = $this->seatLockService->lockSeatNumber($id, $seatNumber, $user->id, 900);
 

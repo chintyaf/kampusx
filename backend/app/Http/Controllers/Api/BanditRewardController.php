@@ -44,16 +44,22 @@ class BanditRewardController extends Controller
             }
         }
 
-        $rewardDecision = $this->banditEngine->selectOptimalReward($event, $user, $basePrice);
+        $rewardDecision = $this->banditEngine->selectOptimalReward($user, $event, $basePrice);
+        $discountAmount = (float) ($rewardDecision['reward']['discount_amount'] ?? ($rewardDecision['discount_amount'] ?? 0));
+        $bonusPoints    = (int) ($rewardDecision['reward']['bonus_points'] ?? ($rewardDecision['bonus_points'] ?? 0));
 
         return response()->json([
             'success' => true,
             'status'  => 'success',
             'data'    => array_merge($rewardDecision, [
-                'event_id'   => $event->id,
-                'event_title'=> $event->title,
-                'base_price' => $basePrice,
-                'final_price'=> max(0, $basePrice - $rewardDecision['discount_amount']),
+                'event_id'        => $event->id,
+                'event_title'     => $event->title,
+                'base_price'      => $basePrice,
+                'discount_amount' => $discountAmount,
+                'bonus_points'    => $bonusPoints,
+                'reward_label'    => $rewardDecision['reward']['title'] ?? ($rewardDecision['reward']['name'] ?? 'Diskon Spesial'),
+                'badge_text'      => $rewardDecision['reward']['badge_text'] ?? 'Penawaran Personal',
+                'final_price'     => max(0, $basePrice - $discountAmount),
             ])
         ], 200);
     }

@@ -16,6 +16,16 @@ export default defineConfig({
 		watch: {
 			usePolling: true, // Ini memaksa Vite mengecek perubahan secara berkala
 		},
+		port: 5173,
+		allowedHosts: [
+			'flagship-ranking-unpaved.ngrok-free.dev'
+		],
+		proxy: {
+			'/api/payment/callback/duitku': {
+			target: 'http://127.0.0.1:8000',
+			changeOrigin: true,
+			},
+		},
 	},
 	build: {
 		rollupOptions: {

@@ -306,4 +306,9 @@ class Event extends Model
     {
         return $this->hasMany(PointTransaction::class);
     }
+
+    public function waitlists(): HasMany
+    {
+        return $this->hasMany(EventWaitlist::class);
+    }
 }

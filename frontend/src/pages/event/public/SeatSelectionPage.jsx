@@ -138,6 +138,19 @@ const SeatSelectionPage = () => {
     return `${mins.toString().padStart(2, '0')}:${remSecs.toString().padStart(2, '0')}`;
   };
 
+  // Ekstraksi baris dinamis dari denah kursi aktual (Menghilangkan hardcoded ['A', 'B', 'C'])
+  const rowLetters = React.useMemo(() => {
+    if (!seatsData?.seats || !Array.isArray(seatsData.seats)) return [];
+    const letters = new Set();
+    seatsData.seats.forEach((s) => {
+      const match = s.seat_number.match(/^[A-Za-z]+/);
+      if (match) {
+        letters.add(match[0]);
+      }
+    });
+    return Array.from(letters).sort();
+  }, [seatsData]);
+
   const getSeatColor = (seat) => {
     if (seat.status === 'BOOKED') {
       return '#ef4444'; // Red
@@ -211,7 +224,7 @@ const SeatSelectionPage = () => {
               </div>
             ) : (
               <div className="d-flex flex-column gap-3 mb-4">
-                {['A', 'B', 'C'].map((rowLetter) => (
+                {rowLetters.map((rowLetter) => (
                   <div key={rowLetter} className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
                     <span className="fw-bold text-muted me-2" style={{ width: '20px' }}>{rowLetter}</span>
                     {seatsData?.seats
@@ -300,13 +313,23 @@ const SeatSelectionPage = () => {
               ) : (
                 <>
                   <Button
-                    variant="success"
+                    variant="primary"
+                    className="w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                    onClick={() => {
+                      navigate(`/checkout/${eventId}?seatNumber=${selectedSeat}&lockToken=${activeLockToken}&ttl=${timerSeconds}`);
+                    }}
+                  >
+                    <ShieldCheck size={18} />
+                    Lanjut ke Pembayaran Resmi
+                  </Button>
+                  <Button
+                    variant="outline-success"
                     className="w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
                     onClick={handleConfirmBooking}
                     disabled={booking}
                   >
                     {booking ? <Spinner animation="border" size="sm" /> : <CheckCircle2 size={18} />}
-                    Simulasikan Pembayaran & BOOKED
+                    Simulasikan Pembayaran Langsung
                   </Button>
                   <Button
                     variant="outline-danger"

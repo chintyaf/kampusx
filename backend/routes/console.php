@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('app:send-event-reminders')->everyFifteenMinutes();
 Schedule::command('points:remind-members')->daily();
+Schedule::command('payment:expire')->everyMinute();

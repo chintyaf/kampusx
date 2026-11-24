@@ -14,12 +14,19 @@ class PointTransaction extends Model
 
     protected $fillable = [
         'user_id',      // ID User penerima/pengguna poin
-        'event_id',     // ID Event jika bertipe 'local', atau null jika global
-        'activity_id',  // ID Activity jika dipicu oleh aktivitas berpoin, atau null jika redemption/manual adjustment
-        'reward_id',    // ID Reward jika merupakan penukaran reward, atau null jika tidak
-        'amount',       // Jumlah mutasi poin (positif = penambahan, negatif = pengurangan)
-        'type',         // Tipe transaksi: 'global' atau 'local'
+        'event_id',     // ID Event jika bertipe 'local', atau null jika global/credit
+        'activity_id',  // ID Activity jika dipicu oleh aktivitas berpoin
+        'reward_id',    // ID Reward jika merupakan penukaran reward
+        'amount',       // Jumlah mutasi (positif = masuk, negatif = keluar)
+        'type',         // Tipe: 'global' | 'local' | 'credit'
         'description',  // Keterangan transaksi
+        'expires_at',   // Masa berlaku (hanya untuk type=credit dengan amount>0)
+        'is_expired',   // Sudah diproses expired? (mencegah double-expiry)
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'is_expired' => 'boolean',
     ];
 
     /**

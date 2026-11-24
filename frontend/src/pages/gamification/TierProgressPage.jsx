@@ -38,31 +38,32 @@ const TierProgressPage = () => {
     );
   }
 
-  const currentTier = data?.current_tier || 'Silver';
-  const currentPoints = data?.current_points || 450;
-  const nextTier = data?.next_tier || 'Gold';
-  const pointsNeeded = data?.points_needed ?? 50;
-  const progressPercent = data?.progress_percent ?? 90;
-  const allTiers = data?.all_tiers || [
-    {
-      name: 'Silver',
-      range: '0 – 499 Poin',
-      is_current: currentTier === 'Silver',
-      benefits: ['Akses katalog event umum', 'Perolehan poin standar', 'Portofolio digital kredensial dasar']
-    },
-    {
-      name: 'Gold',
-      range: '500 – 999 Poin',
-      is_current: currentTier === 'Gold',
-      benefits: ['Semua benefit Silver', 'Diskon tiket event hingga 20%', 'Prioritas antrean seat reservation (15 Menit Lock)', 'Badge khusus Gold Member']
-    },
-    {
-      name: 'Platinum',
-      range: '&gt;= 1000 Poin',
-      is_current: currentTier === 'Platinum',
-      benefits: ['Semua benefit Gold', 'Akses eksklusif workshop & webinar VIP', 'Penerbitan Soulbound Token (SBT) portofolio gratis', 'Rekomendasi prioritas pada Talent Directory Rekruter Industri', 'Bonus kuota cashback poin hingga 100 poin']
-    }
-  ];
+  if (error || !data) {
+    return (
+      <Container className="py-5">
+        <Button
+          variant="light"
+          className="mb-4 d-flex align-items-center gap-2 border shadow-sm rounded-pill px-3 py-1 text-muted small"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={16} /> Kembali
+        </Button>
+        <Alert variant="danger">
+          {error || 'Gagal memuat status tier. Pastikan backend Laravel sedang berjalan.'}
+          <Button size="sm" variant="outline-danger" className="ms-3" onClick={fetchTierProgress}>
+            Coba Lagi
+          </Button>
+        </Alert>
+      </Container>
+    );
+  }
+
+  const currentTier = data.current_tier;
+  const currentPoints = data.current_points ?? 0;
+  const nextTier = data.next_tier;
+  const pointsNeeded = data.points_needed ?? 0;
+  const progressPercent = data.progress_percent ?? 0;
+  const allTiers = data.all_tiers || [];
 
   return (
     <Container className="py-4 py-md-5">

@@ -65,27 +65,32 @@ const GamificationDashboardPage = () => {
     );
   }
 
-  const student = summary?.student || {
-    name: user?.name || 'Mahasiswa KampusX',
-    points: 450,
-    tier: 'Silver',
-    rank: 12
-  };
-  const tierProgress = summary?.tier_progress || {
-    current_tier: 'Silver',
-    next_tier: 'Gold',
-    points_needed: 50,
-    progress_percent: 90
-  };
-  const badges = summary?.badges || { unlocked_count: 2, total_count: 5, list: [] };
-  const history = summary?.recent_history || [];
+  if (error) {
+    return (
+      <Container className="py-5">
+        <Alert variant="danger">
+          {error}
+          <Button size="sm" variant="outline-danger" className="ms-3" onClick={fetchDashboard}>
+            Coba Lagi
+          </Button>
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (!summary) return null;
+
+  const student      = summary.student;
+  const tierProgress = summary.tier_progress;
+  const badges       = summary.badges || { unlocked_count: 0, total_count: 0, list: [] };
+  const history      = summary.recent_history || [];
 
   return (
     <Container className="py-4 py-md-5">
       {/* Header Banner */}
       <div className="bg-white p-4 p-md-5 rounded-4 border shadow-sm mb-4">
         <Row className="align-items-center g-4">
-          <Col md={8}>
+          <Col md={7}>
             <div className="d-flex align-items-center gap-2 mb-2">
               <Badge
                 bg="primary"
@@ -105,12 +110,23 @@ const GamificationDashboardPage = () => {
               Selamat datang di Pusat Gamifikasi & Pengembangan Diri Mahasiswa. Tingkatkan aktivitas Anda untuk membuka tier dan benefit eksklusif!
             </p>
           </Col>
-          <Col md={4} className="text-md-end">
-            <div className="p-3 bg-light rounded-4 border d-inline-block text-start w-100">
-              <div className="text-muted small fw-medium">Total Poin Akumulasi</div>
-              <div className="d-flex align-items-baseline gap-2 mt-1">
-                <span className="display-6 fw-bold text-primary">{student.points}</span>
-                <span className="text-muted small">Poin Gamifikasi</span>
+          <Col md={5} className="text-md-end">
+            <div className="d-flex gap-2">
+              <div className="p-3 bg-light rounded-4 border text-start flex-fill">
+                <div className="text-muted small fw-medium">Global Points (Tier)</div>
+                <div className="d-flex align-items-baseline gap-1 mt-1">
+                  <span className="h3 fw-bold text-primary mb-0">{student.points}</span>
+                  <span className="text-muted small">Pts</span>
+                </div>
+                <div className="text-muted" style={{ fontSize: '11px' }}>Akumulasi Permanen</div>
+              </div>
+              <div className="p-3 bg-light rounded-4 border text-start flex-fill">
+                <div className="text-muted small fw-medium">Reward Credits</div>
+                <div className="d-flex align-items-baseline gap-1 mt-1">
+                  <span className="h3 fw-bold text-success mb-0">{student.reward_credits ?? 0}</span>
+                  <span className="text-muted small">Credits</span>
+                </div>
+                <div className="text-muted" style={{ fontSize: '11px' }}>Saldo Spendable</div>
               </div>
             </div>
           </Col>

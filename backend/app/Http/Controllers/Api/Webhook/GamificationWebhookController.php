@@ -145,42 +145,66 @@ class GamificationWebhookController extends Controller
 
     /**
      * POST /api/webhook/add-instant-points
-     * Simulator poin cepat untuk demo presentasi langsung tanpa harus menunggu event/microlearning.
+     * Manual adjustment poin untuk demo/admin — hanya bisa diakses admin atau localhost.
+     * Setiap penambahan wajib menyertakan alasan untuk audit trail.
      */
     public function addInstantPoints(Request $request)
     {
-        $userId = $request->input('user_id');
-        $amount = (int) $request->input('points', 300);
-        $reason = $request->input('reason', 'Poin Instan Simulasi Presentasi Prototype');
-
-        $user = null;
-        if ($userId) {
-            $user = User::find($userId);
+        // Guard: hanya admin atau request dari localhost
+        $actingUser = $request->user();
+        $isLocalhost = in_array($request->ip(), ['127.0.0.1', '::1', 'localhost']);
+        if (!$isLocalhost && (!$actingUser || $actingUser->role !== 'admin')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya admin yang dapat melakukan manual adjustment.'], 403);
         }
+
+        $request->validate([
+            'user_id' => 'nullable|exists:users,id',
+            'points'  => 'required|integer|min:1|max:5000',
+            'reason'  => 'required|string|min:5',
+        ]);
+
+        $userId = $request->input('user_id');
+        $amount = (int) $request->input('points');
+        $reason = $request->input('reason');
+
+        $user = $userId ? \App\Models\User::find($userId) : null;
         if (!$user) {
-            $user = $request->user() ?: auth('sanctum')->user() ?: User::where('role', 'participant')->whereIn('email', ['2372016@maranatha.ac.id', 'part@kampusx.com'])->first();
+            $user = $actingUser ?? \App\Models\User::where('role', 'participant')
+                ->whereIn('email', ['2372016@maranatha.ac.id', 'part@kampusx.com'])->first();
         }
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User tidak ditemukan.'], 404);
         }
 
-        $result = $user->addPoints($amount, $reason);
-        $newRank = User::where('role', 'participant')->where('points', '>', $user->points)->count() + 1;
+        $result = $user->addPoints($amount, "Manual Adjustment: {$reason}");
+        $newRank = \App\Models\User::where('role', 'participant')->where('points', '>', $user->points)->count() + 1;
+
+        // Audit trail
+        \Illuminate\Support\Facades\Log::info('Manual point adjustment by admin', [
+            'acting_user'   => $actingUser?->id ?? 'system/localhost',
+            'target_user'   => $user->id,
+            'amount'        => $amount,
+            'reason'        => $reason,
+            'new_total'     => $result['total_points'],
+            'tier_change'   => $result['tier_upgraded'] ? "{$result['previous_tier']} → {$result['current_tier']}" : 'no change',
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => "Berhasil menambahkan {$amount} Global Points ke akun {$user->name}!",
             'data'    => [
-                'user_id'        => $user->id,
-                'user_name'      => $user->name,
-                'points_added'   => $amount,
-                'total_points'   => $result['total_points'],
-                'previous_tier'  => $result['previous_tier'],
-                'current_tier'   => $result['current_tier'],
-                'tier_upgraded'  => $result['tier_upgraded'],
-                'rank'           => $newRank,
-            ]
+                'user_id'       => $user->id,
+                'user_name'     => $user->name,
+                'points_added'  => $result['points_awarded'],
+                'total_points'  => $result['total_points'],
+                'previous_tier' => $result['previous_tier'],
+                'current_tier'  => $result['current_tier'],
+                'tier_upgraded' => $result['tier_upgraded'],
+                'rank'          => $newRank,
+                'adjusted_by'   => $actingUser?->email ?? 'localhost',
+                'reason'        => $reason,
+            ],
         ], 200);
     }
 

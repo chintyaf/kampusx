@@ -188,6 +188,7 @@ export const MENU_ITEMS = {
 			path: '/organizer/:eventId/event-dashboard',
 			submenu: [
 				{ name: 'Daftar Peserta', path: 'daftar-peserta' },
+				{ name: 'Waiting List (Antrean)', path: 'waitlist' },
 				{ name: 'Katalog Reward', path: 'rewards' },
 				{ name: 'Log Redeem', path: 'redemptions' },
 			],

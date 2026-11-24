@@ -4,7 +4,7 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 // Layouts & Protection
 import LmsLayout from '@/layouts/lms/LmsLayout';
 import OrgLmsLayout from '@/layouts/OrgLmsLayout';
-// import ProtectedRoute from './ProtectedRoute';
+import ProtectedRoute from './ProtectedRoute';
 
 // 1. Learner Domain Pages
 import ExploreMicrolearningPage from '@/pages/lms/learner/ExploreMicrolearningPage';
@@ -23,33 +23,19 @@ import SettingsPage from '@/pages/lms/learner/settings/SettingsPage';
 
 // 2. Organizer Domain Pages
 import OrgMicrolearning from '@/pages/lms/organizer/OrgMicrolearning';
-// import ManageLearningPathPage from '@/pages/lms/organizer/ManageLearningPathPage';
+import ManageLearningPathPage from '@/pages/lms/organizer/ManageLearningPathPage';
 import EditLearningPathPage from '@/pages/lms/organizer/EditLearningPathPage';
 import DashboardPage from '@/pages/lms/organizer/dashboard/DashboardPage';
-// import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
-// import CreateLearningPage from '@/pages/lms/organizer/CreateLearningPage';
+import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
+import CreateLearningPage from '@/pages/lms/organizer/CreateLearningPage';
 
 import LmsEditorLayout from '@/pages/lms/organizer/lms-editor/layout/LmsEditorLayout';
-// import EditModulePage from '@/pages/lms/organizer/lms-editor/EditModulePage';
 import ModuleInfoPage from '@/pages/lms/organizer/lms-editor/ModuleInfoPage';
 import LessonEditorPage from '@/pages/lms/organizer/lms-editor/LessonEditorPage';
 import QuizEditorPage from '@/pages/lms/organizer/lms-editor/QuizEditorPage';
 
-// import EditLessonPage from '@/pages/lms/organizer/EditLessonPage';
-
 import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
-import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
-import ManageLearningPathPage from '../pages/lms/organizer/ManageLearningPathPage';
-// import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
-// import LogsPage from '@/pages/lms/organizer/LogsPage';
-import CreateLearningPage from '../pages/lms/organizer/CreateLearningPage';
-
-import DashboardLayout from '@/layouts/DashboardLayout';
-// import OrgLearningLayout from '@/layouts/OrgLearningLayout';
-import ProtectedRoute from './ProtectedRoute';
-import EditModulePage from '../pages/lms/organizer/lms-editor/EditModulePage';
-import EditLessonPage from '../pages/lms/organizer/EditLessonPage';
 
 export const LmsRoutes = () => {
 	return (

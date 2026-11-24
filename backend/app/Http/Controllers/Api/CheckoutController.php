@@ -5,104 +5,114 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Event;
+use App\Models\EventTicket;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Ticket;
+use App\Notifications\OperationalNotification;
+use App\Services\Payment\PaymentService;
+use App\Services\Payment\Enums\PaymentStatus;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Midtrans\Config; // Import Midtrans Config
-use Midtrans\Snap;   // Import Midtrans Snap
 
 class CheckoutController extends Controller
 {
+    public function __construct(
+        protected PaymentService $paymentService
+    ) {}
+
     public function store(Request $request)
     {
-        // 1. Validasi Input dari React
-        $request->validate([
-            'event_id' => 'required|exists:events,id',
-            'quantity' => 'required|integer|min:1',
-            'name'     => 'required|string|max:100',
-            'email'    => 'required|email',
-            'phone'    => 'required|string',
+        // 1. Validasi Input dari Frontend
+        $validated = $request->validate([
+            'event_id'       => 'required|exists:events,id',
+            'quantity'       => 'required|integer|min:1|max:10',
+            'name'           => 'required|string|max:100',
+            'email'          => 'required|email|max:150',
+            'phone'          => 'required|string|max:20',
+            'payment_method' => 'nullable|string|max:50',
         ]);
 
         $user = $request->user();
-        $event = Event::findOrFail($request->event_id);
+        $event = Event::findOrFail($validated['event_id']);
 
-        $price = $event->price ?? 0; // Pastikan event punya kolom price, atau default 0
-        $adminFee = ($price > 0) ? 1 : 0; // Kalau gratis, admin fee juga 0 dong
-        $total_price = ($price * $request->quantity) + $adminFee;
+        // 2. Hitung harga server-side
+        $price = (float) ($event->price ?? 0);
+        $adminFee = ($price > 0) ? 1000 : 0;
+        $totalPrice = ($price * $validated['quantity']) + $adminFee;
 
-        // Setup Konfigurasi Midtrans
-        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
-
+        // 3. Concurrency Lock: Periksa kuota tiket
         DB::beginTransaction();
-
         try {
-            // Cek dulu kapasitas tiket
-            // Lock event ticket to prevent race conditions
-            $eventTicket = \App\Models\EventTicket::where('event_id', $event->id)->lockForUpdate()->first();
-            
+            $eventTicket = EventTicket::where('event_id', $event->id)->lockForUpdate()->first();
+
             if ($eventTicket && $eventTicket->capacity !== null) {
-                // Check if capacity is sufficient
+                $holdMinutes = config('payment.hold_minutes', 15);
+                $holdCutoff = \Carbon\Carbon::now()->subMinutes($holdMinutes);
+
                 $soldTickets = DB::table('order_items')
                     ->join('orders', 'order_items.order_id', '=', 'orders.id')
                     ->where('orders.event_id', $event->id)
-                    ->whereIn('orders.status', ['paid', 'pending'])
+                    ->where(function ($q) use ($holdCutoff) {
+                        $q->where('orders.status', PaymentStatus::PAID)
+                          ->orWhere(function ($sub) use ($holdCutoff) {
+                              $sub->where('orders.status', PaymentStatus::PENDING)
+                                  ->where('orders.created_at', '>=', $holdCutoff);
+                          });
+                    })
                     ->sum('order_items.quantity');
-                
+
                 $available = $eventTicket->capacity - $soldTickets;
-                if ($request->quantity > $available) {
+                if ($validated['quantity'] > $available) {
                     DB::rollBack();
                     return response()->json([
-                        'status' => 'error',
+                        'status'  => 'error',
                         'message' => 'Kuota tiket tidak mencukupi. Sisa tiket: ' . max(0, $available),
                     ], 422);
                 }
             }
+
+            $generatedOrderId = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
+
             // === JALUR 1: TIKET GRATIS ===
-            if ($total_price == 0) {
-                $generatedOrderId = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
+            if ($totalPrice == 0) {
                 $order = Order::forceCreate([
                     'order_id'    => $generatedOrderId,
                     'event_id'    => $event->id,
                     'user_id'     => $user->id,
                     'amount'      => 0,
                     'total_price' => 0,
-                    'status'      => 'paid',
-                    'paid_at'     => now(), // Langsung lunas
+                    'status'      => PaymentStatus::PAID,
+                    'paid_at'     => now(),
                 ]);
 
                 $orderItem = OrderItem::create([
                     'order_id' => $order->id,
-                    'quantity' => $request->quantity,
+                    'quantity' => $validated['quantity'],
                     'price'    => 0,
                 ]);
 
                 $tickets = [];
-                for ($i = 0; $i < $request->quantity; $i++) {
+                for ($i = 0; $i < $validated['quantity']; $i++) {
                     $tickets[] = Ticket::create([
                         'participant_id' => $user->id,
                         'order_item_id'  => $orderItem->id,
-                        'attendee_name'  => $request->name,
-                        'attendee_email' => $request->email,
+                        'attendee_name'  => $validated['name'],
+                        'attendee_email' => $validated['email'],
                         'ticket_code'    => strtoupper(Str::random(8)),
-                        'qr_token'       => Str::uuid()->toString(),
-                        'status'         => 'active', // Tiket langsung aktif
+                        'qr_token'       => (string) Str::uuid(),
+                        'status'         => 'active',
                     ]);
                 }
 
-                $user->notify(new \App\Notifications\OperationalNotification(
+                $user->notify(new OperationalNotification(
                     "Pendaftaran Berhasil!",
                     "Selamat! Tiket gratis Anda untuk event '{$event->title}' berhasil didaftarkan.",
                     "payment_success",
                     ['event_id' => $event->id]
                 ));
 
-                // Sync event categories to user personalization
+                // Sinkronkan kategori event ke personalisasi pengguna
                 $categoryIds = $event->categories()->pluck('categories.id')->toArray();
                 if (!empty($categoryIds)) {
                     $user->categories()->syncWithoutDetaching($categoryIds);
@@ -110,80 +120,48 @@ class CheckoutController extends Controller
 
                 DB::commit();
 
-                // Kembalikan ke React TANPA snap_token
                 return response()->json([
-                    'status'     => 'success',
-                    'message'    => 'Tiket gratis berhasil diklaim!',
-                    'order_id'   => $order->id,
-                    'ticket_code' => $tickets[0]->ticket_code,
-                    'snap_token' => null, // Tandai kalau ini tidak butuh Midtrans
-                ], 201);
-            } 
-            
-            // === JALUR 2: TIKET BERBAYAR (MIDTRANS) ===
-            else {
-                $generatedOrderId = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
-                $order = Order::forceCreate([
-                    'order_id'    => $generatedOrderId,
-                    'event_id'    => $event->id,
-                    'user_id'     => $user->id,
-                    'amount'      => $total_price,
-                    'total_price' => $total_price,
-                    'paid_at'     => null, // Belum lunas
-                ]);
-
-                $midtransOrderId = $generatedOrderId;
-
-                $orderItem = OrderItem::create([
-                    'order_id' => $order->id,
-                    'quantity' => $request->quantity,
-                    'price'    => $price,
-                ]);
-
-                $tickets = [];
-                for ($i = 0; $i < $request->quantity; $i++) {
-                    $tickets[] = Ticket::create([
-                        'participant_id' => $user->id,
-                        'order_item_id'  => $orderItem->id,
-                        'attendee_name'  => $request->name,
-                        'attendee_email' => $request->email,
-                        'ticket_code'    => strtoupper(Str::random(8)),
-                        'qr_token'       => Str::uuid()->toString(),
-                        'status'         => 'pending', // Tiket pending
-                    ]);
-                }
-
-                // Kirim ke Midtrans
-                $params = [
-                    'transaction_details' => [
-                        'order_id'     => $midtransOrderId,
-                        'gross_amount' => $total_price,
-                    ],
-                    'customer_details' => [
-                        'first_name' => $request->name,
-                        'email'      => $request->email,
-                        'phone'      => $request->phone,
-                    ],
-                ];
-
-                $snapToken = Snap::getSnapToken($params);
-
-                $user->notify(new \App\Notifications\OperationalNotification(
-                    "Menunggu Pembayaran",
-                    "Tiket Anda untuk event '{$event->title}' berhasil dipesan. Selesaikan pembayaran Anda sebelum kedaluwarsa.",
-                    "payment_pending",
-                    ['event_id' => $event->id]
-                ));
-
-                DB::commit();
-
-                return response()->json([
-                    'status'     => 'success',
-                    'message'    => 'Order berhasil dibuat. Menunggu pembayaran.',
-                    'order_id'   => $order,
-                    'snap_token' => $snapToken,
+                    'status'       => 'success',
+                    'message'      => 'Tiket gratis berhasil diklaim!',
+                    'order_id'     => $order->order_id,
+                    'ticket_code'  => $tickets[0]->ticket_code,
+                    'is_free'      => true,
+                    'checkout_url' => null,
                 ], 201);
             }
+
+            // === JALUR 2: TIKET BERBAYAR ===
+            // Buat record order dan tiket berstatus pending di database
+            $order = Order::forceCreate([
+                'order_id'    => $generatedOrderId,
+                'event_id'    => $event->id,
+                'user_id'     => $user->id,
+                'amount'      => $totalPrice,
+                'total_price' => $totalPrice,
+                'status'      => PaymentStatus::PENDING,
+                'paid_at'     => null,
+            ]);
+
+            $orderItem = OrderItem::create([
+                'order_id' => $order->id,
+                'quantity' => $validated['quantity'],
+                'price'    => $price,
+            ]);
+
+            for ($i = 0; $i < $validated['quantity']; $i++) {
+                Ticket::create([
+                    'participant_id' => $user->id,
+                    'order_item_id'  => $orderItem->id,
+                    'attendee_name'  => $validated['name'],
+                    'attendee_email' => $validated['email'],
+                    'ticket_code'    => strtoupper(Str::random(8)),
+                    'qr_token'       => (string) Str::uuid(),
+                    'status'         => 'pending',
+                ]);
+            }
+
+            // Commit pending order terlebih dahulu agar row lock lepas sebelum HTTP call ke gateway
+            DB::commit();
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -193,6 +171,39 @@ class CheckoutController extends Controller
                 'error'   => $e->getMessage()
             ], 500);
         }
+
+        // 4. Inisiasi pembayaran ke Payment Gateway di luar DB transaction
+        $customerData = [
+            'name'  => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+        ];
+
+        $paymentResult = $this->paymentService->initiatePayment(
+            order: $order,
+            customerData: $customerData,
+            paymentMethod: $validated['payment_method'] ?? null
+        );
+
+        if (!$paymentResult['success']) {
+            return response()->json([
+                'status'        => 'error',
+                'message'       => $paymentResult['error_message'] ?? 'Gagal menghubungi gateway pembayaran.',
+                'order_id'      => $order->order_id,
+            ], 502);
+        }
+
+        return response()->json([
+            'status'       => 'success',
+            'message'      => 'Sesi pembayaran berhasil dibuat.',
+            'order_id'     => $paymentResult['order_id'],
+            'payment_id'   => $paymentResult['payment_id'],
+            'status_label' => $paymentResult['status'],
+            'checkout_url' => $paymentResult['checkout_url'],
+            'amount'       => $paymentResult['amount'],
+            'expired_at'   => $paymentResult['expired_at'],
+            'is_free'      => false,
+        ], 201);
     }
 
     public function checkRegistration(Request $request, $eventId)
@@ -201,27 +212,27 @@ class CheckoutController extends Controller
         if (!$user) {
             return response()->json([
                 'registered' => false,
-                'status' => null
+                'status'     => null
             ]);
         }
 
         $order = Order::where('user_id', $user->id)
             ->where('event_id', $eventId)
-            ->whereIn('status', ['paid', 'pending'])
-            ->orderBy('created_at', 'desc')
+            ->whereIn('status', [PaymentStatus::PAID, PaymentStatus::PENDING])
+            ->latest('id')
             ->first();
 
         if ($order) {
             return response()->json([
                 'registered' => true,
-                'status' => $order->status,
-                'order_id' => $order->order_id ?? $order->id,
+                'status'     => $order->status,
+                'order_id'   => $order->order_id,
             ]);
         }
 
         return response()->json([
             'registered' => false,
-            'status' => null
+            'status'     => null
         ]);
     }
 }

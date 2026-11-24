@@ -236,96 +236,97 @@ const Checkout = () => {
   const total = Math.max(0, eventPrice - discountAmount) + adminFee;
   const isFree = total === 0;
 
-  // Lanjut dari Step 1 ke Step 2
-  const handleProceedToPayment = (e) => {
+  // Lanjut dari Step 1 ke Step 2 (atau langsung klaim jika tiket gratis)
+  const handleProceedToPayment = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.phone) {
       setSubmitError('Harap lengkapi semua data pemesan.');
       return;
     }
     setSubmitError(null);
+
+    // Jika tiket gratis: langsung klaim tiket riil via API /checkout
+    if (isFree) {
+      setIsProcessingPayment(true);
+      try {
+        const res = await api.post('/checkout', {
+          event_id: eventDetails.id || id,
+          quantity: 1,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone
+        });
+
+        const confirmedTicketCode = res.data?.ticket_code || `TK-${Math.floor(1000 + Math.random() * 9000)}`;
+        const confirmedOrderId = res.data?.order_id || `ORD-${Date.now()}`;
+
+        const ticketData = {
+          orderId: confirmedOrderId,
+          ticketCode: confirmedTicketCode,
+          eventTitle: eventDetails.title,
+          attendeeName: formData.name,
+          attendeeEmail: formData.email,
+          ticketType: ticketName,
+          totalPaid: 0,
+          status: 'Confirmed (Active)',
+          pointsAwarded: 50,
+          userPoints: (user?.points || 0) + 50,
+          userTier: user?.tier || 'Silver',
+          paymentMethod: 'Tiket Gratis',
+          date: new Date().toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        };
+
+        setIssuedTicket(ticketData);
+        setStep(3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        console.error('Error saat klaim tiket gratis:', err);
+        setSubmitError(err?.response?.data?.message || 'Gagal memproses pendaftaran tiket gratis. Pastikan Anda telah masuk (login).');
+      } finally {
+        setIsProcessingPayment(false);
+      }
+      return;
+    }
+
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Simulasikan Pembayaran Sukses (Step 2 ke Step 3)
-  const handleSimulatePaymentSuccess = async () => {
+  // Proses Pembayaran Tiket Berbayar melalui Payment Gateway Resmi (Duitku Sandbox)
+  const handleProcessPayment = async () => {
     setIsProcessingPayment(true);
     setSubmitError(null);
 
     try {
-      // 1. Buat pending order di backend
-      const pendingRes = await api.post('/checkout/create-pending', {
+      // Panggil endpoint checkout resmi di backend
+      const res = await api.post('/checkout', {
         event_id: eventDetails.id || id,
-        ticket_id: selectedTicket?.id,
+        quantity: 1,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        amount: total,
-        payment_method: paymentMethod,
-        discount_amount: banditReward?.discount_amount || 0,
-        bonus_points: banditReward?.bonus_points || 0
+        payment_method: paymentMethod || 'qris'
       });
 
-      const orderId = pendingRes.data?.order_id || `ORD-${Date.now()}`;
+      if (res.data?.status === 'success' && res.data?.checkout_url) {
+        // Simpan order_id ke localStorage untuk referensi return page
+        localStorage.setItem('last_checkout_order_id', res.data.order_id);
 
-      // 2. Trigger simulated Payment Gateway Webhook (/api/webhook/payment-success)
-      const webhookRes = await api.post('/webhook/payment-success', {
-        order_id: orderId,
-        payment_method: paymentMethod
-      });
-
-      const confirmedData = webhookRes.data?.data;
-      const primaryTicket = confirmedData?.primary_ticket;
-
-      const ticketData = {
-        orderId: confirmedData?.order_id || orderId,
-        ticketCode: primaryTicket?.ticket_code || `TK-${Math.floor(1000 + Math.random() * 9000)}`,
-        eventTitle: confirmedData?.event_title || eventDetails.title,
-        attendeeName: primaryTicket?.attendee_name || formData.name,
-        attendeeEmail: formData.email,
-        ticketType: ticketName,
-        totalPaid: total,
-        status: confirmedData?.status || 'Confirmed',
-        pointsAwarded: confirmedData?.points_awarded || 150,
-        userPoints: confirmedData?.user_points,
-        userTier: confirmedData?.user_tier,
-        paymentMethod:
-          paymentMethod === 'qris'
-            ? 'QRIS Mandiri/BCA/Gojek'
-            : paymentMethod === 'bca_va'
-            ? 'BCA Virtual Account'
-            : 'GoPay / E-Wallet',
-        date: new Date().toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      };
-
-      setIssuedTicket(ticketData);
-      setStep(3);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Arahkan browser peserta ke Hosted Checkout Duitku
+        window.location.href = res.data.checkout_url;
+      } else {
+        setSubmitError(res.data?.message || 'Gagal memulai sesi pembayaran.');
+      }
     } catch (err) {
       console.error('Error proses pembayaran checkout:', err);
-      // Fallback ticket jika backend offline
-      const fallbackTicketData = {
-        orderId: `ORD-${Date.now()}`,
-        ticketCode: `TK-${Math.floor(1000 + Math.random() * 9000)}`,
-        eventTitle: eventDetails.title,
-        attendeeName: formData.name,
-        attendeeEmail: formData.email,
-        ticketType: ticketName,
-        totalPaid: total,
-        status: 'Confirmed',
-        pointsAwarded: 150,
-        paymentMethod: paymentMethod === 'qris' ? 'QRIS' : 'BCA VA',
-        date: new Date().toLocaleDateString('id-ID')
-      };
-      setIssuedTicket(fallbackTicketData);
-      setStep(3);
+      const errMsg = err?.response?.data?.message || 'Layanan pembayaran sedang dalam pemeliharaan. Silakan coba beberapa saat lagi.';
+      setSubmitError(errMsg);
     } finally {
       setIsProcessingPayment(false);
     }
@@ -380,10 +381,10 @@ const Checkout = () => {
               </div>
               <div>
                 <div className="seat-lock-title">
-                  🔒 Kursi Anda Diamankan (Redis Seat-Lock Engine)
+                  Kursi Anda Diamankan
                 </div>
                 <p className="seat-lock-desc">
-                  Sistem mengunci 1 kuota tiket untuk Anda selama 15 menit agar terhindar dari *overbooking*.
+                  Sistem mengunci 1 kuota tiket untuk Anda selama 15 menit agar terhindar dari overbooking.
                 </p>
               </div>
             </div>
@@ -575,9 +576,19 @@ const Checkout = () => {
                       variant="dark"
                       className="w-100 rounded-pill py-2-5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
                       style={{ fontSize: '14px' }}
+                      disabled={isProcessingPayment}
                     >
-                      <CreditCard size={16} />
-                      <span>Lanjut ke Pembayaran</span>
+                      {isProcessingPayment ? (
+                        <>
+                          <Spinner size="sm" animation="border" />
+                          <span>Memproses Tiket...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard size={16} />
+                          <span>{isFree ? 'Klaim Tiket Gratis Sekarang' : 'Lanjut ke Pembayaran'}</span>
+                        </>
+                      )}
                     </Button>
 
                     <p className="text-center text-muted small mt-3 mb-0" style={{ fontSize: '11px' }}>
@@ -732,24 +743,24 @@ const Checkout = () => {
                     </span>
                   </div>
 
-                  {/* Simulator Button */}
+                  {/* Tombol Bayar via Hosted Checkout Duitku */}
                   <Button
                     type="button"
                     variant="success"
                     className="w-100 rounded-pill py-2-5 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm mb-2"
-                    onClick={handleSimulatePaymentSuccess}
+                    onClick={handleProcessPayment}
                     disabled={isProcessingPayment}
                     style={{ fontSize: '14px' }}
                   >
                     {isProcessingPayment ? (
                       <>
                         <Spinner animation="border" size="sm" />
-                        <span>Memverifikasi Pembayaran...</span>
+                        <span>Menghubungkan ke Duitku...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircle size={16} />
-                        <span>Bayar Sekarang (Simulasi)</span>
+                        <CreditCard size={16} />
+                        <span>Bayar Sekarang (Duitku Sandbox)</span>
                       </>
                     )}
                   </Button>

@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 class Reward extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'event_id',        // NULL jika global reward, terisi event_id jika lokal reward
         'title',           // Nama reward

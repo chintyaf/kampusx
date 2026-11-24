@@ -9,182 +9,173 @@ use App\Models\RedemptionHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RedemptionController extends Controller
 {
     /**
-     * Redeem a global reward using member global points.
+     * Redeem global reward menggunakan Reward Credits (saldo spendable).
+     *
+     * PENTING: Reward Credits adalah saldo TERPISAH dari Global Points.
+     * Global Points (users.points) TIDAK berkurang, sehingga tier TIDAK turun.
+     * Hanya Reward Credits (users.reward_credits) yang dikurangi.
      */
     public function redeemGlobalReward(Request $request)
     {
-        // 1. Validasi input request
         $request->validate([
             'reward_id' => 'required|exists:rewards,id',
-            'notes' => 'nullable|string',
+            'notes'     => 'nullable|string',
         ]);
 
         $user = Auth::user();
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Silakan login terlebih dahulu.'
-            ], 401);
+            return response()->json(['success' => false, 'message' => 'Silakan login terlebih dahulu.'], 401);
         }
 
         try {
-            // Gunakan DB::transaction
             $result = DB::transaction(function () use ($request, $user) {
-                // Lock row reward untuk mencegah perlombaan stok (race conditions)
+                // Lock reward untuk mencegah race condition stok
                 $reward = Reward::lockForUpdate()->findOrFail($request->reward_id);
 
-                // Pastikan reward bertipe 'global'
+                // Validasi: harus reward global
                 if ($reward->type !== 'global' || $reward->event_id !== null) {
-                    return [
-                        'success' => false,
-                        'message' => 'Reward ini bukan reward global.',
-                        'code' => 400
-                    ];
+                    return ['success' => false, 'message' => 'Reward ini bukan reward global.', 'code' => 400];
                 }
 
-                // Cek keaktifan reward
                 if (!$reward->is_active) {
-                    return [
-                        'success' => false,
-                        'message' => 'Reward ini sedang tidak aktif.',
-                        'code' => 400
-                    ];
+                    return ['success' => false, 'message' => 'Reward ini sedang tidak aktif.', 'code' => 400];
                 }
 
-                // Cek stock di tabel rewards. Tolak jika stok habis (0).
-                // Jika stock diset (tidak null) dan nilainya <= 0, tolak.
                 if ($reward->stock !== null && $reward->stock <= 0) {
-                    return [
-                        'success' => false,
-                        'message' => 'Stok reward sudah habis.',
-                        'code' => 400
-                    ];
+                    return ['success' => false, 'message' => 'Stok reward sudah habis.', 'code' => 400];
                 }
 
-                // Hitung total saldo poin global user saat ini dari sum(amount) di tabel point_transactions
-                $balance = PointTransaction::where('user_id', $user->id)
-                    ->where('type', 'global')
-                    ->sum('amount');
-
-                // Tolak jika saldo kurang dari harga reward
-                if ($balance < $reward->points_cost) {
-                    return [
-                        'success' => false,
-                        'message' => 'Saldo poin global Anda tidak mencukupi.',
-                        'code' => 400
-                    ];
-                }
-
-                // Cek batas penukaran per user (jika ditentukan)
+                // Validasi batas penukaran per user
                 if ($reward->limit_per_user !== null) {
-                    $redeemedCount = RedemptionHistory::where('user_id', $user->id)
+                    $redeemed = RedemptionHistory::where('user_id', $user->id)
                         ->where('reward_id', $reward->id)
                         ->where('status', '!=', 'cancelled')
                         ->count();
-
-                    if ($redeemedCount >= $reward->limit_per_user) {
-                        return [
-                            'success' => false,
-                            'message' => 'Anda telah mencapai batas maksimum penukaran untuk reward ini.',
-                            'code' => 400
-                        ];
+                    if ($redeemed >= $reward->limit_per_user) {
+                        return ['success' => false, 'message' => 'Anda telah mencapai batas maksimum penukaran untuk reward ini.', 'code' => 400];
                     }
                 }
 
-                // EKSEKUSI
-                // 1. Kurangi stok reward (hanya jika stok dibatasi/tidak null)
+                // Lock user untuk baca saldo Reward Credits secara atomis
+                $lockedUser = \App\Models\User::lockForUpdate()->find($user->id);
+                $creditBalance = (int) ($lockedUser->reward_credits ?? 0);
+
+                // Validasi saldo Reward Credits — BUKAN Global Points
+                if ($creditBalance < $reward->points_cost) {
+                    return [
+                        'success' => false,
+                        'message' => "Reward Credits tidak mencukupi. Saldo Anda: {$creditBalance}, Dibutuhkan: {$reward->points_cost}.",
+                        'code'    => 400,
+                    ];
+                }
+
+                // Kurangi stok
                 if ($reward->stock !== null) {
                     $reward->decrement('stock');
                 }
 
-                // 2. Insert row baru ke point_transactions dengan nilai amount negatif (-) sebesar harga reward
-                $transaction = PointTransaction::create([
-                    'user_id' => $user->id,
-                    'event_id' => null,
-                    'activity_id' => null,
-                    'reward_id' => $reward->id,
-                    'amount' => -$reward->points_cost,
-                    'type' => 'global',
-                    'description' => 'Penukaran Reward Global: ' . $reward->title,
+                // Kurangi Reward Credits (Global Points TIDAK diubah → tier TIDAK turun)
+                $lockedUser->spendRewardCredits(
+                    $reward->points_cost,
+                    "Penukaran Reward Global: {$reward->title}"
+                );
+
+                // Catat di redemption_history
+                $redemption = RedemptionHistory::create([
+                    'user_id'      => $user->id,
+                    'reward_id'    => $reward->id,
+                    'points_spent' => $reward->points_cost,  // jumlah credits yang dipakai
+                    'status'       => 'pending',
+                    'notes'        => $request->input('notes'),
+                    'redeemed_at'  => now(),
                 ]);
 
-                // 3. Insert row ke redemption_history dengan status 'pending'
-                $redemption = RedemptionHistory::create([
-                    'user_id' => $user->id,
-                    'reward_id' => $reward->id,
-                    'points_spent' => $reward->points_cost,
-                    'status' => 'pending',
-                    'notes' => $request->input('notes'),
-                    'redeemed_at' => now(),
+                Log::info('Global reward redeemed', [
+                    'user_id'        => $user->id,
+                    'reward_id'      => $reward->id,
+                    'credits_spent'  => $reward->points_cost,
+                    'credits_remain' => $lockedUser->reward_credits,
+                    'global_points'  => $lockedUser->points, // tidak berubah
                 ]);
 
                 return [
-                    'success' => true,
-                    'message' => 'Reward global berhasil ditukarkan.',
-                    'data' => [
-                        'redemption' => $redemption,
-                        'transaction' => $transaction,
-                        'new_balance' => $balance - $reward->points_cost
+                    'success'     => true,
+                    'message'     => 'Reward global berhasil ditukarkan.',
+                    'data'        => [
+                        'redemption'           => $redemption,
+                        'credits_spent'        => $reward->points_cost,
+                        'new_credit_balance'   => (int) $lockedUser->reward_credits,
+                        'global_points'        => (int) $lockedUser->points,  // tidak berubah
+                        'tier'                 => $lockedUser->tier,           // tidak berubah
                     ],
-                    'code' => 200
+                    'code'        => 200,
                 ];
             });
 
             if (!$result['success']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message']
-                ], $result['code']);
+                return response()->json(['success' => false, 'message' => $result['message']], $result['code']);
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => $result['message'],
-                'data' => $result['data']
-            ], 200);
+            return response()->json(['success' => true, 'message' => $result['message'], 'data' => $result['data']], 200);
 
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memproses penukaran: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => 'Gagal memproses penukaran: ' . $e->getMessage()], 500);
         }
     }
 
     /**
-     * Get the authenticated user's points ledger (balance and transaction history).
+     * Daftar reward global aktif + saldo Reward Credits user.
+     */
+    public function globalRewardsList(Request $request)
+    {
+        $user          = Auth::user();
+        $creditBalance = $user ? (int) ($user->reward_credits ?? 0) : 0;
+
+        $rewards = Reward::whereNull('event_id')
+            ->where('type', 'global')
+            ->where('is_active', true)
+            ->orderBy('points_cost', 'asc')
+            ->get()
+            ->map(fn($r) => array_merge($r->toArray(), [
+                'can_afford' => $creditBalance >= $r->points_cost,
+            ]));
+
+        return response()->json([
+            'success'        => true,
+            'credit_balance' => $creditBalance,  // saldo Reward Credits user
+            'data'           => $rewards,
+        ], 200);
+    }
+
+    /**
+     * Ledger poin user (global + local + credit).
      */
     public function pointsLedger(Request $request)
     {
         $user = Auth::user();
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Silakan login terlebih dahulu.'
-            ], 401);
+            return response()->json(['success' => false, 'message' => 'Silakan login terlebih dahulu.'], 401);
         }
 
-        // Sum global points
-        $globalBalance = PointTransaction::where('user_id', $user->id)
-            ->where('type', 'global')
-            ->sum('amount');
+        $globalBalance = (int) ($user->points ?? 0);
+        $creditBalance = (int) ($user->reward_credits ?? 0);
 
-        // Sum local points per event
         $localBalance = DB::table('local_member_points')
             ->where('user_id', $user->id)
             ->sum('points_balance');
 
-        // Get transaction history
         $transactions = PointTransaction::with(['event', 'activity'])
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get local points breakdown per event
         $localPointsBreakdown = \App\Models\LocalMemberPoint::with('event')
             ->where('user_id', $user->id)
             ->where('points_balance', '>', 0)
@@ -192,29 +183,14 @@ class RedemptionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'global_balance' => (int) $globalBalance,
-                'local_balance' => (int) $localBalance,
-                'local_points_breakdown' => $localPointsBreakdown,
-                'transactions' => $transactions
-            ]
-        ], 200);
-    }
-
-    /**
-     * Get the list of active global rewards.
-     */
-    public function globalRewardsList(Request $request)
-    {
-        $rewards = Reward::whereNull('event_id')
-            ->where('type', 'global')
-            ->where('is_active', true)
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $rewards
+            'data'    => [
+                'global_balance'          => $globalBalance,  // untuk tier
+                'credit_balance'          => $creditBalance,  // saldo spendable
+                'local_balance'           => (int) $localBalance,
+                'local_points_breakdown'  => $localPointsBreakdown,
+                'transactions'            => $transactions,
+            ],
         ], 200);
     }
 }
+

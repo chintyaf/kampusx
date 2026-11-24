@@ -14,6 +14,12 @@ class PaymentTransaction extends Model
     protected $fillable = [
         'token',
         'order_id',
+        'provider',
+        'environment',
+        'merchant_order_id',
+        'provider_reference',
+        'merchant_code',
+        'payment_method',
         'amount',
         'customer_name',
         'customer_email',
@@ -21,15 +27,26 @@ class PaymentTransaction extends Model
         'status',
         'callback_url',
         'redirect_url',
+        'checkout_url',
+        'raw_response',
         'expired_at',
         'paid_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'raw_response' => 'array',
         'expired_at' => 'datetime',
         'paid_at' => 'datetime',
     ];
+
+    /**
+     * Relasi ke Order model berdasarkan order_id string.
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_id', 'order_id');
+    }
 
     /**
      * Scope to find pending transactions.

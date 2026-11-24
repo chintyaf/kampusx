@@ -28,6 +28,7 @@ class User extends Authenticatable
         'avatar_path',
         'points',
         'tier',
+        'reward_credits',
         'university_id' // Just in case they want to update university_id from profile settings
     ];
 
@@ -48,6 +49,11 @@ class User extends Authenticatable
     public function events()
     {
         return $this->hasMany(Event::class, 'organizer_id');
+    }
+
+    public function waitlists(): HasMany
+    {
+        return $this->hasMany(EventWaitlist::class, 'user_id');
     }
 
     public function learningPaths(): HasMany
@@ -275,6 +281,7 @@ class User extends Authenticatable
 
     /**
      * Tambahkan Global Points, rekam transaksi ledger, dan hitung ulang Tier.
+     * Global Points TIDAK berkurang saat penukaran reward — hanya untuk tier.
      */
     public function addPoints(int $amount, string $description = '', ?int $activityId = null, ?int $eventId = null): array
     {
@@ -286,11 +293,11 @@ class User extends Authenticatable
 
         // Catat di ledger transaksi poin
         \App\Models\PointTransaction::create([
-            'user_id' => $this->id,
-            'event_id' => $eventId,
+            'user_id'     => $this->id,
+            'event_id'    => $eventId,
             'activity_id' => $activityId,
-            'amount' => $amount,
-            'type' => 'global',
+            'amount'      => $amount,
+            'type'        => 'global',
             'description' => $description ?: 'Penambahan poin gamifikasi',
         ]);
 
@@ -301,5 +308,88 @@ class User extends Authenticatable
             'current_tier'   => $newTier,
             'tier_upgraded'  => $previousTier !== $newTier,
         ];
+    }
+
+    /**
+     * Tambahkan Reward Credits (saldo spendable) dengan expiry 12 bulan.
+     * Anti-duplikasi via referenceKey. TIDAK mempengaruhi Global Points atau tier.
+     *
+     * @param int    $amount       Jumlah kredit yang diberikan
+     * @param string $description  Deskripsi aktivitas
+     * @param string $referenceKey Kunci unik aktivitas untuk mencegah duplikasi
+     * @return array ['success', 'duplicate', 'amount', 'new_balance', 'expires_at']
+     */
+    public function addRewardCredits(int $amount, string $description, string $referenceKey): array
+    {
+        // Anti-duplikasi: cek apakah referenceKey sudah pernah diberikan
+        $alreadyGiven = \App\Models\PointTransaction::where('user_id', $this->id)
+            ->where('type', 'credit')
+            ->where('amount', '>', 0)
+            ->where('description', 'like', "%[REF:{$referenceKey}]%")
+            ->exists();
+
+        if ($alreadyGiven) {
+            return [
+                'success'     => false,
+                'duplicate'   => true,
+                'message'     => "Reward Credits untuk [{$referenceKey}] sudah pernah diberikan.",
+                'amount'      => 0,
+                'new_balance' => (int) ($this->reward_credits ?? 0),
+            ];
+        }
+
+        $expiresAt = now()->addMonths(12);
+
+        // Tambah saldo di kolom users.reward_credits
+        $this->reward_credits = (int) ($this->reward_credits ?? 0) + $amount;
+        $this->save();
+
+        // Catat di ledger point_transactions (type=credit, expires_at diset)
+        \App\Models\PointTransaction::create([
+            'user_id'     => $this->id,
+            'amount'      => $amount,
+            'type'        => 'credit',
+            'description' => "{$description} [REF:{$referenceKey}]",
+            'expires_at'  => $expiresAt,
+            'is_expired'  => false,
+        ]);
+
+        return [
+            'success'     => true,
+            'duplicate'   => false,
+            'amount'      => $amount,
+            'new_balance' => (int) $this->reward_credits,
+            'expires_at'  => $expiresAt->toDateTimeString(),
+        ];
+    }
+
+    /**
+     * Kurangi Reward Credits untuk penukaran reward.
+     * HARUS dipanggil dalam DB::transaction dari caller.
+     * Global Points dan tier TIDAK terpengaruh.
+     *
+     * @throws \RuntimeException jika saldo tidak cukup
+     */
+    public function spendRewardCredits(int $amount, string $description): void
+    {
+        // lockForUpdate dipanggil dari caller (dalam transaksi)
+        $balance = (int) ($this->reward_credits ?? 0);
+
+        if ($balance < $amount) {
+            throw new \RuntimeException(
+                "Saldo Reward Credits tidak mencukupi. Saldo: {$balance}, Dibutuhkan: {$amount}."
+            );
+        }
+
+        $this->reward_credits = $balance - $amount;
+        $this->save();
+
+        // Catat pengurangan di ledger (nilai negatif)
+        \App\Models\PointTransaction::create([
+            'user_id'     => $this->id,
+            'amount'      => -$amount,
+            'type'        => 'credit',
+            'description' => $description,
+        ]);
     }
 }

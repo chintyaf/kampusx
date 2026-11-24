@@ -147,6 +147,18 @@ Route::post('/events/{id}/lock-seat', [\App\Http\Controllers\Api\SeatLockControl
 Route::post('/events/{id}/release-seat', [\App\Http\Controllers\Api\SeatLockController::class, 'releaseSeat']);
 Route::post('/events/{id}/confirm-booking', [\App\Http\Controllers\Api\SeatLockController::class, 'confirmBooking']);
 
+// 5.1 WAITING LIST & FIFO QUEUE (Revisi Sidang)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/events/{id}/waitlist/join', [\App\Http\Controllers\Api\WaitingListController::class, 'join']);
+    Route::get('/events/{id}/waitlist/my-status', [\App\Http\Controllers\Api\WaitingListController::class, 'myStatus']);
+    Route::post('/events/{id}/waitlist/cancel', [\App\Http\Controllers\Api\WaitingListController::class, 'cancel']);
+    Route::post('/waitlist/offer/{token}/accept', [\App\Http\Controllers\Api\WaitingListController::class, 'acceptOffer']);
+    Route::post('/waitlist/offer/{token}/decline', [\App\Http\Controllers\Api\WaitingListController::class, 'declineOffer']);
+    Route::get('/my-waitlists', [\App\Http\Controllers\Api\WaitingListController::class, 'myWaitlists']);
+    Route::get('/admin/events/{id}/waitlist', [\App\Http\Controllers\Api\WaitingListController::class, 'eventWaitlistAdmin']);
+    Route::put('/admin/events/{id}/waitlist/config', [\App\Http\Controllers\Api\WaitingListController::class, 'updateConfig']);
+});
+
 // 6. RECRUITER VIEW (Vector Skill-Matrix & Zero-Trust Verification)
 Route::prefix('recruiter')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Api\RecruiterController::class, 'dashboard']);
@@ -183,6 +195,9 @@ Route::get('/learning-paths/{id}', [OrganizerLearningPathController::class, 'pub
 Route::get('/test', function () {
     return response()->json('hallo', 200);
 });
+
+// Official Duitku Payment Gateway Webhook (Public, Server-to-Server, Verified by Signature)
+Route::post('/payment/callback/duitku', [\App\Http\Controllers\Api\PaymentController::class, 'duitkuCallback']);
 
 Route::post('/v1/payment/callback', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'callback']);
 Route::get('/attendance/resolve/{code}', [EventAttendanceController::class, 'resolveLink']);
@@ -256,6 +271,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/checkout', [CheckoutController::class, 'store']);
     Route::get('/checkout/check/{eventId}', [CheckoutController::class, 'checkRegistration']);
+    Route::get('/payment/status/{orderId}', [\App\Http\Controllers\Api\PaymentController::class, 'getStatus']);
     Route::post('/v1/payment/charge', [\App\Http\Controllers\Api\PaymentSimulatorApiController::class, 'charge']);
     Route::get('/tickets/{ticket_code}', [TicketController::class, 'show']);
     Route::get('/tickets/{ticket_code}/qr-string', [TicketController::class, 'generateQrHash']);

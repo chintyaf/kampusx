@@ -57,6 +57,26 @@ const BadgeCollectionPage = () => {
     );
   }
 
+  if (error && (!data?.badges || data.badges.length === 0)) {
+    return (
+      <Container className="py-5">
+        <Button
+          variant="light"
+          className="mb-4 d-flex align-items-center gap-2 border shadow-sm rounded-pill px-3 py-1 text-muted small"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={16} /> Kembali ke Dasbor
+        </Button>
+        <Alert variant="danger">
+          {error}
+          <Button size="sm" variant="outline-danger" className="ms-3" onClick={fetchBadges}>
+            Coba Lagi
+          </Button>
+        </Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container className="py-4 py-md-5">
       <Button

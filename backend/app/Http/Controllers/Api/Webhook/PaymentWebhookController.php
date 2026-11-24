@@ -53,6 +53,13 @@ class PaymentWebhookController extends Controller
         $generatedOrderId = 'ORD-' . strtoupper(Str::random(6)) . '-' . time();
         $amount = (float) $validated['amount'];
 
+        if ($amount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Layanan pembayaran tiket berbayar sedang dalam proses integrasi payment gateway. Untuk saat ini hanya pendaftaran tiket gratis yang dapat diproses.',
+            ], 503);
+        }
+
         DB::beginTransaction();
         try {
             $order = Order::create([
@@ -109,6 +116,20 @@ class PaymentWebhookController extends Controller
      */
     public function paymentSuccess(Request $request)
     {
+        // Cegah akses publik atau partisipan umum tanpa validasi provider resmi / admin
+        $secretKey = config('app.payment_secret_key');
+        $providedSecret = $request->header('X-Webhook-Secret') ?? $request->header('X-Simulator-Signature');
+        $user = $request->user();
+        $isAdmin = $user && in_array($user->role, ['admin']);
+
+        if (!$isAdmin && (!$secretKey || $providedSecret !== $secretKey)) {
+            return response()->json([
+                'success' => false,
+                'status'  => 'forbidden',
+                'message' => 'Akses ditolak: Endpoint konfirmasi pembayaran hanya dapat diakses oleh provider payment gateway resmi atau administrator.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'order_id'       => 'required|string|exists:orders,order_id',
             'payment_method' => 'nullable|string',

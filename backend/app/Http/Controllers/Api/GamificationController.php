@@ -20,20 +20,15 @@ class GamificationController extends Controller
     }
 
     /**
-     * Helper to get active user (with demo fallback)
+     * Ambil user yang terautentikasi. Tolak jika tidak login.
+     * Tidak ada lagi fallback ke user demo/hardcoded untuk mencegah kebocoran data di produksi.
      */
     protected function getActiveUser(Request $request): User
     {
         $user = $request->user() ?: auth('sanctum')->user();
         if (!$user) {
-            $user = User::where('email', 'part@kampusx.com')->first()
-                ?: User::where('role', 'participant')->first();
+            abort(401, 'Silakan login terlebih dahulu.');
         }
-
-        if (!$user) {
-            $user = User::first();
-        }
-
         return $user;
     }
 

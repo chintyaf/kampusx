@@ -56,6 +56,7 @@ import PointHistory from '@/pages/member/PointHistory';
 
 // Pages: Event Management & Checkout
 import Checkout from '../pages/event/public/Checkout/index';
+import PaymentResultPage from '../pages/event/public/Checkout/PaymentResultPage';
 import TicketDetail from '../pages/TicketDetail';
 import SurveyPage from '../pages/event/management/EventSurveyPage/SurveyPage';
 import EventPreviewPage from '@/pages/event/management/EventDashboardPage/EventPreviewPage';
@@ -146,6 +147,7 @@ const AppRoutes = () => {
 						<Route path="/bookmarks" element={<BookmarkPage />} />
 						<Route path="/settings" element={<ProfileSettings />} />
 						<Route path="/checkout/:id" element={<Checkout />} />
+						<Route path="/checkout/result" element={<PaymentResultPage />} />
 						<Route path="/ticket/:ticketCode" element={<TicketDetail />} />
 						<Route path="/event-space/:id" element={<EventSpace />} />
 						<Route path="/event-space/:id/materials" element={<PostEventMaterialsPage />} />

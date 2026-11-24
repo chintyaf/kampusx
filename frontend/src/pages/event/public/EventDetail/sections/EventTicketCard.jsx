@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Form, Button } from 'react-bootstrap';
+import { useAuth } from '@/context/AuthContext';
+import WaitingListCard from '../components/WaitingListCard';
 
 const formatDate = (dateString) => {
 	if (!dateString) return '';
@@ -17,6 +19,9 @@ const EventTicketCard = ({
 	registration,
 	handleLanjutPembayaran,
 }) => {
+	const { user } = useAuth();
+	const [userWaitlistStatus, setUserWaitlistStatus] = useState(null);
+
 	const tickets = eventDetails?.event_tickets || eventDetails?.eventTickets || [];
 
 	const displayTickets =
@@ -204,14 +209,46 @@ const EventTicketCard = ({
 						);
 					})}
 
-					<Button
-						type="submit"
-						className="w-100 py-3 fw-semibold rounded-3 border-0 mt-2 d-flex justify-content-center align-items-center"
-						style={btnStyle}
-						disabled={isBtnDisabled}
-					>
-						{btnText}
-					</Button>
+					{/* KONDISI WAITING LIST / BELI TIKET */}
+					{userWaitlistStatus?.in_queue ? (
+						<WaitingListCard
+							eventId={eventDetails?.id}
+							user={user}
+							selectedTicket={selectedTicket}
+							eventDetails={eventDetails}
+							onStatusChange={setUserWaitlistStatus}
+						/>
+					) : isSoldOut && !registration?.registered ? (
+						<WaitingListCard
+							eventId={eventDetails?.id}
+							user={user}
+							selectedTicket={selectedTicket}
+							eventDetails={eventDetails}
+							onStatusChange={setUserWaitlistStatus}
+						/>
+					) : (
+						<>
+							<Button
+								type="submit"
+								className="w-100 py-3 fw-semibold rounded-3 border-0 mt-2 d-flex justify-content-center align-items-center"
+								style={btnStyle}
+								disabled={isBtnDisabled}
+							>
+								{btnText}
+							</Button>
+							{user && (
+								<div className="d-none">
+									<WaitingListCard
+										eventId={eventDetails?.id}
+										user={user}
+										selectedTicket={selectedTicket}
+										eventDetails={eventDetails}
+										onStatusChange={setUserWaitlistStatus}
+									/>
+								</div>
+							)}
+						</>
+					)}
 				</Form>
 			</Card.Body>
 		</Card>

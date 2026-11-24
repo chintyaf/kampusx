@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Spinner, Button, Alert } from 'react-bootstrap';
-import { Calendar, MapPin, QrCode, ArrowRight, Ticket, History, MoreHorizontal, Award } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Calendar, MapPin, QrCode, ArrowRight, Ticket, History, MoreHorizontal, Award, Clock, Users, Sparkles, XCircle, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import api from '@/api/axios'; 
 import { formatDate } from '@/utils/dateUtils';
@@ -82,33 +82,75 @@ const TicketCard = ({ ticket, isActive }) => {
 };
 
 const MyTickets = () => {
+    const navigate = useNavigate();
     const [tickets, setTickets] = useState([]);
+    const [waitlists, setWaitlists] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState("aktif");
+    const [actionLoadingId, setActionLoadingId] = useState(null);
+
+    const fetchMyTickets = async () => {
+        try {
+            const response = await api.get('my-tickets');
+            const result = response.data;
+            if (result.status === "success" || result.data) {
+                setTickets(result.data || result);
+            } else {
+                setTickets(result);
+            }
+        } catch (error) {
+            console.error("Gagal mengambil tiket:", error);
+            setError("Gagal memuat tiket Anda. Silakan coba beberapa saat lagi.");
+        }
+    };
+
+    const fetchMyWaitlists = async () => {
+        try {
+            const response = await api.get('/my-waitlists');
+            if (response.data?.success && response.data?.data) {
+                setWaitlists(response.data.data);
+            }
+        } catch (error) {
+            console.warn("Gagal mengambil data waiting list:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchMyTickets = async () => {
-            try {
-                const response = await api.get('my-tickets');
-                
-                const result = response.data;
-                
-                if (result.status === "success" || result.data) {
-                    setTickets(result.data || result);
-                } else {
-                     setTickets(result);
-                }
-
-            } catch (error) {
-                console.error("Gagal mengambil tiket:", error);
-                setError("Gagal memuat tiket Anda. Silakan coba beberapa saat lagi.");
-            } finally {
-                setIsLoading(false);
-            }
+        const loadAll = async () => {
+            setIsLoading(true);
+            await Promise.all([fetchMyTickets(), fetchMyWaitlists()]);
+            setIsLoading(false);
         };
-        fetchMyTickets();
-    }, []); 
+        loadAll();
+    }, []);
+
+    // Action: Klaim penawaran dari halaman MyTickets
+    const handleClaimOffer = async (offerToken) => {
+        setActionLoadingId(offerToken);
+        try {
+            const res = await api.post(`/waitlist/offer/${offerToken}/accept`);
+            if (res.data?.success && res.data?.data) {
+                navigate(res.data.data.checkout_url);
+            }
+        } catch (err) {
+            alert(err?.response?.data?.message || 'Batas waktu klaim penawaran telah habis.');
+            fetchMyWaitlists();
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    // Action: Batalkan antrean dari MyTickets
+    const handleCancelWaitlist = async (eventId) => {
+        if (!window.confirm('Yakin ingin keluar dari antrean ini?')) return;
+        try {
+            await api.post(`/events/${eventId}/waitlist/cancel`);
+            fetchMyWaitlists();
+        } catch (err) {
+            alert(err?.response?.data?.message || 'Gagal membatalkan antrean.');
+        }
+    }; 
 
     if (isLoading) {
         return (
@@ -143,6 +185,18 @@ const MyTickets = () => {
                     >
                         <Ticket size={18} className="me-2 mb-1" />
                         E-tiket Aktif ({activeTickets.length})
+                    </button>
+                    <button
+                        className={`btn btn-link text-decoration-none p-0 pb-2 fw-semibold ${
+                            activeTab === "waiting_list"
+                                ? "text-primary border-bottom border-primary border-3 rounded-0"
+                                : "text-muted"
+                        }`}
+                        onClick={() => setActiveTab("waiting_list")}
+                        style={{ fontSize: "16px" }}
+                    >
+                        <Clock size={18} className="me-2 mb-1" />
+                        Waiting List ({waitlists.filter(w => w.status === 'WAITING' || w.status === 'OFFERED').length})
                     </button>
                     <button
                         className={`btn btn-link text-decoration-none p-0 pb-2 fw-semibold ${
@@ -186,6 +240,93 @@ const MyTickets = () => {
                                     </div>
                                 ) : (
                                     historyTickets.map(ticket => <TicketCard key={ticket.id} ticket={ticket} isActive={false} />)
+                                )}
+                            </div>
+                        )}
+
+                        {!error && activeTab === "waiting_list" && (
+                            <div className="d-flex flex-column gap-3">
+                                {waitlists.length === 0 ? (
+                                    <div className="text-center py-5 text-muted">
+                                        <Clock size={48} className="mb-3 opacity-50" />
+                                        <h5>Belum ada antrean waiting list.</h5>
+                                        <p>Ketika tiket event penuh, Anda dapat mengantre untuk mendapatkan penawaran eksklusif.</p>
+                                        <Link to="/explore-events">
+                                            <Button variant="outline-primary" className="rounded-pill mt-2">Eksplor Event</Button>
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    waitlists.map((item) => (
+                                        <Card key={item.id} className={`shadow-sm border-0 rounded-4 overflow-hidden mb-3 ${item.status === 'OFFERED' ? 'border border-2 border-warning bg-warning bg-opacity-10' : ''}`}>
+                                            <Card.Header className="bg-light border-bottom-0 py-2.5 text-muted d-flex justify-content-between align-items-center" style={{ fontSize: "13px" }}>
+                                                <span className="d-flex align-items-center gap-1.5 font-monospace">
+                                                    <Users size={14} className="text-primary" /> No. Antrean #{item.queue_number}
+                                                </span>
+                                                <Badge
+                                                    bg={
+                                                        item.status === 'OFFERED' ? 'warning' :
+                                                        item.status === 'WAITING' ? 'primary' :
+                                                        item.status === 'CLAIMED' ? 'success' :
+                                                        item.status === 'EXPIRED' ? 'secondary' : 'danger'
+                                                    }
+                                                    text={item.status === 'OFFERED' ? 'dark' : 'white'}
+                                                    className="px-3 py-1.5 rounded-pill fw-semibold"
+                                                >
+                                                    {item.status === 'OFFERED' ? 'TIKET TERSEDIA (OFFER)' :
+                                                     item.status === 'WAITING' ? `POSISI #${item.position}` : item.status}
+                                                </Badge>
+                                            </Card.Header>
+                                            <Card.Body className="py-3">
+                                                <h5 className="fw-bold mb-1 text-dark">
+                                                    {item.event_title}
+                                                </h5>
+                                                <div className="text-muted small d-flex flex-wrap gap-3 mt-2">
+                                                    {item.ticket_name && <span>Tipe: <strong className="text-dark">{item.ticket_name}</strong></span>}
+                                                    {item.seat_number && <span>Kursi: <strong className="text-primary">{item.seat_number}</strong></span>}
+                                                    <span>Terdaftar: {new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                                </div>
+
+                                                {item.status === 'OFFERED' && (
+                                                    <div className="mt-3 p-3 bg-white rounded-3 border border-warning shadow-sm">
+                                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                                            <span className="small text-danger fw-bold d-flex align-items-center gap-1">
+                                                                <Sparkles size={16} /> Penawaran Eksklusif Aktif (Batas 3 Menit)
+                                                            </span>
+                                                        </div>
+                                                        <p className="small text-muted mb-3" style={{ fontSize: '13px' }}>
+                                                            Klaim penawaran sekarang untuk mengamankan kursi Anda sebelum dialihkan ke peserta berikutnya!
+                                                        </p>
+                                                        <div className="d-flex gap-2">
+                                                            <Button
+                                                                variant="success"
+                                                                className="rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2"
+                                                                onClick={() => handleClaimOffer(item.offer_token)}
+                                                                disabled={actionLoadingId === item.offer_token}
+                                                                style={{ fontSize: '13.5px' }}
+                                                            >
+                                                                {actionLoadingId === item.offer_token ? <Spinner animation="border" size="sm" /> : <ShieldCheck size={16} />}
+                                                                Klaim Kursi Sekarang
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </Card.Body>
+                                            <Card.Footer className="bg-white py-2.5 border-top-0 d-flex justify-content-between align-items-center">
+                                                <Link to={`/event/${item.event_slug || item.event_id}`} className="text-decoration-none small text-primary fw-medium d-flex align-items-center gap-1">
+                                                    Lihat Detail Event <ArrowRight size={14} />
+                                                </Link>
+                                                {item.status === 'WAITING' && (
+                                                    <Button
+                                                        variant="link"
+                                                        className="text-danger text-decoration-none p-0 small fw-medium"
+                                                        onClick={() => handleCancelWaitlist(item.event_id)}
+                                                    >
+                                                        Keluar Antrean
+                                                    </Button>
+                                                )}
+                                            </Card.Footer>
+                                        </Card>
+                                    ))
                                 )}
                             </div>
                         )}
