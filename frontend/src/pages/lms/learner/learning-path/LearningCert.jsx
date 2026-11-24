@@ -3,9 +3,10 @@ import { Card, Button, ProgressBar, Stack } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { Award, Lock } from 'lucide-react';
 
-const LearningCert = ({ pathId = 'lp-1', totalModules = 6, completedModules = 2 }) => {
+const LearningCert = ({ pathId = 'lp-1', slug, totalModules = 6, completedModules = 2 }) => {
 	const navigate = useNavigate();
 
+	const targetPath = slug || pathId || 'lp-1';
 	const isEligibleForCert = totalModules > 0 && completedModules >= totalModules;
 	const percent = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
 	const remaining = totalModules - completedModules;
@@ -89,7 +90,7 @@ const LearningCert = ({ pathId = 'lp-1', totalModules = 6, completedModules = 2 
 						fontSize: 'var(--font-sm)',
 						minHeight: 40,
 					}}
-					onClick={() => navigate(`/learner/learning-paths/${pathId}/certificate`)}
+					onClick={() => navigate(`/learner/learning-paths/${targetPath}/certificate`)}
 				>
 					{isEligibleForCert ? <Award size={16} /> : <Lock size={14} />}
 					{isEligibleForCert ? 'Klaim Sertifikat' : 'Selesaikan Modul Dulu'}

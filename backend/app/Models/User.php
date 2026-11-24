@@ -105,6 +105,11 @@ class User extends Authenticatable
         return $this->hasMany(LmsUserBadge::class, 'user_id');
     }
 
+    public function userBadges(): HasMany
+    {
+        return $this->hasMany(UserBadge::class, 'user_id');
+    }
+
     public function lmsUserCertificates(): HasMany
     {
         return $this->hasMany(LmsUserCertificate::class, 'user_id');
@@ -219,5 +224,28 @@ class User extends Authenticatable
     public function redemptions(): HasMany
     {
         return $this->hasMany(RedemptionHistory::class);
+    }
+
+    // ----------------------------------------------------------------
+    // Talent Directory & SBT Relations
+    // ----------------------------------------------------------------
+    public function talentProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TalentProfile::class, 'user_id');
+    }
+
+    public function talentSkills(): HasMany
+    {
+        return $this->hasMany(TalentSkill::class, 'user_id');
+    }
+
+    public function sbtCredentials(): HasMany
+    {
+        return $this->hasMany(SbtCredential::class, 'user_id');
+    }
+
+    public function talentPosts(): HasMany
+    {
+        return $this->hasMany(TalentPost::class, 'user_id');
     }
 }

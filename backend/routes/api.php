@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\Organizer\OrganizerRequestController;
 use App\Http\Controllers\Api\Organizer\InstitutionMemberController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\TalentDirectoryController;
 
 // Event Dashboard Controllers
 use App\Http\Controllers\Api\EventDashboard\EventOverviewController;
@@ -119,12 +120,33 @@ Route::post('/v1/staff/kiosk-scan', [\App\Http\Controllers\Api\StaffController::
 
 // });
 
+// ==========================================
+// TALENT DIRECTORY & BLOCKCHAIN SBT (PUBLIC)
+// ==========================================
+Route::prefix('talents')->group(function () {
+    Route::get('/', [TalentDirectoryController::class, 'index']);
+    Route::get('/feed', [TalentDirectoryController::class, 'feed']);
+    Route::get('/live-ticker', [TalentDirectoryController::class, 'liveTicker']);
+    Route::get('/trending-skills', [TalentDirectoryController::class, 'trendingSkills']);
+    Route::get('/verify-sbt/{identifier}', [TalentDirectoryController::class, 'verifySbt']);
+    Route::get('/{id}', [TalentDirectoryController::class, 'show']);
+});
+
 
 // ==========================================
 // 2. PROTECTED ROUTES (Harus Login Sanctum)
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // ==========================================
+    // TALENT DIRECTORY (AUTHENTICATED ACTIONS)
+    // ==========================================
+    Route::prefix('talents')->group(function () {
+        Route::get('/me/mini-profile', [TalentDirectoryController::class, 'miniProfile']);
+        Route::post('/feed/{id}/like', [TalentDirectoryController::class, 'toggleLikePost']);
+        Route::post('/feed/{id}/comments', [TalentDirectoryController::class, 'storeComment']);
+    });
 
     // ==========================================
     // Generative AI LMS Endpoints

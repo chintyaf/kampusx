@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Modal } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,18 +22,22 @@ import {
 	RotateCcw,
 	Sliders,
 } from 'lucide-react';
+import api from '@/api/axios';
+import { useAuth } from '@/context/AuthContext';
 import { getModuleData } from '@/pages/lms/mock-data/mockData';
 import { getLearningPath } from '@/pages/lms/mock-data/learningPathData';
 
 const ModuleCompletionPage = () => {
-	const { moduleId = 'mod-arch-101' } = useParams();
+	const { slug, moduleId = 'mod-arch-101' } = useParams();
 	const navigate = useNavigate();
 	const location = useLocation();
+	const { isAuthenticated } = useAuth();
 
 	// Ambil data modul & learning path
 	const moduleData = getModuleData(moduleId);
 	const pathId = moduleData.learningPathId || 'lp-1';
-	const learningPath = getLearningPath(pathId);
+	const currentPathKey = slug || pathId || 'lp-1';
+	const learningPath = getLearningPath(currentPathKey);
 
 	// State hasil quiz / refleksi (fallback jika navigasi langsung)
 	const resultState = location.state || {};
@@ -62,10 +66,62 @@ const ModuleCompletionPage = () => {
 	const [shareModalOpen, setShareModalOpen] = useState(false);
 	const [downloadSuccess, setDownloadSuccess] = useState(false);
 
-	const badgeInfo = moduleData.badgeEarned || {
+	const initialBadgeInfo = moduleData.badgeEarned || {
 		title: 'API Architect Apprentice',
 		description: 'Menyelesaikan modul Web Application Architecture & REST API Design dengan predikat sangat baik.',
 	};
+	const [badgeInfo, setBadgeInfo] = useState(initialBadgeInfo);
+
+	// State Notifikasi & Popup Badge
+	const [showBadgeNotification, setShowBadgeNotification] = useState(true);
+	const [showBadgeCelebrationModal, setShowBadgeCelebrationModal] = useState(false);
+	const [showClaimCertModal, setShowClaimCertModal] = useState(false);
+
+	// Panggil backend API untuk mencatat pemberian badge (UserBadge)
+	useEffect(() => {
+		let isMounted = true;
+
+		const awardBadgeApi = async () => {
+			try {
+				const res = await api.post(`/lms/member/modules/${moduleId}/badges/award`, {
+					score: finalScore,
+				});
+
+				if (!isMounted) return;
+
+				const resData = res.data?.data;
+				if (resData?.badge) {
+					setBadgeInfo({
+						title: resData.badge.name || initialBadgeInfo.title,
+						description: resData.badge.description || initialBadgeInfo.description,
+					});
+
+					// Jika badge baru pertama kali diperoleh, tampilkan modal selebrasi
+					if (resData.newlyAwarded) {
+						setShowBadgeCelebrationModal(true);
+					}
+				}
+
+				if (resData?.isAllCompleted) {
+					setIsAllCompleted(true);
+					setShowClaimCertModal(true);
+				}
+			} catch (err) {
+				console.log('Badge award local/fallback mode:', err?.message);
+			}
+		};
+
+		if (isAuthenticated) {
+			awardBadgeApi();
+		} else {
+			// Mode preview / non-login: tetap munculkan selebrasi agar interaktif
+			setShowBadgeCelebrationModal(true);
+		}
+
+		return () => {
+			isMounted = false;
+		};
+	}, [moduleId, finalScore, isAuthenticated]);
 
 	const credentialId = `KX-BDG-2026-${String(moduleId).replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6)}`;
 	const earnedDate = new Intl.DateTimeFormat('id-ID', {
@@ -136,6 +192,64 @@ const ModuleCompletionPage = () => {
 			<Container>
 				<Row className="justify-content-center">
 					<Col lg={9} xl={8}>
+						{/* PROMINENT BADGE UNLOCKED ALERT BANNER */}
+						<AnimatePresence>
+							{showBadgeNotification && (
+								<motion.div
+									initial={{ opacity: 0, y: -20, scale: 0.98 }}
+									animate={{ opacity: 1, y: 0, scale: 1 }}
+									exit={{ opacity: 0, y: -20, scale: 0.98 }}
+									className="alert border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2"
+									style={{
+										background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+										color: '#78350F',
+										borderLeft: '6px solid #F59E0B',
+									}}
+								>
+									<div className="d-flex align-items-center gap-3">
+										<div
+											className="rounded-circle d-flex align-items-center justify-content-center p-2 text-white flex-shrink-0"
+											style={{
+												background: '#D97706',
+												width: 42,
+												height: 42,
+												boxShadow: '0 2px 8px rgba(217, 119, 6, 0.35)',
+											}}
+										>
+											<Award size={24} />
+										</div>
+										<div>
+											<div className="fw-bold small text-amber-950">
+												🎉 Lencana Baru Berhasil Ditambahkan ke Profilmu!
+											</div>
+											<div className="small text-amber-900">
+												Kamu memperoleh lencana <strong>"{badgeInfo.title}"</strong>. Terverifikasi & tercatat di database portofolio belajarmu.
+											</div>
+										</div>
+									</div>
+									<div className="d-flex align-items-center gap-2">
+										<Button
+											variant="warning"
+											size="sm"
+											className="rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1 shadow-2xs"
+											onClick={() => navigate('/learner/badges')}
+										>
+											<Award size={14} />
+											Koleksi Lencana
+										</Button>
+										<Button
+											variant="link"
+											size="sm"
+											className="text-amber-900 p-1 text-decoration-none fw-bold"
+											onClick={() => setShowBadgeNotification(false)}
+										>
+											✕
+										</Button>
+									</div>
+								</motion.div>
+							)}
+						</AnimatePresence>
+
 						{/* HERO CELEBRATION HEADER */}
 						<motion.div
 							initial={{ opacity: 0, y: 25 }}
@@ -393,7 +507,7 @@ const ModuleCompletionPage = () => {
 														size="lg"
 														className="fw-extrabold px-4 py-2.5 rounded-pill shadow-lg d-inline-flex align-items-center gap-2 text-slate-950"
 														onClick={() =>
-															navigate(`/learner/learning-paths/${pathId}/certificate`)
+															navigate(`/learner/learning-paths/${currentPathKey}/certificate`)
 														}
 													>
 														<GraduationCap size={20} />
@@ -483,7 +597,11 @@ const ModuleCompletionPage = () => {
 											variant="primary"
 											className="px-4 py-2 rounded-pill fw-semibold text-nowrap d-inline-flex align-items-center gap-2 align-self-start align-self-md-center"
 											onClick={() =>
-												navigate(`/learner/modules/${nextModule.id || 'mod-2'}`)
+												navigate(
+													slug
+														? `/learner/learning-paths/${slug}/modules/${nextModule.id || 'mod-2'}`
+														: `/learner/modules/${nextModule.id || 'mod-2'}`
+												)
 											}
 										>
 											<span>Mulai Modul Ini</span>
@@ -499,7 +617,7 @@ const ModuleCompletionPage = () => {
 									<Button
 										variant="link"
 										className="p-0 text-decoration-none fw-semibold text-primary"
-										onClick={() => navigate(`/learner/learning-paths/${pathId}`)}
+										onClick={() => navigate(`/learner/learning-paths/${currentPathKey}`)}
 									>
 										Lihat Roadmap Kurikulum ➔
 									</Button>
@@ -512,7 +630,7 @@ const ModuleCompletionPage = () => {
 							<Button
 								variant="outline-secondary"
 								className="rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
-								onClick={() => navigate(`/learner/learning-paths/${pathId}`)}
+								onClick={() => navigate(`/learner/learning-paths/${currentPathKey}`)}
 							>
 								<BookOpen size={16} />
 								Kembali ke Roadmap Learning Path
@@ -621,6 +739,138 @@ const ModuleCompletionPage = () => {
 						</div>
 					</div>
 				</Modal.Body>
+			</Modal>
+
+			{/* ================================================================= */}
+			{/* MODAL 1: SELEBRASI LENCANA BARU (BADGE UNLOCKED CELEBRATION)      */}
+			{/* ================================================================= */}
+			<Modal
+				show={showBadgeCelebrationModal}
+				onHide={() => setShowBadgeCelebrationModal(false)}
+				centered
+				contentClassName="border-0 shadow-lg rounded-4 overflow-hidden"
+			>
+				<Modal.Body className="p-4 p-md-5 text-center text-white position-relative" style={{ background: 'radial-gradient(ellipse at top, #1E293B 0%, #0F172A 100%)' }}>
+					<div
+						style={{
+							position: 'absolute',
+							top: '-20%',
+							left: '50%',
+							transform: 'translateX(-50%)',
+							width: 280,
+							height: 240,
+							background: 'radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0) 70%)',
+							filter: 'blur(30px)',
+							pointerEvents: 'none',
+						}}
+					/>
+
+					<div className="position-relative">
+						<div
+							className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-2xl"
+							style={{
+								width: 96,
+								height: 96,
+								background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%)',
+								border: '4px solid #FEF3C7',
+								boxShadow: '0 0 35px rgba(245, 158, 11, 0.55)',
+							}}
+						>
+							<Award size={48} className="text-white drop-shadow-md" />
+						</div>
+
+						<span className="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold small mb-2">
+							✨ LENCANA BARU DIBUKA!
+						</span>
+
+						<h4 className="fw-bold text-white mb-2" style={{ fontSize: '1.4rem' }}>
+							{badgeInfo.title}
+						</h4>
+						<p className="text-slate-300 small mx-auto mb-4" style={{ maxWidth: 380, lineHeight: 1.5 }}>
+							{badgeInfo.description}
+						</p>
+
+						<div className="d-flex flex-wrap justify-content-center gap-2 mb-4">
+							<span className="badge rounded-pill px-3 py-1.5" style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#FCD34D', border: '1px solid rgba(245, 158, 11, 0.3)', fontSize: '0.78rem' }}>
+								⚡ +{earnedXp} XP Points
+							</span>
+							<span className="badge rounded-pill px-3 py-1.5" style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#6EE7B7', border: '1px solid rgba(16, 185, 129, 0.3)', fontSize: '0.78rem' }}>
+								✓ Tersimpan di Database Profil
+							</span>
+						</div>
+
+						<div className="d-flex flex-column flex-sm-row justify-content-center gap-2">
+							<Button
+								variant="warning"
+								className="fw-bold px-4 py-2 rounded-pill shadow text-slate-950"
+								onClick={() => setShowBadgeCelebrationModal(false)}
+							>
+								Keren! Lanjut Belajar
+							</Button>
+							<Button
+								variant="outline-light"
+								className="rounded-pill px-4 py-2"
+								onClick={() => {
+									setShowBadgeCelebrationModal(false);
+									navigate('/learner/badges');
+								}}
+							>
+								Lihat Koleksi Badge
+							</Button>
+						</div>
+					</div>
+				</Modal.Body>
+			</Modal>
+
+			{/* ================================================================= */}
+			{/* MODAL 2: SELEBRASI KURIKULUM SELESAI & KLAIM SERTIFIKAT           */}
+			{/* ================================================================= */}
+			<Modal
+				show={showClaimCertModal}
+				onHide={() => setShowClaimCertModal(false)}
+				centered
+				backdrop="static"
+				contentClassName="border-0 shadow-lg rounded-4 overflow-hidden"
+			>
+				<div style={{ background: 'linear-gradient(135deg, #0B2545 0%, #134E5E 50%, #1E3A8A 100%)', color: '#FFF' }} className="p-4 p-md-5 text-center position-relative">
+					<div
+						className="mx-auto rounded-circle p-3 d-inline-flex mb-3 shadow-lg"
+						style={{ background: '#F59E0B', color: '#0F172A' }}
+					>
+						<GraduationCap size={48} />
+					</div>
+					<div className="d-flex justify-content-center mb-2">
+						<span className="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold small">
+							🎓 100% KURIKULUM TUNTAS
+						</span>
+					</div>
+					<h4 className="fw-bold text-white mb-2">
+						Selamat! Kamu Resmi Menyelesaikan Seluruh Modul!
+					</h4>
+					<p className="text-cyan-100 small mb-4" style={{ lineHeight: 1.6 }}>
+						Seluruh modul di <strong>{learningPath.title}</strong> telah kamu selesaikan. Sertifikat kelulusan resmimu siap untuk langsung kamu buka & klaim sekarang!
+					</p>
+					<div className="d-flex flex-column flex-sm-row justify-content-center gap-2">
+						<Button
+							variant="warning"
+							className="fw-bold px-4 py-2.5 rounded-pill shadow d-inline-flex align-items-center justify-content-center gap-2 text-slate-950"
+							onClick={() => {
+								setShowClaimCertModal(false);
+								navigate(`/learner/learning-paths/${currentPathKey}/certificate`);
+							}}
+						>
+							<Award size={18} />
+							Klaim Sertifikat Sekarang
+						</Button>
+						<Button
+							variant="outline-light"
+							className="rounded-pill px-4 py-2.5"
+							onClick={() => setShowClaimCertModal(false)}
+						>
+							Lihat Ringkasan Dulu
+						</Button>
+					</div>
+				</div>
 			</Modal>
 
 			{/* ================================================================= */}

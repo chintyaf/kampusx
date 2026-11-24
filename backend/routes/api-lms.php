@@ -124,10 +124,14 @@ Route::prefix('lms')->group(function () {
                 [LearnerQuizResultController::class, 'show']
             );
 
-            // Award Badge
+            // Award & Status Badge
             Route::post(
                 '/badges/award',
                 [LearnerBadgeController::class, 'award']
+            );
+            Route::get(
+                '/badges/status',
+                [LearnerBadgeController::class, 'status']
             );
         });
         // END Modules/modulesId
