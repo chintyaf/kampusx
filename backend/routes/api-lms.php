@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Lms\CredentialApiController;
 use App\Http\Controllers\Api\Lms\LearnerLessonViewController;
 use App\Http\Controllers\Api\Lms\LearnerQuizController;
 use App\Http\Controllers\Api\Lms\LearnerQuizResultController;
+use App\Http\Controllers\Api\Lms\LearnerBadgeController;
 use App\Http\Controllers\Api\Lms\SrlLearningSessionController;
 
 // ====================================================
@@ -42,10 +43,19 @@ Route::prefix('lms')->group(function () {
     Route::middleware(['auth:sanctum', 'role:organizer,admin'])
         ->prefix('organizer')->group(function () {
 
-            Route::apiResource('learning-paths', LearningPathController::class);
+            Route::apiResource('learning-paths', LearningPathController::class)
+                ->except(['index', 'update']);
 
-            Route::get('learning-paths', [LearningPathController::class, 'organizerIndex']);
+            Route::get('learning-paths', [
+                LearningPathController::class,
+                'organizerIndex'
+            ]);
 
+            // Update menggunakan POST (mendukung FormData)
+            Route::post('learning-paths/{id}/update', [
+                LearningPathController::class,
+                'update'
+            ]);
             Route::apiResource('modules', ModuleController::class);
             Route::apiResource('lessons', LessonController::class);
             Route::apiResource('quiz', QuizController::class);
@@ -107,6 +117,19 @@ Route::prefix('lms')->group(function () {
 
             // Hasil Refleksi & Evaluasi setelah mengerjakan kuis
             Route::get('reflection', [LearnerQuizResultController::class, 'show']);
+
+            // Quiz Result
+            Route::get(
+                '/quiz/result',
+                [LearnerQuizResultController::class, 'show']
+            );
+
+            // Award Badge
+            Route::post(
+                '/badges/award',
+                [LearnerBadgeController::class, 'award']
+            );
         });
+        // END Modules/modulesId
     });
 });

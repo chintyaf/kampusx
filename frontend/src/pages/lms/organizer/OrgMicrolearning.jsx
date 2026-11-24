@@ -23,7 +23,7 @@ const OrgMicrolearning = () => {
 			setErrorMessage('');
 
 			try {
-				const response = await api.get(`organizer/lms/learning-paths`);
+				const response = await api.get(`/lms/organizer/learning-paths`);
 				const result = response.data;
 				console.log(result);
 

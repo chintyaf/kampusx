@@ -7,164 +7,303 @@ use App\Models\LearningPath;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use App\Services\ImageUploadService;
 
 class LearningPathController extends Controller
 {
     /**
-     * Display a listing of learning paths.
+     * Menampilkan seluruh Learning Path.
      */
     public function index(Request $request)
     {
         $query = LearningPath::with(['creator', 'event'])
             ->withCount(['modules', 'enrollments']);
 
-        // Search by title
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $search = $request->input('search');
+
+            $query->where('title', 'like', "%{$search}%");
         }
 
-        // Filter by status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('category')) {
+            $category = $request->input('category');
+
+            $query->where(function ($q) use ($category) {
+                $q->where('category', $category)
+                    ->orWhereJsonContains('categories', $category);
+            });
         }
 
         $learningPaths = $query
             ->latest()
-            ->paginate($request->input('per_page', 10));
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => 'Learning paths retrieved successfully.',
             'data' => $learningPaths,
-        ], 200);
+        ]);
     }
 
     /**
-     * Store a newly created learning path.
+     * Membuat Learning Path baru.
      */
     public function store(Request $request)
     {
+        // created_by diambil dari user yang sedang login.
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        // Mendukung categories dalam format JSON string
+        // maupun array dari FormData.
+        $this->prepareCategories($request);
+
         $validated = $request->validate([
-            'created_by' => ['required', 'exists:users,id'],
-            'event_id' => ['nullable', 'exists:events,id'],
-            'title' => ['required', 'string', 'max:200'],
-            'description' => ['nullable', 'string'],
-            'category' => ['nullable', 'string', 'max:100'],
-            'categories' => ['nullable', 'array'],
-            'categories.*' => ['string'],
-            'thumbnail' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'status' => ['nullable', Rule::in(['draft', 'published', 'archived'])],
+            'event_id' => [
+                'nullable',
+                'exists:events,id',
+            ],
+            'title' => [
+                'required',
+                'string',
+                'max:200',
+            ],
+            'description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'category' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'categories' => [
+                'nullable',
+                'array',
+            ],
+            'categories.*' => [
+                'string',
+                'max:100',
+            ],
+            'thumbnail' => $request->hasFile('thumbnail')
+                ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
+                : 'nullable',
+            'status' => [
+                'nullable',
+                Rule::in(['draft', 'published', 'archived']),
+            ],
         ]);
 
-        // Upload thumbnail
+        $validated = $this->normalizeCategories($validated);
+
+        $validated['created_by'] = $user->id;
+        $validated['status'] = $validated['status'] ?? 'draft';
+
+        $validated['published_at'] =
+            $validated['status'] === 'published'
+                ? now()
+                : null;
+
         if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')
-                ->store('learning-paths', 'public');
+            $extension = $request->file('thumbnail')->getClientOriginalExtension();
+            $fileName = "thumbnail_" . time() . "_" . uniqid() . ".{$extension}";
+            $path = $request->file('thumbnail')->storeAs('lms/learning-path', $fileName, 'public');
+            $validated['thumbnail'] = $path;
+        } else {
+            unset($validated['thumbnail']);
+        }
+
+        if (empty($validated['slug']) && !empty($validated['title'])) {
+            $baseSlug = \Illuminate\Support\Str::slug($validated['title']);
+            $slug = $baseSlug ?: 'lp-' . time();
+            if (LearningPath::where('slug', $slug)->exists()) {
+                $slug .= '-' . time();
+            }
+            $validated['slug'] = $slug;
         }
 
         $learningPath = LearningPath::create($validated);
 
-        $learningPath->load(['creator', 'event']);
+        $learningPath
+            ->load(['creator', 'event'])
+            ->loadCount(['modules', 'enrollments']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Learning path created successfully.',
+            'message' => 'Learning Path created successfully.',
             'data' => $learningPath,
         ], 201);
     }
 
     /**
-     * Display the specified learning path.
+     * Menampilkan detail Learning Path berdasarkan ID atau slug.
      */
     public function show(string $id)
     {
-        $learningPath = LearningPath::with([
+        $query = LearningPath::with([
             'creator',
             'event',
             'modules.lessons',
-            'enrollments'
-        ])
-            ->withCount(['modules', 'enrollments'])
-            ->find($id);
+            'enrollments',
+        ])->withCount([
+            'modules',
+            'enrollments',
+        ]);
+
+        if (is_numeric($id)) {
+            $query->where(function ($q) use ($id) {
+                $q->where('id', $id)
+                    ->orWhere('slug', $id);
+            });
+        } else {
+            $query->where('slug', $id);
+        }
+
+        $learningPath = $query->first();
 
         if (!$learningPath) {
             return response()->json([
                 'success' => false,
-                'message' => 'Learning path not found.',
+                'message' => 'Learning Path not found.',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Learning path retrieved successfully.',
+            'message' => 'Learning Path retrieved successfully.',
             'data' => $learningPath,
-        ], 200);
+        ]);
     }
 
     /**
-     * Update the specified learning path.
+     * Memperbarui Learning Path.
      */
-    public function update(Request $request, string $id)
-    {
+    public function update(
+        Request $request,
+        string $id,
+        ImageUploadService $imageService
+    ) {
         $learningPath = LearningPath::find($id);
 
         if (!$learningPath) {
             return response()->json([
                 'success' => false,
-                'message' => 'Learning path not found.',
+                'message' => 'Learning Path not found.',
             ], 404);
         }
 
+        $this->prepareCategories($request);
+
         $validated = $request->validate([
-            'created_by' => ['sometimes', 'required', 'exists:users,id'],
-            'event_id' => ['sometimes', 'nullable', 'exists:events,id'],
-            'title' => ['sometimes', 'required', 'string', 'max:200'],
-            'description' => ['sometimes', 'nullable', 'string'],
-            'category' => ['sometimes', 'nullable', 'string', 'max:100'],
-            'categories' => ['sometimes', 'nullable', 'array'],
-            'categories.*' => ['string'],
-            'thumbnail' => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'remove_thumbnail' => ['sometimes', 'boolean'],
-            'status' => ['sometimes', 'required', Rule::in(['draft', 'published', 'archived'])],
+            'event_id' => [
+                'sometimes',
+                'nullable',
+                'exists:events,id',
+            ],
+            'title' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:200',
+            ],
+            'description' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+            'category' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:100',
+            ],
+            'categories' => [
+                'sometimes',
+                'nullable',
+                'array',
+            ],
+            'categories.*' => [
+                'string',
+                'max:100',
+            ],
+            'thumbnail' => $request->hasFile('thumbnail')
+                ? 'image|mimes:jpeg,png,jpg,webp|max:2048'
+                : 'nullable',
+            'remove_thumbnail' => [
+                'sometimes',
+                'boolean',
+            ],
+            'status' => [
+                'sometimes',
+                'nullable',
+                Rule::in(['draft', 'published', 'archived']),
+            ],
         ]);
 
-        // Remove existing thumbnail if requested
-        if ($request->boolean('remove_thumbnail') && $learningPath->thumbnail) {
-            if (!str_starts_with($learningPath->thumbnail, 'http://') &&
-                !str_starts_with($learningPath->thumbnail, 'https://')) {
-                Storage::disk('public')->delete($learningPath->thumbnail);
+        $validated = $this->normalizeCategories($validated);
+
+        $oldThumbnail = $learningPath->thumbnail;
+
+        // Upload thumbnail baru / hapus thumbnail lama mirip EventGeneralInfoController
+        if ($request->hasFile('thumbnail')) {
+            if ($oldThumbnail && Storage::disk('public')->exists($oldThumbnail)) {
+                Storage::disk('public')->delete($oldThumbnail);
             }
 
+            $extension = $request->file('thumbnail')->getClientOriginalExtension();
+            $fileName = "thumbnail_{$learningPath->id}_" . time() . "_" . uniqid() . ".{$extension}";
+            $path = $request->file('thumbnail')->storeAs('lms/learning-path', $fileName, 'public');
+
+            $validated['thumbnail'] = $path;
+        } elseif ($request->boolean('remove_thumbnail')) {
+            if ($oldThumbnail && Storage::disk('public')->exists($oldThumbnail)) {
+                Storage::disk('public')->delete($oldThumbnail);
+            }
             $validated['thumbnail'] = null;
+        } else {
+            unset($validated['thumbnail']);
+        }
+
+        // Atur published_at.
+        if (array_key_exists('status', $validated)) {
+            if ($validated['status'] === 'published') {
+                $validated['published_at'] =
+                    $learningPath->published_at ?? now();
+            } elseif ($validated['status'] === 'draft') {
+                $validated['published_at'] = null;
+            }
         }
 
         unset($validated['remove_thumbnail']);
 
-        // Replace thumbnail
-        if ($request->hasFile('thumbnail')) {
-            if ($learningPath->thumbnail &&
-                !str_starts_with($learningPath->thumbnail, 'http://') &&
-                !str_starts_with($learningPath->thumbnail, 'https://')) {
-                Storage::disk('public')->delete($learningPath->thumbnail);
-            }
-
-            $validated['thumbnail'] = $request->file('thumbnail')
-                ->store('learning-paths', 'public');
-        }
-
         $learningPath->update($validated);
 
-        $learningPath->load(['creator', 'event']);
+        $learningPath
+            ->load(['creator', 'event'])
+            ->loadCount(['modules', 'enrollments']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Learning path updated successfully.',
+            'message' => 'Learning Path updated successfully.',
             'data' => $learningPath,
-        ], 200);
+        ]);
     }
 
     /**
-     * Remove the specified learning path.
+     * Menghapus Learning Path.
      */
     public function destroy(string $id)
     {
@@ -173,70 +312,150 @@ class LearningPathController extends Controller
         if (!$learningPath) {
             return response()->json([
                 'success' => false,
-                'message' => 'Learning path not found.',
+                'message' => 'Learning Path not found.',
             ], 404);
         }
 
-        // Delete thumbnail
-        if ($learningPath->thumbnail &&
-            !str_starts_with($learningPath->thumbnail, 'http://') &&
-            !str_starts_with($learningPath->thumbnail, 'https://')) {
-            Storage::disk('public')->delete($learningPath->thumbnail);
-        }
+        $this->deleteThumbnail($learningPath->thumbnail);
 
         $learningPath->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Learning path deleted successfully.',
-        ], 200);
+            'message' => 'Learning Path deleted successfully.',
+        ]);
     }
 
     /**
-     * Display learning paths belonging to the authenticated organizer.
+     * Menampilkan Learning Path milik Organizer yang sedang login.
      */
     public function organizerIndex(Request $request)
     {
-        // Ambil ID organizer dari user yang login (atau fallback dari query param jika belum pakai auth)
-        $organizerId = $request->user()?->id ?? $request->input('organizer_id');
+        $user = $request->user();
 
-        if (!$organizerId) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Organizer ID or authentication is required.',
+                'message' => 'Unauthenticated.',
             ], 401);
         }
 
         $query = LearningPath::with(['creator', 'event'])
             ->withCount(['modules', 'enrollments'])
-            ->where(function ($q) use ($organizerId) {
-                // 1. Learning path yang dibuat langsung oleh organizer ini
-                $q->where('created_by', $organizerId)
-                // 2. (Opsional) Atau yang terhubung ke event milik organizer ini
-                // Sesuaikan 'user_id' / 'organizer_id' dengan nama kolom di tabel events kamu
-                ->orWhereHas('event', function ($eventQuery) use ($organizerId) {
-                    $eventQuery->where('user_id', $organizerId);
-                });
-            });
+            ->where('created_by', $user->id);
 
-        // Search by title
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $search = $request->input('search');
+
+            $query->where('title', 'like', "%{$search}%");
         }
 
-        // Filter by status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', $request->input('status'));
         }
 
         $learningPaths = $query
             ->latest()
-            ->paginate($request->input('per_page', 10));
+            ->paginate($this->perPage($request))
+            ->withQueryString();
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Organizer learning paths retrieved successfully.',
+            'success' => true,
+            'message' => 'Organizer Learning Paths retrieved successfully.',
             'data' => $learningPaths,
-        ], 200);
+        ]);
+    }
+
+    /**
+     * Mengubah categories JSON string menjadi array.
+     *
+     * Mendukung:
+     * - categories = ["Programming", "Technology"]
+     * - categories[0] = Programming
+     * - categories = '["Programming","Technology"]'
+     */
+    private function prepareCategories(Request $request): void
+    {
+        $categories = $request->input('categories');
+
+        if (is_string($categories)) {
+            if (trim($categories) === '') {
+                $request->merge([
+                    'categories' => null,
+                ]);
+
+                return;
+            }
+
+            $decoded = json_decode($categories, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $request->merge([
+                    'categories' => $decoded,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Membersihkan dan menyelaraskan kategori.
+     */
+    private function normalizeCategories(array $validated): array
+    {
+        if (!array_key_exists('categories', $validated)) {
+            return $validated;
+        }
+
+        $categories = $validated['categories'] ?? [];
+
+        $categories = array_map(
+            fn ($category) => trim($category),
+            $categories
+        );
+
+        $categories = array_filter(
+            $categories,
+            fn ($category) => $category !== ''
+        );
+
+        $categories = array_values(array_unique($categories));
+
+        $validated['categories'] = $categories ?: null;
+
+        // Kategori pertama digunakan sebagai kategori utama.
+        $validated['category'] = $categories[0] ?? null;
+
+        return $validated;
+    }
+
+    /**
+     * Menghapus file thumbnail dari public storage.
+     */
+    private function deleteThumbnail(?string $thumbnail): void
+    {
+        if (!$thumbnail) {
+            return;
+        }
+
+        // Jangan menghapus URL eksternal.
+        if (
+            str_starts_with($thumbnail, 'http://')
+            || str_starts_with($thumbnail, 'https://')
+        ) {
+            return;
+        }
+
+        Storage::disk('public')->delete($thumbnail);
+    }
+
+    /**
+     * Membatasi jumlah data per halaman.
+     */
+    private function perPage(Request $request): int
+    {
+        return min(
+            max((int) $request->input('per_page', 10), 1),
+            100
+        );
     }
 }

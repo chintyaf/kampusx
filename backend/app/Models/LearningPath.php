@@ -86,7 +86,15 @@ class LearningPath extends Model
             return $this->thumbnail;
         }
 
-        return url('storage/lms/learning-path/' . ltrim($this->thumbnail, '/'));
+        if (str_starts_with($this->thumbnail, 'storage/')) {
+            return url($this->thumbnail);
+        }
+
+        if (!str_contains($this->thumbnail, '/')) {
+            return url('storage/lms/learning-path/' . ltrim($this->thumbnail, '/'));
+        }
+
+        return url('storage/' . ltrim($this->thumbnail, '/'));
     }
 
     // Di dalam class LearningPath (app/Models/LearningPath.php)

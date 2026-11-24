@@ -283,7 +283,7 @@ const CreateLearningPage = () => {
 			}
 			formData.append('status', 'draft');
 
-			const response = await api.post('/organizer/learning-paths', formData, {
+			const response = await api.post('/lms/organizer/learning-paths', formData, {
 				headers: { 'Content-Type': 'multipart/form-data' },
 			});
 			const responseData = response.data?.data || response.data;
@@ -297,7 +297,8 @@ const CreateLearningPage = () => {
 		} catch (err) {
 			console.error('Gagal menyimpan draf learning path:', err);
 			setSubmitError(
-				err.response?.data?.message || 'Draf gagal disimpan. Periksa koneksi Anda lalu coba lagi.',
+				err.response?.data?.message ||
+					'Draf gagal disimpan. Periksa koneksi Anda lalu coba lagi.',
 			);
 		} finally {
 			setIsSaving(false);
