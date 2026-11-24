@@ -39,17 +39,6 @@ import EditLessonPage from '@/pages/lms/organizer/EditLessonPage';
 
 import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
-import LearningPathsPage from '@/pages/lms/organizer/learning-paths/LearningPathsPage';
-import ManageLearningPathPage from '../pages/lms/ManageLearningPathPage';
-import OrganizerBadgesPage from '@/pages/lms/organizer/badges/BadgesPage';
-import LogsPage from '@/pages/lms/organizer/LogsPage';
-import CreateLearningPage from '../pages/lms/organizer/create-microlearning/CreateLearningPage';
-
-import DashboardLayout from '@/layouts/DashboardLayout';
-import OrgLearningLayout from '@/layouts/OrgLearningLayout';
-import ProtectedRoute from './ProtectedRoute';
-import EditModulePage from '../pages/lms/organizer/create-microlearning/EditModulePage';
-import EditLessonPage from '../pages/lms/organizer/create-microlearning/EditLessonPage';
 
 export const LmsRoutes = () => {
 	return (

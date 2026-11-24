@@ -20,16 +20,10 @@ import ManageActivities from '@/pages/admin/gamifikasi/ManageActivities';
 import ManageGlobalRewards from '@/pages/admin/gamifikasi/ManageGlobalRewards';
 import ConversionSettings from '@/pages/admin/gamifikasi/ConversionSettings';
 
-import CredentialManagementPage from '@/pages/admin/CredentialManagementPage';
-import IntegrationLogsPage from '@/pages/admin/IntegrationLogsPage';
-
 export const AdminRoutes = [
 	// ADMIN ROUTES
 	<Route path="admin" key="admin-routes">
 		<Route path="dashboard" element={<AdminDashboardPage />} />
-		<Route path="credential-management" element={<CredentialManagementPage />} />
-		<Route path="credentials" element={<CredentialManagementPage />} />
-		<Route path="integration-logs" element={<IntegrationLogsPage />} />
 		<Route path="verifikasi-organizer" element={<OrganizerVerificationPage />} />
 		<Route path="kelola-pengguna" element={<ManageUserPage />} />
 		<Route path="pantau-acara" element={<EventMonitoringPage />} />

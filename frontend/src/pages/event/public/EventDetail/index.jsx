@@ -33,8 +33,6 @@ const EventDetail = () => {
 
 	const [showToast, setShowToast] = useState(false);
 	const [toastMsg, setToastMsg] = useState('');
-	const [isLockingSeat, setIsLockingSeat] = useState(false);
-	const [lockError, setLockError] = useState(null);
 
 	useEffect(() => {
 		const fetchSingleEvent = async () => {
@@ -84,13 +82,13 @@ const EventDetail = () => {
 		checkUserRegistration();
 	}, [eventDetails?.id, user]);
 
-	const handleLanjutPembayaran = async (e) => {
+	const handleLanjutPembayaran = (e) => {
 		e.preventDefault();
 		console.log('Tombol diklik! ID event:', eventDetails?.id);
 
 		if (!user) {
 			console.log('User belum login, redirect ke Sign In');
-			alert('Silakan Sign In terlebih dahulu untuk mendaftar dan mengunci tiket.');
+			alert('Silakan Sign In terlebih dahulu untuk melanjutkan pembayaran.');
 			navigate('/login', { state: { from: location.pathname } });
 			return;
 		}
@@ -109,30 +107,13 @@ const EventDetail = () => {
 			return;
 		}
 
-		// Flow 2: Atomic Redis SETNX Seat-Locking (15 Menit)
-		setIsLockingSeat(true);
-		setLockError(null);
-		try {
-			const res = await api.post(`/events/${eventDetails?.id}/lock-seat`, {
-				ticket_id: selectedTicket,
-			});
-
-			if (res.data?.success) {
-				const lockData = res.data.data;
-				console.log('Kursi berhasil dikunci via Redis SETNX:', lockData);
-				navigate(`/checkout/${eventDetails?.id}?ticketId=${selectedTicket}&lockToken=${lockData.lock_token}&ttl=${lockData.ttl_seconds}`);
-			} else {
-				setLockError(res.data?.message || 'Tiket Penuh');
-				alert(res.data?.message || 'Tiket Penuh: Semua kursi telah dipesan atau sedang dikunci.');
-			}
-		} catch (err) {
-			console.error('Error saat seat locking:', err);
-			const errMsg = err?.response?.data?.message || 'Tiket Penuh: Semua kuota kursi sedang dipesan atau terkunci oleh peserta lain.';
-			setLockError(errMsg);
-			alert(errMsg);
-		} finally {
-			setIsLockingSeat(false);
-		}
+		navigate(`/checkout/${eventDetails?.id}?ticketId=${selectedTicket}`);
+		console.log(
+			'Navigasi ke halaman checkout dengan ID event:',
+			eventDetails?.id,
+			'ticketId:',
+			selectedTicket,
+		);
 	};
 
 	const handleToggleBookmark = async () => {

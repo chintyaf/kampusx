@@ -94,89 +94,11 @@ Route::get('/events/explore', [EventController::class, 'index']); // Diubah ke i
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 // Certificate Public Verification & Rendering
-Route::get('/certificates/{verification_id}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
-Route::get('/v1/certificates/{verification_id}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
-Route::get('/certificate/verify/{ticket_code}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
+// Route::get('/user/certificates/', [EventCertificateController::class, 'show']);
+Route::get('/certificate/verify/{ticket_code}', [EventCertificateController::class, 'verifyCertificate']);
 Route::get('/certificate/render/{ticket_code}', [EventCertificateController::class, 'getCertificateRenderData']);
 Route::get('/certificate/background/{eventId}', [EventCertificateController::class, 'getBackgroundPublic']);
 
-// ==========================================
-// THESIS E2E FLOW ROUTES (Gamifikasi, Seat-Locking, Bandit, Webhooks)
-// ==========================================
-// 1. GAMIFICATION SYSTEM
-Route::prefix('gamification')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Api\GamificationController::class, 'dashboard']);
-    Route::get('/points-history', [\App\Http\Controllers\Api\GamificationController::class, 'pointsHistory']);
-    Route::get('/leaderboard', [\App\Http\Controllers\Api\GamificationController::class, 'leaderboard']);
-    Route::get('/badges', [\App\Http\Controllers\Api\GamificationController::class, 'badges']);
-    Route::get('/tier-progress', [\App\Http\Controllers\Api\GamificationController::class, 'tierProgress']);
-});
-
-// 2. REWARD DECISION ENGINE (Thompson Sampling + DISCO)
-Route::prefix('rewards')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Api\RewardDecisionController::class, 'index']);
-    Route::post('/recommend', [\App\Http\Controllers\Api\RewardDecisionController::class, 'recommend']);
-    Route::post('/claim', [\App\Http\Controllers\Api\RewardDecisionController::class, 'claim']);
-    Route::get('/decision-logs', [\App\Http\Controllers\Api\RewardDecisionController::class, 'decisionLogs']);
-    Route::get('/history', [\App\Http\Controllers\Api\RewardDecisionController::class, 'history']);
-});
-
-// 3. CREDENTIALS & SOULBOUND TOKEN (ERC-5192)
-Route::prefix('credentials')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Api\CredentialController::class, 'index']);
-    Route::post('/', [\App\Http\Controllers\Api\CredentialController::class, 'store']);
-    Route::get('/{id}', [\App\Http\Controllers\Api\CredentialController::class, 'show']);
-    Route::get('/{id}/preview', [\App\Http\Controllers\Api\CredentialController::class, 'preview']);
-    Route::post('/{id}/mint', [\App\Http\Controllers\Api\CredentialController::class, 'mint']);
-    Route::post('/{id}/retry', [\App\Http\Controllers\Api\CredentialController::class, 'retry']);
-    Route::post('/{id}/revoke', [\App\Http\Controllers\Api\CredentialController::class, 'revoke']);
-});
-Route::get('/my-portfolio', [\App\Http\Controllers\Api\CredentialController::class, 'myPortfolio']);
-Route::get('/public/credentials/{credential_code}/verify', [\App\Http\Controllers\Api\CredentialController::class, 'publicVerify']);
-
-// 4. REST API TRIGGER (AI SRL INTEGRATION)
-Route::prefix('integrations')->group(function () {
-    Route::post('/achievements', [\App\Http\Controllers\Api\IntegrationController::class, 'receiveAchievement']);
-    Route::get('/logs', [\App\Http\Controllers\Api\IntegrationController::class, 'logs']);
-    Route::post('/demo-trigger', [\App\Http\Controllers\Api\IntegrationController::class, 'demoTrigger']);
-    Route::post('/reset-demo', [\App\Http\Controllers\Api\IntegrationController::class, 'resetDemo']);
-});
-
-// 5. REDIS SEAT-LOCKING (Interactive Seat Map)
-Route::get('/events/{id}/seats', [\App\Http\Controllers\Api\SeatLockController::class, 'getSeats']);
-Route::post('/events/{id}/lock-seat', [\App\Http\Controllers\Api\SeatLockController::class, 'lockSeat']);
-Route::post('/events/{id}/release-seat', [\App\Http\Controllers\Api\SeatLockController::class, 'releaseSeat']);
-Route::post('/events/{id}/confirm-booking', [\App\Http\Controllers\Api\SeatLockController::class, 'confirmBooking']);
-
-// 6. RECRUITER VIEW (Vector Skill-Matrix & Zero-Trust Verification)
-Route::prefix('recruiter')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Api\RecruiterController::class, 'dashboard']);
-    Route::get('/candidates', [\App\Http\Controllers\Api\RecruiterController::class, 'candidates']);
-    Route::get('/candidates/{id}', [\App\Http\Controllers\Api\RecruiterController::class, 'show']);
-    Route::post('/skill-match', [\App\Http\Controllers\Api\RecruiterController::class, 'skillMatch']);
-});
-
-Route::post('/webhook/srl-graduated', [\App\Http\Controllers\Api\Webhook\GamificationWebhookController::class, 'srlGraduated']);
-Route::post('/webhook/add-instant-points', [\App\Http\Controllers\Api\Webhook\GamificationWebhookController::class, 'addInstantPoints']);
-Route::post('/webhook/reset-demo', [\App\Http\Controllers\Api\Webhook\GamificationWebhookController::class, 'resetDemo']);
-Route::post('/webhook/payment-success', [\App\Http\Controllers\Api\Webhook\PaymentWebhookController::class, 'paymentSuccess']);
-Route::get('/leaderboard', [\App\Http\Controllers\Api\LeaderboardController::class, 'index']);
-Route::get('/checkout/bandit-reward/{eventId}', [\App\Http\Controllers\Api\BanditRewardController::class, 'getPersonalizedReward']);
-Route::post('/checkout/create-pending', [\App\Http\Controllers\Api\Webhook\PaymentWebhookController::class, 'createPendingOrder']);
-
-// BLOCKCHAIN & SOULBOUND TOKEN (SBT) - RUMUSAN MASALAH 2
-// ==========================================
-Route::post('/v1/credentials/trigger-mint', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'triggerMint']);
-Route::get('/v1/blockchain/verify/{identifier}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'verify']);
-Route::get('/blockchain/verify/{identifier}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'verify']);
-Route::get('/v1/blockchain/polygonscan/{txHash}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getPolygonscanData']);
-
-// ==========================================
-// JOB MATCHING & RECRUITER VIEW - RUMUSAN MASALAH 4
-// ==========================================
-Route::post('/v1/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
-Route::post('/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
-Route::post('/v1/talents/send-offer', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'sendRecruiterOffer']);
 // Learning Paths (Public / Learner Explore)
 Route::get('/learning-paths', [OrganizerLearningPathController::class, 'publicIndex']);
 Route::get('/learning-paths/{id}', [OrganizerLearningPathController::class, 'publicShow']);
