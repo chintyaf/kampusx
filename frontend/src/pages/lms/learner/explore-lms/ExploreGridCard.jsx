@@ -21,7 +21,7 @@ const ExploreGridCard = ({ item, isBookmarked, onToggleBookmark, onNavigate }) =
 
 	return (
 		<Card
-			className={`explore-grid-card h-100 border rounded-3 overflow-hidden p-0 ${
+			className={`explore-grid-card h-100 border rounded-3 overflow-hidden p-0 w-100 ${
 				isLearningPath ? 'is-learning-path' : ''
 			}`}
 			onClick={() => onNavigate && onNavigate(item)}
