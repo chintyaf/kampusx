@@ -3,7 +3,6 @@ import AppRoutes from "./routes";
 import { AuthProvider } from './context/AuthContext';
 import { LoadingProvider } from './context/LoadingContext';
 import ScrollToTop from './components/ScrollToTop';
-// import ThesisPrototypeFloatingBar from './components/ThesisPrototypeFloatingBar';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -13,7 +12,6 @@ function App() {
                 <BrowserRouter>
                     <ScrollToTop />
                     <AppRoutes />
-                    {/* <ThesisPrototypeFloatingBar /> */}
                     <Toaster position="top-right" reverseOrder={false} />
                 </BrowserRouter>
             </LoadingProvider>

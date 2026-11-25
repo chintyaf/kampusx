@@ -61,7 +61,7 @@ const ScoreDoughnut = ({ score, color }) => {
 	);
 };
 
-const ResultCard = ({ currentOutcome, onAction }) => {
+const ResultCard = ({ currentOutcome, onAction, loading = false }) => {
 	if (!currentOutcome) return null;
 
 	return (
@@ -404,7 +404,7 @@ const ResultCard = ({ currentOutcome, onAction }) => {
 						boxShadow: `0 4px 12px ${currentOutcome.themeColor}33`,
 					}}
 				>
-					<span>{currentOutcome.ctaPrimaryText}</span>
+					<span>{loading ? 'Memproses...' : currentOutcome.ctaPrimaryText}</span>
 					<ChevronRight size={16} />
 				</Button>
 			</div>

@@ -113,6 +113,11 @@ class User extends Authenticatable
         return $this->hasMany(LmsUserBadge::class, 'user_id');
     }
 
+    public function userBadges(): HasMany
+    {
+        return $this->hasMany(UserBadge::class, 'user_id');
+    }
+
     public function lmsUserCertificates(): HasMany
     {
         return $this->hasMany(LmsUserCertificate::class, 'user_id');
@@ -229,24 +234,25 @@ class User extends Authenticatable
         return $this->hasMany(RedemptionHistory::class);
     }
 
-    public function tickets(): HasMany
+    // ----------------------------------------------------------------
+    // Talent Directory & SBT Relations
+    // ----------------------------------------------------------------
+    public function talentProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasMany(Ticket::class, 'participant_id');
+        return $this->hasOne(TalentProfile::class, 'user_id');
     }
 
-    public function soulboundTokens(): HasMany
+    public function talentSkills(): HasMany
     {
-        return $this->hasMany(SoulboundToken::class, 'user_id');
+        return $this->hasMany(TalentSkill::class, 'user_id');
     }
 
-    public function badges(): BelongsToMany
+    public function sbtCredentials(): HasMany
     {
-        return $this->belongsToMany(Badge::class, 'student_badges', 'user_id', 'badge_id')
-                    ->withPivot('unlocked_at')
-                    ->withTimestamps();
+        return $this->hasMany(SbtCredential::class, 'user_id');
     }
 
-    public function studentBadges(): HasMany
+    public function talentPosts(): HasMany
     {
         return $this->hasMany(StudentBadge::class, 'user_id');
     }
@@ -308,6 +314,7 @@ class User extends Authenticatable
             'current_tier'   => $newTier,
             'tier_upgraded'  => $previousTier !== $newTier,
         ];
+        return $this->hasMany(TalentPost::class, 'user_id');
     }
 
     /**
