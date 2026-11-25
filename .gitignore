@@ -14,3 +14,4 @@ frontend/.env
 frontend/dist.zip
 *.zip
 backend/app/Http/Controllers/Api/EventDashboard/DetailEvent/EventTicketController.php
+ml-services/.venv
