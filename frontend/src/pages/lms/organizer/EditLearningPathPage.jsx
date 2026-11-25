@@ -4,9 +4,9 @@ import { Form, Button, Spinner, Alert } from 'react-bootstrap';
 import Select from 'react-select';
 
 import api from '@/api/axios';
-
 import { notify } from '@/utils/notify';
 import { ArrowLeft } from 'lucide-react';
+import UploadImage from '@/components/UploadImage';
 
 // ==================================
 // INITIAL FORM DATA
@@ -33,8 +33,7 @@ const EditLearningPathPage = () => {
 	// ----------------------------------
 
 	const [formData, setFormData] = useState(INITIAL_FORM);
-
-	const [thumbnailPreview, setThumbnailPreview] = useState(null);
+	const [originalThumbnail, setOriginalThumbnail] = useState(null);
 
 	const [touched, setTouched] = useState({});
 
@@ -81,10 +80,10 @@ const EditLearningPathPage = () => {
 						description: data.description || '',
 						category: data.category || '',
 						categories: data.categories || [],
-						thumbnail: null,
+						thumbnail: data.thumbnail_url || null,
 					});
 
-					setThumbnailPreview(data.thumbnail_url || null);
+					setOriginalThumbnail(data.thumbnail_url || null);
 				}
 			} catch (err) {
 				console.error('Gagal mengambil learning path:', err);
@@ -150,19 +149,6 @@ const EditLearningPathPage = () => {
 		}));
 	};
 
-	const handleThumbnailChange = (e) => {
-		const file = e.target.files?.[0];
-
-		if (!file) return;
-
-		setFormData((previous) => ({
-			...previous,
-			thumbnail: file,
-		}));
-
-		setThumbnailPreview(URL.createObjectURL(file));
-	};
-
 	// ----------------------------------
 	// VALIDATION
 	// ----------------------------------
@@ -199,57 +185,46 @@ const EditLearningPathPage = () => {
 
 		if (!isFormValid) {
 			notify('error', 'Validasi Gagal', 'Periksa kembali informasi Learning Path.');
-
 			return;
 		}
 
 		setSaving(true);
 
 		try {
-			const payload = {
-				title: formData.title.trim(),
-				description: formData.description.trim(),
-				category: formData.category,
-				categories: formData.categories,
-			};
+			const formPayload = new FormData();
 
-			let response;
+			formPayload.append('title', formData.title.trim());
+			formPayload.append('description', formData.description.trim());
+			formPayload.append('category', formData.category);
 
+			formData.categories.forEach((item) => {
+				formPayload.append('categories[]', item);
+			});
+
+			// Hanya kirim file jika user memilih gambar baru (File instance)
 			if (formData.thumbnail instanceof File) {
-				const formPayload = new FormData();
-
-				Object.entries(payload).forEach(([key, value]) => {
-					if (Array.isArray(value)) {
-						value.forEach((item) => {
-							formPayload.append(`${key}[]`, item);
-						});
-					} else {
-						formPayload.append(key, value);
-					}
-				});
-
-				formPayload.append('thumbnail', formData.thumbnail);
-
-				// Laravel method override for multipart requests
-				formPayload.append('_method', 'PUT');
-
-				response = await api.post(
-					`organizer/lms/learning-paths/${learningId}`,
-					formPayload,
-				);
-			} else {
-				response = await api.put(`organizer/lms/learning-paths/${learningId}`, payload);
+				formPayload.append('thumbnail', formData.thumbnail, formData.thumbnail.name || 'thumbnail.jpg');
+			} else if (!formData.thumbnail && originalThumbnail) {
+				// User menghapus thumbnail yang sudah ada sebelumnya
+				formPayload.append('remove_thumbnail', '1');
 			}
+
+			const response = await api.post(
+				`lms/organizer/learning-paths/${learningId}/update`,
+				formPayload,
+				{
+					headers: { 'Content-Type': 'multipart/form-data' },
+				},
+			);
 
 			const result = response.data;
 
 			if (!result.success) {
-				throw new Error(result.message || 'Gagal memperbarui learning path.');
+				throw new Error(result.message || 'Gagal memperbarui Learning Path.');
 			}
 
-			notify('success', 'Berhasil', result.message || 'Learning path berhasil diperbarui.');
+			notify('success', 'Berhasil', result.message || 'Learning Path berhasil diperbarui.');
 
-			// Refresh data from API
 			const updatedResponse = await api.get(`organizer/lms/learning-paths/${learningId}`);
 
 			if (updatedResponse.data.success) {
@@ -260,20 +235,20 @@ const EditLearningPathPage = () => {
 					description: data.description || '',
 					category: data.category || '',
 					categories: data.categories || [],
-					thumbnail: null,
+					thumbnail: data.thumbnail_url || null,
 				});
 
-				setThumbnailPreview(data.thumbnail_url || null);
+				setOriginalThumbnail(data.thumbnail_url || null);
 			}
 
 			setTouched({});
 		} catch (err) {
-			console.error('Gagal memperbarui learning path:', err);
+			console.error('Update Learning Path Error:', err);
 
 			notify(
 				'error',
 				'Terjadi Kesalahan',
-				err.response?.data?.message || err.message || 'Gagal memperbarui learning path.',
+				err.response?.data?.message || err.message || 'Gagal memperbarui Learning Path.',
 			);
 		} finally {
 			setSaving(false);
@@ -450,37 +425,17 @@ const EditLearningPathPage = () => {
                 BAGIAN 3: THUMBNAIL
             ================================== */}
 
-				<Form.Group className="mb-4">
-					<Form.Label>Thumbnail Learning Path</Form.Label>
-
-					{thumbnailPreview && (
-						<div className="mb-3">
-							<img
-								src={thumbnailPreview}
-								alt="Learning Path Thumbnail"
-								style={{
-									width: '100%',
-									maxWidth: '400px',
-									height: '220px',
-									objectFit: 'cover',
-									borderRadius: '10px',
-									border: '1px solid #e2e8f0',
-								}}
-							/>
-						</div>
-					)}
-
-					<Form.Control
-						type="file"
-						accept="image/png,image/jpeg,image/jpg,image/webp"
-						onChange={handleThumbnailChange}
+				<div className="mb-4">
+					<UploadImage
+						formData={formData}
+						setFormData={setFormData}
+						field="thumbnail"
+						label="Thumbnail Learning Path"
+						required={false}
+						aspectRatio={16 / 9}
+						dimensionsHint="1280x720px · Maks. 2MB"
 					/>
-
-					<Form.Text className="text-muted">
-						Unggah gambar baru jika ingin mengganti thumbnail. Kosongkan jika ingin
-						mempertahankan gambar saat ini.
-					</Form.Text>
-				</Form.Group>
+				</div>
 
 				{/* ==================================
                 SUBMIT

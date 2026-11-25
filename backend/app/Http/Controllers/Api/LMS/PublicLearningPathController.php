@@ -41,7 +41,7 @@ class PublicLearningPathController extends Controller
                 'description'   => $path->description,
                 'category'      => $path->category,
                 'categories'    => $path->categories ?? [],
-                'thumbnail_url' => $path->thumbnail_url,
+                'thumbnail_url' => $path->thumbnail,
                 'published_at'  => $path->published_at?->toISOString(),
                 'event_id'      => $path->event_id,
                 'event'         => $path->event,
@@ -195,5 +195,5 @@ class PublicLearningPathController extends Controller
         return response()->json(['success' => false, 'message' => $message], 404);
     }
 
-    
+
 }

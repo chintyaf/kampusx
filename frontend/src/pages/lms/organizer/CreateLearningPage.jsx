@@ -297,7 +297,8 @@ const CreateLearningPage = () => {
 		} catch (err) {
 			console.error('Gagal menyimpan draf learning path:', err);
 			setSubmitError(
-				err.response?.data?.message || 'Draf gagal disimpan. Periksa koneksi Anda lalu coba lagi.',
+				err.response?.data?.message ||
+					'Draf gagal disimpan. Periksa koneksi Anda lalu coba lagi.',
 			);
 		} finally {
 			setIsSaving(false);

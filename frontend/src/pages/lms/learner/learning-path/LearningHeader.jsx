@@ -150,7 +150,7 @@ const LearningHeader = ({
 						<li className="breadcrumb-item" aria-hidden="true" />
 					</ol>
 				</nav>
-				
+
 				<Row className="align-items-center g-4">
 					<Col lg={8}>
 						<h1

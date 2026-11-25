@@ -92,6 +92,8 @@ const LearningPathDetailPage = () => {
 				const contentData = contentRes.data?.data ?? { modules: [], metrics: {} };
 				const progressData = progressRes?.data?.data ?? null;
 
+				console.log(pathRes, contentRes, progressRes, achievementsRes);
+
 				setPath(pathRes.data?.data);
 				setContent(contentData);
 				setMember({
