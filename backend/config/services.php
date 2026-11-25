@@ -39,4 +39,8 @@ return [
         'local_to_global_ratio' => env('LOCAL_TO_GLOBAL_RATIO', 10.0),
     ],
 
+    'ml' => [
+    'url' => env('ML_SERVICE_URL', 'http://127.0.0.1:8001'),
+    ],
+
 ];

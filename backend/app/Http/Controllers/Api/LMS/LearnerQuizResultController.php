@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use App\Services\LmsModel\ReadinessService;
 
 class LearnerQuizResultController extends Controller
 {
@@ -140,7 +141,9 @@ class LearnerQuizResultController extends Controller
             ? (bool) $attempt->is_passed
             : ($score >= $passingScore);
 
+
         $readinessLevel = $attempt->readinessPrediction?->readiness_level
+            ?? app(ReadinessService::class)->predict($attempt, $module->id)
             ?? (!$isPassed ? 'belum_siap' : ($score >= 85 ? 'siap' : 'cukup_siap'));
 
         $outcomeMeta = $this->buildOutcomeMeta($readinessLevel, $score, $passingScore);

@@ -35,6 +35,7 @@ const ReflectionPage = () => {
 				params: attemptId ? { attempt_id: attemptId } : {},
 			});
 			setData(response.data?.data || null);
+			console.log(response)
 		} catch (err) {
 			const message =
 				err?.response?.data?.message ||
