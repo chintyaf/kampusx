@@ -61,37 +61,20 @@ export const LessonCard = ({ lesson, to, locked = false }) => {
 					<span className="badge bg-light text-muted border">Preview</span>
 				)}
 				{locked && <Lock size={14} className="text-muted" aria-label="Terkunci" />}
-				{isCompleted && (
-					<span
-						className="d-inline-flex align-items-center gap-1 text-success fw-semibold"
-						style={{ fontSize: '0.72rem' }}
-					>
-						<CheckCircle2 size={15} className="lms-pop-in" />
-						Selesai
-					</span>
-				)}
+				{isCompleted && <CheckCircle2 size={15} className="text-success lms-pop-in" />}
 			</div>
 		</>
 	);
 
-	const className = `lms-lesson-item p-3 rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-sm-hover ${
-		isCompleted ? '' : 'bg-white'
-	}`;
-
-	const completedStyle = isCompleted
-		? { backgroundColor: '#F0FDF4', borderColor: '#A7F3D0' }
-		: undefined;
+	const className =
+		'lms-lesson-item p-3 bg-white rounded-3 border d-flex align-items-center justify-content-between gap-2 shadow-sm-hover';
 
 	if (locked || !to) {
-		return (
-			<div className={`${className} opacity-75`} style={completedStyle}>
-				{content}
-			</div>
-		);
+		return <div className={`${className} opacity-75`}>{content}</div>;
 	}
 
 	return (
-		<Link to={to} className={`${className} text-decoration-none`} style={completedStyle}>
+		<Link to={to} className={`${className} text-decoration-none`}>
 			{content}
 		</Link>
 	);
@@ -155,11 +138,6 @@ const ModuleCard = ({ module, pathId, slug, isAuthenticated = false, isExpanded,
 			className={`lms-module-card rounded-3 border overflow-hidden ${
 				isInProgress ? 'lms-module-active' : ''
 			}`}
-			style={
-				isAuthenticated && isCompleted
-					? { borderColor: '#A7F3D0', backgroundColor: '#F0FDF4' }
-					: undefined
-			}
 		>
 			{/* Header Modul */}
 			<div
@@ -202,22 +180,6 @@ const ModuleCard = ({ module, pathId, slug, isAuthenticated = false, isExpanded,
 									{module.difficulty_level}
 								</span>
 							)}
-							{isAuthenticated && isCompleted && (
-								<span
-									className="badge bg-success-subtle text-success border border-success-subtle"
-									style={{ fontSize: '0.65rem' }}
-								>
-									✓ Selesai
-								</span>
-							)}
-							{isAuthenticated && isInProgress && (
-								<span
-									className="badge bg-info-subtle text-info border border-info-subtle"
-									style={{ fontSize: '0.65rem' }}
-								>
-									Sedang berjalan
-								</span>
-							)}
 						</div>
 
 						<h5
@@ -233,29 +195,6 @@ const ModuleCard = ({ module, pathId, slug, isAuthenticated = false, isExpanded,
 								: `${totalLessons} lesson`}
 							{isAuthenticated && progressPercent > 0 && ` • ${progressPercent}%`}
 						</div>
-
-						{/* Progress bar mini */}
-						{isAuthenticated && totalLessons > 0 && (
-							<div
-								className="mt-2"
-								style={{
-									height: 4,
-									background: '#E2E8F0',
-									borderRadius: 999,
-									maxWidth: 220,
-								}}
-							>
-								<div
-									style={{
-										width: `${progressPercent}%`,
-										height: '100%',
-										borderRadius: 999,
-										background: isCompleted ? '#059669' : '#028090',
-										transition: 'width .4s ease',
-									}}
-								/>
-							</div>
-						)}
 					</div>
 				</div>
 

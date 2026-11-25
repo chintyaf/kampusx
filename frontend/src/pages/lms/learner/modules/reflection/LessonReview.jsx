@@ -9,7 +9,7 @@ const LessonReview = ({ currentOutcome, remedialLessons = [], onSelectLesson }) 
 	const [currentIndex, setCurrentIndex] = useState(0);
 
 	const lessons = Array.isArray(remedialLessons) ? remedialLessons : [];
-	const remedialCount = lessons.length || currentOutcome?.remedialCount || 0;
+	const remedialCount = currentOutcome?.remedialCount ?? lessons.length;
 
 	const handlePrev = () => {
 		setCurrentIndex((prev) => Math.max(prev - 1, 0));

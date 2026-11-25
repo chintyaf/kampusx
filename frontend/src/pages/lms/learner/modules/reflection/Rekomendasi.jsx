@@ -12,9 +12,9 @@ const Rekomendasi = ({ recommendations = [] }) => {
 		return null;
 	}
 
-	const handleToggleBookmark = (key) => {
+	const handleToggleBookmark = (e, id) => {
 		setBookmarkedIds((prev) =>
-			prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+			prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id],
 		);
 	};
 
@@ -70,19 +70,16 @@ const Rekomendasi = ({ recommendations = [] }) => {
 			</div>
 
 			<Row className="g-4">
-				{recommendations.map((item) => {
-					const key = `${item.type}-${item.id}`;
-					return (
-						<Col key={key} xs={12} md={6} lg={4}>
-							<ExploreGridCard
-								item={item}
-								isBookmarked={bookmarkedIds.includes(key)}
-								onToggleBookmark={() => handleToggleBookmark(key)}
-								onNavigate={handleNavigate}
-							/>
-						</Col>
-					);
-				})}
+				{recommendations.map((item) => (
+					<Col key={item.id} xs={12} md={6} lg={4}>
+						<ExploreGridCard
+							item={item}
+							isBookmarked={bookmarkedIds.includes(item.id)}
+							onToggleBookmark={handleToggleBookmark}
+							onNavigate={handleNavigate}
+						/>
+					</Col>
+				))}
 			</Row>
 		</Container>
 	);

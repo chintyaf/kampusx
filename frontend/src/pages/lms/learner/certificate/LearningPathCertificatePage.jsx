@@ -26,13 +26,12 @@ import { useAuth } from '@/context/AuthContext';
 import { getLearningPath } from '@/pages/lms/mock-data/learningPathData';
 
 const LearningPathCertificatePage = () => {
-	const { slug, pathId } = useParams();
-	const effectivePathId = slug || pathId || 'lp-1';
+	const { pathId = 'lp-1' } = useParams();
 	const navigate = useNavigate();
 	const { user } = useAuth();
 	const certificatePrintRef = useRef(null);
 
-	const learningPath = getLearningPath(effectivePathId);
+	const learningPath = getLearningPath(pathId);
 
 	// Hitung modul yang selesai
 	const totalModules = learningPath?.modules?.length || 6;
@@ -49,10 +48,9 @@ const LearningPathCertificatePage = () => {
 	const [shareModalOpen, setShareModalOpen] = useState(false);
 
 	// Data sertifikat
-	const recipientName = user?.name || user?.full_name || 'Budi Santoso, S.Kom';
-	const credentialId = `KX-CERT-2026-${String(pathId)
-		.replace(/[^a-zA-Z0-9]/g, '')
-		.toUpperCase()}-8921`;
+	const recipientName =
+		user?.name || user?.full_name || 'Budi Santoso, S.Kom';
+	const credentialId = `KX-CERT-2026-${String(pathId).replace(/[^a-zA-Z0-9]/g, '').toUpperCase()}-8921`;
 	const issueDate = new Intl.DateTimeFormat('id-ID', {
 		day: 'numeric',
 		month: 'long',
@@ -99,9 +97,7 @@ const LearningPathCertificatePage = () => {
 							<Button
 								variant="light"
 								className="rounded-circle p-2 border"
-								onClick={() =>
-									navigate(`/learner/learning-paths/${effectivePathId}`)
-								}
+								onClick={() => navigate(`/learner/learning-paths/${pathId}`)}
 							>
 								<ChevronLeft size={20} />
 							</Button>
@@ -160,20 +156,15 @@ const LearningPathCertificatePage = () => {
 									Sertifikat Kelulusan Masih Terkunci
 								</h2>
 								<p className="text-muted mx-auto mb-4" style={{ maxWidth: 500 }}>
-									Sertifikat kelulusan resmi hanya akan diterbitkan setelah kamu
-									menyelesaikan seluruh {totalModules} modul pada kurikulum{' '}
-									<strong>{learningPath.title}</strong>.
+									Sertifikat kelulusan resmi hanya akan diterbitkan setelah kamu menyelesaikan seluruh {totalModules} modul pada kurikulum <strong>{learningPath.title}</strong>.
 								</p>
 
 								{/* Progress Tracker Bar */}
 								<div className="bg-light p-4 rounded-3 border mb-4 text-start">
 									<div className="d-flex justify-content-between align-items-center mb-2">
-										<span className="fw-semibold text-dark small">
-											Progres Kurikulum
-										</span>
+										<span className="fw-semibold text-dark small">Progres Kurikulum</span>
 										<span className="fw-bold text-primary small">
-											{completedModules} dari {totalModules} Modul Selesai (
-											{Math.round((completedModules / totalModules) * 100)}%)
+											{completedModules} dari {totalModules} Modul Selesai ({Math.round((completedModules / totalModules) * 100)}%)
 										</span>
 									</div>
 									<ProgressBar
@@ -194,35 +185,21 @@ const LearningPathCertificatePage = () => {
 												>
 													<div className="d-flex align-items-center gap-2">
 														{mod.status === 'completed' ? (
-															<CheckCircle
-																size={16}
-																className="text-success"
-															/>
+															<CheckCircle size={16} className="text-success" />
 														) : (
 															<div
 																className="rounded-circle border"
 																style={{ width: 16, height: 16 }}
 															/>
 														)}
-														<span
-															className={
-																mod.status === 'completed'
-																	? 'text-decoration-line-through text-muted'
-																	: 'text-dark fw-semibold'
-															}
-														>
-															Modul {mod.number || idx + 1}:{' '}
-															{mod.title}
+														<span className={mod.status === 'completed' ? 'text-decoration-line-through text-muted' : 'text-dark fw-semibold'}>
+															Modul {mod.number || idx + 1}: {mod.title}
 														</span>
 													</div>
 													{mod.status === 'completed' ? (
-														<span className="badge bg-success-subtle text-success">
-															Selesai
-														</span>
+														<span className="badge bg-success-subtle text-success">Selesai</span>
 													) : (
-														<span className="badge bg-secondary-subtle text-secondary">
-															Belum
-														</span>
+														<span className="badge bg-secondary-subtle text-secondary">Belum</span>
 													)}
 												</div>
 											))}
@@ -234,9 +211,7 @@ const LearningPathCertificatePage = () => {
 									<Button
 										variant="primary"
 										className="rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
-										onClick={() =>
-											navigate(`/learner/learning-paths/${effectivePathId}`)
-										}
+										onClick={() => navigate(`/learner/learning-paths/${pathId}`)}
 									>
 										<BookOpen size={16} />
 										Lanjutkan Belajar Modul
@@ -256,8 +231,7 @@ const LearningPathCertificatePage = () => {
 								<div
 									className="p-4 rounded-4 shadow-2xs border d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
 									style={{
-										background:
-											'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+										background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
 										borderColor: '#A7F3D0',
 									}}
 								>
@@ -274,15 +248,11 @@ const LearningPathCertificatePage = () => {
 											<ShieldCheck size={26} />
 										</div>
 										<div>
-											<h4
-												className="fw-bold text-emerald-950 mb-1"
-												style={{ fontSize: '1.15rem' }}
-											>
+											<h4 className="fw-bold text-emerald-950 mb-1" style={{ fontSize: '1.15rem' }}>
 												Sertifikat Digital Terverifikasi Resmi
 											</h4>
 											<p className="text-emerald-800 small mb-0">
-												Kredensial ini tercatat pada KampusX Smart Contract
-												Ledger dengan enkripsi ECDSA anti-pemalsuan.
+												Kredensial ini tercatat pada KampusX Smart Contract Ledger dengan enkripsi ECDSA anti-pemalsuan.
 											</p>
 										</div>
 									</div>
@@ -323,8 +293,7 @@ const LearningPathCertificatePage = () => {
 										padding: '40px 50px',
 										position: 'relative',
 										minHeight: 640,
-										background:
-											'radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 100%)',
+										background: 'radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 100%)',
 									}}
 								>
 									{/* Inner Ornate Gold Border Frame */}
@@ -401,8 +370,7 @@ const LearningPathCertificatePage = () => {
 												style={{
 													width: 44,
 													height: 44,
-													background:
-														'linear-gradient(135deg, #0B2545 0%, #028090 100%)',
+													background: 'linear-gradient(135deg, #0B2545 0%, #028090 100%)',
 													fontSize: '1.25rem',
 													fontWeight: 900,
 													boxShadow: '0 4px 12px rgba(11,37,69,0.3)',
@@ -506,18 +474,14 @@ const LearningPathCertificatePage = () => {
 												color: '#334155',
 											}}
 										>
-											Telah berhasil menyelesaikan seluruh kurikulum
-											terstruktur, checkpoint asesmen sumatif, serta refleksi
-											metakognisi mandiri (Self-Regulated Learning) pada
-											spesialisasi:
+											Telah berhasil menyelesaikan seluruh kurikulum terstruktur, checkpoint asesmen sumatif, serta refleksi metakognisi mandiri (Self-Regulated Learning) pada spesialisasi:
 										</p>
 
 										{/* NAMA LEARNING PATH */}
 										<div
 											className="p-3 my-2 rounded-3 mx-auto shadow-2xs d-inline-block"
 											style={{
-												background:
-													'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)',
+												background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)',
 												border: '1px solid #BAE6FD',
 												maxWidth: 700,
 											}}
@@ -529,11 +493,7 @@ const LearningPathCertificatePage = () => {
 												{learningPath.title}
 											</h4>
 											<div className="text-muted small">
-												Kategori:{' '}
-												{learningPath.category ||
-													'AI & Distributed Engineering'}{' '}
-												• Level: {learningPath.level || 'Menengah'} • Total{' '}
-												{totalModules} Modul Pembelajaran
+												Kategori: {learningPath.category || 'AI & Distributed Engineering'} • Level: {learningPath.level || 'Menengah'} • Total {totalModules} Modul Pembelajaran
 											</div>
 										</div>
 									</div>
@@ -564,10 +524,7 @@ const LearningPathCertificatePage = () => {
 														<div className="fw-bold text-dark small">
 															Dr. Hendra Wijaya, M.Sc.
 														</div>
-														<div
-															className="text-muted"
-															style={{ fontSize: '0.7rem' }}
-														>
+														<div className="text-muted" style={{ fontSize: '0.7rem' }}>
 															Academic Director KampusX
 														</div>
 													</div>
@@ -575,10 +532,7 @@ const LearningPathCertificatePage = () => {
 											</Col>
 
 											{/* Seal & QR Code Tengah */}
-											<Col
-												xs={4}
-												className="d-flex flex-column align-items-center justify-content-center"
-											>
+											<Col xs={4} className="d-flex flex-column align-items-center justify-content-center">
 												<div
 													className="p-2 bg-white rounded-3 border shadow-2xs mb-2"
 													style={{ borderColor: '#CBD5E1' }}
@@ -586,27 +540,17 @@ const LearningPathCertificatePage = () => {
 													<QRCode
 														value={verificationUrl}
 														size={72}
-														style={{
-															height: 'auto',
-															maxWidth: '100%',
-															width: '100%',
-														}}
+														style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
 														viewBox={`0 0 72 72`}
 													/>
 												</div>
 												<div
 													className="badge bg-warning text-dark px-2.5 py-1 rounded-pill fw-bold"
-													style={{
-														fontSize: '0.68rem',
-														letterSpacing: '0.04em',
-													}}
+													style={{ fontSize: '0.68rem', letterSpacing: '0.04em' }}
 												>
 													✓ SMART CONTRACT VERIFIED
 												</div>
-												<div
-													className="text-muted mt-1"
-													style={{ fontSize: '0.68rem' }}
-												>
+												<div className="text-muted mt-1" style={{ fontSize: '0.68rem' }}>
 													Diterbitkan: {issueDate}
 												</div>
 											</Col>
@@ -631,13 +575,9 @@ const LearningPathCertificatePage = () => {
 														style={{ borderColor: '#64748B' }}
 													>
 														<div className="fw-bold text-dark small">
-															{learningPath.instructor?.name ||
-																'Dr. Reza Fauzi'}
+															{learningPath.instructor?.name || 'Dr. Reza Fauzi'}
 														</div>
-														<div
-															className="text-muted"
-															style={{ fontSize: '0.7rem' }}
-														>
+														<div className="text-muted" style={{ fontSize: '0.7rem' }}>
 															Lead Curriculum Mentor
 														</div>
 													</div>
@@ -653,9 +593,7 @@ const LearningPathCertificatePage = () => {
 								<Button
 									variant="outline-secondary"
 									className="rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2"
-									onClick={() =>
-										navigate(`/learner/learning-paths/${effectivePathId}`)
-									}
+									onClick={() => navigate(`/learner/learning-paths/${pathId}`)}
 								>
 									<BookOpen size={16} />
 									Kembali ke Roadmap Kurikulum
@@ -700,12 +638,8 @@ const LearningPathCertificatePage = () => {
 						<div className="d-flex align-items-center gap-2">
 							<ShieldCheck size={24} className="text-emerald-400" />
 							<div>
-								<h5 className="fw-bold mb-0 text-white">
-									Cryptographic Certificate Payload
-								</h5>
-								<p className="text-slate-400 small mb-0 font-monospace">
-									Token ID: #204 • Polygon PoS
-								</p>
+								<h5 className="fw-bold mb-0 text-white">Cryptographic Certificate Payload</h5>
+								<p className="text-slate-400 small mb-0 font-monospace">Token ID: #204 • Polygon PoS</p>
 							</div>
 						</div>
 						<Button
@@ -720,16 +654,11 @@ const LearningPathCertificatePage = () => {
 					<div className="space-y-1 mb-3 small text-slate-300 font-monospace">
 						<div className="d-flex justify-content-between py-1 border-bottom border-slate-800">
 							<span className="text-slate-400">Contract Address:</span>
-							<span className="text-emerald-400">
-								{smartContractPayload.contractAddress}
-							</span>
+							<span className="text-emerald-400">{smartContractPayload.contractAddress}</span>
 						</div>
 						<div className="d-flex justify-content-between py-1 border-bottom border-slate-800">
 							<span className="text-slate-400">Transaction Hash:</span>
-							<span
-								className="text-blue-400 truncate text-truncate"
-								style={{ maxWidth: 300 }}
-							>
+							<span className="text-blue-400 truncate text-truncate" style={{ maxWidth: 300 }}>
 								{smartContractPayload.txHash}
 							</span>
 						</div>
@@ -742,32 +671,21 @@ const LearningPathCertificatePage = () => {
 							size="sm"
 							className="position-absolute top-2 end-2 d-inline-flex align-items-center gap-1"
 							onClick={() => {
-								navigator.clipboard.writeText(
-									JSON.stringify(smartContractPayload, null, 2),
-								);
+								navigator.clipboard.writeText(JSON.stringify(smartContractPayload, null, 2));
 								setCopied(true);
 								setTimeout(() => setCopied(false), 2000);
 							}}
 						>
-							{copied ? (
-								<Check size={14} className="text-emerald-400" />
-							) : (
-								<Copy size={14} />
-							)}
+							{copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
 							{copied ? 'Tersalin' : 'Salin JSON'}
 						</Button>
-						<pre
-							className="text-emerald-400 mb-0"
-							style={{ maxHeight: 220, overflowY: 'auto' }}
-						>
+						<pre className="text-emerald-400 mb-0" style={{ maxHeight: 220, overflowY: 'auto' }}>
 							{JSON.stringify(smartContractPayload, null, 2)}
 						</pre>
 					</div>
 
 					<div className="d-flex justify-content-between align-items-center pt-2">
-						<span className="text-slate-400 small">
-							ECDSA secp256k1 Signature Verified ✓
-						</span>
+						<span className="text-slate-400 small">ECDSA secp256k1 Signature Verified ✓</span>
 						<Button
 							variant="secondary"
 							size="sm"
@@ -785,7 +703,9 @@ const LearningPathCertificatePage = () => {
 			{/* ================================================================= */}
 			<Modal show={shareModalOpen} onHide={() => setShareModalOpen(false)} centered>
 				<Modal.Header closeButton>
-					<Modal.Title className="h6 fw-bold">Bagikan Sertifikat Kelulusan</Modal.Title>
+					<Modal.Title className="h6 fw-bold">
+						Bagikan Sertifikat Kelulusan
+					</Modal.Title>
 				</Modal.Header>
 				<Modal.Body className="p-4">
 					<div className="text-center mb-4">
@@ -843,10 +763,7 @@ const LearningPathCertificatePage = () => {
 								const text = encodeURIComponent(
 									`Saya bangga telah menyelesaikan spesialisasi "${learningPath.title}" di KampusX dan memperoleh sertifikat resmi! Cek verifikasi: ${verificationUrl}`,
 								);
-								window.open(
-									`https://twitter.com/intent/tweet?text=${text}`,
-									'_blank',
-								);
+								window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
 							}}
 						>
 							Bagikan ke X / Twitter
@@ -854,6 +771,45 @@ const LearningPathCertificatePage = () => {
 					</div>
 				</Modal.Body>
 			</Modal>
+
+			{/* ================================================================= */}
+			{/* FLOATING ACTION SWITCHER DEMO REVIEW                              */}
+			{/* ================================================================= */}
+			<div
+				className="d-print-none"
+				style={{
+					position: 'fixed',
+					bottom: 24,
+					left: 24,
+					zIndex: 1000,
+					background: '#0F172A',
+					color: '#FFF',
+					padding: '12px 16px',
+					borderRadius: '12px',
+					boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.35)',
+				}}
+			>
+				<div className="d-flex align-items-center gap-2 mb-2">
+					<Sliders size={16} />
+					<span className="fw-bold small">Demo Status Switcher</span>
+				</div>
+				<div className="btn-group btn-group-sm" role="group">
+					<button
+						type="button"
+						className={`btn ${!forceUnlocked ? 'btn-danger fw-bold' : 'btn-outline-light'}`}
+						onClick={() => setForceUnlocked(false)}
+					>
+						Status Belum Selesai (Terkunci)
+					</button>
+					<button
+						type="button"
+						className={`btn ${forceUnlocked ? 'btn-success fw-bold' : 'btn-outline-light'}`}
+						onClick={() => setForceUnlocked(true)}
+					>
+						Status 100% Selesai (Terbuka) 🎓
+					</button>
+				</div>
+			</div>
 		</div>
 	);
 };

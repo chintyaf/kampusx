@@ -31,7 +31,6 @@ use App\Http\Controllers\Api\Organizer\OrganizerRequestController;
 use App\Http\Controllers\Api\Organizer\InstitutionMemberController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\TalentDirectoryController;
 
 // Event Dashboard Controllers
 use App\Http\Controllers\Api\EventDashboard\EventOverviewController;
@@ -94,8 +93,9 @@ Route::get('/events/explore', [EventController::class, 'index']); // Diubah ke i
 Route::get('/events/{id}', [EventController::class, 'show']); // Akan mengeksekusi show() di EventController
 
 // Certificate Public Verification & Rendering
-// Route::get('/user/certificates/', [EventCertificateController::class, 'show']);
-Route::get('/certificate/verify/{ticket_code}', [EventCertificateController::class, 'verifyCertificate']);
+Route::get('/certificates/{verification_id}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
+Route::get('/v1/certificates/{verification_id}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
+Route::get('/certificate/verify/{ticket_code}', [\App\Http\Controllers\Api\Blockchain\SoulboundTokenController::class, 'getCertificateVerification']);
 Route::get('/certificate/render/{ticket_code}', [EventCertificateController::class, 'getCertificateRenderData']);
 Route::get('/certificate/background/{eventId}', [EventCertificateController::class, 'getBackgroundPublic']);
 
@@ -188,7 +188,6 @@ Route::get('/v1/blockchain/polygonscan/{txHash}', [\App\Http\Controllers\Api\Blo
 Route::post('/v1/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
 Route::post('/talents/matching', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'matchCandidates']);
 Route::post('/v1/talents/send-offer', [\App\Http\Controllers\Api\JobMatching\JobMatchingController::class, 'sendRecruiterOffer']);
-
 // Learning Paths (Public / Learner Explore)
 Route::get('/learning-paths', [OrganizerLearningPathController::class, 'publicIndex']);
 Route::get('/learning-paths/{id}', [OrganizerLearningPathController::class, 'publicShow']);
@@ -213,33 +212,12 @@ Route::post('/v1/staff/kiosk-scan', [\App\Http\Controllers\Api\StaffController::
 
 // });
 
-// ==========================================
-// TALENT DIRECTORY & BLOCKCHAIN SBT (PUBLIC)
-// ==========================================
-Route::prefix('talents')->group(function () {
-    Route::get('/', [TalentDirectoryController::class, 'index']);
-    Route::get('/feed', [TalentDirectoryController::class, 'feed']);
-    Route::get('/live-ticker', [TalentDirectoryController::class, 'liveTicker']);
-    Route::get('/trending-skills', [TalentDirectoryController::class, 'trendingSkills']);
-    Route::get('/verify-sbt/{identifier}', [TalentDirectoryController::class, 'verifySbt']);
-    Route::get('/{id}', [TalentDirectoryController::class, 'show']);
-});
-
 
 // ==========================================
 // 2. PROTECTED ROUTES (Harus Login Sanctum)
 // ==========================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-
-    // ==========================================
-    // TALENT DIRECTORY (AUTHENTICATED ACTIONS)
-    // ==========================================
-    Route::prefix('talents')->group(function () {
-        Route::get('/me/mini-profile', [TalentDirectoryController::class, 'miniProfile']);
-        Route::post('/feed/{id}/like', [TalentDirectoryController::class, 'toggleLikePost']);
-        Route::post('/feed/{id}/comments', [TalentDirectoryController::class, 'storeComment']);
-    });
 
     // ==========================================
     // Generative AI LMS Endpoints

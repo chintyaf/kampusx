@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Spinner, Alert, Button } from 'react-bootstrap';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Award } from 'lucide-react';
 import api from '@/api/axios';
 import { useAuth } from '@/context/AuthContext'; // sesuaikan: yang penting bisa tahu user sudah login atau belum
 import LearningHeader from '@/pages/lms/learner/learning-path/LearningHeader';
@@ -147,13 +146,6 @@ const LearningPathDetailPage = () => {
 		return lessons.find((l) => !l.is_completed) ?? lessons[0] ?? null;
 	}, [modules]);
 
-	const isAllCompleted = useMemo(() => {
-		const total = metrics.moduleCount || modules.length;
-		const done =
-			metrics.completedModules || modules.filter((m) => m.status === 'completed').length;
-		return total > 0 && done >= total;
-	}, [metrics, modules]);
-
 	const handleStart = () => {
 		if (!isAuthenticated) {
 			navigate('/login', { state: { from: location } });
@@ -206,66 +198,6 @@ const LearningPathDetailPage = () => {
 			<Container className="mt-4">
 				<Row className="g-4">
 					<Col lg={8}>
-						{/* Banner Klaim Sertifikat jika semua modul sudah selesai */}
-						{/* {isAllCompleted && (
-							<div
-								className="card border-0 shadow-sm rounded-4 p-4 mb-4"
-								style={{
-									background:
-										'linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F2A4A 100%)',
-									color: '#FFFFFF',
-									border: '2px solid #F59E0B',
-									boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.25)',
-								}}
-							>
-								<div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-									<div className="d-flex align-items-center gap-3">
-										<div
-											className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-											style={{
-												width: 52,
-												height: 52,
-												background:
-													'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-												color: '#0F172A',
-												boxShadow: '0 0 20px rgba(245, 158, 11, 0.45)',
-											}}
-										>
-											<Award size={28} />
-										</div>
-										<div>
-											<div className="d-flex align-items-center gap-2 mb-1">
-												<span className="badge bg-warning text-dark px-2.5 py-1 rounded-pill small fw-bold">
-													🎓 100% KURIKULUM SELESAI
-												</span>
-											</div>
-											<h5 className="fw-bold mb-1 text-white">
-												Selamat! Seluruh Modul Telah Selesai
-											</h5>
-											<p
-												className="mb-0 text-slate-300 small"
-												style={{ maxWidth: 480 }}
-											>
-												Kamu telah menuntaskan seluruh materi pembelajaran.
-												Sertifikat kelulusan resmimu siap untuk diklaim
-												sekarang.
-											</p>
-										</div>
-									</div>
-									<Button
-										variant="warning"
-										className="rounded-pill px-4 py-2.5 fw-bold text-nowrap d-inline-flex align-items-center gap-2 shadow text-slate-950 align-self-start align-self-md-center"
-										onClick={() =>
-											navigate(`/learner/learning-paths/${slug}/certificate`)
-										}
-									>
-										<Award size={18} />
-										Klaim Sertifikat Kelulusan
-									</Button>
-								</div>
-							</div>
-						)} */}
-
 						{/* Kirim slug sebagai pathId agar link di dalam LearningModule otomatis memakai slug */}
 						<LearningModule
 							modules={modules}

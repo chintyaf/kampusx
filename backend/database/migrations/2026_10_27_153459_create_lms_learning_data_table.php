@@ -12,8 +12,6 @@ return new class extends Migration
         Schema::create('learning_activities', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('module_id')->nullable()->constrained()->nullOnDelete();
-
             $table->string('activity_type', 50);
             $table->string('target_type', 100)->nullable();
             $table->unsignedBigInteger('target_id')->nullable();
@@ -22,11 +20,8 @@ return new class extends Migration
             $table->unsignedInteger('duration_seconds')->default(0);
             $table->timestamps();
 
-            $table->uuid('client_uuid')->nullable()->unique();
-
-
             $table->index(['user_id', 'activity_type']);
-            $table->index(['user_id', 'module_id', 'occurred_at']);
+            $table->index(['user_id', 'occurred_at']);
             $table->index(['target_type', 'target_id']);
         });
 

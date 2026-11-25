@@ -4,17 +4,8 @@ import Cropper from 'react-easy-crop';
 import { Image } from 'lucide-react';
 import getCroppedImg from '@/utils/cropImage';
 
-// Reusable image upload component with cropping & preview
-const UploadImage = ({
-	formData,
-	setFormData,
-	field = 'banner',
-	label = 'Banner Event',
-	required = true,
-	aspectRatio = 16 / 9,
-	dimensionsHint = '1280x720px · Maks. 2MB',
-	containerWidth = '400px',
-}) => {
+// Pastikan formData dan setFormData diterima sebagai props
+const UploadImage = ({ formData, setFormData }) => {
 	// ==========================================
 	// STATE UNTUK CROP GAMBAR
 	// ==========================================
@@ -25,32 +16,30 @@ const UploadImage = ({
 	const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 	const [preview, setPreview] = useState(null);
 
-	const currentImage = formData?.[field];
-
 	useEffect(() => {
-		if (!currentImage) {
+		if (!formData?.banner) {
 			setPreview(null);
 			return;
 		}
 
-		if (currentImage instanceof File) {
-			if (currentImage.preview) {
-				setPreview(currentImage.preview);
+		if (formData.banner instanceof File) {
+			if (formData.banner.preview) {
+				setPreview(formData.banner.preview);
 				return;
 			}
-			const objectUrl = URL.createObjectURL(currentImage);
+			const objectUrl = URL.createObjectURL(formData.banner);
 			setPreview(objectUrl);
 			return () => URL.revokeObjectURL(objectUrl);
 		} else {
-			setPreview(currentImage);
+			setPreview(formData.banner);
 		}
-	}, [currentImage]);
+	}, [formData?.banner]);
 
 	// ==========================================
 	// HANDLER CROP & UPLOAD GAMBAR
 	// ==========================================
 	const handleFileChange = (e) => {
-		const file = e.target.files?.[0];
+		const file = e.target.files[0];
 		if (!file) return;
 
 		if (!file.type.startsWith('image/')) {
@@ -72,24 +61,22 @@ const UploadImage = ({
 
 	const handleRemoveImage = (e) => {
 		e.preventDefault();
-		setFormData((prev) => ({ ...prev, [field]: null }));
+		setFormData((prev) => ({ ...prev, banner: null }));
 	};
 
-	const onCropComplete = useCallback((_croppedArea, croppedPixels) => {
-		setCroppedAreaPixels(croppedPixels);
+	const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+		setCroppedAreaPixels(croppedAreaPixels);
 	}, []);
 
 	const handleSaveCrop = async () => {
 		try {
 			const croppedFile = await getCroppedImg(imageSrc, croppedAreaPixels);
-			setFormData((prev) => ({ ...prev, [field]: croppedFile }));
+			setFormData((prev) => ({ ...prev, banner: croppedFile }));
 			setShowCropModal(false);
 		} catch (e) {
 			console.error('Error saat cropping:', e);
 		}
 	};
-
-	const inputId = `${field}UploadInput`;
 
 	// ==========================================
 	// RENDER COMPONENT
@@ -113,38 +100,37 @@ const UploadImage = ({
 
 			<Form.Group className="mb-3">
 				<div className="d-flex justify-content-between align-items-center mb-1">
-					<Form.Label className={`mb-2 ${required ? 'required' : ''}`}>{label}</Form.Label>
+					<Form.Label className="mb-2 required">Banner Event</Form.Label>
 					<span className="text-muted text-sm" style={{ fontSize: '12px' }}>
-						{dimensionsHint}
+						1280x720px · Maks. 2MB
 					</span>
 				</div>
 
 				<div className="position-relative d-flex justify-content-center">
 					<input
 						type="file"
-						id={inputId}
+						id="bannerUpload"
 						className="d-none"
-						accept="image/png,image/jpeg,image/jpg,image/webp"
+						accept="image/*"
 						onChange={handleFileChange}
 					/>
 
 					<div
 						className="border position-relative"
 						style={{
-							width: containerWidth,
-							maxWidth: '100%',
-							aspectRatio: `${aspectRatio}`,
+							width: '400px',
+							aspectRatio: '3/2',
 							overflow: 'hidden',
 							borderRadius: '12px',
 							backgroundColor: '#f8f9fa',
 							border: '2px dashed #d1d5db',
 						}}
 					>
-						{currentImage ? (
+						{formData?.banner ? (
 							<div className="custom-banner-container w-100 h-100 position-relative">
 								<img
 									src={preview}
-									alt={`${label} Preview`}
+									alt="Banner Preview"
 									style={{
 										width: '100%',
 										height: '100%',
@@ -155,7 +141,7 @@ const UploadImage = ({
 								{/* OVERLAY EDIT & HAPUS */}
 								<div className="custom-banner-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center gap-3">
 									<label
-										htmlFor={inputId}
+										htmlFor="bannerUpload"
 										className="m-0 d-flex align-items-center justify-content-center shadow-sm"
 										style={{
 											backgroundColor: 'white',
@@ -192,7 +178,7 @@ const UploadImage = ({
 							</div>
 						) : (
 							<label
-								htmlFor={inputId}
+								htmlFor="bannerUpload"
 								className="w-100 h-100 m-0 d-flex flex-column align-items-center justify-content-center"
 								style={{ cursor: 'pointer' }}
 							>
@@ -225,8 +211,9 @@ const UploadImage = ({
 				centered
 				backdrop="static"
 			>
+				{/* ... (Isi Modal tetap sama) ... */}
 				<Modal.Header closeButton>
-					<Modal.Title>Sesuaikan {label}</Modal.Title>
+					<Modal.Title>Sesuaikan Banner</Modal.Title>
 				</Modal.Header>
 				<Modal.Body
 					className="position-relative"
@@ -237,7 +224,7 @@ const UploadImage = ({
 							image={imageSrc}
 							crop={crop}
 							zoom={zoom}
-							aspect={aspectRatio}
+							aspect={16 / 9}
 							onCropChange={setCrop}
 							onCropComplete={onCropComplete}
 							onZoomChange={setZoom}
