@@ -36,12 +36,15 @@ import QuizEditorPage from '@/pages/lms/organizer/lms-editor/QuizEditorPage';
 
 import UploadPage from '@/pages/lms/organizer/ai-studio/upload/UploadPage';
 import ReviewPage from '@/pages/lms/organizer/ai-studio/review/ReviewPage';
+import JobMatchingPage from '../pages/lms/JobMatchingPage';
 
 export const LmsRoutes = () => {
 	return (
 		<Routes>
 			{/* 1. LEARNER DOMAIN */}
 			<Route element={<LmsLayout />}>
+				<Route path="/lms/job-matching" element={<JobMatchingPage />} />
+
 				{/* Top-Level Shortcuts */}
 				<Route path="/explore-microlearning" element={<ExploreMicrolearningPage />} />
 				<Route path="/learning" element={<LearningDashboard />} />
@@ -95,7 +98,6 @@ export const LmsRoutes = () => {
 						<Route path="learning-path/:learningId/generate" element={<UploadPage />} />
 						<Route path="learning-path/:learningId/review" element={<ReviewPage />} />
 						{/* ==== */}
-
 					</Route>
 				</Route>
 			</Route>

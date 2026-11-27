@@ -392,4 +392,15 @@ class User extends Authenticatable
             'description' => $description,
         ]);
     }
+
+    // JOb MATCHING
+    public function userSkillScores(): HasMany
+    {
+        return $this->hasMany(UserSkillScore::class, 'user_id');
+    }
+
+    public function recalculateSkillScores(): void
+    {
+        app(UserSkillScoreService::class)->calculate($this);
+    }
 }

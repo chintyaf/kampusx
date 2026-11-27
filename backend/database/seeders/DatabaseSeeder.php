@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
             // DemoAccountSeeder::class,
             // CourseDataSeeder::class,
             LMSSeeder::class,
+            UserSkillScoreSeeder::class,
             // SkillSeeder::class,
         ]);
 

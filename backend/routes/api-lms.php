@@ -63,23 +63,6 @@ Route::prefix('lms')->group(function () {
             Route::apiResource('lesson-skills', LessonSkillController::class);
         });
 
-    // ------------------------------------------------
-    // Recruiter (Guest): Job Matching - Recruiter mencari Member
-    // Tanpa akun; akses ke pencarian memakai header X-Search-Token.
-    // ------------------------------------------------
-    Route::prefix('recruiter/job-searches')->group(function () {
-        // Buat pencarian + skill yang dibutuhkan (mengembalikan access_token)
-        Route::post('/', [JobMatchingController::class, 'store'])->middleware('throttle:10,1');
-
-        // Hitung cosine similarity on-the-fly (top 10, tidak disimpan)
-        Route::get('{id}/match', [JobMatchingController::class, 'match'])->middleware('throttle:30,1');
-
-        // Simpan kandidat pilihan + snapshot skor
-        Route::post('{id}/shortlist', [JobMatchingController::class, 'shortlist'])->middleware('throttle:30,1');
-
-        // Daftar kandidat yang sudah di-shortlist
-        Route::get('{id}/shortlists', [JobMatchingController::class, 'shortlists'])->middleware('throttle:30,1');
-    });
 
     // ------------------------------------------------
     // Member: Requires Authentication

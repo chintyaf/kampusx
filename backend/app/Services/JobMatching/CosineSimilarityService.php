@@ -5,19 +5,12 @@ namespace App\Services\JobMatching;
 /**
  * Service untuk komputasi Vector Skill-Matrix dan Algoritma Cosine Similarity
  * guna mencocokkan kompetensi mahasiswa dengan kualifikasi lowongan industri.
- * 
- * Mendukung Rumusan Masalah 4 Tugas Akhir:
- * "Merancang dan mengintegrasikan Job Matching Engine berbasis Vector Skill-Matrix
- *  dan algoritma Cosine Similarity untuk memetakan matriks kompetensi mahasiswa
- *  dengan kualifikasi lowongan industri secara presisi."
  */
 class CosineSimilarityService
 {
     /**
      * Menghitung nilai Cosine Similarity antara dua vektor kompetensi numerik.
-     * Sesuai Persamaan (2.1) di Bab 2 Skripsi:
      * Similarity(A, B) = (A . B) / (||A|| * ||B||)
-     * 
      * @param array<string, float|int> $candidateVector Vektor keahlian mahasiswa A
      * @param array<string, float|int> $jobVector Vektor kualifikasi kebutuhan industri B
      * @return array Hasil detail komputasi matematis
@@ -74,7 +67,7 @@ class CosineSimilarityService
     /**
      * Menghitung metrik evaluasi Mean Reciprocal Rank (MRR)
      * Sesuai Persamaan (2.9) di Bab 2 Skripsi.
-     * 
+     *
      * @param array<int> $rankPositions Posisi ranking hasil relevan pertama untuk tiap kueri
      */
     public function calculateMRR(array $rankPositions): float
@@ -96,7 +89,7 @@ class CosineSimilarityService
     /**
      * Menghitung metrik evaluasi Normalized Discounted Cumulative Gain (NDCG@K)
      * Sesuai Persamaan (2.11) di Bab 2 Skripsi.
-     * 
+     *
      * @param array<float|int> $relevanceScores Skor relevansi aktual dari urutan rekomendasi
      * @param int $k Batasan posisi evaluasi teratas
      */

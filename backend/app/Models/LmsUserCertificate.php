@@ -15,6 +15,7 @@ class LmsUserCertificate extends Model
     protected $fillable = [
         'user_id',
         'completion_id',
+        'learning_path_id',
         'certificate_number',
         'title',
         'description',
@@ -49,5 +50,10 @@ class LmsUserCertificate extends Model
     public function completion(): BelongsTo
     {
         return $this->belongsTo(LearningCompletion::class, 'completion_id');
+    }
+
+    public function learningPath(): BelongsTo
+    {
+        return $this->belongsTo(LearningPath::class, 'learning_path_id');
     }
 }

@@ -28,7 +28,7 @@ return new class extends Migration
 
             $table->index(['user_id', 'completed_at']);
         });
-        
+
 
         // Schema::create('lms_badges', function (Blueprint $table) {
         //     $table->id();
@@ -64,15 +64,17 @@ return new class extends Migration
         Schema::create('lms_user_certificates', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('learning_path_id')->constrained()->cascadeOnDelete();
             $table->foreignId('completion_id')->constrained('learning_completions')->cascadeOnDelete();
             $table->string('certificate_number', 100)->unique();
-            $table->string('title', 200);
-            $table->text('description')->nullable();
-            $table->string('file_path', 500)->nullable();
+
             $table->timestamp('issued_at')->nullable();
+
+
             $table->enum('status', ['pending', 'issued', 'failed', 'revoked'])->default('pending');
             $table->string('external_credential_id', 150)->nullable();
             $table->json('external_response')->nullable();
+
             $table->timestamps();
 
             $table->unique('completion_id');

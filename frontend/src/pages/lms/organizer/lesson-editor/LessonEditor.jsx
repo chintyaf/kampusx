@@ -196,7 +196,12 @@ export const LessonEditor = ({
 			ok: completeQuestions >= 1,
 			tab: 'kuis',
 		},
-		{ key: 'duration', label: 'Estimasi durasi > 0', ok: lesson.duration > 0, tab: 'pengaturan' },
+		{
+			key: 'duration',
+			label: 'Estimasi durasi > 0',
+			ok: lesson.duration > 0,
+			tab: 'pengaturan',
+		},
 	];
 	const doneCount = checklist.filter((c) => c.ok).length;
 	const allDone = doneCount === checklist.length;

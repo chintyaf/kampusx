@@ -70,6 +70,7 @@ use App\Http\Controllers\Api\AiContentController;
 // LMS Microlearning Management
 // ====================================================
 require __DIR__ . '/api-lms.php';
+require __DIR__ . '/api-jobmatching.php';
 
 // ==========================================
 // 1. PUBLIC ROUTES (Bisa diakses tanpa login)
@@ -339,7 +340,7 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::apiResource('modules', ModuleController::class);
                 Route::apiResource('lessons', LessonController::class);
                 Route::apiResource('quiz', QuizController::class);
-                Route::apiResource('skills', SkillController::class);
+                // Route::apiResource('skills', SkillController::class);
                 Route::apiResource('lesson-skills', LessonSkillController::class);
 
 
