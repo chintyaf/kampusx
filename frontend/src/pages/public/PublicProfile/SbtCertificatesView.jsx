@@ -14,6 +14,8 @@ import {
   Layers,
   Sparkles
 } from 'lucide-react';
+import LogoIcon from '@/assets/images/logo/icon.svg';
+import LogoLightKampusX from '@/assets/images/logo/Logo_Light_KampuX.svg';
 
 const SbtCertificatesView = ({
   sbtCertificates = [],
@@ -115,8 +117,16 @@ const SbtCertificatesView = ({
                   <h5 className="fw-bold text-dark mb-2" style={{ fontSize: '16px' }}>
                     {cert.title}
                   </h5>
-                  <p className="text-muted small mb-3">
-                    Diterbitkan oleh <strong className="text-dark">{cert.issuer || 'KampusX Verified Authority'}</strong>
+                  <p className="text-muted small mb-3 d-flex align-items-center gap-1">
+                    <span>Diterbitkan oleh</span>
+                    {(!cert.issuer || cert.issuer.toLowerCase().includes('kampusx')) && (
+                      <img
+                        src={LogoIcon}
+                        alt="KampusX"
+                        style={{ width: '13px', height: '13px', flexShrink: 0 }}
+                      />
+                    )}
+                    <strong className="text-dark">{cert.issuer || 'KampusX Verified Authority'}</strong>
                   </p>
 
                   {/* Token Meta Information */}
@@ -244,7 +254,12 @@ const SbtCertificatesView = ({
                     color: '#ffffff'
                   }}
                 >
-                  <div className="badge bg-warning text-dark fw-bold px-2 py-1 mb-2" style={{ fontSize: '9px', letterSpacing: '1px' }}>
+                  <img
+                    src={LogoLightKampusX}
+                    alt="KampusX"
+                    style={{ height: '22px', width: 'auto', marginBottom: '8px', opacity: 0.95 }}
+                  />
+                  <div className="badge bg-warning text-dark fw-bold px-2 py-0.5 mb-2" style={{ fontSize: '9px', letterSpacing: '1px' }}>
                     OFFICIAL CERTIFICATE
                   </div>
                   <h6 className="fw-bold mb-1 text-white text-truncate px-2" style={{ maxWidth: '90%', fontSize: '14px' }}>

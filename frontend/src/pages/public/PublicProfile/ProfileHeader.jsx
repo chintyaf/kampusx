@@ -19,6 +19,9 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LogoKampusXNoText from '@/assets/images/logo/Logo_KampusX_NoText.svg';
+import LogoIcon from '@/assets/images/logo/icon.svg';
+import userPlaceholder from '@/assets/images/user-placeholder.avif';
 import api from '../../../api/axios';
 
 const ProfileHeader = ({
@@ -106,6 +109,49 @@ const ProfileHeader = ({
     <div className="profile-main-card">
       {/* Cover Banner */}
       <div className="profile-cover-banner">
+        {/* Subtle Official KampusX Watermark (~0.10 opacity) */}
+        <div
+          className="profile-cover-watermark"
+          style={{
+            position: 'absolute',
+            right: '28px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            opacity: 0.10,
+            pointerEvents: 'none',
+            zIndex: 1,
+            userSelect: 'none'
+          }}
+          aria-hidden="true"
+        >
+          <img
+            src={LogoKampusXNoText}
+            alt=""
+            style={{ height: '140px', width: 'auto', filter: 'brightness(0) invert(1)' }}
+          />
+        </div>
+
+        {/* Platform Brand Pill on Cover (Top-Left) */}
+        {/* <div
+          className="cover-brand-badge d-flex align-items-center gap-1.5"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            left: '20px',
+            background: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            padding: '4px 10px',
+            borderRadius: '9999px',
+            zIndex: 5,
+          }}
+        >
+          <img src={LogoIcon} alt="KampusX" style={{ height: '14px', width: '14px' }} />
+          <span style={{ color: '#ffffff', fontSize: '11px', fontWeight: 700, letterSpacing: '0.04em' }}>
+            KAMPUSX PORTFOLIO
+          </span>
+        </div> */}
+
         {/* Desktop Action Buttons in Cover */}
         <div className="cover-action-buttons d-none d-md-flex">
           {/* Tombol Bagikan */}
@@ -172,8 +218,20 @@ const ProfileHeader = ({
       <div className="px-4 pb-4">
         <div className="d-flex flex-column align-items-center text-center">
           {/* Avatar with On-Chain Verified Green Checkmark */}
-          <div className="profile-avatar-container">
-            {profile.initials || (profile.name ? profile.name.substring(0, 2).toUpperCase() : 'KM')}
+          <div className="profile-avatar-container overflow-hidden">
+            {profile.avatar ? (
+              <img
+                src={profile.avatar}
+                alt={profile.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = userPlaceholder;
+                }}
+              />
+            ) : (
+              profile.initials || (profile.name ? profile.name.substring(0, 2).toUpperCase() : 'KM')
+            )}
             <div
               className="verified-onchain-badge"
               title="Verified On-Chain via Polygon Ledger"
