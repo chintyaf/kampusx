@@ -41,7 +41,7 @@ class PublicLearningPathController extends Controller
                 'description'   => $path->description,
                 'category'      => $path->category,
                 'categories'    => $path->categories ?? [],
-                'thumbnail_url' => $path->thumbnail,
+                'thumbnail_url' => $path->thumbnail_url,
                 'published_at'  => $path->published_at?->toISOString(),
                 'event_id'      => $path->event_id,
                 'event'         => $path->event,

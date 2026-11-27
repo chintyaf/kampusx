@@ -1,0 +1,1134 @@
+id,module_id,title,type,content,summary,order_index,duration_minutes,xp,video_url,attachments,status,created_at,updated_at
+1,1,Apa itu Python dan Cara Menginstalnya,article,"# Apa itu Python dan Cara Menginstalnya
+
+> Mengenal sejarah, kegunaan, dan cara memasang Python.
+
+## Mengenal Python
+
+**Python** adalah bahasa pemrograman serbaguna yang sintaksnya mudah dibaca. Python banyak dipakai untuk:
+
+- **Web** — membangun situs dan API
+- **Data** — analisis dan visualisasi
+- **AI** — machine learning dan deep learning
+
+## Langkah Instalasi
+
+1. Unduh installer dari [python.org](https://www.python.org/downloads/).
+2. Jalankan installer, lalu **centang opsi `Add Python to PATH`**.
+3. Selesaikan instalasi.
+4. Cek hasilnya di terminal:
+
+```bash
+python --version
+```
+
+## Poin Penting
+
+- Opsi *Add to PATH* wajib dicentang agar perintah `python` dikenali di terminal.
+- Jika versi tampil (misalnya `Python 3.x.x`), instalasi berhasil.","Mengenal sejarah, kegunaan, dan cara memasang Python.",1,8,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+2,1,"Variabel, Tipe Data, dan Operator",video,"# Variabel, Tipe Data, dan Operator
+
+> Menyimpan nilai dalam variabel dan memakai operator dasar.
+
+## Variabel
+
+Variabel adalah nama yang menyimpan sebuah nilai.
+
+```python
+nama = ""Budi""
+umur = 20
+```
+
+## Tipe Data Dasar
+
+| Tipe    | Contoh          | Keterangan             |
+|---------|-----------------|------------------------|
+| `int`   | `10`            | Bilangan bulat         |
+| `float` | `3.14`          | Bilangan desimal       |
+| `str`   | `""halo""`        | Teks                   |
+| `bool`  | `True`, `False` | Nilai benar atau salah |
+
+## Operator Aritmetika
+
+| Operator | Fungsi              | Contoh   | Hasil |
+|----------|---------------------|----------|-------|
+| `+`      | Penjumlahan         | `7 + 2`  | `9`   |
+| `-`      | Pengurangan         | `7 - 2`  | `5`   |
+| `*`      | Perkalian           | `7 * 2`  | `14`  |
+| `/`      | Pembagian           | `7 / 2`  | `3.5` |
+| `//`     | Pembagian bulat     | `7 // 2` | `3`   |
+
+## Poin Penting
+
+- Python menentukan tipe data secara otomatis.
+- Gunakan `type(x)` untuk memeriksa tipe sebuah nilai.",Menyimpan nilai dalam variabel dan memakai operator dasar.,2,12,15,https://www.youtube.com/watch?v=dummy002,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+3,1,Percabangan dan Perulangan,practice,"# Percabangan dan Perulangan
+
+> Mengontrol alur program dengan `if` dan `for`.
+
+## Tujuan
+
+Mampu mengatur alur program menggunakan percabangan dan perulangan.
+
+## Konsep Singkat
+
+- **Percabangan:** `if`, `elif`, `else`
+- **Perulangan:** `for` dan `while`
+
+```python
+nilai = 80
+if nilai >= 75:
+    print(""Lulus"")
+else:
+    print(""Belum lulus"")
+
+for i in range(3):
+    print(i)
+```
+
+## Latihan
+
+1. Buat program yang **mencetak bilangan genap dari 1 sampai 20**.
+2. Gunakan perulangan `for` dan percabangan `if`.
+
+## Kriteria Selesai
+
+- [ ] Output hanya berisi bilangan genap
+- [ ] Rentang bilangan tepat 1 sampai 20
+- [ ] Kode tidak menimbulkan error
+
+> **Petunjuk:** bilangan genap habis dibagi 2, cek dengan `i % 2 == 0`.",Mengontrol alur program dengan if dan for.,3,20,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+4,2,Membuat dan Memanggil Fungsi,article,"# Membuat dan Memanggil Fungsi
+
+> Membungkus logika agar dapat dipakai ulang.
+
+## Apa itu Fungsi?
+
+Fungsi adalah blok kode yang diberi nama sehingga dapat dipanggil berulang kali.
+
+## Sintaks Dasar
+
+```python
+def sapa(nama):
+    return f""Halo, {nama}!""
+
+pesan = sapa(""Budi"")
+print(pesan)  # Halo, Budi!
+```
+
+## Komponen Fungsi
+
+- `def` — kata kunci untuk mendefinisikan fungsi
+- **Parameter** — data masukan fungsi (`nama`)
+- `return` — mengembalikan nilai hasil
+
+## Praktik Baik
+
+- Beri **nama fungsi yang jelas**, misalnya `hitung_luas`, bukan `fn1`.
+- Satu fungsi sebaiknya mengerjakan **satu tugas**.",Membungkus logika agar dapat dipakai ulang.,1,10,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+5,2,"List, Tuple, dan Dictionary",video,"# List, Tuple, dan Dictionary
+
+> Memilih struktur data yang tepat untuk menyimpan koleksi data.
+
+## Yang Akan Dipelajari
+
+- Perbedaan `list`, `tuple`, dan `dict`
+- Kapan memakai masing-masing struktur data
+
+## Perbandingan
+
+| Struktur | Sintaks         | Urutan | Bisa diubah | Keterangan              |
+|----------|-----------------|--------|-------------|-------------------------|
+| `list`   | `[1, 2, 3]`     | Ya     | Ya          | *Mutable*               |
+| `tuple`  | `(1, 2, 3)`     | Ya     | Tidak       | *Immutable*             |
+| `dict`   | `{""a"": 1}`      | Ya     | Ya          | Pasangan *key-value*    |
+
+## Contoh
+
+```python
+buah = [""apel"", ""jeruk""]
+buah.append(""mangga"")
+
+titik = (10, 20)
+
+mahasiswa = {""nama"": ""Budi"", ""nim"": ""2372001""}
+print(mahasiswa[""nama""])
+```
+
+## Catatan
+
+**Dictionary** cocok untuk pencarian cepat berdasarkan *key*.",Memilih struktur data yang tepat untuk menyimpan koleksi data.,2,15,15,https://www.youtube.com/watch?v=dummy005,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+6,2,Latihan: Aplikasi Daftar Tugas,practice,"# Latihan: Aplikasi Daftar Tugas
+
+> Membuat aplikasi to-do list berbasis terminal.
+
+## Tujuan
+
+Menggabungkan **fungsi**, **list**, dan **dictionary** dalam satu aplikasi sederhana.
+
+## Instruksi
+
+1. Simpan tugas dalam sebuah `list` berisi `dict`, misalnya `{""judul"": ""Belajar"", ""selesai"": False}`.
+2. Buat fungsi `tambah_tugas()`.
+3. Buat fungsi `tampilkan_tugas()`.
+4. Buat fungsi `hapus_tugas()`.
+5. Buat menu berulang agar pengguna dapat memilih aksi.
+
+## Kriteria Selesai
+
+- [ ] Tugas dapat ditambah
+- [ ] Tugas dapat ditampilkan
+- [ ] Tugas dapat dihapus
+- [ ] Program diuji dengan beberapa kasus masukan, termasuk daftar kosong",Membuat aplikasi to-do list berbasis terminal.,3,30,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+7,3,Class dan Object,article,"# Class dan Object
+
+> Membuat blueprint objek dengan `class`.
+
+## Konsep
+
+- **Class** adalah cetak biru yang mendefinisikan *atribut* dan *method*.
+- **Object** adalah instansi dari class.
+
+## Contoh
+
+```python
+class Mahasiswa:
+    def __init__(self, nama, nim):
+        self.nama = nama
+        self.nim = nim
+
+    def perkenalan(self):
+        return f""Saya {self.nama} ({self.nim})""
+
+budi = Mahasiswa(""Budi"", ""2372001"")
+print(budi.perkenalan())
+```
+
+## Poin Penting
+
+- Method `__init__` dijalankan otomatis saat object dibuat.
+- `self` merujuk pada object itu sendiri.",Membuat blueprint objek dengan class.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+8,3,Inheritance dan Polymorphism,video,"# Inheritance dan Polymorphism
+
+> Memakai ulang dan memperluas class yang sudah ada.
+
+## Yang Akan Dipelajari
+
+- **Inheritance:** kelas turunan mewarisi atribut dan method kelas induk
+- **Polymorphism:** method bernama sama berperilaku berbeda pada tiap kelas
+
+## Contoh
+
+```python
+class Hewan:
+    def suara(self):
+        return ""...""
+
+class Kucing(Hewan):
+    def suara(self):
+        return ""Meong""
+
+class Anjing(Hewan):
+    def suara(self):
+        return ""Guk""
+
+for h in [Kucing(), Anjing()]:
+    print(h.suara())
+```
+
+## Catatan
+
+Kelas turunan dapat **menimpa (override)** method milik kelas induk.",Memakai ulang dan memperluas class yang sudah ada.,2,15,15,https://www.youtube.com/watch?v=dummy008,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+9,3,Menulis Unit Test Pertama,practice,"# Menulis Unit Test Pertama
+
+> Menguji fungsi sederhana dengan `unittest`.
+
+## Tujuan
+
+Memverifikasi hasil fungsi secara otomatis menggunakan modul `unittest`.
+
+## Contoh
+
+```python
+import unittest
+
+def tambah(a, b):
+    return a + b
+
+class TestTambah(unittest.TestCase):
+    def test_tambah(self):
+        self.assertEqual(tambah(2, 3), 5)
+
+if __name__ == ""__main__"":
+    unittest.main()
+```
+
+## Instruksi
+
+1. Buat class turunan `unittest.TestCase`.
+2. Gunakan `assertEqual` untuk memverifikasi hasil fungsi.
+3. Jalankan dengan perintah:
+
+```bash
+python -m unittest
+```
+
+## Kriteria Selesai
+
+- [ ] Minimal 3 test case
+- [ ] Semua test berstatus **OK**",Menguji fungsi sederhana dengan unittest.,3,20,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+10,4,Struktur Halaman dengan HTML,article,"# Struktur Halaman dengan HTML
+
+> Menyusun konten dengan elemen HTML semantik.
+
+## Elemen Semantik
+
+| Elemen      | Fungsi                         |
+|-------------|--------------------------------|
+| `<header>`  | Kepala halaman                 |
+| `<nav>`     | Navigasi                       |
+| `<main>`    | Konten utama                   |
+| `<section>` | Bagian konten bertema          |
+| `<footer>`  | Kaki halaman                   |
+
+## Contoh
+
+```html
+<body>
+  <header><h1>Situs Saya</h1></header>
+  <nav>...</nav>
+  <main>
+    <section>...</section>
+  </main>
+  <footer>&copy; 2026</footer>
+</body>
+```
+
+## Manfaat
+
+- Meningkatkan **aksesibilitas**
+- Membantu **SEO**",Menyusun konten dengan elemen HTML semantik.,1,10,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+11,4,Styling dengan CSS,video,"# Styling dengan CSS
+
+> Mengatur warna, tipografi, dan jarak elemen.
+
+## Yang Akan Dipelajari
+
+- **Selector** untuk memilih elemen
+- Properti seperti `color`, `margin`, dan `padding`
+- Konsep **box model**
+
+## Contoh
+
+```css
+.kartu {
+  color: #333;
+  padding: 16px;
+  margin: 8px;
+  border: 1px solid #ddd;
+}
+```
+
+## Box Model
+
+Dari dalam ke luar: **content → padding → border → margin**.
+
+## Catatan
+
+Pahami box model karena memengaruhi ukuran dan jarak setiap elemen.","Mengatur warna, tipografi, dan jarak elemen.",2,14,15,https://www.youtube.com/watch?v=dummy011,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+12,4,Layout Responsif,practice,"# Layout Responsif
+
+> Membuat tampilan yang menyesuaikan ukuran layar.
+
+## Teknik yang Digunakan
+
+- **Flexbox** — tata letak satu dimensi
+- **Grid** — tata letak dua dimensi
+- **Media query** — aturan berdasarkan ukuran layar
+
+## Contoh
+
+```css
+.kolom { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+@media (max-width: 600px) {
+  .kolom { grid-template-columns: 1fr; }
+}
+```
+
+## Latihan
+
+1. Buat layout **tiga kolom** pada layar lebar.
+2. Ubah menjadi **satu kolom** pada layar kecil.
+
+## Kriteria Selesai
+
+- [ ] Layout 3 kolom tampil di desktop
+- [ ] Layout 1 kolom tampil di layar ≤ 600px
+- [ ] Diuji dengan mode responsif di browser",Membuat tampilan yang menyesuaikan ukuran layar.,3,25,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+13,5,Routing dan Controller,article,"# Routing dan Controller
+
+> Menghubungkan URL dengan logika aplikasi.
+
+## Konsep
+
+Route didefinisikan di `routes/web.php` dan diarahkan ke method pada **controller**.
+
+## Contoh
+
+```php
+use App\Http\Controllers\BukuController;
+
+Route::get('/buku', [BukuController::class, 'index']);
+```
+
+## Membuat Controller
+
+```bash
+php artisan make:controller BukuController
+```
+
+## Poin Penting
+
+- Satu route menghubungkan **URL + metode HTTP** ke satu method controller.
+- Letakkan logika aplikasi di controller, bukan di file route.",Menghubungkan URL dengan logika aplikasi.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+14,5,Blade Template dan Eloquent ORM,video,"# Blade Template dan Eloquent ORM
+
+> Menampilkan data dari basis data ke halaman.
+
+## Yang Akan Dipelajari
+
+- **Blade:** template engine bawaan Laravel
+- **Eloquent:** memetakan tabel ke model
+
+## Blade
+
+Gunakan `{{ }}` untuk menampilkan data dan `@foreach` untuk perulangan.
+
+```blade
+@foreach ($buku as $b)
+  <li>{{ $b->judul }}</li>
+@endforeach
+```
+
+## Eloquent
+
+Query ditulis dalam bentuk objek:
+
+```php
+$buku = Buku::where('tahun', '>', 2020)->get();
+```
+
+## Catatan
+
+Eloquent membuat kode lebih ringkas dibanding menulis SQL secara manual.",Menampilkan data dari basis data ke halaman.,2,18,15,https://www.youtube.com/watch?v=dummy014,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+15,5,Praktik: CRUD Sederhana,practice,"# Praktik: CRUD Sederhana
+
+> Membuat fitur tambah, lihat, ubah, dan hapus data.
+
+## Tujuan
+
+Membangun fitur **CRUD** untuk entitas `Buku`.
+
+## Instruksi
+
+1. Buat model dan migrasi `Buku`.
+2. Buat **resource controller**:
+
+```bash
+php artisan make:controller BukuController --resource
+```
+
+3. Daftarkan route: `Route::resource('buku', BukuController::class);`
+4. Tambahkan **validasi form** pada aksi tambah dan ubah.
+5. Tampilkan pesan umpan balik setiap aksi selesai.
+
+## Kriteria Selesai
+
+- [ ] Data dapat ditambah
+- [ ] Data dapat dilihat
+- [ ] Data dapat diubah
+- [ ] Data dapat dihapus
+- [ ] Validasi berjalan dan pesan umpan balik muncul","Membuat fitur tambah, lihat, ubah, dan hapus data.",3,40,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+16,6,Membangun REST API,article,"# Membangun REST API
+
+> Merancang endpoint API yang konsisten.
+
+## Metode HTTP
+
+| Metode   | Fungsi          | Contoh endpoint    |
+|----------|-----------------|--------------------|
+| `GET`    | Mengambil data  | `GET /api/buku`    |
+| `POST`   | Menambah data   | `POST /api/buku`   |
+| `PUT`    | Mengubah data   | `PUT /api/buku/1`  |
+| `DELETE` | Menghapus data  | `DELETE /api/buku/1` |
+
+## Respons
+
+Kembalikan **JSON** dengan *status code* yang tepat.
+
+```php
+return response()->json(['data' => $buku], 201);
+```
+
+## Status Code Umum
+
+- `200` OK
+- `201` Created
+- `404` Not Found
+- `422` Validation Error",Merancang endpoint API yang konsisten.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+17,6,Autentikasi dengan Sanctum,video,"# Autentikasi dengan Sanctum
+
+> Mengamankan API menggunakan token.
+
+## Yang Akan Dipelajari
+
+- Menerbitkan **personal access token** setelah login
+- Melindungi route dengan middleware
+
+## Menerbitkan Token
+
+```php
+$token = $user->createToken('api-token')->plainTextToken;
+```
+
+## Melindungi Route
+
+```php
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profil', [ProfilController::class, 'show']);
+});
+```
+
+## Catatan
+
+Kirim token pada header `Authorization: Bearer <token>`.",Mengamankan API menggunakan token.,2,18,15,https://www.youtube.com/watch?v=dummy017,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+18,6,Menguji API dengan Feature Test,practice,"# Menguji API dengan Feature Test
+
+> Memastikan endpoint bekerja sesuai harapan.
+
+## Tujuan
+
+Menulis *feature test* yang memanggil endpoint dan memeriksa **status** serta **struktur JSON**.
+
+## Contoh
+
+```php
+public function test_daftar_buku()
+{
+    $response = $this->getJson('/api/buku');
+
+    $response->assertStatus(200)
+             ->assertJsonStructure(['data']);
+}
+```
+
+## Menjalankan Test
+
+```bash
+php artisan test
+```
+
+## Kriteria Selesai
+
+- [ ] Ada test untuk `GET`, `POST`, dan `DELETE`
+- [ ] Status dan struktur JSON diperiksa
+- [ ] Semua test lulus",Memastikan endpoint bekerja sesuai harapan.,3,25,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+19,7,Mengenal NumPy dan Pandas,article,"# Mengenal NumPy dan Pandas
+
+> Pengantar library inti analisis data Python.
+
+## Perbandingan
+
+| Library  | Struktur Utama | Kegunaan                          |
+|----------|----------------|-----------------------------------|
+| `NumPy`  | `ndarray`      | Array numerik yang efisien        |
+| `Pandas` | `DataFrame`    | Data tabular (baris dan kolom)    |
+
+## Contoh
+
+```python
+import numpy as np
+import pandas as pd
+
+arr = np.array([1, 2, 3])
+df = pd.DataFrame({""nama"": [""A"", ""B""], ""nilai"": [80, 90]})
+print(df)
+```
+
+## Poin Penting
+
+- NumPy menjadi fondasi komputasi numerik di Python.
+- Pandas memudahkan membaca, menyaring, dan merangkum data tabular.",Pengantar library inti analisis data Python.,1,10,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+20,7,Membaca dan Menjelajahi Dataset,video,"# Membaca dan Menjelajahi Dataset
+
+> Memuat file CSV dan melihat ringkasannya.
+
+## Langkah
+
+1. Muat data dengan `pd.read_csv`.
+2. Lihat struktur dan ringkasan statistiknya.
+
+```python
+import pandas as pd
+
+df = pd.read_csv(""data.csv"")
+df.head()       # 5 baris pertama
+df.info()       # tipe data dan nilai kosong
+df.describe()   # ringkasan statistik
+```
+
+## Fungsi Penting
+
+- `head()` — melihat cuplikan data
+- `info()` — memahami struktur kolom
+- `describe()` — ringkasan statistik numerik",Memuat file CSV dan melihat ringkasannya.,2,14,15,https://www.youtube.com/watch?v=dummy020,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+21,7,Membersihkan Data Kotor,practice,"# Membersihkan Data Kotor
+
+> Menangani nilai kosong, duplikat, dan format tidak konsisten.
+
+## Fungsi yang Dipakai
+
+| Fungsi              | Kegunaan                        |
+|---------------------|---------------------------------|
+| `isna()`            | Mendeteksi nilai kosong         |
+| `fillna()`          | Mengisi nilai kosong            |
+| `dropna()`          | Menghapus baris kosong          |
+| `drop_duplicates()` | Menghapus data duplikat         |
+
+## Latihan
+
+Bersihkan **dataset penjualan** yang berisi nilai kosong dan tanggal tidak seragam.
+
+1. Hitung nilai kosong per kolom dengan `df.isna().sum()`.
+2. Tangani nilai kosong dengan `fillna()` atau `dropna()`.
+3. Hapus duplikat.
+4. Seragamkan format tanggal:
+
+```python
+df[""tanggal""] = pd.to_datetime(df[""tanggal""], errors=""coerce"")
+```
+
+## Kriteria Selesai
+
+- [ ] Tidak ada nilai kosong yang tersisa
+- [ ] Tidak ada baris duplikat
+- [ ] Kolom tanggal berformat seragam","Menangani nilai kosong, duplikat, dan format tidak konsisten.",3,30,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+22,8,Statistik Deskriptif,article,"# Statistik Deskriptif
+
+> Meringkas data dengan ukuran pemusatan dan penyebaran.
+
+## Ukuran Statistik
+
+- **Pemusatan:** mean, median, modus
+- **Penyebaran:** varians, simpangan baku
+
+## Contoh
+
+```python
+df[""nilai""].mean()
+df[""nilai""].median()
+df[""nilai""].mode()
+df[""nilai""].std()
+```
+
+## Poin Penting
+
+- Gunakan **median** bila data memiliki pencilan.
+- **Simpangan baku** kecil berarti data mengumpul dekat rata-rata.",Meringkas data dengan ukuran pemusatan dan penyebaran.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+23,8,Visualisasi dengan Matplotlib,video,"# Visualisasi dengan Matplotlib
+
+> Membuat grafik garis, batang, dan histogram.
+
+## Memilih Jenis Grafik
+
+| Tujuan               | Grafik       |
+|----------------------|--------------|
+| Melihat distribusi   | Histogram    |
+| Membandingkan nilai  | Batang       |
+| Melihat tren waktu   | Garis        |
+
+## Contoh
+
+```python
+import matplotlib.pyplot as plt
+
+plt.hist(df[""nilai""], bins=10)
+plt.title(""Distribusi Nilai"")
+plt.xlabel(""Nilai"")
+plt.ylabel(""Frekuensi"")
+plt.show()
+```
+
+## Catatan
+
+Selalu beri **judul** dan **label sumbu** pada grafik.","Membuat grafik garis, batang, dan histogram.",2,16,15,https://www.youtube.com/watch?v=dummy023,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+24,8,Studi Kasus EDA,practice,"# Studi Kasus EDA
+
+> Melakukan eksplorasi data *end-to-end* pada dataset nyata.
+
+## Tujuan
+
+Menjalankan **Exploratory Data Analysis (EDA)** dari awal sampai akhir.
+
+## Instruksi
+
+1. Telusuri dataset dengan `head()`, `info()`, dan `describe()`.
+2. Temukan **pencilan (outlier)**.
+3. Buat **minimal tiga visualisasi** yang mengungkap pola menarik.
+4. Tulis ringkasan temuan.
+
+## Kriteria Selesai
+
+- [ ] Struktur dataset terdokumentasi
+- [ ] Pencilan teridentifikasi
+- [ ] Minimal 3 visualisasi
+- [ ] Setiap visualisasi disertai interpretasi singkat",Melakukan eksplorasi data end-to-end pada dataset nyata.,3,35,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+25,9,Korelasi dan Hubungan Antarvariabel,article,"# Korelasi dan Hubungan Antarvariabel
+
+> Mengukur kekuatan hubungan antara dua variabel.
+
+## Koefisien Korelasi Pearson
+
+Nilainya berkisar dari **-1** hingga **1**:
+
+- **Mendekati 1** — hubungan positif kuat
+- **Mendekati 0** — hampir tidak ada hubungan linear
+- **Mendekati -1** — hubungan negatif kuat
+
+## Contoh
+
+```python
+df[""tinggi""].corr(df[""berat""])
+df.corr(numeric_only=True)
+```
+
+> ⚠️ **Ingat:** korelasi tidak otomatis berarti sebab-akibat.",Mengukur kekuatan hubungan antara dua variabel.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+26,9,Menyusun Narasi Data,video,"# Menyusun Narasi Data
+
+> Mengubah hasil analisis menjadi cerita yang mudah dipahami.
+
+## Kerangka Narasi
+
+1. **Mulai dari pertanyaan bisnis** yang ingin dijawab.
+2. **Tampilkan bukti paling kuat** berupa angka atau grafik.
+3. **Tutup dengan rekomendasi** yang jelas dan dapat ditindaklanjuti.
+
+## Tips
+
+- Satu grafik, satu pesan utama.
+- Gunakan bahasa yang mudah dipahami pemangku kepentingan non-teknis.",Mengubah hasil analisis menjadi cerita yang mudah dipahami.,2,14,15,https://www.youtube.com/watch?v=dummy026,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+27,9,Proyek Akhir: Laporan Analisis,practice,"# Proyek Akhir: Laporan Analisis
+
+> Menyusun laporan analisis lengkap dari satu dataset.
+
+## Tujuan
+
+Menghasilkan laporan analisis data dari awal hingga rekomendasi.
+
+## Instruksi
+
+1. Pilih **dataset publik**.
+2. Lakukan **pembersihan** data.
+3. Lakukan **eksplorasi** dan **visualisasi**.
+4. Tulis **ringkasan temuan** dan **rekomendasi**.
+
+## Struktur Laporan
+
+- Latar belakang dan pertanyaan analisis
+- Deskripsi dataset
+- Proses pembersihan
+- Hasil eksplorasi dan visualisasi
+- Kesimpulan dan rekomendasi
+
+## Kriteria Selesai
+
+- [ ] Dataset berasal dari sumber publik dan disebutkan sumbernya
+- [ ] Proses pembersihan terdokumentasi
+- [ ] Minimal 3 visualisasi
+- [ ] Rekomendasi didukung data",Menyusun laporan analisis lengkap dari satu dataset.,3,60,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+28,10,Apa itu Machine Learning,article,"# Apa itu Machine Learning
+
+> Pengenalan konsep dan contoh penerapan machine learning.
+
+## Definisi
+
+**Machine learning** memungkinkan komputer belajar pola dari data **tanpa diprogram dengan aturan secara eksplisit**.
+
+## Contoh Penerapan
+
+- Filter **spam** pada email
+- **Rekomendasi produk** di toko daring
+- Deteksi penipuan transaksi
+
+## Poin Penting
+
+- Kualitas model sangat bergantung pada **kualitas data**.
+- Model belajar dari contoh, bukan dari aturan tertulis.",Pengenalan konsep dan contoh penerapan machine learning.,1,10,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+29,10,Supervised vs Unsupervised Learning,video,"# Supervised vs Unsupervised Learning
+
+> Membedakan pembelajaran berlabel dan tidak berlabel.
+
+## Perbandingan
+
+| Aspek     | Supervised                  | Unsupervised               |
+|-----------|-----------------------------|----------------------------|
+| Data      | Berlabel                    | Tanpa label                |
+| Tujuan    | Memprediksi label           | Menemukan struktur data    |
+| Contoh    | Klasifikasi, regresi        | *Clustering*               |
+
+## Contoh Kasus
+
+- **Supervised:** memprediksi harga rumah, mengklasifikasi email spam
+- **Unsupervised:** mengelompokkan pelanggan berdasarkan perilaku belanja",Membedakan pembelajaran berlabel dan tidak berlabel.,2,14,15,https://www.youtube.com/watch?v=dummy029,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+30,10,Alur Kerja Proyek ML,article,"# Alur Kerja Proyek ML
+
+> Memahami tahapan dari data hingga deployment.
+
+## Tahapan
+
+1. **Pengumpulan data**
+2. **Persiapan data**
+3. **Feature engineering**
+4. **Pelatihan model**
+5. **Evaluasi model**
+6. **Deployment**
+
+## Catatan
+
+Alur ini bersifat **iteratif**: hasil evaluasi sering membawa Anda kembali ke tahap persiapan data atau feature engineering.",Memahami tahapan dari data hingga deployment.,3,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+31,11,Membagi Data Latih dan Uji,article,"# Membagi Data Latih dan Uji
+
+> Menyiapkan data agar evaluasi model adil.
+
+## Konsep
+
+Pisahkan data menjadi **data latih** untuk melatih model dan **data uji** untuk mengevaluasinya.
+
+## Contoh
+
+```python
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+```
+
+## Poin Penting
+
+> ⚠️ **Data uji tidak boleh dipakai saat melatih model**, agar hasil evaluasi mengukur kemampuan *generalisasi*.",Menyiapkan data agar evaluasi model adil.,1,10,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+32,11,Melatih Model Klasifikasi,practice,"# Melatih Model Klasifikasi
+
+> Melatih model pertama dengan Scikit-learn.
+
+## Tujuan
+
+Melatih model klasifikasi pada **dataset Iris** lalu membuat prediksi.
+
+## Contoh
+
+```python
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = DecisionTreeClassifier()
+model.fit(X_train, y_train)
+print(model.predict(X_test[:5]))
+```
+
+## Instruksi
+
+1. Latih `LogisticRegression` **atau** `DecisionTreeClassifier`.
+2. Buat prediksi dengan method `predict`.
+
+## Kriteria Selesai
+
+- [ ] Model berhasil dilatih
+- [ ] Prediksi dihasilkan pada data uji",Melatih model pertama dengan Scikit-learn.,2,30,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+33,11,Mengevaluasi Model,video,"# Mengevaluasi Model
+
+> Memilih dan menafsirkan metrik evaluasi.
+
+## Metrik Utama
+
+| Metrik      | Kegunaan                                   |
+|-------------|--------------------------------------------|
+| `Accuracy`  | Proporsi prediksi yang benar               |
+| `Precision` | Ketepatan prediksi kelas positif           |
+| `Recall`    | Kemampuan menemukan seluruh kelas positif  |
+| `F1-score`  | Rata-rata harmonik precision dan recall    |
+
+## Contoh
+
+```python
+from sklearn.metrics import classification_report, confusion_matrix
+
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+```
+
+## Catatan
+
+- Pada **data tidak seimbang**, accuracy bisa menyesatkan; gunakan precision, recall, dan F1-score.
+- **Confusion matrix** membantu melihat jenis kesalahan model.",Memilih dan menafsirkan metrik evaluasi.,3,16,15,https://www.youtube.com/watch?v=dummy033,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+34,12,Memahami Large Language Models,article,"# Memahami Large Language Models
+
+> Cara kerja dan keterbatasan LLM.
+
+## Cara Kerja Singkat
+
+LLM dilatih untuk **memprediksi token berikutnya** dari data teks berskala besar.
+
+## Keterbatasan
+
+- Model dapat **berhalusinasi**, yaitu menghasilkan informasi yang terdengar meyakinkan tetapi salah.
+- Pengetahuan terbatas pada data pelatihan.
+
+> ⚠️ **Selalu verifikasi** keluaran LLM, terutama untuk fakta penting.",Cara kerja dan keterbatasan LLM.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+35,12,Teknik Prompt Engineering,video,"# Teknik Prompt Engineering
+
+> Menulis instruksi yang menghasilkan keluaran akurat.
+
+## Unsur Prompt yang Baik
+
+1. **Peran** — siapa model ini
+2. **Konteks** — latar belakang tugas
+3. **Tugas** — apa yang harus dikerjakan
+4. **Format keluaran** — bentuk jawaban yang diinginkan
+
+## Contoh
+
+```text
+Peran: Kamu adalah dosen statistika.
+Konteks: Mahasiswa semester 1 belum mengenal rumus.
+Tugas: Jelaskan konsep median.
+Format: Maksimal 3 kalimat dan satu contoh angka.
+```
+
+## Few-shot
+
+Berikan beberapa **contoh masukan dan keluaran** agar model meniru pola yang diinginkan.",Menulis instruksi yang menghasilkan keluaran akurat.,2,15,15,https://www.youtube.com/watch?v=dummy035,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+36,12,Pengantar Retrieval-Augmented Generation,article,"# Pengantar Retrieval-Augmented Generation
+
+> Menjawab berdasarkan dokumen sumber dengan RAG.
+
+## Konsep
+
+**RAG** mengambil potongan dokumen yang relevan dari basis pengetahuan, lalu memasukkannya ke dalam prompt LLM sehingga jawaban **lebih berbasis sumber**.
+
+## Alur
+
+1. Pengguna mengajukan pertanyaan.
+2. Sistem **mencari** potongan dokumen relevan.
+3. Potongan tersebut **disisipkan ke prompt**.
+4. LLM **menghasilkan jawaban** berdasarkan konteks itu.
+
+## Manfaat
+
+- Mengurangi halusinasi
+- Jawaban dapat ditelusuri ke sumber",Menjawab berdasarkan dokumen sumber dengan RAG.,3,14,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+37,13,Pengenalan Basis Data Relasional,article,"# Pengenalan Basis Data Relasional
+
+> Memahami tabel, baris, kolom, dan kunci.
+
+## Komponen
+
+- **Tabel** — kumpulan data bertema sama
+- **Baris** — satu record data
+- **Kolom** — atribut data
+- **Primary key** — pengenal unik setiap baris
+- **Foreign key** — penghubung ke tabel lain
+
+## Contoh
+
+```sql
+CREATE TABLE anggota (
+  id INT PRIMARY KEY,
+  nama VARCHAR(100)
+);
+```
+
+Tabel-tabel saling **dihubungkan melalui primary key dan foreign key**.","Memahami tabel, baris, kolom, dan kunci.",1,10,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+38,13,"SELECT, WHERE, dan ORDER BY",video,"# SELECT, WHERE, dan ORDER BY
+
+> Mengambil dan menyaring data.
+
+## Fungsi Klausa
+
+| Klausa     | Fungsi                  |
+|------------|-------------------------|
+| `SELECT`   | Memilih kolom           |
+| `WHERE`    | Memfilter baris         |
+| `ORDER BY` | Mengurutkan hasil       |
+| `LIMIT`    | Membatasi jumlah baris  |
+
+## Contoh
+
+```sql
+SELECT nama, nilai
+FROM mahasiswa
+WHERE nilai >= 75
+ORDER BY nilai DESC
+LIMIT 10;
+```",Mengambil dan menyaring data.,2,14,15,https://www.youtube.com/watch?v=dummy038,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+39,13,JOIN dan Agregasi,practice,"# JOIN dan Agregasi
+
+> Menggabungkan tabel dan meringkas data.
+
+## Konsep
+
+- **`INNER JOIN`** — hanya baris yang cocok di kedua tabel
+- **`LEFT JOIN`** — semua baris tabel kiri, termasuk yang tidak cocok
+- **`GROUP BY`** dengan `COUNT`, `SUM`, `AVG` untuk agregasi
+
+## Contoh
+
+```sql
+SELECT a.nama, COUNT(p.id) AS jumlah_pinjam
+FROM anggota a
+LEFT JOIN peminjaman p ON p.anggota_id = a.id
+GROUP BY a.nama;
+```
+
+## Latihan
+
+1. Tampilkan jumlah peminjaman per anggota.
+2. Tampilkan rata-rata nilai per mata kuliah.
+
+## Kriteria Selesai
+
+- [ ] Query memakai `JOIN`
+- [ ] Query memakai `GROUP BY` dan fungsi agregat
+- [ ] Hasil sesuai ekspektasi",Menggabungkan tabel dan meringkas data.,3,30,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+40,14,Entity Relationship Diagram,article,"# Entity Relationship Diagram
+
+> Memodelkan entitas dan relasi.
+
+## Komponen ERD
+
+- **Entitas** — objek yang datanya disimpan
+- **Atribut** — properti dari entitas
+- **Relasi** — hubungan antarentitas
+
+## Kardinalitas
+
+| Jenis         | Contoh                      |
+|---------------|-----------------------------|
+| Satu-ke-satu  | Pengguna dan profil         |
+| Satu-ke-banyak| Penulis dan buku            |
+| Banyak-ke-banyak | Mahasiswa dan mata kuliah |
+
+> **Catatan:** relasi banyak-ke-banyak biasanya dipecah dengan **tabel perantara**.",Memodelkan entitas dan relasi.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+41,14,Normalisasi,video,"# Normalisasi
+
+> Mengurangi redundansi data melalui bentuk normal.
+
+## Bentuk Normal
+
+1. **1NF** — menghilangkan grup berulang
+2. **2NF** — menghilangkan ketergantungan parsial
+3. **3NF** — menghilangkan ketergantungan transitif
+
+## Tujuan
+
+- Mengurangi **redundansi** data
+- Mencegah anomali saat tambah, ubah, dan hapus data",Mengurangi redundansi data melalui bentuk normal.,2,16,15,https://www.youtube.com/watch?v=dummy041,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+42,14,Praktik: Merancang Skema Perpustakaan,practice,"# Praktik: Merancang Skema Perpustakaan
+
+> Merancang skema untuk sistem peminjaman buku.
+
+## Tujuan
+
+Merancang skema basis data peminjaman buku lalu mengimplementasikannya di **MySQL**.
+
+## Instruksi
+
+1. Rancang tabel `anggota`, `buku`, dan `peminjaman`.
+2. Tentukan **primary key** dan **foreign key**.
+3. Gambar ERD sederhana.
+4. Implementasikan dengan DDL:
+
+```sql
+CREATE TABLE peminjaman (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  anggota_id INT NOT NULL,
+  buku_id INT NOT NULL,
+  tgl_pinjam DATE NOT NULL,
+  FOREIGN KEY (anggota_id) REFERENCES anggota(id),
+  FOREIGN KEY (buku_id) REFERENCES buku(id)
+);
+```
+
+## Kriteria Selesai
+
+- [ ] Tiga tabel beserta relasinya
+- [ ] Primary key dan foreign key terdefinisi
+- [ ] Skema berhasil dijalankan di MySQL",Merancang skema untuk sistem peminjaman buku.,3,40,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+43,15,Indeks pada Basis Data,article,"# Indeks pada Basis Data
+
+> Mempercepat pencarian dengan indeks.
+
+## Konsep
+
+Indeks bekerja seperti **daftar isi buku**: database langsung menuju data yang dicari tanpa membaca seluruh tabel.
+
+## Contoh
+
+```sql
+CREATE INDEX idx_nim ON mahasiswa (nim);
+```
+
+## Praktik Baik
+
+- Buat indeks pada kolom yang **sering dipakai di `WHERE` atau `JOIN`**.
+- **Hindari indeks berlebihan** karena memperlambat operasi tulis.",Mempercepat pencarian dengan indeks.,1,12,10,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+44,15,Membaca Hasil EXPLAIN,video,"# Membaca Hasil EXPLAIN
+
+> Memahami rencana eksekusi query.
+
+## Fungsi EXPLAIN
+
+`EXPLAIN` menunjukkan:
+
+- **Tabel** yang dibaca
+- **Indeks** yang dipakai
+- **Perkiraan jumlah baris** yang diperiksa
+
+## Contoh
+
+```sql
+EXPLAIN SELECT * FROM mahasiswa WHERE nim = '2372001';
+```
+
+## Kolom Penting
+
+| Kolom  | Arti                        |
+|--------|-----------------------------|
+| `type` | Cara tabel diakses          |
+| `key`  | Indeks yang dipakai         |
+| `rows` | Perkiraan baris diperiksa   |",Memahami rencana eksekusi query.,2,15,15,https://www.youtube.com/watch?v=dummy044,,published,2026-11-26 08:00:00,2026-11-26 08:00:00
+45,15,Praktik: Mengoptimalkan Query Lambat,practice,"# Praktik: Mengoptimalkan Query Lambat
+
+> Memperbaiki query lambat pada tabel besar.
+
+## Tujuan
+
+Mempercepat query pada tabel besar dengan bantuan indeks.
+
+## Instruksi
+
+1. Jalankan `EXPLAIN` pada query lambat.
+2. Temukan **full table scan** (`type = ALL`).
+3. Tambahkan **indeks yang sesuai**.
+4. Bandingkan **waktu eksekusi sebelum dan sesudah**.
+
+## Kriteria Selesai
+
+- [ ] Full table scan teridentifikasi
+- [ ] Indeks ditambahkan
+- [ ] Perbandingan waktu eksekusi tercatat",Memperbaiki query lambat pada tabel besar.,3,35,25,,,published,2026-11-26 08:00:00,2026-11-26 08:00:00

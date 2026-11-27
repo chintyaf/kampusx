@@ -33,9 +33,10 @@ class DatabaseSeeder extends Seeder
             PublishedEventSeeder::class,
             EventRegistrationSeeder::class,
             EventMaterialSeeder::class,
-            DemoAccountSeeder::class,
+            // DemoAccountSeeder::class,
             // CourseDataSeeder::class,
             LMSSeeder::class,
+            // SkillSeeder::class,
         ]);
 
         // Event::factory(50)->create();

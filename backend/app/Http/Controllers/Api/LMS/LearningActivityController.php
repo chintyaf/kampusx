@@ -4,31 +4,33 @@ namespace App\Http\Controllers\Api\LMS;
 
 use App\Http\Controllers\Controller;
 use App\Models\LearningActivity;
+use App\Services\Lms\LearningDataService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class LearningActivityController extends Controller
 {
+    public function __construct(private readonly LearningDataService $learningDataService)
+    {
+    }
+
     public function index(Request $request)
     {
-        $query = LearningActivity::with(['module:id,title', 'lesson:id,title']);
-
-        if ($request->filled('enrollment_id')) {
-            $query->where('enrollment_id', $request->enrollment_id);
-        }
-
-        if ($request->filled('module_id')) {
-            $query->where('module_id', $request->module_id);
-        }
-
-        if ($request->filled('lesson_id')) {
-            $query->where('lesson_id', $request->lesson_id);
-        }
+        $query = LearningActivity::where('user_id', $request->user()->id);
 
         if ($request->filled('activity_type')) {
             $query->where('activity_type', $request->activity_type);
         }
 
-        $activities = $query->latest('start_time')->paginate($request->input('per_page', 20));
+        if ($request->filled('target_type')) {
+            $query->where('target_type', $request->target_type);
+        }
+
+        if ($request->filled('target_id')) {
+            $query->where('target_id', $request->target_id);
+        }
+
+        $activities = $query->latest('occurred_at')->paginate($request->input('per_page', 20));
 
         return response()->json([
             'success' => true,
@@ -40,18 +42,23 @@ class LearningActivityController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'enrollment_id'    => ['required', 'exists:enrollments,id'],
-            'module_id'        => ['nullable', 'exists:modules,id'],
-            'lesson_id'        => ['nullable', 'exists:lessons,id'],
             'activity_type'    => ['required', 'string', 'max:50'],
-            'start_time'       => ['required', 'date'],
-            'end_time'         => ['nullable', 'date', 'after_or_equal:start_time'],
+            'target_type'      => ['nullable', 'string', 'max:100'],
+            'target_id'        => ['nullable', 'integer'],
+            'metadata'         => ['nullable', 'array'],
+            'occurred_at'      => ['nullable', 'date'],
             'duration_seconds' => ['nullable', 'integer', 'min:0'],
-            'progress'         => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'completed_at'     => ['nullable', 'date'],
         ]);
 
-        $activity = LearningActivity::create($validated);
+        $activity = LearningActivity::create([
+            'user_id'          => $request->user()->id,
+            'activity_type'    => $validated['activity_type'],
+            'target_type'      => $validated['target_type'] ?? null,
+            'target_id'        => $validated['target_id'] ?? null,
+            'metadata'         => $validated['metadata'] ?? null,
+            'occurred_at'      => isset($validated['occurred_at']) ? Carbon::parse($validated['occurred_at']) : now(),
+            'duration_seconds' => $validated['duration_seconds'] ?? 0,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -60,13 +67,9 @@ class LearningActivityController extends Controller
         ], 201);
     }
 
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $activity = LearningActivity::with([
-            'enrollment.user:id,name,email',
-            'module:id,title',
-            'lesson:id,title',
-        ])->findOrFail($id);
+        $activity = LearningActivity::where('user_id', $request->user()->id)->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -77,13 +80,12 @@ class LearningActivityController extends Controller
 
     public function update(Request $request, string $id)
     {
-        $activity = LearningActivity::findOrFail($id);
+        $activity = LearningActivity::where('user_id', $request->user()->id)->findOrFail($id);
 
         $validated = $request->validate([
-            'end_time'         => ['nullable', 'date'],
             'duration_seconds' => ['nullable', 'integer', 'min:0'],
-            'progress'         => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'completed_at'     => ['nullable', 'date'],
+            'metadata'         => ['nullable', 'array'],
+            'occurred_at'      => ['nullable', 'date'],
         ]);
 
         $activity->update($validated);
@@ -95,9 +97,9 @@ class LearningActivityController extends Controller
         ]);
     }
 
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $activity = LearningActivity::findOrFail($id);
+        $activity = LearningActivity::where('user_id', $request->user()->id)->findOrFail($id);
         $activity->delete();
 
         return response()->json([

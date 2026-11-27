@@ -251,7 +251,7 @@ const ModuleHeader = ({ moduleData, handleNavigateToLesson, isBookmarked, setIsB
 								<Play size={15} fill="currentColor" />
 								<span>
 									{moduleData.currentLessonId
-										? `Lanjutkan ke Lesson ${moduleData.currentLessonId.replace('les-', '')}`
+										? `Lanjutkan ke Lesson ${String(moduleData.currentLessonId ?? '')}`
 										: 'Mulai Belajar'}
 								</span>
 							</button>

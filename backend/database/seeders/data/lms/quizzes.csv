@@ -1,0 +1,16 @@
+id,module_id,title,description,bloom_level,time_limit_minutes,passing_score,is_published,created_at,updated_at
+1,1,Kuis: Pengenalan Python dan Sintaks Dasar,Uji pemahaman Anda tentang materi Pengenalan Python dan Sintaks Dasar.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+2,2,Kuis: Fungsi dan Struktur Data,Uji pemahaman Anda tentang materi Fungsi dan Struktur Data.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+3,3,Kuis: Pemrograman Berorientasi Objek,Uji pemahaman Anda tentang materi Pemrograman Berorientasi Objek.,understand,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+4,4,"Kuis: Fondasi Web: HTML, CSS, dan Responsif","Uji pemahaman Anda tentang materi Fondasi Web: HTML, CSS, dan Responsif.",apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+5,5,Kuis: Dasar Laravel dan MVC,Uji pemahaman Anda tentang materi Dasar Laravel dan MVC.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+6,6,Kuis: REST API dan Autentikasi,Uji pemahaman Anda tentang materi REST API dan Autentikasi.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+7,7,Kuis: Persiapan Data dengan Pandas,Uji pemahaman Anda tentang materi Persiapan Data dengan Pandas.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+8,8,Kuis: Eksplorasi dan Visualisasi,Uji pemahaman Anda tentang materi Eksplorasi dan Visualisasi.,understand,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+9,9,Kuis: Dari Analisis ke Wawasan,Uji pemahaman Anda tentang materi Dari Analisis ke Wawasan.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+10,10,Kuis: Dasar Machine Learning,Uji pemahaman Anda tentang materi Dasar Machine Learning.,understand,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+11,11,Kuis: Membangun Model dengan Scikit-learn,Uji pemahaman Anda tentang materi Membangun Model dengan Scikit-learn.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+12,12,Kuis: LLM dan Prompt Engineering,Uji pemahaman Anda tentang materi LLM dan Prompt Engineering.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+13,13,Kuis: Dasar SQL,Uji pemahaman Anda tentang materi Dasar SQL.,understand,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+14,14,Kuis: Perancangan Skema,Uji pemahaman Anda tentang materi Perancangan Skema.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00
+15,15,Kuis: Optimasi Query,Uji pemahaman Anda tentang materi Optimasi Query.,apply,10,70.00,1,2026-11-26 08:00:00,2026-11-26 08:00:00

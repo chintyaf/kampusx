@@ -279,9 +279,7 @@ const OrgMicrolearning = () => {
 						{filteredLearningPaths.length > 0 ? (
 							<div className="row g-4">
 								{filteredLearningPaths.map((item) => (
-									<div key={item.id}>
-										<LearningPathCard data={item} />
-									</div>
+									<LearningPathCard data={item} key={item.id} />
 								))}
 							</div>
 						) : (

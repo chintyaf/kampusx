@@ -192,29 +192,40 @@ const ExploreMicrolearningPage = () => {
 		(item) => {
 			const targetId = item.rawId || item.id;
 
-			const learningPathSlug =
-				item.type === 'learning_path'
-					? item.slug || targetId
-					: item.learningPathSlug || item.learning_path_slug || item.pathSlug;
-
-			if (item.type === 'learning_path') {
-				navigate(`/learner/learning-paths/${learningPathSlug}`);
-			} else if (item.type === 'module') {
-				if (learningPathSlug) {
-					navigate(`/learner/learning-paths/${learningPathSlug}/modules/${targetId}`);
-				} else {
-					navigate(`/learner/modules/${targetId}`);
-				}
-			} else {
-				const moduleId = item.moduleId || item.module_id || item.rawModuleId;
-
-				if (learningPathSlug && moduleId) {
+			switch (item.type) {
+				case 'learning_path': {
 					navigate(
-						`/learner/learning-paths/${learningPathSlug}/modules/${moduleId}/lessons/${targetId}`,
+						`/learner/learning-paths/${encodeURIComponent(item.slug || targetId)}`,
 					);
-				} else {
-					navigate(`/learner/lessons/${targetId}`);
+					break;
 				}
+
+				case 'module': {
+					if (!item.learningPathSlug) {
+						console.error('Learning Path slug tidak tersedia:', item);
+						return;
+					}
+
+					navigate(
+						`/learner/learning-paths/${encodeURIComponent(item.learningPathSlug)}/modules/${encodeURIComponent(item.moduleId || targetId)}`,
+					);
+					break;
+				}
+
+				case 'lesson': {
+					if (!item.learningPathSlug || !item.moduleId) {
+						console.error('Parent Lesson tidak ditemukan:', item);
+						return;
+					}
+
+					navigate(
+						`/learner/learning-paths/${encodeURIComponent(item.learningPathSlug)}/modules/${encodeURIComponent(item.moduleId)}/lessons/${encodeURIComponent(targetId)}`,
+					);
+					break;
+				}
+
+				default:
+					navigate('/learner/explore');
 			}
 		},
 		[navigate],

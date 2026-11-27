@@ -1,0 +1,7 @@
+query,relevan,precision@10,max_precision,r_precision,beginner_terbaik_di_rank
+Backend Laravel,11,1.0,1.0,1.0,37
+Frontend Web,9,0.9,0.9,1.0,10
+Data Analyst,7,0.7,0.7,1.0,13
+ML Engineer,5,0.5,0.5,1.0,9
+GenAI,4,0.4,0.4,1.0,37
+Database,11,1.0,1.0,1.0,37

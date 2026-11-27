@@ -15,29 +15,18 @@ class LearningActivity extends Model
 
     protected $fillable = [
         'user_id',
-        'enrollment_id',
-        'module_id',
-        'lesson_id',
         'activity_type',
         'target_type',
         'target_id',
         'metadata',
         'occurred_at',
-        'start_time',
-        'end_time',
         'duration_seconds',
-        'progress',
-        'completed_at',
     ];
 
     protected $casts = [
         'metadata'         => 'array',
         'occurred_at'      => 'datetime',
-        'start_time'       => 'datetime',
-        'end_time'         => 'datetime',
-        'completed_at'     => 'datetime',
         'duration_seconds' => 'integer',
-        'progress'         => 'decimal:2',
         'created_at'       => 'datetime',
         'updated_at'       => 'datetime',
     ];

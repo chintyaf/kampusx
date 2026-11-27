@@ -2,62 +2,70 @@ import React, { useEffect, useState } from 'react';
 import { X, Play, Zap, Pause, ClipboardCheck, Target } from 'lucide-react';
 import { useSRL } from '@/context/SRLContext';
 
-// Three ring segments = three SRL phases (Forethought → Performance → Self-Reflection)
 const RING_RADIUS = 40;
-const SEGMENT_SWEEP = 96; // degrees drawn per segment (120° minus a 24° gap)
-const SEGMENT_START = [-80, 40, 160]; // start angle of each segment
+const SEGMENT_SWEEP = 96;
+const SEGMENT_START = [-80, 40, 160];
 
 const formatTime = (totalSeconds) => {
 	const s = Math.max(0, Math.floor(totalSeconds));
 	const h = Math.floor(s / 3600);
 	const m = Math.floor((s % 3600) / 60);
 	const sec = s % 60;
+
 	const mm = String(m).padStart(2, '0');
 	const ss = String(sec).padStart(2, '0');
+
 	return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 };
 
 const SRLTriggerButton = () => {
 	const { toggleModal, isOpen, isSessionActive, currentPhase, isPaused, srlData } = useSRL();
 
-	// ---- Timer live untuk info card (timestamp-based, sama seperti PerformancePhase) ----
+	// Timer
 	const perf = srlData?.performance ?? {};
-	const isRunning = perf.startedAt !== null && perf.startedAt !== undefined;
+
+	const isRunning = perf.startedAt !== null && perf.startedAt !== undefined && !isPaused;
+
 	const [now, setNow] = useState(() => Date.now());
 
 	useEffect(() => {
 		if (!isRunning || isOpen) return undefined;
+
 		setNow(Date.now());
-		const id = setInterval(() => setNow(Date.now()), 1000);
+
+		const id = setInterval(() => {
+			setNow(Date.now());
+		}, 1000);
+
 		return () => clearInterval(id);
 	}, [isRunning, isOpen]);
 
 	const targetSeconds = (Number(srlData?.forethought?.estimatedTime) || 25) * 60;
+
 	const elapsed = Math.max(
 		0,
 		(perf.accumulatedSeconds || 0) +
 			(isRunning ? Math.floor((now - perf.startedAt) / 1000) : 0),
 	);
+
 	const reached = elapsed >= targetSeconds;
+
 	const timeText = reached
 		? `+${formatTime(elapsed - targetSeconds)}`
 		: formatTime(targetSeconds - elapsed);
 
+	// Phase configuration
 	const getPhaseConfig = () => {
 		if (!isSessionActive || currentPhase === 'forethought') {
 			return {
 				phase: 1,
 				name: 'Forethought',
-				description: 'Rencanakan pembelajaran',
 				icon: isSessionActive ? (
-					<Target size={16} />
+					<Target size={22} />
 				) : (
-					<Play size={16} fill="currentColor" style={{ marginLeft: 2 }} />
+					<Play size={22} fill="currentColor" />
 				),
-				color: 'var(--bahama-blue-400)',
 				accent: 'var(--primary)',
-				status: isSessionActive ? 'Merencanakan' : 'Belum dimulai',
-				live: false,
 			};
 		}
 
@@ -65,131 +73,54 @@ const SRLTriggerButton = () => {
 			return {
 				phase: 2,
 				name: 'Performance',
-				description: isPaused
-					? 'Sesi pembelajaran dijeda'
-					: reached
-						? 'Target tercapai, waktu tambahan'
-						: 'Sedang menjalani pembelajaran',
 				icon: isPaused ? (
-					<Pause size={24} fill="currentColor" />
+					<Pause size={22} fill="currentColor" />
 				) : (
 					<Zap size={24} fill="currentColor" />
 				),
-				color: isPaused ? 'var(--warning-border)' : 'var(--bahama-blue-400)',
 				accent: isPaused ? 'var(--warning-text)' : 'var(--primary)',
-				status: isPaused ? 'Dijeda' : 'Sedang fokus',
-				live: !isPaused,
 			};
 		}
 
 		return {
 			phase: 3,
 			name: 'Self-Reflection',
-			description: 'Evaluasi hasil pembelajaran',
-			icon: <ClipboardCheck size={24} />,
-			color: 'color-mix(in srgb, var(--purple-text) 55%, white)',
+			icon: <ClipboardCheck size={22} />,
 			accent: 'var(--purple-text)',
-			status: 'Evaluasi',
-			live: false,
 		};
 	};
 
 	const config = getPhaseConfig();
 
-	const title = isOpen ? 'Tutup SRL' : config.description;
-	const icon = isOpen ? <X size={24} /> : config.icon;
-	const cardTitle = config.phase === 2 ? timeText : config.name;
+	const showTimer = !isOpen && isSessionActive && currentPhase === 'performance';
+
+	const icon = isOpen ? <X size={22} /> : config.icon;
+
+	const title = isOpen
+		? 'Tutup SRL'
+		: showTimer
+			? `Waktu belajar: ${timeText}`
+			: `SRL - ${config.name}`;
 
 	return (
 		<>
 			<style>{`
 				.srl-trigger-container {
 					position: fixed;
-					bottom: 28px;
+					bottom: 75px;
 					right: 28px;
 					z-index: 9999;
 					display: flex;
 					align-items: center;
-					gap: 14px;
+					justify-content: center;
 					font-family: var(--font, inherit);
 					--srl-color: ${config.accent};
 					--srl-accent: ${config.accent};
 					--srl-track: var(--bahama-blue-200);
 				}
 
-				/* ---------- Info card ---------- */
-				.srl-info {
-					position: relative;
-					min-width: 156px;
-					padding: 11px 16px 12px;
-					border-radius: var(--radius-lg);
-					background: var(--card);
-					border: var(--border-w-xs) solid var(--border-md);
-					box-shadow: 0 10px 30px rgba(8, 47, 73, 0.14);
-					animation: srl-info-in .28s ease-out;
-				}
-
-				/* little tail pointing toward the button */
-				.srl-info::after {
-					content: '';
-					position: absolute;
-					top: 50%;
-					right: -5px;
-					width: 10px;
-					height: 10px;
-					background: var(--card);
-					border-top: var(--border-w-xs) solid var(--border-md);
-					border-right: var(--border-w-xs) solid var(--border-md);
-					transform: translateY(-50%) rotate(45deg);
-				}
-
-				.srl-info-top {
-					display: flex;
-					align-items: center;
-					gap: 7px;
-					margin-bottom: 5px;
-				}
-
-				.srl-status-dot {
-					position: relative;
-					width: 7px;
-					height: 7px;
-					border-radius: 50%;
-					background: var(--srl-accent);
-					flex-shrink: 0;
-				}
-
-				.srl-status-dot.is-live::after {
-					content: '';
-					position: absolute;
-					inset: 0;
-					border-radius: 50%;
-					background: var(--srl-accent);
-					animation: srl-pulse 1.8s ease-out infinite;
-				}
-
-				.srl-info-status {
-					font-size: 11px;
-					font-weight: 600;
-					color: var(--srl-accent);
-				}
-
-				.srl-info-title {
-					font-size: 14px;
-					font-weight: 700;
-					line-height: 1.2;
-					color: var(--text);
-					font-variant-numeric: tabular-nums;
-				}
-
-				.srl-info-description {
-					margin-top: 2px;
-					font-size: var(--font-xs);
-					line-height: 1.35;
-					color: var(--text-muted);
-				}
-
 				/* ---------- Trigger button ---------- */
+
 				.srl-trigger {
 					position: relative;
 					width: 68px;
@@ -197,22 +128,30 @@ const SRLTriggerButton = () => {
 					padding: 0;
 					border: 0;
 					border-radius: 50%;
-					background: color-mix(in srgb, var(--card) 40%, transparent);
+					background: color-mix(
+						in srgb,
+						var(--card) 40%,
+						transparent
+					);
 					-webkit-backdrop-filter: blur(10px) saturate(1.4);
 					backdrop-filter: blur(10px) saturate(1.4);
 					color: var(--color-white);
 					cursor: pointer;
 					box-shadow:
 						0 8px 24px rgba(8, 47, 73, 0.12),
-						inset 0 0 0 var(--border-w-xs) rgba(255, 255, 255, 0.55);
-					transition: transform .25s ease, box-shadow .25s ease;
+						inset 0 0 0 var(--border-w-xs)
+							rgba(255, 255, 255, 0.55);
+					transition:
+						transform .25s ease,
+						box-shadow .25s ease;
 				}
 
 				.srl-trigger:hover {
 					transform: translateY(-3px);
 					box-shadow:
 						0 12px 30px rgba(8, 47, 73, 0.18),
-						inset 0 0 0 var(--border-w-xs) rgba(255, 255, 255, 0.7);
+						inset 0 0 0 var(--border-w-xs)
+							rgba(255, 255, 255, 0.7);
 				}
 
 				.srl-trigger:active {
@@ -223,6 +162,8 @@ const SRLTriggerButton = () => {
 					outline: var(--border-w-md) solid var(--srl-color);
 					outline-offset: 3px;
 				}
+
+				/* ---------- Progress ring ---------- */
 
 				.srl-ring {
 					position: absolute;
@@ -236,7 +177,9 @@ const SRLTriggerButton = () => {
 					stroke-width: 4.5;
 					stroke-linecap: round;
 					transform-origin: 50px 50px;
-					transition: stroke .3s ease, opacity .3s ease;
+					transition:
+						stroke .3s ease,
+						opacity .3s ease;
 				}
 
 				.srl-seg.is-todo {
@@ -250,19 +193,43 @@ const SRLTriggerButton = () => {
 
 				.srl-seg.is-active {
 					stroke: var(--srl-color);
-					filter: drop-shadow(0 0 2px color-mix(in srgb, var(--srl-color) 50%, transparent));
+					filter: drop-shadow(
+						0 0 2px
+						color-mix(
+							in srgb,
+							var(--srl-color) 50%,
+							transparent
+						)
+					);
 				}
+
+				/* ---------- Button core ---------- */
 
 				.srl-core {
 					position: absolute;
 					inset: 24%;
 					border-radius: 50%;
-					background: linear-gradient(145deg, var(--srl-accent), color-mix(in srgb, var(--srl-accent) 65%, black));
-					box-shadow: 0 6px 14px color-mix(in srgb, var(--srl-accent) 40%, transparent);
+					background: linear-gradient(
+						145deg,
+						var(--srl-accent),
+						color-mix(
+							in srgb,
+							var(--srl-accent) 65%,
+							black
+						)
+					);
+					box-shadow: 0 6px 14px
+						color-mix(
+							in srgb,
+							var(--srl-accent) 40%,
+							transparent
+						);
 					display: flex;
 					align-items: center;
 					justify-content: center;
 				}
+
+				/* ---------- Session indicator ---------- */
 
 				.srl-trigger-dot {
 					position: absolute;
@@ -275,25 +242,66 @@ const SRLTriggerButton = () => {
 					border: var(--border-w-md) solid var(--card);
 				}
 
-				@keyframes srl-info-in {
-					from { opacity: 0; transform: translateX(8px); }
-					to   { opacity: 1; transform: translateX(0); }
+				/* ---------- Compact Performance timer ---------- */
+
+				.srl-timer {
+					position: absolute;
+					top: calc(100%);
+					left: 50%;
+					transform: translateX(-50%);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					gap: 5px;
+					padding: 5px 10px;
+					border-radius: 20px;
+					background: var(--card);
+					border: var(--border-w-xs) solid var(--border-md);
+					box-shadow: 0 3px 12px rgba(8, 47, 73, 0.10);
+					color: var(--text);
+					font-size: 12px;
+					font-weight: 700;
+					font-variant-numeric: tabular-nums;
+					white-space: nowrap;
+					pointer-events: none;
+					animation: srl-timer-in .2s ease-out;
 				}
 
-				@keyframes srl-pulse {
-					from { transform: scale(1); opacity: .6; }
-					to   { transform: scale(2.8); opacity: 0; }
+				.srl-timer.is-paused {
+					color: var(--warning-text);
+				}
+
+				.srl-timer.is-overtime {
+					color: var(--danger-text, #dc2626);
+				}
+
+				.srl-timer-dot {
+					width: 6px;
+					height: 6px;
+					border-radius: 50%;
+					background: var(--success-border-color);
+					flex-shrink: 0;
+				}
+
+				.srl-timer.is-paused .srl-timer-dot {
+					background: var(--warning-border);
+				}
+
+				@keyframes srl-timer-in {
+					from {
+						opacity: 0;
+						transform: translate(-50%, -4px);
+					}
+					to {
+						opacity: 1;
+						transform: translate(-50%, 0);
+					}
 				}
 
 				@media (max-width: 576px) {
 					.srl-trigger-container {
-						bottom: 20px;
+						bottom: 26px;
 						right: 18px;
-					}
-
-					.srl-info {
-						min-width: 132px;
-						padding: 9px 13px 10px;
 					}
 
 					.srl-trigger {
@@ -305,36 +313,21 @@ const SRLTriggerButton = () => {
 				@media (prefers-reduced-motion: reduce) {
 					.srl-trigger,
 					.srl-seg,
-					.srl-info {
+					.srl-timer {
 						transition: none;
-						animation: none;
-					}
-					.srl-status-dot.is-live::after {
 						animation: none;
 					}
 				}
 			`}</style>
 
 			<div className="srl-trigger-container">
-				{!isOpen && (
-					<div className="srl-info" aria-live="off">
-						<div className="srl-info-top">
-							<span className={`srl-status-dot${config.live ? ' is-live' : ''}`} />
-							<span className="srl-info-status">{config.status}</span>
-						</div>
-						<div className="srl-info-title">{cardTitle}</div>
-						<div className="srl-info-description">{config.description}</div>
-					</div>
-				)}
-
 				<button
 					type="button"
 					onClick={toggleModal}
 					title={title}
 					aria-label={
-						isOpen
-							? 'Tutup SRL'
-							: `SRL, fase ${config.phase} dari 3: ${config.name}. ${config.description}`
+						`SRL, fase ${config.phase} dari 3: ${config.name}` +
+						(showTimer ? `. Waktu belajar ${timeText}` : '')
 					}
 					aria-expanded={isOpen}
 					className="srl-trigger"
@@ -342,12 +335,14 @@ const SRLTriggerButton = () => {
 					<svg className="srl-ring" viewBox="0 0 100 100" aria-hidden="true">
 						{SEGMENT_START.map((start, i) => {
 							const n = i + 1;
+
 							const state =
 								n < config.phase
 									? 'is-done'
 									: n === config.phase
 										? 'is-active'
 										: 'is-todo';
+
 							return (
 								<circle
 									key={n}
@@ -357,7 +352,9 @@ const SRLTriggerButton = () => {
 									r={RING_RADIUS}
 									pathLength="360"
 									strokeDasharray={`${SEGMENT_SWEEP} ${360 - SEGMENT_SWEEP}`}
-									style={{ transform: `rotate(${start}deg)` }}
+									style={{
+										transform: `rotate(${start}deg)`,
+									}}
 								/>
 							);
 						})}
@@ -367,6 +364,20 @@ const SRLTriggerButton = () => {
 
 					{isSessionActive && !isOpen && <span className="srl-trigger-dot" />}
 				</button>
+
+				{/* Timer only appears during Performance */}
+				{showTimer && (
+					<div
+						className={`srl-timer ${
+							isPaused ? 'is-paused' : ''
+						} ${reached ? 'is-overtime' : ''}`}
+						aria-live="off"
+						title={isPaused ? 'Sesi pembelajaran dijeda' : 'Sisa waktu pembelajaran'}
+					>
+						<span className="srl-timer-dot" />
+						<span>{timeText}</span>
+					</div>
+				)}
 			</div>
 		</>
 	);

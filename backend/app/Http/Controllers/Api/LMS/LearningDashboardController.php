@@ -1,6 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api\LMS;
+// Letakkan di: app/Http/Controllers/Api/Lms/LearningDashboardController.php
+// (namespace "Lms" harus sama persis dengan import di routes; di Linux huruf besar/kecil berpengaruh)
+
+namespace App\Http\Controllers\Api\Lms;
 
 use App\Http\Controllers\Controller;
 use App\Models\Enrollment;
@@ -10,104 +13,66 @@ use App\Models\LearningHistory;
 use App\Models\LearningPath;
 use App\Models\Lesson;
 use App\Models\LmsUserBadge;
-use App\Models\LmsUserCertificate;
 use App\Models\Module;
 use App\Models\QuizAttempt;
 use App\Models\ReadinessPrediction;
 use App\Models\Recommendation;
-use App\Models\Skill;
 use App\Models\SrlLearningSession;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class LearningDashboardController extends Controller
 {
+    /** Nilai recommendations.content_type yang menunjuk ke modul. Sesuaikan dengan isi tabel Anda. */
+    private const REC_MODULE_TYPES = ['module'];
+
     /**
-     * Mengambil seluruh data agregasi untuk Learning Dashboard Member
-     * URL: GET /api/lms/learner/dashboard
+     * GET /api/lms/member/dashboard  (auth:sanctum)
      */
     public function index(Request $request): JsonResponse
     {
-        // 1. Dapatkan user (dari token Sanctum atau fallback ke demo user)
-        $user = $request->user('sanctum') ?? $request->user() ?? auth('sanctum')->user();
+        $user = $request->user();
         if (!$user) {
-            $user = User::where('role', 'member')->first() ?? User::find(2) ?? User::first();
+            return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
+        $userId = $user->id;
 
-        $userId = $user ? $user->id : null;
+        $ctx = $this->loadContext($userId);
 
-        // 2. Hitung Learning Profile & Streak
-        $userLearningProfile = $this->getUserLearningProfile($userId);
+        $enrolledModules    = $this->buildEnrolledModules($ctx);
+        $activeModule       = $this->buildActiveModule($enrolledModules, $ctx);
+        $recommendedModules = $this->buildRecommendedModules($userId, $enrolledModules, $ctx);
+        $srlHistory         = $this->buildSrlHistory($userId, $ctx);
+        $skillProfile       = $this->buildSkillProfile($ctx);
+        $achievements       = $this->buildAchievements($userId);
+        $learningReadiness  = $this->buildLearningReadiness($ctx, $activeModule);
 
-        // 3. Dapatkan Enrolled Modules (dan modul aktif)
-        $enrolledModules = $this->getEnrolledModules($userId);
-
-        // 4. Dapatkan Modul Aktif (Continue Learning)
-        $activeModule = $this->getActiveModule($userId, $enrolledModules);
-
-        // 5. Rekomendasi Modul (Hybrid Engine / Fallback)
-        $recommendedModules = $this->getRecommendedModules($userId, $activeModule ? $activeModule['id'] : null);
-
-        // 6. Riwayat Sesi SRL
-        $srlHistory = $this->getSrlHistory($userId);
-
-        // 7. Profil Kompetensi (Skill Matrix)
-        $skillProfile = $this->getSkillProfile($userId);
-
-        // 8. Pencapaian (Badges & Kredensial/Sertifikat)
-        $achievements = $this->getAchievements($userId);
-
-        // 9. Kesiapan Belajar (Learning Readiness)
-        $learningReadiness = $this->getLearningReadiness($userId, $activeModule);
-
-        // 10. Ringkasan KPI Header
-        $quizScores = array_values(array_filter(array_column($enrolledModules, 'lastQuizScore')));
-        $avgQuiz = count($quizScores) ? (int) round(array_sum($quizScores) / count($quizScores)) : 0;
-        $lessonsDoneTotal = array_sum(array_column($enrolledModules, 'lessonsDone'));
-        $completedModulesCount = count(array_filter($enrolledModules, fn ($m) => ($m['status'] ?? '') === 'completed'));
-        $inProgressModulesCount = count(array_filter($enrolledModules, fn ($m) => ($m['status'] ?? '') === 'in_progress'));
+        $quizScores = array_values(array_filter(array_column($enrolledModules, 'lastQuizScore'), fn ($s) => $s !== null));
+        $avgQuiz    = count($quizScores) ? (int) round(array_sum($quizScores) / count($quizScores)) : 0;
 
         $stats = [
-            [
-                'icon'  => 'book-open',
-                'label' => 'Modul berjalan',
-                'value' => $inProgressModulesCount,
-                'tone'  => 'primary',
-            ],
-            [
-                'icon'  => 'check-circle',
-                'label' => 'Lesson selesai',
-                'value' => $lessonsDoneTotal,
-                'tone'  => 'success',
-            ],
-            [
-                'icon'  => 'trending-up',
-                'label' => 'Rata-rata skor kuis',
-                'value' => $avgQuiz,
-                'tone'  => 'purple',
-            ],
-            [
-                'icon'  => 'award',
-                'label' => 'Sertifikat',
-                'value' => $completedModulesCount,
-                'tone'  => 'warning',
-            ],
+            ['icon' => 'book-open',   'label' => 'Modul berjalan',      'value' => count(array_filter($enrolledModules, fn ($m) => $m['status'] === 'in_progress')), 'tone' => 'primary'],
+            ['icon' => 'check-circle', 'label' => 'Lesson selesai',     'value' => array_sum(array_column($enrolledModules, 'lessonsDone')), 'tone' => 'success'],
+            ['icon' => 'trending-up', 'label' => 'Rata-rata skor kuis', 'value' => $avgQuiz, 'tone' => 'purple'],
+            ['icon' => 'award',       'label' => 'Sertifikat',          'value' => count(array_filter($achievements['credentials'], fn ($c) => $c['status'] === 'recorded')), 'tone' => 'warning'],
         ];
 
         return response()->json([
             'success' => true,
             'message' => 'Learning dashboard data retrieved successfully.',
             'data'    => [
-                'user'                => $user ? [
+                'user' => [
                     'id'       => $user->id,
                     'name'     => $user->name,
                     'email'    => $user->email,
                     'username' => $user->username ?? null,
-                ] : null,
-                'userLearningProfile' => $userLearningProfile,
+                ],
+                'userLearningProfile' => ['currentStreak' => $this->calculateStreak($userId)],
                 'activeModule'        => $activeModule,
                 'recommendedModules'  => $recommendedModules,
                 'enrolledModules'     => $enrolledModules,
@@ -120,674 +85,619 @@ class LearningDashboardController extends Controller
         ]);
     }
 
-    /**
-     * Hitung streak belajar berturut-turut dari aktivitas belajar & sesi SRL
-     */
-    private function getUserLearningProfile(?int $userId): array
+    // ------------------------------------------------------------------
+    // Context: semua data mentah dimuat sekali (enrollment -> learning path -> module -> lesson)
+    // ------------------------------------------------------------------
+    private function loadContext(int $userId): array
     {
-        if (!$userId) {
-            return ['currentStreak' => 7];
-        }
+        $enrollments = Enrollment::where('user_id', $userId)
+            ->whereIn('status', ['active', 'completed'])
+            ->orderByDesc('last_accessed_at')
+            ->get();
 
-        $uniqueDates = collect();
+        $paths = LearningPath::whereIn('id', $enrollments->pluck('learning_path_id'))->get()->keyBy('id');
 
-        // 1. Aktivitas
-        if (Schema::hasTable('learning_activities')) {
-            $col = Schema::hasColumn('learning_activities', 'occurred_at') ? 'occurred_at' : (Schema::hasColumn('learning_activities', 'start_time') ? 'start_time' : 'created_at');
-            $q = LearningActivity::query();
-            if (Schema::hasColumn('learning_activities', 'user_id')) {
-                $q->where('user_id', $userId);
+        $modules = Module::whereIn('learning_path_id', $paths->keys())
+            ->where('status', 'published')
+            ->orderBy('order_index')
+            ->get();
+
+        $moduleIds = $modules->pluck('id');
+
+        $lessons = Lesson::whereIn('module_id', $moduleIds)
+            ->where('status', 'published')
+            ->orderBy('order_index')
+            ->get()
+            ->groupBy('module_id');
+
+        // Progres lesson: gabungan learning_histories & learning_completions
+        $histories = Schema::hasTable('learning_histories')
+            ? LearningHistory::where('user_id', $userId)->get()->keyBy('lesson_id')
+            : collect();
+
+        $completions = Schema::hasTable('learning_completions')
+            ? LearningCompletion::where('user_id', $userId)->get()
+            : collect();
+
+        $doneLessonIds = $histories->where('status', 'completed')->keys()
+            ->merge($completions->whereNotNull('lesson_id')->pluck('lesson_id'))
+            ->unique()->values()->all();
+
+        $completedModuleIds = $completions->whereNotNull('module_id')->pluck('module_id')->unique()->values()->all();
+
+        // Kuis per modul + percobaan terakhir user
+        $quizByModule    = DB::table('quizzes')->whereIn('module_id', $moduleIds)->pluck('id', 'module_id');
+        $attemptsByQuiz  = $quizByModule->isEmpty() ? collect() : QuizAttempt::where('user_id', $userId)
+            ->whereIn('quiz_id', $quizByModule->values())
+            ->whereNotNull('score')
+            ->orderByDesc('completed_at')
+            ->get()
+            ->groupBy('quiz_id');
+
+        // Readiness terbaru per modul (lewat quiz_attempt -> quiz -> module) dan yang paling baru secara umum
+        $latestPrediction    = null;
+        $readinessByModule   = [];
+        if (Schema::hasTable('readiness_predictions')) {
+            $moduleByQuiz = $quizByModule->flip();
+            $predictions  = ReadinessPrediction::with('quizAttempt')
+                ->where('user_id', $userId)->orderByDesc('predicted_at')->get();
+            foreach ($predictions as $p) {
+                $latestPrediction ??= $p;
+                $quizId   = $p->quizAttempt?->quiz_id;
+                $moduleId = $quizId ? $moduleByQuiz->get($quizId) : null;
+                if ($moduleId) {
+                    $readinessByModule[$moduleId] ??= round((float) $p->readiness_score, 2);
+                }
             }
-            $dates = $q->pluck($col)->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'));
-            $uniqueDates = $uniqueDates->concat($dates);
         }
 
-        // 2. Sesi SRL
-        if (Schema::hasTable('srl_learning_sessions')) {
-            $srlDates = SrlLearningSession::where('user_id', $userId)
-                ->pluck('started_at')
-                ->filter()
-                ->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'));
-            $uniqueDates = $uniqueDates->concat($srlDates);
+        // Sesi SRL aktif. Modul yang dipelajari TIDAK disimpan di sesi,
+        // melainkan dideteksi dari srl_session_materials (lesson/modul/kuis yang dibuka selama sesi).
+        $activeSessions = Schema::hasTable('srl_learning_sessions')
+            ? SrlLearningSession::where('user_id', $userId)
+                ->whereIn('status', ['planned', 'in_progress'])
+                ->orderByDesc('updated_at')
+                ->get()
+            : collect();
+
+        $materialsBySession = $this->loadSessionMaterials($userId)->groupBy('session_id');
+
+        return [
+            'userId'             => $userId,
+            'enrollments'        => $enrollments,
+            'paths'              => $paths,
+            'modulesByPath'      => $modules->groupBy('learning_path_id'),
+            'lessons'            => $lessons,
+            'histories'          => $histories,
+            'doneLessonIds'      => $doneLessonIds,
+            'completedModuleIds' => $completedModuleIds,
+            'quizByModule'       => $quizByModule,
+            'attemptsByQuiz'     => $attemptsByQuiz,
+            'readinessByModule'  => $readinessByModule,
+            'latestPrediction'   => $latestPrediction,
+            'activeSessions'     => $activeSessions,
+            'materialsBySession' => $materialsBySession,
+        ];
+    }
+
+    // ------------------------------------------------------------------
+    // Streak
+    // ------------------------------------------------------------------
+    private function calculateStreak(int $userId): int
+    {
+        $sources = [
+            ['learning_activities', 'occurred_at'],
+            ['srl_learning_sessions', 'started_at'],
+            ['learning_histories', 'last_accessed_at'],
+            ['learning_completions', 'completed_at'],
+        ];
+
+        $dates = collect();
+        foreach ($sources as [$table, $column]) {
+            if (!Schema::hasTable($table)) {
+                continue;
+            }
+            $dates = $dates->merge(
+                DB::table($table)->where('user_id', $userId)->whereNotNull($column)
+                    ->selectRaw("DATE($column) as d")->distinct()->pluck('d')
+            );
         }
 
-        $uniqueDates = $uniqueDates->unique()->sortDesc()->values();
+        $dates = $dates->map(fn ($d) => Carbon::parse($d)->format('Y-m-d'))->unique()->flip();
 
-        if ($uniqueDates->isEmpty()) {
-            return ['currentStreak' => 7]; // Default demo streak
+        $cursor = Carbon::today();
+        if (!$dates->has($cursor->format('Y-m-d'))) {
+            $cursor = Carbon::yesterday(); // hari ini belum belajar -> streak masih dihitung dari kemarin
         }
 
         $streak = 0;
-        $checkDate = Carbon::today();
-
-        // Jika hari ini belum tercatat, periksa mulai kemarin
-        if (!$uniqueDates->contains($checkDate->format('Y-m-d'))) {
-            $checkDate = Carbon::yesterday();
-        }
-
-        while ($uniqueDates->contains($checkDate->format('Y-m-d'))) {
+        while ($dates->has($cursor->format('Y-m-d'))) {
             $streak++;
-            $checkDate->subDay();
+            $cursor->subDay();
         }
+
+        return $streak;
+    }
+
+    // ------------------------------------------------------------------
+    // Enrolled modules (turunan dari learning path yang di-enroll)
+    // ------------------------------------------------------------------
+    private function buildEnrolledModules(array $ctx): array
+    {
+        $out = [];
+
+        foreach ($ctx['enrollments'] as $enr) {
+            $path = $ctx['paths']->get($enr->learning_path_id);
+            if (!$path) {
+                continue;
+            }
+
+            foreach ($ctx['modulesByPath']->get($path->id, collect()) as $mod) {
+                /** @var Collection $lessons */
+                $lessons = $ctx['lessons']->get($mod->id, collect());
+                $total   = $lessons->count();
+                $done    = $lessons->whereIn('id', $ctx['doneLessonIds'])->count();
+
+                $isCompleted = in_array($mod->id, $ctx['completedModuleIds'], true) || ($total > 0 && $done >= $total);
+                if ($isCompleted && $total > 0) {
+                    $done = $total;
+                }
+
+                $quizId      = $ctx['quizByModule']->get($mod->id);
+                $lastAttempt = $quizId ? $ctx['attemptsByQuiz']->get($quizId)?->first() : null;
+
+                $lastAccess = $lessons
+                    ->map(fn ($l) => ($h = $ctx['histories']->get($l->id)) && $h->last_accessed_at ? Carbon::parse($h->last_accessed_at) : null)
+                    ->filter()->max();
+                if (!$lastAccess && $enr->last_accessed_at) {
+                    $lastAccess = Carbon::parse($enr->last_accessed_at);
+                }
+
+                $session = $this->sessionForModule($ctx, $mod->id);
+
+                $out[] = [
+                    'id'               => 'enr-' . $mod->id,
+                    'moduleId'         => $mod->id,
+                    'learningPathId'   => $path->id,
+                    'learningPathSlug' => $path->slug,
+                    'learningPath'     => $path->title,
+                    'title'            => $mod->title,
+                    'category'         => $path->category,
+                    'description'      => Str::limit(strip_tags((string) $mod->description), 140),
+                    'type'             => 'module',
+                    'rawId'            => $mod->id,
+                    'isEnrolled'       => true,
+                    'isCompleted'      => $isCompleted,
+                    'progressPercent'  => $total ? (int) round($done / $total * 100) : 0,
+                    'lessonCount'      => $total,
+                    'thumbnail'        => $this->thumbnailUrl($path),
+                    'status'           => $isCompleted ? 'completed' : 'in_progress',
+                    'lessonsDone'      => $done,
+                    'lessonTotal'      => $total,
+                    'srlPhase'         => $isCompleted ? null : ($session?->current_phase),
+                    'lastQuizScore'    => $lastAttempt ? (int) round((float) $lastAttempt->score) : null,
+                    'readiness'        => $ctx['readinessByModule'][$mod->id] ?? null,
+                    'lastActivity'     => $lastAccess ? $lastAccess->copy()->locale('id')->diffForHumans() : null,
+                    'lastActivityAt'   => $lastAccess?->toISOString(),
+                ];
+            }
+        }
+
+        // Modul berjalan (aktivitas terbaru) lebih dulu, modul selesai di belakang
+        $rank = fn ($m) => $m['status'] === 'completed' ? 1 : 0;
+        usort($out, fn ($a, $b) => [$rank($a), $b['lastActivityAt'] ?? ''] <=> [$rank($b), $a['lastActivityAt'] ?? '']);
+
+        return $out;
+    }
+
+    /** Sesi aktif yang pernah membuka materi (lesson/modul/kuis) dari modul ini. */
+    private function sessionForModule(array $ctx, int $moduleId): ?SrlLearningSession
+    {
+        return $ctx['activeSessions']->first(
+            fn ($s) => $ctx['materialsBySession']->get($s->id, collect())->contains('module_id', $moduleId)
+        );
+    }
+
+    /**
+     * Materi yang dibuka user selama sesi SRL (srl_session_materials), dipetakan ke modul.
+     * target_type boleh berupa nama kelas (App\Models\Lesson) atau alias (lesson, module, quiz).
+     */
+    private function loadSessionMaterials(int $userId): Collection
+    {
+        if (!Schema::hasTable('srl_session_materials') || !Schema::hasTable('srl_learning_sessions')) {
+            return collect();
+        }
+
+        $rows = DB::table('srl_session_materials as m')
+            ->join('srl_learning_sessions as s', 's.id', '=', 'm.srl_learning_session_id')
+            ->where('s.user_id', $userId)
+            ->get(['m.srl_learning_session_id as session_id', 'm.target_type', 'm.target_id', 'm.duration_seconds', 'm.is_completed'])
+            ->map(function ($r) {
+                $r->kind = Str::lower(class_basename($r->target_type));
+                return $r;
+            });
+
+        $ids = fn (string $kind) => $rows->where('kind', $kind)->pluck('target_id')->unique()->values();
+
+        $lessons  = Lesson::whereIn('id', $ids('lesson'))->get(['id', 'module_id', 'title'])->keyBy('id');
+        $quizzes  = DB::table('quizzes')->whereIn('id', $ids('quiz'))->get(['id', 'module_id', 'title'])->keyBy('id');
+        $modTitle = Module::whereIn('id', $ids('module'))->pluck('title', 'id');
+
+        return $rows->map(function ($r) use ($lessons, $quizzes, $modTitle) {
+            switch ($r->kind) {
+                case 'lesson':
+                    $r->module_id = $lessons->get($r->target_id)?->module_id;
+                    $r->title     = $lessons->get($r->target_id)?->title;
+                    break;
+                case 'quiz':
+                    $r->module_id = $quizzes->get($r->target_id)?->module_id;
+                    $r->title     = $quizzes->get($r->target_id)?->title;
+                    break;
+                case 'module':
+                    $r->module_id = (int) $r->target_id;
+                    $r->title     = $modTitle->get($r->target_id);
+                    break;
+                default:
+                    $r->module_id = null;
+                    $r->title     = null;
+            }
+            return $r;
+        });
+    }
+
+    private function thumbnailUrl(LearningPath $path): ?string
+    {
+        $t = $path->getAttribute('thumbnail_url') ?: $path->thumbnail;
+        if (!$t) {
+            return null;
+        }
+        return Str::startsWith($t, ['http://', 'https://', '/']) ? $t : asset('storage/' . ltrim($t, '/'));
+    }
+
+    // ------------------------------------------------------------------
+    // Modul aktif (Continue Learning)
+    // ------------------------------------------------------------------
+    private function buildActiveModule(array $enrolledModules, array $ctx): ?array
+    {
+        $active = collect($enrolledModules)->firstWhere('status', 'in_progress');
+        if (!$active) {
+            return null; // frontend menyembunyikan kartu "lanjutkan belajar"
+        }
+
+        $lessons   = $ctx['lessons']->get($active['moduleId'], collect())->values();
+        $nextIndex = $lessons->search(fn ($l) => !in_array($l->id, $ctx['doneLessonIds'], true));
+        $nextIndex = $nextIndex === false ? max(0, $lessons->count() - 1) : $nextIndex;
+        $current   = $lessons->get($nextIndex);
+
+        $minutesLeft = $lessons->slice($nextIndex)
+            ->reject(fn ($l) => in_array($l->id, $ctx['doneLessonIds'], true))
+            ->sum('duration_minutes');
+
+        // Sesi yang sudah membuka modul ini; jika belum ada materi tercatat, pakai sesi aktif terbaru
+        $session = $this->sessionForModule($ctx, $active['moduleId']) ?? $ctx['activeSessions']->first();
 
         return [
-            'currentStreak' => max($streak, 1),
+            'id'               => $active['moduleId'],
+            'targetModuleId'   => $active['moduleId'],
+            'learningPathId'   => $active['learningPathId'],
+            'learningPathSlug' => $active['learningPathSlug'],
+            'title'            => $active['title'],
+            'category'         => $active['category'],
+            'thumbnail'        => $active['thumbnail'],
+            'lessonsDone'      => $active['lessonsDone'],
+            'lessonTotal'      => $active['lessonTotal'],
+            'currentLesson'    => $current ? $nextIndex + 1 : null,
+            'currentLessonId'  => $current?->id,
+            'lessonTitle'      => $current?->title,
+            'minutesLeft'      => (int) $minutesLeft,
+            'srlPhase'         => $session?->current_phase ?? 'forethought',
+            'session'          => [
+                'forethought' => [
+                    'sessionGoal'        => $session?->goal,
+                    'estimatedTime'      => $session?->estimated_minutes ?? 25,
+                    'confidence'         => $session?->confidence_level,
+                    'selectedStrategies' => is_array($session?->strategies) ? $session->strategies : [],
+                ],
+                'performance' => ['accumulatedSeconds' => (int) ($session?->accumulated_seconds ?? 0)],
+            ],
         ];
     }
 
-    /**
-     * Ambil modul yang di-enroll oleh member beserta progres, fase SRL, kuis, dan readiness
-     */
-    private function getEnrolledModules(?int $userId): array
+    // ------------------------------------------------------------------
+    // Rekomendasi (tabel recommendations; fallback sederhana berbasis kesamaan skill)
+    // ------------------------------------------------------------------
+    private function buildRecommendedModules(int $userId, array $enrolledModules, array $ctx): array
     {
-        $modules = [];
+        $enrolledIds     = array_column($enrolledModules, 'moduleId');
+        $enrolledPathIds = $ctx['paths']->keys()->all();
+        $items           = [];
 
-        // 1. Coba ambil dari tabel Enrollment
-        $enrollments = $userId
-            ? Enrollment::with([
-                'learningPath.modules.lessons',
-                'learningPath.modules.quiz.attempts' => function ($q) use ($userId) {
-                    $q->where('user_id', $userId)->latest();
-                },
-            ])->where('user_id', $userId)->get()
-            : collect();
+        // 1. Hasil Recommendation Engine (hybrid CBF + CF)
+        if (Schema::hasTable('recommendations')) {
+            $recs = Recommendation::where('user_id', $userId)
+                ->whereIn('content_type', self::REC_MODULE_TYPES)
+                ->orderBy('rank_position')
+                ->take(12)->get();
 
-        $enrolledModuleModels = collect();
+            $mods = Module::whereIn('id', $recs->pluck('content_id'))
+                ->where('status', 'published')->get()->keyBy('id');
 
-        foreach ($enrollments as $enrollment) {
-            if ($enrollment->learningPath && $enrollment->learningPath->modules) {
-                foreach ($enrollment->learningPath->modules as $mod) {
-                    $mod->setRelation('learningPath', $enrollment->learningPath);
-                    $enrolledModuleModels->push($mod);
-                }
+            $recs = $recs->filter(fn ($r) => $mods->has($r->content_id) && !in_array($r->content_id, $enrolledIds, true))->take(4);
+
+            $paths  = LearningPath::whereIn('id', $mods->pluck('learning_path_id'))->get()->keyBy('id');
+            $stats  = $this->lessonStats($recs->pluck('content_id')->all());
+            $skills = $this->skillsByModule($recs->pluck('content_id')->all());
+
+            foreach ($recs as $r) {
+                $mod  = $mods->get($r->content_id);
+                $src  = $r->cbf_score !== null && $r->cf_score !== null ? 'hybrid' : ($r->cbf_score !== null ? 'cbf' : 'cf');
+                $items[] = $this->recommendationItem(
+                    $mod, $paths->get($mod->learning_path_id), $stats->get($mod->id), $skills[$mod->id] ?? [],
+                    (float) $r->score, $src,
+                    in_array($mod->learning_path_id, $enrolledPathIds, true) ? 'lanjut' : 'pendukung'
+                );
             }
         }
 
-        // Jika belum ada enrollment pada user, ambil modul yang dipublikasikan sebagai data awal
-        if ($enrolledModuleModels->isEmpty()) {
-            $enrolledModuleModels = Module::with(['lessons', 'learningPath', 'quiz.attempts' => function ($q) use ($userId) {
-                if ($userId) {
-                    $q->where('user_id', $userId)->latest();
-                }
-            }])->where('status', 'published')->take(6)->get();
+        // 2. Fallback: modul dari learning path lain, diurutkan berdasarkan kesamaan skill (CBF sederhana)
+        if (count($items) < 4) {
+            $takenIds = array_merge($enrolledIds, array_column($items, 'targetModuleId'));
 
-            // Jika masih kosong (belum di-filter published), ambil modul apa saja
-            if ($enrolledModuleModels->isEmpty()) {
-                $enrolledModuleModels = Module::with(['lessons', 'learningPath', 'quiz'])->take(6)->get();
+            $candidatePathIds = LearningPath::where('status', 'published')
+                ->whereNotIn('id', $enrolledPathIds)->pluck('id');
+
+            $candidates = Module::whereIn('learning_path_id', $candidatePathIds)
+                ->where('status', 'published')
+                ->whereNotIn('id', $takenIds)
+                ->get();
+
+            $candidateIds = $candidates->pluck('id')->all();
+            $skills       = $this->skillsByModule($candidateIds);
+            $stats        = $this->lessonStats($candidateIds);
+            $paths        = LearningPath::whereIn('id', $candidates->pluck('learning_path_id'))->get()->keyBy('id');
+
+            $learnedSkillIds = empty($ctx['doneLessonIds']) ? [] : DB::table('lesson_skills')
+                ->whereIn('lesson_id', $ctx['doneLessonIds'])->pluck('skill_id')->unique()->all();
+
+            $scored = $candidates->map(function ($mod) use ($skills, $learnedSkillIds) {
+                $ids   = array_keys($skills[$mod->id] ?? []);
+                $score = count($ids) ? count(array_intersect($ids, $learnedSkillIds)) / count($ids) : 0;
+                return ['mod' => $mod, 'score' => round($score, 2)];
+            })->sortByDesc('score')->take(4 - count($items));
+
+            foreach ($scored as $row) {
+                $mod = $row['mod'];
+                $items[] = $this->recommendationItem(
+                    $mod, $paths->get($mod->learning_path_id), $stats->get($mod->id), $skills[$mod->id] ?? [],
+                    $row['score'], 'cbf', 'pendukung'
+                );
             }
         }
 
-        // Ambil riwayat penyelesaian pelajaran user
-        $completedLessonIds = [];
-        if ($userId && Schema::hasTable('learning_histories')) {
-            $completedLessonIds = LearningHistory::where('user_id', $userId)
-                ->where('status', 'completed')
-                ->pluck('lesson_id')
-                ->toArray();
-        }
-
-        // Ambil sesi SRL aktif per modul
-        $activeSessions = collect();
-        if ($userId && Schema::hasTable('srl_learning_sessions')) {
-            $activeSessions = SrlLearningSession::where('user_id', $userId)
-                ->latest('updated_at')
-                ->get()
-                ->keyBy('module_id');
-        }
-
-        // Ambil prediksi kesiapan terbaru
-        $latestReadiness = null;
-        if ($userId && Schema::hasTable('readiness_predictions')) {
-            $latestReadiness = ReadinessPrediction::where('user_id', $userId)->latest('predicted_at')->first();
-        }
-
-        $defaultReadiness = $latestReadiness ? (float) $latestReadiness->readiness_score : 0.68;
-
-        foreach ($enrolledModuleModels as $index => $mod) {
-            $totalLessons = $mod->lessons ? $mod->lessons->count() : 0;
-            $doneCount = 0;
-
-            if (!empty($completedLessonIds) && $mod->lessons) {
-                $doneCount = $mod->lessons->whereIn('id', $completedLessonIds)->count();
-            }
-
-            // Jika total lessons = 0, beri estimasi fallback
-            if ($totalLessons === 0) {
-                $totalLessons = max(4, ($index + 3) * 2);
-                $doneCount = $index === 0 ? 5 : ($index === 1 ? 2 : ($index === 3 ? $totalLessons : 3));
-            }
-
-            $isCompleted = ($doneCount >= $totalLessons && $totalLessons > 0);
-            $status = $isCompleted ? 'completed' : 'in_progress';
-
-            $activeSession = $activeSessions->get($mod->id);
-            $srlPhases = ['performance', 'reflection', 'forethought'];
-            $srlPhase = $activeSession ? $activeSession->current_phase : ($isCompleted ? null : $srlPhases[$index % 3]);
-
-            $lastAttempt = $mod->quiz && $mod->quiz->attempts->isNotEmpty()
-                ? $mod->quiz->attempts->first()
-                : null;
-            $lastQuizScore = $lastAttempt ? (int) $lastAttempt->score : ($isCompleted ? 88 : (75 + ($index * 4) % 15));
-
-            $lastActivityStr = $activeSession && $activeSession->started_at
-                ? Carbon::parse($activeSession->started_at)->diffForHumans()
-                : ($index === 0 ? 'Hari ini, 10:30' : ($index === 1 ? 'Kemarin' : ($index + 1) . ' hari lalu'));
-
-            $modules[] = [
-                'id'            => 'enr-' . $mod->id,
-                'moduleId'      => $mod->id,
-                'title'         => $mod->title,
-                'category'      => $mod->learningPath?->category ?? 'System Architecture',
-                'thumbnail'     => $mod->learningPath?->thumbnail_url ?? null,
-                'status'        => $status,
-                'lessonsDone'   => $doneCount,
-                'lessonTotal'   => $totalLessons,
-                'srlPhase'      => $srlPhase,
-                'lastQuizScore' => $lastQuizScore,
-                'readiness'     => round(min(0.95, max(0.40, $defaultReadiness + (($index % 3) * 0.08 - 0.05))), 2),
-                'lastActivity'  => $lastActivityStr,
-            ];
-        }
-
-        return $modules;
+        return $items;
     }
 
-    /**
-     * Dapatkan modul yang sedang aktif dipelajari
-     */
-    private function getActiveModule(?int $userId, array $enrolledModules): ?array
+    private function recommendationItem(Module $mod, ?LearningPath $path, $stats, array $skills, float $score, string $source, string $reason): array
     {
-        // Cari dari enrolledModules yang in_progress pertama
-        $activeEnrolled = null;
-        foreach ($enrolledModules as $em) {
-            if ($em['status'] === 'in_progress') {
-                $activeEnrolled = $em;
-                break;
-            }
-        }
-
-        if (!$activeEnrolled && !empty($enrolledModules)) {
-            $activeEnrolled = $enrolledModules[0];
-        }
-
-        $moduleId = $activeEnrolled ? $activeEnrolled['moduleId'] : null;
-        $modModel = $moduleId ? Module::with(['lessons', 'learningPath'])->find($moduleId) : null;
-
-        if (!$modModel) {
-            $modModel = Module::with(['lessons', 'learningPath'])->first();
-        }
-
-        if (!$modModel) {
-            return [
-                'id'            => 'mod-arch-101',
-                'targetModuleId'=> 'mod-arch-101',
-                'title'         => 'Web Application Architecture & REST API Design',
-                'category'      => 'System Architecture',
-                'thumbnail'     => null,
-                'lessonsDone'   => 5,
-                'lessonTotal'   => 8,
-                'currentLesson' => 6,
-                'lessonTitle'   => 'Scalable Endpoints, Idempotency & Rate Limiting',
-                'minutesLeft'   => 15,
-                'srlPhase'      => 'performance',
-                'session'       => [
-                    'forethought' => [
-                        'sessionGoal'        => 'Memahami idempotency pada REST API',
-                        'estimatedTime'      => 25,
-                        'confidence'         => 3,
-                        'selectedStrategies' => ['Mencatat Poin Penting', 'Teknik Pomodoro'],
-                    ],
-                    'performance' => ['accumulatedSeconds' => 12 * 60],
-                ],
-            ];
-        }
-
-        // Cari sesi SRL aktif
-        $activeSession = null;
-        if ($userId && Schema::hasTable('srl_learning_sessions')) {
-            $activeSession = SrlLearningSession::where('user_id', $userId)
-                ->where('module_id', $modModel->id)
-                ->whereIn('status', ['planned', 'in_progress'])
-                ->latest()
-                ->first();
-        }
-
-        $lessonsTotal = ($modModel->lessons && $modModel->lessons->count()) ? $modModel->lessons->count() : ($activeEnrolled['lessonTotal'] ?? 8);
-        $doneCount = $activeEnrolled['lessonsDone'] ?? 5;
-        $currentLessonNum = min($lessonsTotal, $doneCount + 1);
-
-        $currentLesson = $modModel->lessons ? $modModel->lessons->get($currentLessonNum - 1) : null;
-        $lessonTitle = $currentLesson ? $currentLesson->title : 'Scalable Endpoints, Idempotency & Rate Limiting';
-
-        $remainingLessons = $modModel->lessons ? $modModel->lessons->slice($doneCount) : collect();
-        $minutesLeft = $remainingLessons->sum('duration_minutes');
-        if ($minutesLeft <= 0) {
-            $minutesLeft = 15;
-        }
-
-        $srlPhase = $activeSession ? $activeSession->current_phase : ($activeEnrolled['srlPhase'] ?? 'performance');
-
         return [
-            'id'            => $modModel->id,
-            'targetModuleId'=> $modModel->id,
-            'title'         => $modModel->title,
-            'category'      => $modModel->learningPath?->category ?? 'System Architecture',
-            'thumbnail'     => $modModel->learningPath?->thumbnail_url ?? null,
-            'lessonsDone'   => $doneCount,
-            'lessonTotal'   => $lessonsTotal,
-            'currentLesson' => $currentLessonNum,
-            'lessonTitle'   => $lessonTitle,
-            'minutesLeft'   => $minutesLeft,
-            'srlPhase'      => $srlPhase,
-            'session'       => [
+            'id'               => 'rec-' . $mod->id,
+            'targetModuleId'   => $mod->id,
+            'learningPathId'   => $mod->learning_path_id,
+            'learningPathSlug' => $path?->slug,
+            'title'            => $mod->title,
+            'category'         => $path?->category,
+            'description'      => Str::limit(strip_tags((string) $mod->description), 140),
+            'thumbnail'        => $path ? $this->thumbnailUrl($path) : null,
+            'type'             => 'module',
+            'rawId'            => $mod->id,
+            'moduleId'         => $mod->id,
+            'isEnrolled'       => false,
+            'lessonCount'      => (int) ($stats->c ?? 0),
+            'durationLabel'    => ($stats->d ?? 0) ? ((int) $stats->d . ' menit') : '',
+            'lessons'          => (int) ($stats->c ?? 0),
+            'level'            => ucfirst($mod->difficulty_level ?? 'beginner'),
+            'duration'         => (int) ($stats->d ?? 0),
+            'score'            => round($score, 2),
+            'source'           => $source,
+            'reason'           => $reason,
+            'skills'           => array_values(array_slice($skills, 0, 3)),
+        ];
+    }
+
+    private function lessonStats(array $moduleIds): Collection
+    {
+        if (empty($moduleIds)) {
+            return collect();
+        }
+        return Lesson::whereIn('module_id', $moduleIds)->where('status', 'published')
+            ->selectRaw('module_id, COUNT(*) as c, COALESCE(SUM(duration_minutes), 0) as d')
+            ->groupBy('module_id')->get()->keyBy('module_id');
+    }
+
+    /** @return array<int, array<int, string>> [moduleId => [skillId => skillName]] */
+    private function skillsByModule(array $moduleIds): array
+    {
+        if (empty($moduleIds)) {
+            return [];
+        }
+        $rows = DB::table('lessons as l')
+            ->join('lesson_skills as ls', 'ls.lesson_id', '=', 'l.id')
+            ->join('skills as s', 's.id', '=', 'ls.skill_id')
+            ->whereIn('l.module_id', $moduleIds)
+            ->select('l.module_id', 's.id as skill_id', 's.name')
+            ->distinct()->get();
+
+        $map = [];
+        foreach ($rows as $r) {
+            $map[$r->module_id][$r->skill_id] = $r->name;
+        }
+        return $map;
+    }
+
+    // ------------------------------------------------------------------
+    // Riwayat SRL (hanya sesi yang sudah selesai direfleksikan)
+    // ------------------------------------------------------------------
+    private function buildSrlHistory(int $userId, array $ctx): array
+    {
+        if (!Schema::hasTable('srl_learning_sessions')) {
+            return [];
+        }
+
+        $sessions = SrlLearningSession::where('user_id', $userId)
+            ->where('status', 'completed')
+            ->whereNotNull('goal_achievement')
+            ->orderByDesc('started_at')
+            ->take(10)->get();
+
+        $materialsOf = fn ($s) => $ctx['materialsBySession']->get($s->id, collect());
+
+        $moduleTitles = Module::whereIn(
+            'id',
+            $sessions->flatMap(fn ($s) => $materialsOf($s)->pluck('module_id'))->filter()->unique()->values()
+        )->pluck('title', 'id');
+
+        return $sessions->map(function ($s) use ($materialsOf, $moduleTitles) {
+            $materials = $materialsOf($s);
+
+            $titles = $materials->pluck('module_id')->filter()->unique()
+                ->map(fn ($id) => $moduleTitles->get($id))->filter()->values();
+
+            $module = $titles->isEmpty()
+                ? 'Sesi belajar'
+                : $titles->first() . ($titles->count() > 1 ? ' +' . ($titles->count() - 1) . ' modul' : '');
+
+            return [
+                'id'          => 'srl-' . $s->id,
+                'startedAt'   => Carbon::parse($s->started_at ?? $s->created_at)->toISOString(),
+                'module'      => $module,
+                'materials'   => $materials->map(fn ($m) => [
+                    'type'            => $m->kind,
+                    'title'           => $m->title,
+                    'durationSeconds' => (int) $m->duration_seconds,
+                    'completed'       => (bool) $m->is_completed,
+                ])->values()->all(),
                 'forethought' => [
-                    'sessionGoal'        => $activeSession?->goal ?? 'Memahami idempotency pada REST API',
-                    'estimatedTime'      => $activeSession?->estimated_minutes ?? 25,
-                    'confidence'         => $activeSession?->confidence_level ?? 3,
-                    'selectedStrategies' => (is_array($activeSession?->strategies) && !empty($activeSession->strategies)) ? $activeSession->strategies : ['Mencatat Poin Penting', 'Teknik Pomodoro'],
+                    'sessionGoal'        => $s->goal ?: 'Sesi belajar',
+                    'estimatedTime'      => $s->estimated_minutes ?: 25,
+                    'confidence'         => (int) ($s->confidence_level ?? 0),
+                    'selectedStrategies' => is_array($s->strategies) ? $s->strategies : [],
                 ],
                 'performance' => [
-                    'accumulatedSeconds' => $activeSession?->accumulated_seconds ?? (12 * 60),
+                    'accumulatedSeconds' => (int) ($s->accumulated_seconds ?: $materials->sum('duration_seconds')),
                 ],
-            ],
-        ];
-    }
-
-    /**
-     * Dapatkan modul rekomendasi (CBF + CF)
-     */
-    private function getRecommendedModules(?int $userId, $excludeModuleId): array
-    {
-        $recommendations = [];
-
-        // 1. Cek tabel recommendations di database jika ada
-        if ($userId && Schema::hasTable('recommendations')) {
-            $dbRecs = Recommendation::where('user_id', $userId)
-                ->orderBy('rank_position', 'asc')
-                ->take(4)
-                ->get();
-
-            if ($dbRecs->isNotEmpty()) {
-                foreach ($dbRecs as $rec) {
-                    $mod = Module::with(['lessons.skills', 'learningPath'])->find($rec->content_id);
-                    if ($mod) {
-                        $skills = $mod->lessons ? $mod->lessons->flatMap->skills->pluck('name')->unique()->values()->all() : [];
-                        $recommendations[] = [
-                            'id'             => 'rec-' . $mod->id,
-                            'targetModuleId' => $mod->id,
-                            'title'          => $mod->title,
-                            'category'       => $mod->learningPath?->category ?? 'Technology',
-                            'lessons'        => $mod->lessons ? $mod->lessons->count() : 4,
-                            'level'          => ucfirst($mod->difficulty_level ?? 'Intermediate'),
-                            'duration'       => $mod->lessons ? ($mod->lessons->sum('duration_minutes') ?: 15) : 15,
-                            'score'          => (float) $rec->score,
-                            'source'         => $rec->cbf_score && $rec->cf_score ? 'hybrid' : ($rec->cbf_score ? 'cbf' : 'cf'),
-                            'reason'         => 'lanjut',
-                            'skills'         => !empty($skills) ? $skills : ['System Architecture', 'Backend'],
-                        ];
-                    }
-                }
-            }
-        }
-
-        // Jika belum ada rekomendasi di DB, ambil dari modul yang ada
-        if (empty($recommendations)) {
-            $otherModules = Module::with(['lessons.skills', 'learningPath'])
-                ->when($excludeModuleId, fn ($q) => $q->where('id', '!=', $excludeModuleId))
-                ->take(4)
-                ->get();
-
-            $reasons = ['pendukung', 'lanjut', 'lanjut', 'pendukung'];
-            $sources = ['hybrid', 'cbf', 'cf', 'cf'];
-
-            foreach ($otherModules as $i => $mod) {
-                $skills = $mod->lessons ? $mod->lessons->flatMap->skills->pluck('name')->unique()->values()->all() : [];
-                $recommendations[] = [
-                    'id'             => 'rec-' . $mod->id,
-                    'targetModuleId' => $mod->id,
-                    'title'          => $mod->title,
-                    'category'       => $mod->learningPath?->category ?? 'Software Engineering',
-                    'lessons'        => $mod->lessons ? max(3, $mod->lessons->count()) : 4,
-                    'level'          => ucfirst($mod->difficulty_level ?? 'Intermediate'),
-                    'duration'       => $mod->lessons ? ($mod->lessons->sum('duration_minutes') ?: (12 + $i * 3)) : 14,
-                    'score'          => round(0.91 - ($i * 0.05), 2),
-                    'source'         => $sources[$i % 4],
-                    'reason'         => $reasons[$i % 4],
-                    'skills'         => !empty($skills) ? $skills : ['API Design', 'Security'],
-                ];
-            }
-        }
-
-        // Fallback default jika modul masih kurang dari 4
-        if (count($recommendations) < 4) {
-            $fallbacks = [
-                [
-                    'id'             => 'rec-1',
-                    'targetModuleId' => 'mod-arch-101',
-                    'title'          => 'Securing Distributed APIs: OAuth 2.1 & Zero Trust JWT',
-                    'category'       => 'Security',
-                    'lessons'        => 3,
-                    'level'          => 'Intermediate',
-                    'duration'       => 12,
-                    'score'          => 0.91,
-                    'source'         => 'hybrid',
-                    'reason'         => 'pendukung',
-                    'skills'         => ['API Security', 'Authentication'],
-                ],
-                [
-                    'id'             => 'rec-2',
-                    'targetModuleId' => 'mod-arch-101',
-                    'title'          => 'Microservices Event-Driven Patterns with Kafka & Redis',
-                    'category'       => 'System Architecture',
-                    'lessons'        => 5,
-                    'level'          => 'Intermediate',
-                    'duration'       => 18,
-                    'score'          => 0.86,
-                    'source'         => 'cbf',
-                    'reason'         => 'lanjut',
-                    'skills'         => ['Message Queue', 'Microservices'],
-                ],
-                [
-                    'id'             => 'rec-3',
-                    'targetModuleId' => 'mod-arch-101',
-                    'title'          => 'React 19 Server Components, Actions & Optimistic UI',
-                    'category'       => 'Frontend Development',
-                    'lessons'        => 4,
-                    'level'          => 'Advanced',
-                    'duration'       => 14,
-                    'score'          => 0.79,
-                    'source'         => 'cf',
-                    'reason'         => 'lanjut',
-                    'skills'         => ['React', 'Server Components'],
-                ],
-                [
-                    'id'             => 'rec-4',
-                    'targetModuleId' => 'mod-arch-101',
-                    'title'          => 'Self-Regulated Learning (SRL): High Performance Habits',
-                    'category'       => 'Soft Skills',
-                    'lessons'        => 3,
-                    'level'          => 'All Levels',
-                    'duration'       => 10,
-                    'score'          => 0.74,
-                    'source'         => 'cf',
-                    'reason'         => 'pendukung',
-                    'skills'         => ['Time Management'],
+                'reflection'  => [
+                    'goalAchievement'  => $s->goal_achievement,
+                    'factors'          => is_array($s->factors) ? $s->factors : [],
+                    'evaluation'       => $s->evaluation,
+                    'futureAdjustment' => $s->future_adjustment,
                 ],
             ];
-
-            foreach ($fallbacks as $fb) {
-                if (count($recommendations) >= 4) break;
-                $recommendations[] = $fb;
-            }
-        }
-
-        return $recommendations;
+        })->values()->all();
     }
 
-    /**
-     * Dapatkan riwayat sesi SRL (Forethought, Performance, Reflection)
-     */
-    private function getSrlHistory(?int $userId): array
+    // ------------------------------------------------------------------
+    // Profil kompetensi: bobot skill dari lesson yang sudah selesai / total lesson di learning path yang di-enroll
+    // ------------------------------------------------------------------
+    private function buildSkillProfile(array $ctx): array
     {
-        $sessions = [];
-
-        if ($userId && Schema::hasTable('srl_learning_sessions')) {
-            $dbSessions = SrlLearningSession::with('module')
-                ->where('user_id', $userId)
-                ->orderBy('started_at', 'desc')
-                ->take(10)
-                ->get();
-
-            foreach ($dbSessions as $s) {
-                $sessions[] = [
-                    'id'          => 'srl-' . $s->id,
-                    'startedAt'   => $s->started_at ? Carbon::parse($s->started_at)->toISOString() : Carbon::parse($s->created_at)->toISOString(),
-                    'module'      => $s->module?->title ?? 'Web Application Architecture & REST API Design',
-                    'forethought' => [
-                        'sessionGoal'        => $s->goal ?? 'Memahami target belajar sesi ini',
-                        'estimatedTime'      => $s->estimated_minutes ?? 25,
-                        'confidence'         => $s->confidence_level ?? 3,
-                        'selectedStrategies' => is_array($s->strategies) ? $s->strategies : ['Mencatat Poin Penting', 'Teknik Pomodoro'],
-                    ],
-                    'performance' => [
-                        'accumulatedSeconds' => $s->accumulated_seconds ?: 25 * 60,
-                    ],
-                    'reflection'  => [
-                        'goalAchievement'  => $s->goal_achievement ?? 'tercapai',
-                        'factors'          => is_array($s->factors) ? $s->factors : ['Strategi belajar', 'Fokus dan konsentrasi'],
-                        'evaluation'       => $s->evaluation ?? 'Materi terserap dengan baik.',
-                        'futureAdjustment' => $s->future_adjustment ?? 'Lanjutkan dengan latihan soal.',
-                    ],
-                ];
-            }
+        $pathIds = $ctx['paths']->keys()->all();
+        if (empty($pathIds)) {
+            return ['skills' => [], 'careerFit' => []];
         }
 
-        // Jika belum ada riwayat sesi di DB, sediakan mock realistis
-        if (empty($sessions)) {
-            $now = Carbon::now();
-            $sessions = [
-                [
-                    'id'          => 'srl-008',
-                    'startedAt'   => $now->copy()->subHours(2)->toISOString(),
-                    'module'      => 'Web Application Architecture & REST API Design',
-                    'forethought' => [
-                        'sessionGoal'        => 'Memahami idempotency pada REST API',
-                        'estimatedTime'      => 25,
-                        'confidence'         => 3,
-                        'selectedStrategies' => ['Mencatat Poin Penting', 'Teknik Pomodoro'],
-                    ],
-                    'performance' => ['accumulatedSeconds' => 25 * 60],
-                    'reflection'  => [
-                        'goalAchievement'  => 'tercapai',
-                        'factors'          => ['Strategi belajar', 'Fokus dan konsentrasi'],
-                        'evaluation'       => 'Sudah paham cara kerja idempotency key, tinggal latihan menerapkannya di endpoint POST.',
-                        'futureAdjustment' => 'Langsung praktik di Postman setelah selesai membaca materi.',
-                    ],
-                ],
-                [
-                    'id'          => 'srl-007',
-                    'startedAt'   => $now->copy()->subDays(1)->toISOString(),
-                    'module'      => 'Modern State Management with Redux Toolkit & Zustand',
-                    'forethought' => [
-                        'sessionGoal'        => 'Memahami perbedaan Redux Toolkit dan Zustand',
-                        'estimatedTime'      => 30,
-                        'confidence'         => 2,
-                        'selectedStrategies' => ['Menjelaskan Ulang (Feynman Technique)'],
-                    ],
-                    'performance' => ['accumulatedSeconds' => 22 * 60],
-                    'reflection'  => [
-                        'goalAchievement'  => 'sebagian',
-                        'factors'          => ['Tingkat kesulitan materi'],
-                        'evaluation'       => 'Konsep slice sudah jelas, tapi async thunk masih membingungkan.',
-                        'futureAdjustment' => 'Ulangi bagian createAsyncThunk dengan contoh kecil.',
-                    ],
-                ],
-                [
-                    'id'          => 'srl-006',
-                    'startedAt'   => $now->copy()->subDays(2)->toISOString(),
-                    'module'      => 'Database Indexing & PostgreSQL Query Optimization',
-                    'forethought' => [
-                        'sessionGoal'        => 'Memahami B-tree index dan kapan dipakai',
-                        'estimatedTime'      => 25,
-                        'confidence'         => 3,
-                        'selectedStrategies' => ['Latihan Soal Praktis', 'Mencatat Poin Penting'],
-                    ],
-                    'performance' => ['accumulatedSeconds' => 25 * 60],
-                    'reflection'  => [
-                        'goalAchievement'  => 'tercapai',
-                        'factors'          => ['Strategi belajar', 'Pengetahuan awal'],
-                        'evaluation'       => 'Bisa menjelaskan kapan index membantu dan kapan justru memperlambat write.',
-                        'futureAdjustment' => 'Lanjut ke composite index dengan studi kasus tabel besar.',
-                    ],
-                ],
-                [
-                    'id'          => 'srl-005',
-                    'startedAt'   => $now->copy()->subDays(3)->toISOString(),
-                    'module'      => 'Database Indexing & PostgreSQL Query Optimization',
-                    'forethought' => [
-                        'sessionGoal'        => 'Membaca output EXPLAIN ANALYZE',
-                        'estimatedTime'      => 20,
-                        'confidence'         => 4,
-                        'selectedStrategies' => ['Teknik Pomodoro'],
-                    ],
-                    'performance' => ['accumulatedSeconds' => 9 * 60],
-                    'reflection'  => [
-                        'goalAchievement'  => 'belum',
-                        'factors'          => ['Manajemen waktu', 'Kondisi tubuh dan lingkungan'],
-                        'evaluation'       => 'Waktu habis untuk setup dan badan sudah lelah, belum sampai membaca output.',
-                        'futureAdjustment' => 'Siapkan database sampel sebelum sesi dimulai dan belajar lebih awal.',
-                    ],
-                ],
-            ];
-        }
+        $rows = DB::table('lesson_skills as ls')
+            ->join('skills as s', 's.id', '=', 'ls.skill_id')
+            ->join('lessons as l', 'l.id', '=', 'ls.lesson_id')
+            ->join('modules as m', 'm.id', '=', 'l.module_id')
+            ->whereIn('m.learning_path_id', $pathIds)
+            ->where('l.status', 'published')
+            ->select('s.id', 's.name', 'ls.lesson_id', 'ls.relevance_weight')
+            ->get();
 
-        return $sessions;
-    }
-
-    /**
-     * Dapatkan profil kompetensi (Skill Matrix)
-     */
-    private function getSkillProfile(?int $userId): array
-    {
-        $skills = Skill::take(5)->get();
-
-        $skillList = [];
-        if ($skills->isNotEmpty()) {
-            $levels = [0.72, 0.90, 0.85, 0.50, 0.33];
-            foreach ($skills as $i => $s) {
-                $skillList[] = [
-                    'name'  => $s->name,
-                    'level' => $levels[$i % count($levels)],
-                ];
-            }
-        } else {
-            $skillList = [
-                ['name' => 'REST API Design', 'level' => 0.72],
-                ['name' => 'Containerization', 'level' => 0.90],
-                ['name' => 'Software Architecture', 'level' => 0.85],
-                ['name' => 'Database Optimization', 'level' => 0.50],
-                ['name' => 'State Management', 'level' => 0.33],
-            ];
-        }
-
-        $careerFit = [
-            [
-                'role'       => 'Backend Engineer',
-                'company'    => 'PT Nusantara Digital',
-                'matchScore' => 0.78,
-                'gaps'       => ['Message Queue', 'Kubernetes'],
-            ],
-            [
-                'role'       => 'Fullstack Developer',
-                'company'    => 'Studio Kode Bandung',
-                'matchScore' => 0.71,
-                'gaps'       => ['React Testing', 'GraphQL'],
-            ],
-        ];
-
-        return [
-            'skills'    => $skillList,
-            'careerFit' => $careerFit,
-        ];
-    }
-
-    /**
-     * Dapatkan badge dan kredensial/sertifikat
-     */
-    private function getAchievements(?int $userId): array
-    {
-        // 1. Badges
-        $userBadges = ($userId && Schema::hasTable('lms_user_badges')) ? LmsUserBadge::where('user_id', $userId)->get() : collect();
-        $earnedCodes = $userBadges->pluck('badge_code')->toArray();
-
-        $allBadges = [
-            ['id' => 'b1', 'code' => 'streak_7', 'name' => 'Konsisten 7 Hari', 'icon' => 'flame'],
-            ['id' => 'b2', 'code' => 'reflective', 'name' => 'Pembelajar Reflektif', 'icon' => 'refresh'],
-            ['id' => 'b3', 'code' => 'path_finisher', 'name' => 'Path Finisher', 'icon' => 'award'],
-            ['id' => 'b4', 'code' => 'quiz_master', 'name' => 'Kuis Sempurna', 'icon' => 'zap'],
-        ];
-
-        $badges = array_map(function ($b) use ($earnedCodes) {
+        $skills = $rows->groupBy('id')->map(function ($group) use ($ctx) {
+            $total = (float) $group->sum('relevance_weight');
+            $done  = (float) $group->whereIn('lesson_id', $ctx['doneLessonIds'])->sum('relevance_weight');
             return [
-                'id'     => $b['id'],
-                'name'   => $b['name'],
-                'icon'   => $b['icon'],
-                'earned' => in_array($b['code'], $earnedCodes) || in_array($b['id'], ['b1', 'b2']),
+                'name'  => $group->first()->name,
+                'level' => $total > 0 ? round($done / $total, 2) : 0,
             ];
-        }, $allBadges);
+        })->sortByDesc('level')->take(5)->values()->all();
 
-        // 2. Kredensial / Sertifikat
-        $certificates = ($userId && Schema::hasTable('lms_user_certificates'))
-            ? LmsUserCertificate::where('user_id', $userId)->latest()->get()
-            : collect();
+        // careerFit: belum ada sumber datanya di skema learning path; diisi dari modul Job Matching bila sudah tersedia.
+        return ['skills' => $skills, 'careerFit' => []];
+    }
+
+    // ------------------------------------------------------------------
+    // Badge & sertifikat
+    // ------------------------------------------------------------------
+    private function buildAchievements(int $userId): array
+    {
+        $earned = Schema::hasTable('lms_user_badges')
+            ? LmsUserBadge::where('user_id', $userId)->pluck('badge_code')->all()
+            : [];
+
+        $definitions = [
+            ['id' => 'b1', 'code' => 'streak_7',      'name' => 'Konsisten 7 Hari',    'icon' => 'flame'],
+            ['id' => 'b2', 'code' => 'reflective',    'name' => 'Pembelajar Reflektif', 'icon' => 'refresh'],
+            ['id' => 'b3', 'code' => 'path_finisher', 'name' => 'Path Finisher',        'icon' => 'award'],
+            ['id' => 'b4', 'code' => 'quiz_master',   'name' => 'Kuis Sempurna',        'icon' => 'zap'],
+        ];
+
+        $badges = array_map(fn ($b) => [
+            'id'     => $b['id'],
+            'name'   => $b['name'],
+            'icon'   => $b['icon'],
+            'earned' => in_array($b['code'], $earned, true),
+        ], $definitions);
 
         $credentials = [];
-        if ($certificates->isNotEmpty()) {
-            foreach ($certificates as $cert) {
-                $status = match ($cert->status) {
-                    'issued'  => 'recorded',
-                    'pending' => 'processing',
-                    default   => 'pending',
-                };
-                $credentials[] = [
-                    'id'     => 'c-' . $cert->id,
-                    'module' => $cert->title,
-                    'score'  => 88,
-                    'status' => $status,
-                ];
-            }
-        } else {
-            $credentials = [
-                [
-                    'id'     => 'c1',
-                    'module' => 'Docker & Containerization for Fullstack Engineers',
-                    'score'  => 90,
-                    'status' => 'recorded',
-                ],
-                [
-                    'id'     => 'c2',
-                    'module' => 'Clean Architecture & Domain Driven Design Essentials',
-                    'score'  => 85,
-                    'status' => 'processing',
-                ],
-            ];
+        if (Schema::hasTable('lms_user_certificates')) {
+            $credentials = DB::table('lms_user_certificates as c')
+                ->join('learning_completions as lc', 'lc.id', '=', 'c.completion_id')
+                ->leftJoin('learning_paths as lp', 'lp.id', '=', 'lc.learning_path_id')
+                ->where('c.user_id', $userId)
+                ->orderByDesc('c.created_at')
+                ->get(['c.id', 'c.title', 'c.status', 'c.certificate_number', 'lc.learning_path_id', 'lp.slug', 'lc.score'])
+                ->map(fn ($c) => [
+                    'id'                => 'c-' . $c->id,
+                    'module'            => $c->title,
+                    'score'             => $c->score !== null ? (int) round((float) $c->score) : null,
+                    // UI hanya mengenal 3 status: recorded | processing | pending
+                    'status'            => match ($c->status) {
+                        'issued'  => 'recorded',
+                        'pending' => 'processing',
+                        default   => 'pending',
+                    },
+                    'certificateNumber' => $c->certificate_number,
+                    'learningPathId'    => $c->learning_path_id,
+                    'learningPathSlug'  => $c->slug,
+                ])->all();
         }
 
-        return [
-            'badges'      => $badges,
-            'credentials' => $credentials,
-        ];
+        return ['badges' => $badges, 'credentials' => $credentials];
     }
 
-    /**
-     * Dapatkan model kesiapan belajar (Learning Readiness)
-     */
-    private function getLearningReadiness(?int $userId, ?array $activeModule): array
+    // ------------------------------------------------------------------
+    // Learning readiness (widget saat ini dinonaktifkan di frontend)
+    // ------------------------------------------------------------------
+    private function buildLearningReadiness(array $ctx, ?array $activeModule): ?array
     {
-        $pred = null;
-        if ($userId && Schema::hasTable('readiness_predictions')) {
-            $pred = ReadinessPrediction::with('quizAttempt.quiz')->where('user_id', $userId)->latest('predicted_at')->first();
+        $pred = $ctx['latestPrediction'];
+        if (!$pred) {
+            return null;
         }
 
-        $moduleTitle = $activeModule ? $activeModule['title'] : 'Web Application Architecture & REST API Design';
-        $score = $pred ? (float) $pred->readiness_score : 0.68;
+        $features = is_array($pred->features) ? $pred->features : [];
 
         return [
-            'moduleTitle' => $moduleTitle,
-            'score'       => $score,
-            'factors'     => [
-                ['label' => 'Rata-rata skor kuis', 'value' => '78'],
-                ['label' => 'Tren skor kuis', 'value' => '+6', 'tone' => 'success'],
-                ['label' => 'Percobaan kuis', 'value' => '2×'],
-                ['label' => 'Durasi belajar', 'value' => '1j 35m'],
-                ['label' => 'Frekuensi belajar', 'value' => '4 sesi/mgg'],
-                ['label' => 'Penyelesaian materi', 'value' => '63%'],
-            ],
-            'lastQuiz'    => [
-                'lesson'   => 'Lesson 5 · HTTP Methods & Status Codes',
-                'score'    => 80,
-                'feedback' => 'Pemahaman method dan status code sudah baik. Perdalam perbedaan PUT dan PATCH, serta kapan memakai 409 vs 422.',
-            ],
+            'moduleTitle' => $activeModule['title'] ?? null,
+            'score'       => round((float) $pred->readiness_score, 2),
+            'level'       => $pred->readiness_level,
+            'predictedAt' => Carbon::parse($pred->predicted_at)->toISOString(),
+            'factors'     => collect($features)
+                ->filter(fn ($v) => is_scalar($v))
+                ->map(fn ($v, $k) => ['label' => Str::headline($k), 'value' => (string) $v])
+                ->values()->all(),
         ];
     }
 }

@@ -1,0 +1,233 @@
+name,description,category
+Python,"Bahasa pemrograman serbaguna untuk scripting, web, data, dan AI.",Pemrograman
+Java,Bahasa pemrograman berorientasi objek untuk aplikasi enterprise dan Android.,Pemrograman
+JavaScript,"Bahasa pemrograman utama untuk interaktivitas web, frontend, dan backend.",Pemrograman
+TypeScript,Superset JavaScript dengan tipe statis untuk aplikasi skala besar.,Pemrograman
+PHP,Bahasa server-side yang banyak dipakai untuk pengembangan web.,Pemrograman
+C,Bahasa pemrograman tingkat rendah untuk sistem dan embedded.,Pemrograman
+C++,"Bahasa pemrograman berperforma tinggi untuk sistem, game, dan aplikasi desktop.",Pemrograman
+C#,"Bahasa berorientasi objek dari Microsoft untuk .NET, desktop, dan game.",Pemrograman
+Go,Bahasa kompilasi yang ringkas untuk layanan backend dan cloud.,Pemrograman
+Rust,Bahasa sistem yang aman memori dan berperforma tinggi.,Pemrograman
+Kotlin,Bahasa modern untuk pengembangan Android dan backend JVM.,Pemrograman
+Swift,Bahasa pemrograman untuk aplikasi iOS dan macOS.,Pemrograman
+Dart,Bahasa yang digunakan framework Flutter untuk aplikasi lintas platform.,Pemrograman
+R,Bahasa untuk analisis statistik dan visualisasi data.,Pemrograman
+Bash Scripting,Otomasi tugas dan administrasi sistem lewat shell script.,Pemrograman
+Object-Oriented Programming,"Prinsip pemrograman berorientasi objek: class, inheritance, polymorphism, encapsulation.",Pemrograman
+Functional Programming,Paradigma pemrograman berbasis fungsi murni dan immutability.,Pemrograman
+Data Structures and Algorithms,Struktur data dan algoritma untuk menyelesaikan masalah secara efisien.,Pemrograman
+Clean Code,"Praktik menulis kode yang mudah dibaca, dirawat, dan diuji.",Pemrograman
+Design Patterns,Pola desain perangkat lunak yang umum dan dapat dipakai ulang.,Pemrograman
+Debugging,Menemukan dan memperbaiki kesalahan pada program.,Pemrograman
+Unit Testing,Pengujian bagian kecil kode secara otomatis untuk memastikan kebenarannya.,Pemrograman
+HTML,Bahasa markup untuk struktur halaman web.,Web Development
+CSS,Bahasa styling untuk tampilan dan tata letak halaman web.,Web Development
+Responsive Web Design,Perancangan tampilan web yang menyesuaikan berbagai ukuran layar.,Web Development
+Tailwind CSS,Framework CSS utility-first untuk membangun antarmuka dengan cepat.,Web Development
+Bootstrap,Framework CSS komponen siap pakai untuk antarmuka responsif.,Web Development
+React,Library JavaScript untuk membangun antarmuka berbasis komponen.,Web Development
+Vue.js,Framework JavaScript progresif untuk antarmuka pengguna.,Web Development
+Angular,Framework TypeScript lengkap untuk aplikasi web skala besar.,Web Development
+Next.js,Framework React untuk server-side rendering dan aplikasi full-stack.,Web Development
+Node.js,Runtime JavaScript untuk membangun layanan backend.,Web Development
+Express.js,Framework web minimalis untuk Node.js.,Web Development
+Laravel,Framework PHP untuk membangun aplikasi web dengan arsitektur MVC.,Web Development
+Django,Framework web Python berbasis MVT dengan fitur bawaan lengkap.,Web Development
+Flask,Micro-framework Python untuk API dan aplikasi web ringan.,Web Development
+FastAPI,Framework Python modern untuk membangun API berperforma tinggi.,Web Development
+Spring Boot,Framework Java untuk membangun layanan backend dan microservices.,Web Development
+REST API,Merancang dan menggunakan API berbasis arsitektur REST.,Web Development
+GraphQL,Bahasa query API yang memungkinkan klien meminta data secara spesifik.,Web Development
+Web Authentication and Authorization,"Implementasi login, token, session, dan kontrol akses di aplikasi web.",Web Development
+Web Performance Optimization,Mengoptimalkan kecepatan muat dan performa aplikasi web.,Web Development
+Android Development,Membangun aplikasi Android native dengan Kotlin atau Java.,Mobile Development
+iOS Development,Membangun aplikasi iOS native dengan Swift.,Mobile Development
+Flutter,Framework Google untuk aplikasi mobile lintas platform dengan Dart.,Mobile Development
+React Native,Framework untuk aplikasi mobile lintas platform berbasis React.,Mobile Development
+Mobile App Testing,Pengujian aplikasi mobile pada berbagai perangkat dan versi OS.,Mobile Development
+SQL,Bahasa query untuk mengelola dan mengambil data dari basis data relasional.,Basis Data
+MySQL,Sistem basis data relasional open-source yang populer.,Basis Data
+PostgreSQL,Sistem basis data relasional open-source dengan fitur lanjutan.,Basis Data
+MongoDB,Basis data NoSQL berbasis dokumen.,Basis Data
+Redis,Penyimpanan data in-memory untuk cache dan antrean.,Basis Data
+Database Design,"Merancang skema basis data, relasi, dan normalisasi.",Basis Data
+Query Optimization,Mengoptimalkan query dan indeks agar basis data berjalan efisien.,Basis Data
+Database Administration,"Pengelolaan, backup, dan pemeliharaan basis data.",Basis Data
+Data Modeling,Memodelkan entitas dan relasi data untuk kebutuhan bisnis.,Basis Data
+Data Analysis,Memeriksa dan menafsirkan data untuk mendukung pengambilan keputusan.,Data & Analitik
+Data Cleaning,"Membersihkan data dari duplikasi, nilai hilang, dan inkonsistensi.",Data & Analitik
+Exploratory Data Analysis,Menelusuri pola dan karakteristik data sebelum pemodelan.,Data & Analitik
+Data Visualization,Menyajikan data dalam grafik dan dasbor yang mudah dipahami.,Data & Analitik
+Pandas,Library Python untuk manipulasi dan analisis data tabular.,Data & Analitik
+NumPy,Library Python untuk komputasi numerik dan array.,Data & Analitik
+Microsoft Excel,Pengolahan data dan analisis dengan spreadsheet.,Data & Analitik
+Power BI,Alat business intelligence untuk dasbor dan laporan.,Data & Analitik
+Tableau,Alat visualisasi data interaktif.,Data & Analitik
+Statistics,Konsep statistik deskriptif dan inferensial untuk analisis data.,Data & Analitik
+A/B Testing,Membandingkan dua varian untuk mengukur dampaknya secara statistik.,Data & Analitik
+ETL,"Proses extract, transform, load untuk memindahkan dan menyiapkan data.",Data & Analitik
+Data Warehousing,Merancang gudang data untuk pelaporan dan analitik.,Data & Analitik
+Big Data,Pengolahan data skala besar dengan alat terdistribusi.,Data & Analitik
+Apache Spark,Mesin pemrosesan data terdistribusi untuk data besar.,Data & Analitik
+Business Intelligence,Mengubah data bisnis menjadi wawasan untuk strategi.,Data & Analitik
+Machine Learning,Membangun model yang belajar pola dari data untuk prediksi.,Machine Learning & AI
+Deep Learning,Pemodelan dengan jaringan saraf berlapis untuk data kompleks.,Machine Learning & AI
+Natural Language Processing,Pemrosesan dan pemahaman bahasa manusia oleh komputer.,Machine Learning & AI
+Computer Vision,Pengolahan dan pemahaman citra serta video oleh komputer.,Machine Learning & AI
+Scikit-learn,Library Python untuk algoritma machine learning klasik.,Machine Learning & AI
+TensorFlow,Framework untuk membangun dan melatih model deep learning.,Machine Learning & AI
+PyTorch,Framework deep learning yang fleksibel untuk riset dan produksi.,Machine Learning & AI
+Feature Engineering,Membuat dan memilih fitur yang meningkatkan kualitas model.,Machine Learning & AI
+Model Evaluation,Mengukur performa model dengan metrik yang sesuai.,Machine Learning & AI
+Recommender Systems,"Membangun sistem rekomendasi berbasis konten, kolaboratif, atau hybrid.",Machine Learning & AI
+Prompt Engineering,Merancang instruksi untuk mengarahkan keluaran model bahasa besar.,Machine Learning & AI
+Large Language Models,Memahami dan memakai model bahasa besar untuk berbagai tugas.,Machine Learning & AI
+Retrieval-Augmented Generation,Menggabungkan pencarian dokumen dengan LLM untuk jawaban berbasis sumber.,Machine Learning & AI
+MLOps,"Praktik deployment, monitoring, dan pemeliharaan model machine learning.",Machine Learning & AI
+Time Series Analysis,Menganalisis dan memprediksi data berurutan waktu.,Machine Learning & AI
+AI Ethics,"Prinsip penggunaan AI yang adil, transparan, dan bertanggung jawab.",Machine Learning & AI
+Git,Sistem kontrol versi untuk kolaborasi dan pelacakan perubahan kode.,Cloud & DevOps
+GitHub,"Platform kolaborasi kode berbasis Git, termasuk pull request dan issue.",Cloud & DevOps
+Docker,Kontainerisasi aplikasi agar berjalan konsisten di berbagai lingkungan.,Cloud & DevOps
+Kubernetes,Orkestrasi kontainer untuk skala dan pengelolaan aplikasi.,Cloud & DevOps
+CI/CD,"Otomasi build, pengujian, dan deployment aplikasi.",Cloud & DevOps
+Linux Administration,Pengelolaan server dan sistem operasi Linux.,Cloud & DevOps
+Amazon Web Services,Layanan komputasi awan dari Amazon.,Cloud & DevOps
+Google Cloud Platform,Layanan komputasi awan dari Google.,Cloud & DevOps
+Microsoft Azure,Layanan komputasi awan dari Microsoft.,Cloud & DevOps
+Infrastructure as Code,"Mengelola infrastruktur lewat kode, misalnya Terraform.",Cloud & DevOps
+Nginx,Web server dan reverse proxy untuk aplikasi.,Cloud & DevOps
+Monitoring and Logging,Memantau kesehatan sistem dan menganalisis log.,Cloud & DevOps
+Computer Networking,"Dasar jaringan komputer: model OSI, TCP/IP, routing, dan switching.",Jaringan & Keamanan Siber
+Network Administration,Konfigurasi dan pemeliharaan jaringan.,Jaringan & Keamanan Siber
+Cybersecurity Fundamentals,"Dasar perlindungan sistem, jaringan, dan data dari ancaman.",Jaringan & Keamanan Siber
+Web Application Security,Mengamankan aplikasi web dari kerentanan seperti injection dan XSS.,Jaringan & Keamanan Siber
+Penetration Testing,Menguji keamanan sistem dengan simulasi serangan yang sah.,Jaringan & Keamanan Siber
+Cryptography,"Teknik enkripsi, hashing, dan tanda tangan digital.",Jaringan & Keamanan Siber
+Incident Response,Penanganan dan pemulihan setelah insiden keamanan.,Jaringan & Keamanan Siber
+Blockchain,Teknologi buku besar terdistribusi dan smart contract.,Jaringan & Keamanan Siber
+Software Development Life Cycle,Tahapan pengembangan perangkat lunak dari kebutuhan hingga pemeliharaan.,Rekayasa Perangkat Lunak
+Requirements Analysis,Menggali dan mendokumentasikan kebutuhan pengguna dan sistem.,Rekayasa Perangkat Lunak
+System Analysis and Design,Menganalisis proses bisnis dan merancang solusi sistem.,Rekayasa Perangkat Lunak
+UML,Notasi pemodelan untuk menggambarkan desain sistem.,Rekayasa Perangkat Lunak
+Software Architecture,Merancang struktur tingkat tinggi dari sistem perangkat lunak.,Rekayasa Perangkat Lunak
+Microservices,Arsitektur layanan kecil yang berdiri sendiri.,Rekayasa Perangkat Lunak
+API Design,Merancang antarmuka API yang konsisten dan terdokumentasi.,Rekayasa Perangkat Lunak
+Agile and Scrum,Pengembangan iteratif dengan sprint dan kolaborasi tim.,Rekayasa Perangkat Lunak
+Code Review,Meninjau kode rekan untuk kualitas dan berbagi pengetahuan.,Rekayasa Perangkat Lunak
+Software Testing,Perencanaan dan pelaksanaan pengujian untuk menjamin kualitas.,Rekayasa Perangkat Lunak
+Test Automation,Mengotomasi pengujian fungsional dan regresi.,Rekayasa Perangkat Lunak
+Technical Documentation,Menulis dokumentasi teknis yang jelas untuk pengembang dan pengguna.,Rekayasa Perangkat Lunak
+UI Design,Merancang tampilan antarmuka yang menarik dan konsisten.,UI/UX & Desain
+UX Design,Merancang pengalaman pengguna yang efektif dan menyenangkan.,UI/UX & Desain
+User Research,Mengumpulkan pemahaman kebutuhan dan perilaku pengguna.,UI/UX & Desain
+Wireframing and Prototyping,Membuat kerangka dan prototipe antarmuka sebelum pengembangan.,UI/UX & Desain
+Figma,Alat desain antarmuka kolaboratif berbasis web.,UI/UX & Desain
+Design System,Kumpulan komponen dan panduan desain yang konsisten.,UI/UX & Desain
+Usability Testing,Menguji kemudahan penggunaan produk bersama pengguna nyata.,UI/UX & Desain
+Information Architecture,Menyusun dan melabeli konten agar mudah ditemukan.,UI/UX & Desain
+Visual Design,"Penerapan warna, tipografi, dan tata letak yang efektif.",UI/UX & Desain
+Branding,Membangun identitas visual dan citra merek.,UI/UX & Desain
+Project Management,"Merencanakan, mengeksekusi, dan memantau proyek hingga selesai.",Manajemen Proyek & Bisnis
+Product Management,Mengelola siklus hidup produk dan prioritas fitur.,Manajemen Proyek & Bisnis
+Business Analysis,Menganalisis kebutuhan bisnis dan merumuskan solusi.,Manajemen Proyek & Bisnis
+Digital Marketing,Pemasaran produk lewat kanal digital.,Manajemen Proyek & Bisnis
+SEO,Optimasi situs agar muncul di hasil mesin pencari.,Manajemen Proyek & Bisnis
+Entrepreneurship,Merintis dan mengembangkan usaha.,Manajemen Proyek & Bisnis
+Financial Literacy,Pemahaman dasar pengelolaan keuangan.,Manajemen Proyek & Bisnis
+Jira,Alat manajemen tugas dan proyek untuk tim pengembang.,Manajemen Proyek & Bisnis
+Communication,"Menyampaikan gagasan secara jelas, lisan maupun tulisan.",Soft Skills
+Teamwork,Bekerja sama efektif dalam tim.,Soft Skills
+Problem Solving,Mengidentifikasi masalah dan merumuskan solusi secara sistematis.,Soft Skills
+Critical Thinking,Menganalisis informasi secara objektif untuk mengambil keputusan.,Soft Skills
+Time Management,Mengatur waktu dan prioritas secara efektif.,Soft Skills
+Leadership,Mengarahkan dan memotivasi tim mencapai tujuan.,Soft Skills
+Presentation Skills,Menyajikan materi secara menarik dan terstruktur.,Soft Skills
+Self-Directed Learning,"Mengatur target, strategi, dan evaluasi belajar secara mandiri.",Soft Skills
+Adaptability,Menyesuaikan diri dengan perubahan dan teknologi baru.,Soft Skills
+Creativity,Menghasilkan gagasan baru dan pendekatan inovatif.,Soft Skills
+Collaboration,Berbagi pengetahuan dan bekerja lintas peran.,Soft Skills
+English for Professional Use,"Kemampuan bahasa Inggris untuk dokumentasi, komunikasi, dan wawancara kerja.",Soft Skills
+Financial Accounting,Pencatatan transaksi dan penyusunan laporan keuangan sesuai standar akuntansi.,Akuntansi & Keuangan
+Financial Reporting,Menyusun dan menganalisis laporan keuangan untuk pemangku kepentingan.,Akuntansi & Keuangan
+Taxation,"Perhitungan, pelaporan, dan perencanaan pajak.",Akuntansi & Keuangan
+Auditing,Pemeriksaan laporan dan kontrol internal untuk memastikan kewajaran dan kepatuhan.,Akuntansi & Keuangan
+Budgeting and Forecasting,Menyusun anggaran dan memproyeksikan kinerja keuangan.,Akuntansi & Keuangan
+Financial Analysis,Menilai kinerja dan kesehatan keuangan untuk mendukung keputusan.,Akuntansi & Keuangan
+Credit Analysis,Menilai kelayakan kredit dan risiko pembiayaan.,Akuntansi & Keuangan
+Risk Management,"Mengidentifikasi, menilai, dan memitigasi risiko organisasi.",Akuntansi & Keuangan
+Accounting Software,Penggunaan perangkat lunak akuntansi seperti Accurate atau Zahir.,Akuntansi & Keuangan
+Patient Care,Pelayanan dan pendampingan pasien secara aman dan empatik.,Kesehatan
+Nursing Care,Asuhan keperawatan sesuai standar profesi.,Kesehatan
+Medical Records Management,Pengelolaan rekam medis yang akurat dan rahasia.,Kesehatan
+Pharmacy Knowledge,"Pengetahuan obat, dosis, dan pelayanan kefarmasian.",Kesehatan
+Patient Safety,Praktik mencegah kesalahan dan cedera pada pelayanan kesehatan.,Kesehatan
+Public Health,Promosi kesehatan dan pencegahan penyakit di tingkat masyarakat.,Kesehatan
+Nutrition and Dietetics,Penilaian gizi dan penyusunan rencana makan.,Kesehatan
+Laboratory Analysis,Pemeriksaan sampel laboratorium dan interpretasi hasilnya.,Kesehatan
+Health Information Systems,Penggunaan sistem informasi untuk data pelayanan kesehatan.,Kesehatan
+Lesson Planning,Merancang rencana pembelajaran dengan tujuan dan asesmen yang jelas.,Pendidikan & Pelatihan
+Curriculum Development,Menyusun dan menyempurnakan kurikulum.,Pendidikan & Pelatihan
+Classroom Management,Mengelola kelas agar kondusif untuk belajar.,Pendidikan & Pelatihan
+Educational Assessment,Merancang dan menilai asesmen hasil belajar.,Pendidikan & Pelatihan
+Instructional Design,Merancang materi dan pengalaman belajar berdasarkan teori belajar.,Pendidikan & Pelatihan
+E-Learning Development,Mengembangkan materi dan kursus daring.,Pendidikan & Pelatihan
+Training Facilitation,Memfasilitasi pelatihan dan lokakarya untuk orang dewasa.,Pendidikan & Pelatihan
+Academic Mentoring,Membimbing peserta didik secara akademik.,Pendidikan & Pelatihan
+Production Planning,Merencanakan jadwal dan kebutuhan sumber daya produksi.,Manufaktur & Produksi
+Quality Control,Memeriksa produk agar sesuai standar mutu.,Manufaktur & Produksi
+Quality Assurance,Menjamin proses produksi memenuhi standar dan prosedur.,Manufaktur & Produksi
+Lean Manufacturing,Mengurangi pemborosan dan meningkatkan efisiensi produksi.,Manufaktur & Produksi
+Six Sigma,Pendekatan statistik untuk mengurangi cacat dan variasi proses.,Manufaktur & Produksi
+Machine Maintenance,Perawatan preventif dan perbaikan mesin produksi.,Manufaktur & Produksi
+Occupational Health and Safety,Penerapan K3 untuk mencegah kecelakaan kerja.,Manufaktur & Produksi
+Industrial Automation,Otomasi proses industri dengan PLC dan sistem kontrol.,Manufaktur & Produksi
+Technical Drawing,Membaca dan membuat gambar teknik.,Manufaktur & Produksi
+Supply Chain Management,Mengelola aliran barang dari pemasok sampai pelanggan.,Logistik & Rantai Pasok
+Inventory Management,Mengendalikan stok agar sesuai kebutuhan dan efisien.,Logistik & Rantai Pasok
+Warehouse Management,"Mengelola penerimaan, penyimpanan, dan pengeluaran barang.",Logistik & Rantai Pasok
+Procurement,Pengadaan barang dan jasa serta negosiasi dengan pemasok.,Logistik & Rantai Pasok
+Import and Export,"Prosedur dokumen, kepabeanan, dan pengiriman lintas negara.",Logistik & Rantai Pasok
+Transportation Planning,Merencanakan rute dan moda pengiriman.,Logistik & Rantai Pasok
+Demand Forecasting,Memperkirakan permintaan untuk perencanaan stok dan produksi.,Logistik & Rantai Pasok
+Sales,Menawarkan dan menutup penjualan produk atau jasa.,Penjualan & Pelayanan Pelanggan
+Negotiation,Mencapai kesepakatan yang menguntungkan kedua pihak.,Penjualan & Pelayanan Pelanggan
+Customer Service,Melayani dan menyelesaikan keluhan pelanggan.,Penjualan & Pelayanan Pelanggan
+Customer Relationship Management,"Mengelola hubungan dan data pelanggan, termasuk memakai alat CRM.",Penjualan & Pelayanan Pelanggan
+E-commerce Management,Mengelola toko dan operasional di marketplace atau toko daring.,Penjualan & Pelayanan Pelanggan
+Merchandising,Penataan produk dan promosi agar menarik pembeli.,Penjualan & Pelayanan Pelanggan
+Point of Sale Operation,Mengoperasikan kasir dan sistem penjualan.,Penjualan & Pelayanan Pelanggan
+Account Management,Menjaga dan mengembangkan hubungan dengan klien.,Penjualan & Pelayanan Pelanggan
+Graphic Design,Membuat materi visual untuk komunikasi dan promosi.,Media & Konten Kreatif
+Video Editing,Menyunting video dari bahan mentah menjadi konten jadi.,Media & Konten Kreatif
+Motion Graphics,Membuat animasi grafis untuk video dan media digital.,Media & Konten Kreatif
+Photography,Pengambilan dan penyuntingan foto.,Media & Konten Kreatif
+Copywriting,Menulis teks persuasif untuk pemasaran dan merek.,Media & Konten Kreatif
+Content Creation,Membuat konten untuk berbagai kanal digital.,Media & Konten Kreatif
+Social Media Management,"Mengelola akun, jadwal, dan interaksi di media sosial.",Media & Konten Kreatif
+Illustration,Membuat ilustrasi digital atau manual.,Media & Konten Kreatif
+Adobe Creative Suite,"Penggunaan Photoshop, Illustrator, dan Premiere untuk produksi kreatif.",Media & Konten Kreatif
+Structural Analysis,Menghitung kekuatan dan kestabilan struktur bangunan.,Konstruksi & Teknik Sipil
+AutoCAD,Pembuatan gambar teknik dua dimensi dan tiga dimensi.,Konstruksi & Teknik Sipil
+Building Information Modeling,Pemodelan informasi bangunan terpadu untuk perencanaan dan konstruksi.,Konstruksi & Teknik Sipil
+Cost Estimation,Menyusun rencana anggaran biaya proyek.,Konstruksi & Teknik Sipil
+Construction Project Management,"Mengelola jadwal, biaya, dan mutu proyek konstruksi.",Konstruksi & Teknik Sipil
+Site Supervision,Mengawasi pelaksanaan pekerjaan di lapangan.,Konstruksi & Teknik Sipil
+Land Surveying,Pengukuran dan pemetaan lahan.,Konstruksi & Teknik Sipil
+Architectural Design,Merancang bangunan dan tata ruang.,Konstruksi & Teknik Sipil
+Front Office Operations,"Pelayanan resepsionis, reservasi, dan check-in/check-out.",Perhotelan & Pariwisata
+Food and Beverage Service,Pelayanan makanan dan minuman sesuai standar.,Perhotelan & Pariwisata
+Housekeeping,Pemeliharaan kebersihan dan kerapian kamar serta fasilitas.,Perhotelan & Pariwisata
+Culinary Arts,Pengolahan dan penyajian makanan.,Perhotelan & Pariwisata
+Tour Guiding,Memandu wisatawan dan menyampaikan informasi destinasi.,Perhotelan & Pariwisata
+Event Management,Merencanakan dan mengelola penyelenggaraan acara.,Perhotelan & Pariwisata
+Travel Planning and Ticketing,Menyusun perjalanan dan pemesanan tiket.,Perhotelan & Pariwisata
+Office Administration,"Pengelolaan dokumen, surat, dan operasional perkantoran.",Administrasi & SDM
+Human Resource Management,Pengelolaan siklus karyawan dari rekrutmen hingga pengembangan.,Administrasi & SDM
+Recruitment and Selection,"Mencari, menyaring, dan mewawancarai kandidat.",Administrasi & SDM
+Payroll,"Perhitungan gaji, tunjangan, dan potongan karyawan.",Administrasi & SDM
+Employee Training and Development,Merancang pengembangan kompetensi karyawan.,Administrasi & SDM
+Document Management,Pengarsipan dan pengelolaan dokumen secara tertib.,Administrasi & SDM
+Business Correspondence,Menulis surat dan komunikasi bisnis yang profesional.,Administrasi & SDM
+Basic Legal Compliance,Pemahaman kontrak dan kepatuhan pada regulasi dasar.,Administrasi & SDM

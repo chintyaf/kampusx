@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\Lms;
 
 use App\Http\Controllers\Controller;
+use App\Models\Module;
 use App\Models\Quiz;
 use App\Models\QuizAnswer;
 use App\Models\QuizAttempt;
+use App\Services\Lms\CompletionService;
+use App\Services\Lms\LearningDataService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +17,11 @@ class LearnerQuizController extends Controller
 {
     /** Toleransi (detik) untuk latensi jaringan setelah timer habis. */
     private const GRACE_SECONDS = 10;
+
+    public function __construct(
+        private readonly LearningDataService $learningDataService,
+        private readonly CompletionService $completionService,
+    ) {}
 
     /**
      * GET member/modules/{moduleId}/quiz
@@ -87,6 +95,13 @@ class LearnerQuizController extends Controller
                 'started_at'     => now(),
             ]);
         });
+
+        if ($attempt->wasRecentlyCreated) {
+            $attempt->setRelation('quiz', $quiz);
+            $this->learningDataService->recordQuizStarted($userId, $attempt, [
+                'module_id' => $moduleId,
+            ]);
+        }
 
         $questions = $quiz->questions()->with(['options' => fn ($q) => $q->orderBy('order_index')])->get();
 
@@ -184,7 +199,9 @@ class LearnerQuizController extends Controller
             'answers.*.option_id'   => ['nullable', 'integer'],
         ]);
 
-        $attempt = DB::transaction(function () use ($quiz, $attemptId, $payload) {
+        $wasJustGraded = false;
+
+        $attempt = DB::transaction(function () use ($quiz, $attemptId, $payload, &$wasJustGraded) {
             $attempt = QuizAttempt::whereKey($attemptId)->lockForUpdate()->firstOrFail();
 
             if ($attempt->status !== 'in_progress') {
@@ -243,8 +260,17 @@ class LearnerQuizController extends Controller
                 'completed_at' => now(),
             ]);
 
+            $wasJustGraded = true;
+
             return $attempt->fresh();
         });
+
+        if ($wasJustGraded) {
+            $attempt->setRelation('quiz', $quiz);
+            $this->learningDataService->recordQuizSubmitted($request->user()->id, $attempt, [
+                'module_id' => $moduleId,
+            ]);
+        }
 
         return response()->json(['data' => $this->resultPayload($quiz, $attempt)]);
     }

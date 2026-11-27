@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Alert, Spinner } from 'react-bootstrap';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 
 // Layouts & Components
 import LessonSidebar from '@/pages/lms/learner/lesson/LessonSidebar';
@@ -32,6 +32,9 @@ const getErrorMessage = (err) => {
 	return err?.response?.data?.message || 'Terjadi kesalahan saat memuat materi.';
 };
 
+// Waktu minimum (ms) sebelum scroll ke bawah dianggap "selesai membaca"
+const MIN_READ_MS = 3000;
+
 const LessonViewerPage = () => {
 	const { slug, moduleId, lessonId } = useParams();
 	// di dalam komponen, setelah lessonId didapat dari useParams()
@@ -40,6 +43,8 @@ const LessonViewerPage = () => {
 
 	const mainContentRef = useRef(null);
 	const redirectTimerRef = useRef(null);
+	const sentinelRef = useRef(null);
+	const readingStartRef = useRef(Date.now());
 
 	// Data modul & daftar lesson (sidebar)
 	const [moduleInfo, setModuleInfo] = useState(null);
@@ -55,6 +60,9 @@ const LessonViewerPage = () => {
 	const [error, setError] = useState(null);
 	const [actionError, setActionError] = useState(null);
 	const [isCompleting, setIsCompleting] = useState(false);
+
+	// Deteksi apakah learner sudah selesai membaca (scroll sampai bawah)
+	const [hasFinishedReading, setHasFinishedReading] = useState(false);
 
 	const baseModuleUrl = `/learner/learning-paths/${slug}/modules/${moduleId}`;
 	const quizUrl = `${baseModuleUrl}/quiz`;
@@ -130,9 +138,11 @@ const LessonViewerPage = () => {
 		return () => controller.abort();
 	}, [moduleId, lessonId, isLoadingList, currentIndex, moduleInfo?.id]);
 
-	// Scroll ke atas saat materi berpindah
+	// Scroll ke atas & reset reading state saat materi berpindah
 	useEffect(() => {
 		mainContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+		setHasFinishedReading(false);
+		readingStartRef.current = Date.now();
 	}, [lessonId]);
 
 	// Bersihkan timer redirect saat unmount
@@ -156,6 +166,43 @@ const LessonViewerPage = () => {
 	const isFirstLesson = currentIndex <= 0;
 	const isLastLesson = currentIndex === lessons.length - 1;
 
+	// Lesson yang sudah pernah diselesaikan → langsung dianggap "sudah dibaca"
+	const isAlreadyCompleted = currentLesson?.id && completedLessonIds.has(currentLesson.id);
+	const canProceed = hasFinishedReading || isAlreadyCompleted || isQuiz;
+
+	// ------------------------------------------------
+	// IntersectionObserver: deteksi scroll sampai bawah konten
+	// ------------------------------------------------
+	useEffect(() => {
+		const sentinel = sentinelRef.current;
+		const scrollRoot = mainContentRef.current;
+		if (!sentinel || !scrollRoot || isQuiz) return;
+
+		let delayTimer;
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					const elapsed = Date.now() - readingStartRef.current;
+					if (elapsed >= MIN_READ_MS) {
+						setHasFinishedReading(true);
+					} else {
+						// Kalau terlalu cepat, tunggu sisa waktu lalu tandai selesai
+						const remaining = MIN_READ_MS - elapsed;
+						delayTimer = setTimeout(() => setHasFinishedReading(true), remaining);
+					}
+				}
+			},
+			{ root: scrollRoot, threshold: 0.1 },
+		);
+
+		observer.observe(sentinel);
+		return () => {
+			observer.disconnect();
+			clearTimeout(delayTimer);
+		};
+	}, [lessonId, isLoadingLesson, isQuiz]);
+
 	// ------------------------------------------------
 	// Navigasi
 	// ------------------------------------------------
@@ -171,6 +218,8 @@ const LessonViewerPage = () => {
 	const handleNext = useCallback(() => {
 		if (!isLastLesson && currentIndex !== -1) goToLesson(lessons[currentIndex + 1].id);
 	}, [currentIndex, isLastLesson, lessons, goToLesson]);
+
+	const handleGoToQuiz = useCallback(() => navigate(quizUrl), [navigate, quizUrl]);
 
 	// ------------------------------------------------
 	// Selesaikan lesson (simpan ke backend, lalu toast)
@@ -242,6 +291,21 @@ const LessonViewerPage = () => {
 		);
 	}
 
+	// Tentukan label & aksi tombol kanan berdasarkan status baca & posisi lesson
+	const isNextDisabled = !canProceed;
+	const nextButtonLabel = isLastLesson ? 'Mulai Kuis' : 'Selanjutnya';
+	const nextButtonIcon = isLastLesson ? (
+		<Trophy size={18} />
+	) : (
+		<ChevronRight size={18} />
+	);
+	const nextButtonAction = isLastLesson ? handleGoToQuiz : handleNext;
+	const nextButtonBg = !canProceed
+		? 'var(--neutral-border)'
+		: isLastLesson
+			? 'var(--success, #198754)'
+			: 'var(--primary)';
+
 	return (
 		<div
 			className="d-flex flex-grow-1 position-relative w-100 overflow-hidden"
@@ -284,12 +348,20 @@ const LessonViewerPage = () => {
 						) : isQuiz ? (
 							<LessonQuiz item={currentLesson} onNext={handleLessonComplete} />
 						) : (
-							<LessonMaterial
-								// key memaksa timer "Waktu Belajar" reset tiap lesson berganti
-								key={currentLesson?.id}
-								item={currentLesson}
-								onCompleteLesson={handleLessonComplete}
-							/>
+							<>
+								<LessonMaterial
+									// key memaksa timer "Waktu Belajar" reset tiap lesson berganti
+									key={currentLesson?.id}
+									item={currentLesson}
+									onCompleteLesson={handleLessonComplete}
+								/>
+								{/* Sentinel: elemen tak terlihat di bawah konten untuk deteksi scroll */}
+								<div
+									ref={sentinelRef}
+									aria-hidden="true"
+									style={{ height: 1, width: '100%' }}
+								/>
+							</>
 						)}
 					</div>
 
@@ -311,19 +383,18 @@ const LessonViewerPage = () => {
 						</Button>
 
 						<Button
-							onClick={handleNext}
-							disabled={isLastLesson}
+							onClick={nextButtonAction}
+							disabled={isNextDisabled}
 							className="d-flex align-items-center gap-2 px-3 py-2 fw-medium border-0"
 							style={{
-								backgroundColor: isLastLesson
-									? 'var(--neutral-border)'
-									: 'var(--primary)',
-								opacity: isLastLesson ? 0.6 : 1,
-								cursor: isLastLesson ? 'not-allowed' : 'pointer',
+								backgroundColor: nextButtonBg,
+								opacity: isNextDisabled ? 0.6 : 1,
+								cursor: isNextDisabled ? 'not-allowed' : 'pointer',
+								color: '#fff',
 							}}
 						>
-							Selanjutnya
-							<ChevronRight size={18} />
+							{nextButtonLabel}
+							{nextButtonIcon}
 						</Button>
 					</div>
 				</div>

@@ -92,13 +92,10 @@ export const LmsRoutes = () => {
 						{/* LEARNING PATH EDIT */}
 						<Route path="learning-path/:learningId" element={<ManageLearningPathPage />} />
 						<Route path="learning-path/:learningId/edit" element={<EditLearningPathPage />} />
+						<Route path="learning-path/:learningId/generate" element={<UploadPage />} />
+						<Route path="learning-path/:learningId/review" element={<ReviewPage />} />
 						{/* ==== */}
 
-						{/* AI STUDIO */}
-						<Route path="ai-studio">
-							<Route path="upload" element={<UploadPage />} />
-							<Route path="review" element={<ReviewPage />} />
-						</Route>
 					</Route>
 				</Route>
 			</Route>

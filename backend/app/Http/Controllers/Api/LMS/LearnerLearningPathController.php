@@ -11,12 +11,16 @@ use App\Models\LmsUserBadge;
 use App\Models\LmsUserCertificate;
 use App\Models\UserBadge;
 use App\Models\UserCertificate;
+use App\Services\Lms\LearningDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class LearnerLearningPathController extends Controller
 {
+    public function __construct(private readonly LearningDataService $learningDataService)
+    {
+    }
     /**
      * GET /api/lms/member/learning-paths/{id}
      * Detail learning path + status enrollment user (tanpa modul/badge).
@@ -318,6 +322,11 @@ class LearnerLearningPathController extends Controller
 
             return compact('newBadges', 'moduleCompleted', 'pathCompleted', 'certificate');
         });
+
+        $this->learningDataService->recordLessonCompleted($user->id, $lesson, 0, [
+            'module_id'        => $module->id,
+            'learning_path_id' => $path?->id,
+        ]);
 
         return response()->json([
             'success' => true,

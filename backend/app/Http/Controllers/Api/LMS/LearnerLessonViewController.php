@@ -6,12 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\LearningCompletion;
 use App\Models\Module;
+use App\Services\Lms\CompletionService;
+use App\Services\Lms\LearningDataService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class LearnerLessonViewController extends Controller
 {
+    public function __construct(
+        private readonly LearningDataService $learningDataService,
+        private readonly CompletionService $completionService,
+    ) {}
+
     /**
      * GET /lms/member/modules/{moduleId}/lessons
      * Data sidebar: info modul, daftar lesson, progress, dan kuis modul.
@@ -76,6 +83,10 @@ class LearnerLessonViewController extends Controller
             ->where('lesson_id', $lesson->id)
             ->exists();
 
+        $this->learningDataService->recordLessonViewed($user->id, $lesson, [
+            'module_id' => $module->id,
+        ]);
+
         return response()->json([
             'success' => true,
             'data'    => [
@@ -119,20 +130,24 @@ class LearnerLessonViewController extends Controller
 
         abort_if(!$lesson, 404, 'Lesson tidak ditemukan.');
 
-        $completion = LearningCompletion::firstOrCreate(
-            [
-                'user_id'   => $user->id,
-                'lesson_id' => $lesson->id,
-            ],
-            [
-                'module_id'        => $module->id,
-                'learning_path_id' => $module->learning_path_id,
-                'duration_seconds' => $validated['duration_seconds'] ?? 0,
-                'completed_at'     => now(),
-            ]
+        $durationSeconds = (int) ($validated['duration_seconds'] ?? 0);
+
+        // Cek apakah sudah pernah complete sebelumnya
+        $alreadyCompleted = LearningCompletion::where('user_id', $user->id)
+            ->where('lesson_id', $lesson->id)
+            ->exists();
+
+        $firstTime = !$alreadyCompleted;
+
+        // Gunakan CompletionService untuk cascade: lesson → module → path + badges
+        $completionResult = $this->completionService->onLessonCompleted(
+            user: $user,
+            module: $module,
+            lessonId: $lesson->id,
+            durationSeconds: $durationSeconds,
+            isFirstCompletion: $firstTime,
         );
 
-        $firstTime    = $completion->wasRecentlyCreated;
         $completedIds = $this->completedLessonIds($user->id, $lessons->pluck('id'));
 
         $index = $lessons->search(fn ($l) => $l->id === $lesson->id);
@@ -145,11 +160,15 @@ class LearnerLessonViewController extends Controller
                 'lesson_id'            => $lesson->id,
                 'is_first_completion'  => $firstTime,
                 'xp_earned'            => $firstTime ? (int) $lesson->xp : 0,
-                'duration_seconds'     => (int) $completion->duration_seconds,
+                'duration_seconds'     => $durationSeconds,
                 'is_last'              => $next === null,
                 'next_lesson_id'       => $next?->id,
                 'completed_lesson_ids' => $completedIds,
                 'progress'             => $this->buildProgress($lessons->count(), count($completedIds)),
+                // Info cascade completion
+                'module_completed'     => $completionResult['module_completed'],
+                'path_completed'       => $completionResult['path_completed'],
+                'badges_awarded'       => $completionResult['badges_awarded'],
             ],
         ]);
     }

@@ -28,6 +28,7 @@ return new class extends Migration
 
             $table->index(['user_id', 'completed_at']);
         });
+        
 
         // Schema::create('lms_badges', function (Blueprint $table) {
         //     $table->id();

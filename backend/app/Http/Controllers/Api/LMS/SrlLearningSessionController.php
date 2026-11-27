@@ -5,13 +5,18 @@ namespace App\Http\Controllers\Api\Lms;
 use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\Module;
+use App\Models\Quiz;
 use App\Models\SrlLearningSession;
+use App\Services\Lms\LearningDataService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class SrlLearningSessionController extends Controller
 {
+    public function __construct(private readonly LearningDataService $learningDataService)
+    {
+    }
     /**
      * Cek apakah user memiliki sesi SRL yang sedang aktif/planned saat modal dibuka.
      */
@@ -68,6 +73,15 @@ class SrlLearningSessionController extends Controller
             'started_at' => $startNow ? now() : null,
         ]);
 
+        if ($startNow) {
+            $this->learningDataService->recordSrlSessionActivity(
+                userId: $request->user()->id,
+                session: $session,
+                activityType: 'srl_session_started',
+                target: $session
+            );
+        }
+
         return response()->json([
             'message' => 'Sesi SRL berhasil dibuat.',
             'session' => $session->load('materials.target'),
@@ -86,6 +100,13 @@ class SrlLearningSessionController extends Controller
             'current_phase' => 'performance',
             'started_at' => $srlLearningSession->started_at ?? now(),
         ]);
+
+        $this->learningDataService->recordSrlSessionActivity(
+            userId: $request->user()->id,
+            session: $srlLearningSession,
+            activityType: 'srl_session_started',
+            target: $srlLearningSession
+        );
 
         return response()->json([
             'message' => 'Sesi pembelajaran dimulai.',
@@ -127,7 +148,7 @@ class SrlLearningSessionController extends Controller
         }
 
         $validated = $request->validate([
-            'target_type' => ['required', 'string', Rule::in(['lesson', 'module'])],
+            'target_type' => ['required', 'string', Rule::in(['lesson', 'module', 'quiz'])],
             'target_id' => ['required', 'integer'],
             'activity_type' => ['nullable', 'string', 'max:50'],
             'duration_seconds' => ['nullable', 'integer', 'min:0'],
@@ -137,6 +158,7 @@ class SrlLearningSessionController extends Controller
         $modelClass = match ($validated['target_type']) {
             'lesson' => Lesson::class,
             'module' => Module::class,
+            'quiz' => Quiz::class,
         };
 
         $target = $modelClass::findOrFail($validated['target_id']);
@@ -146,6 +168,15 @@ class SrlLearningSessionController extends Controller
             activityType: $validated['activity_type'] ?? 'viewed',
             additionalSeconds: $validated['duration_seconds'] ?? 0,
             isCompleted: $validated['is_completed'] ?? false,
+        );
+
+        $this->learningDataService->recordSrlSessionActivity(
+            userId: $request->user()->id,
+            session: $srlLearningSession,
+            activityType: $validated['activity_type'] ?? 'viewed',
+            target: $target,
+            durationSeconds: $validated['duration_seconds'] ?? 0,
+            metadata: ['is_completed' => $validated['is_completed'] ?? false]
         );
 
         return response()->json([
@@ -177,6 +208,15 @@ class SrlLearningSessionController extends Controller
             'current_phase' => 'reflection',
             'ended_at' => now(),
         ]);
+
+        $this->learningDataService->recordSrlSessionActivity(
+            userId: $request->user()->id,
+            session: $srlLearningSession,
+            activityType: 'srl_session_completed',
+            target: $srlLearningSession,
+            durationSeconds: (int) ($validated['accumulated_seconds'] ?? $srlLearningSession->accumulated_seconds ?? 0),
+            metadata: ['goal_achievement' => $validated['goal_achievement']]
+        );
 
         return response()->json([
             'message' => 'Refleksi tersimpan. Sesi pembelajaran selesai!',

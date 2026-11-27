@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Spinner, Alert, Button } from 'react-bootstrap';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/api/axios';
 
@@ -9,105 +9,118 @@ import ContinueLearningCard from '@/pages/lms/learner/learn-dashboard/ContinueLe
 import RecommendedModules from '@/pages/lms/learner/learn-dashboard/RecommendedModules';
 import EnrolledModules from '@/pages/lms/learner/learn-dashboard/EnrolledModules';
 import SRLHistory from '@/pages/lms/learner/learn-dashboard/SRLHistory';
-import LearningReadinessWidget from '@/pages/lms/learner/learn-dashboard/LearningReadinessWidget';
+// import LearningReadinessWidget from '@/pages/lms/learner/learn-dashboard/LearningReadinessWidget';
 import StudyInsightsWidget from '@/pages/lms/learner/learn-dashboard/StudyInsightsWidget';
 import SkillMatrixWidget from '@/pages/lms/learner/learn-dashboard/SkillMatrixWidget';
 import BadgesWidget from '@/pages/lms/learner/learn-dashboard/BadgesWidget';
-
-import {
-	mockUserLearningProfile,
-	mockActiveModule,
-	mockLearningReadiness,
-	mockRecommendedModules,
-	mockEnrolledModules,
-	mockSkillProfile,
-	mockAchievements,
-	mockSRLHistory,
-} from '@/pages/lms/learner/learn-dashboard/learningDashboardData';
 
 import '@/pages/lms/learningDashboard.css';
 
 /**
  * LearningDashboard
  * Pusat microlearning untuk Member (Student Hub Space / KampusX).
+ * Data diambil dari GET /api/lms/member/dashboard (enrollment → learning path → module → lesson).
  *
- * Alur halaman mengikuti rancangan sistem pada laporan:
- *  Main    : modul aktif + fase SRL → rekomendasi (hybrid CBF+CF) → learning path → riwayat SRL
- *  Sidebar : Learning Readiness → profil kompetensi & skill gap → badge & kredensial digital
+ * Main    : modul aktif + fase SRL → rekomendasi (hybrid CBF+CF) → modul yang di-enroll → riwayat SRL
+ * Sidebar : Study insights → profil kompetensi → badge & kredensial digital
  */
+
+const DASHBOARD_ENDPOINT = '/lms/member/dashboard';
+
+const EMPTY_DATA = {
+	userLearningProfile: { currentStreak: 0 },
+	activeModule: null,
+	recommendedModules: [],
+	enrolledModules: [],
+	srlHistory: [],
+	skillProfile: { skills: [], careerFit: [] },
+	achievements: { badges: [], credentials: [] },
+	learningReadiness: null,
+};
+
 const LearningDashboard = () => {
 	const { user: authUser } = useAuth();
 	const navigate = useNavigate();
 
 	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
 	const [dashboardData, setDashboardData] = useState(null);
 
-	// Fetch data agregasi dari backend LMS API
-	useEffect(() => {
-		let isMounted = true;
+	const fetchDashboardData = useCallback(async (signal) => {
+		setLoading(true);
+		setError(null);
 
-		const fetchDashboardData = async () => {
-			try {
-				const response = await api.get('/lms/learner/dashboard');
-				if (isMounted && response?.data?.success && response?.data?.data) {
-					setDashboardData(response.data.data);
-				}
-			} catch (err) {
-				console.warn('Gagal memuat data dari API LMS dashboard, menggunakan fallback data:', err);
-			} finally {
-				if (isMounted) {
-					setLoading(false);
-				}
+		try {
+			const response = await api.get(DASHBOARD_ENDPOINT, { signal });
+			const payload = response?.data;
+
+			if (!payload?.success || !payload?.data) {
+				throw new Error(payload?.message || 'Respons dashboard tidak valid.');
 			}
-		};
 
-		fetchDashboardData();
+			setDashboardData(payload.data);
+		} catch (err) {
+			if (err?.code === 'ERR_CANCELED') return; // request dibatalkan saat unmount
 
-		return () => {
-			isMounted = false;
-		};
+			const message =
+				err?.response?.data?.message ||
+				err?.message ||
+				'Gagal memuat data pusat microlearning.';
+			console.error('Gagal memuat dashboard LMS:', err);
+			setError(message);
+		} finally {
+			if (!signal?.aborted) setLoading(false);
+		}
 	}, []);
 
-	// Data gabungan (prioritaskan data dari API, fallback ke mock)
-	const userProfile = dashboardData?.userLearningProfile || mockUserLearningProfile;
-	const activeModule = dashboardData?.activeModule || mockActiveModule;
-	const recommendedModules = dashboardData?.recommendedModules || mockRecommendedModules;
-	const enrolledModules = dashboardData?.enrolledModules || mockEnrolledModules;
-	const srlHistory = dashboardData?.srlHistory || mockSRLHistory;
-	const skillProfile = dashboardData?.skillProfile || mockSkillProfile;
-	const achievements = dashboardData?.achievements || mockAchievements;
-	const learningReadiness = dashboardData?.learningReadiness || mockLearningReadiness;
-	const currentUser = dashboardData?.user || authUser;
+	useEffect(() => {
+		const controller = new AbortController();
+		fetchDashboardData(controller.signal);
+		return () => controller.abort();
+	}, [fetchDashboardData]);
 
-	// Handlers navigasi untuk kartu dan tombol
+	// Sumber data: API, atau struktur kosong sebelum data tiba
+	const source = dashboardData ?? EMPTY_DATA;
+
+	const userProfile = source.userLearningProfile ?? EMPTY_DATA.userLearningProfile;
+	const activeModule = source.activeModule ?? null;
+	const recommendedModules = source.recommendedModules ?? [];
+	const enrolledModules = source.enrolledModules ?? [];
+	const srlHistory = source.srlHistory ?? [];
+	const skillProfile = source.skillProfile ?? EMPTY_DATA.skillProfile;
+	const achievements = source.achievements ?? EMPTY_DATA.achievements;
+	// const learningReadiness = source.learningReadiness; // dipakai bila widget readiness diaktifkan lagi
+	const currentUser = dashboardData?.user ?? authUser;
+
+	// Navigasi: kirim ke halaman modul di dalam learning path-nya.
 	const handleOpenModule = (m) => {
-		const targetId = m?.targetModuleId || m?.moduleId || (m?.id === 'rec-1' || m?.id === 'rec-2' ? 'mod-arch-101' : m?.id);
-		navigate(`/learner/modules/${targetId || 'mod-arch-101'}`);
+		const moduleId = m?.targetModuleId ?? m?.moduleId;
+		const pathKey = m?.learningPathSlug ?? m?.learningPathId;
+		if (!moduleId || !pathKey) return;
+		navigate(`/learner/learning-paths/${pathKey}/modules/${moduleId}`);
 	};
 
-	const handleContinueActive = () => {
-		const targetId = activeModule?.targetModuleId || activeModule?.id || 'mod-arch-101';
-		navigate(`/learner/modules/${targetId}`);
+	const handleContinueActive = () => handleOpenModule(activeModule);
+
+	const handleExploreAll = () => navigate('/explore-microlearning');
+
+	const handleViewCertificate = (item) => {
+		const pathKey = item?.learningPathSlug ?? item?.learningPathId;
+		if (!pathKey) return;
+		navigate(`/learner/learning-paths/${pathKey}/certificate`);
 	};
 
-	const handleExploreAll = () => {
-		navigate('/explore-microlearning');
-	};
-
-	const handleViewCertificate = (c) => {
-		navigate('/learner/learning-paths/lp-1/certificate');
-	};
-
-	// Ringkasan learning analytics di header (diturunkan dari data enrollment atau API stats).
+	// Ringkasan KPI header: pakai stats dari API, hitung lokal hanya jika tidak tersedia.
 	const stats = useMemo(() => {
-		if (dashboardData?.stats && Array.isArray(dashboardData.stats) && dashboardData.stats.length > 0) {
-			return dashboardData.stats;
+		if (Array.isArray(source.stats) && source.stats.length > 0) {
+			return source.stats;
 		}
 
-		const quizScores = enrolledModules.map((m) => m.lastQuizScore).filter(Boolean);
+		const quizScores = enrolledModules.map((m) => m.lastQuizScore).filter((s) => s != null);
 		const avgQuiz = quizScores.length
 			? Math.round(quizScores.reduce((a, b) => a + b, 0) / quizScores.length)
 			: 0;
+
 		return [
 			{
 				icon: 'book-open',
@@ -129,7 +142,7 @@ const LearningDashboard = () => {
 				tone: 'warning',
 			},
 		];
-	}, [dashboardData?.stats, enrolledModules]);
+	}, [source.stats, enrolledModules]);
 
 	if (loading && !dashboardData) {
 		return (
@@ -137,6 +150,29 @@ const LearningDashboard = () => {
 				<Container className="py-5 text-center">
 					<Spinner animation="border" variant="primary" role="status" />
 					<p className="mt-3 text-muted">Memuat pusat microlearning...</p>
+				</Container>
+			</div>
+		);
+	}
+
+	// Gagal memuat: tampilkan error + tombol coba lagi
+	if (error && !dashboardData) {
+		return (
+			<div className="learning-dashboard-wrapper">
+				<Container className="py-5">
+					<Alert
+						variant="danger"
+						className="d-flex justify-content-between align-items-center"
+					>
+						<span>{error}</span>
+						<Button
+							variant="outline-danger"
+							size="sm"
+							onClick={() => fetchDashboardData()}
+						>
+							Coba lagi
+						</Button>
+					</Alert>
 				</Container>
 			</div>
 		);
@@ -154,11 +190,13 @@ const LearningDashboard = () => {
 				<Row className="g-4">
 					<Col lg={9}>
 						<div className="ld-stack">
-							<ContinueLearningCard
-								module={activeModule}
-								onContinue={handleContinueActive}
-								onViewAll={handleExploreAll}
-							/>
+							{activeModule && (
+								<ContinueLearningCard
+									module={activeModule}
+									onContinue={handleContinueActive}
+									onViewAll={handleExploreAll}
+								/>
+							)}
 							<RecommendedModules
 								modules={recommendedModules}
 								onOpen={handleOpenModule}
