@@ -1,100 +1,136 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import recruiterApi from '../services/recruiterApi';
 
 /**
  * Custom Hook: useJobMatching
- * Mengelola state input kriteria pekerjaan, eksekusi API Cosine Similarity, dan ranking hasil matching
+ * Mengelola daftar skill dari backend (/public/skills), state kriteria pekerjaan,
+ * dan auto-update hasil Job Matching (/job-matching/search) saat skill berubah
  */
 export const useJobMatching = () => {
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [loadingSkills, setLoadingSkills] = useState(false);
+  const [skillsError, setSkillsError] = useState(null);
+
   const [isMatchingActive, setIsMatchingActive] = useState(false);
   const [jobTitle, setJobTitle] = useState('');
-  const [requiredSkills, setRequiredSkills] = useState([]);
+  const [requiredSkills, setRequiredSkills] = useState([]); // Array of { id, name }
   const [matching, setMatching] = useState(false);
   const [matchRankings, setMatchRankings] = useState(null);
   const [matchError, setMatchError] = useState(null);
-  const [isCriteriaDirty, setIsCriteriaDirty] = useState(false);
 
-  const addSkill = useCallback((skill) => {
-    const trimmed = skill.trim();
-    if (!trimmed) return;
+  const jobTitleRef = useRef(jobTitle);
+  jobTitleRef.current = jobTitle;
+
+  // Load skills from /public/skills
+  useEffect(() => {
+    let active = true;
+    const fetchSkills = async () => {
+      setLoadingSkills(true);
+      setSkillsError(null);
+      const res = await recruiterApi.getPublicSkills();
+      if (!active) return;
+
+      if (res.success) {
+        setAvailableSkills(res.data);
+      } else {
+        setSkillsError(res.message || 'Gagal memuat daftar skill.');
+      }
+      setLoadingSkills(false);
+    };
+
+    fetchSkills();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Auto-update Job Matching results whenever requiredSkills changes
+  useEffect(() => {
+    if (requiredSkills.length === 0) {
+      setMatchRankings(null);
+      setIsMatchingActive(false);
+      setMatchError(null);
+      setMatching(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setMatching(true);
+      setMatchError(null);
+      try {
+        const res = await recruiterApi.runSkillMatch({
+          job_title: jobTitleRef.current.trim() || 'Posisi Kualifikasi',
+          required_skills: requiredSkills,
+        });
+        if (cancelled) return;
+
+        if (res.success && res.data?.candidates) {
+          setMatchRankings(res.data.candidates);
+          setIsMatchingActive(true);
+        } else {
+          setMatchError(res.message || 'Gagal menghitung kecocokan kandidat.');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setMatchError('Terjadi kesalahan saat menghubungi API Job Matching.');
+        }
+      } finally {
+        if (!cancelled) {
+          setMatching(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [requiredSkills]);
+
+  const toggleSkill = useCallback((skill) => {
+    if (!skill?.id) return;
+    const skillId = Number(skill.id);
+
     setRequiredSkills((prev) => {
-      if (prev.includes(trimmed)) return prev;
-      return [...prev, trimmed];
+      const isSelected = prev.some((s) => Number(s.id) === skillId);
+      return isSelected
+        ? prev.filter((s) => Number(s.id) !== skillId)
+        : [...prev, { id: skillId, name: skill.name }];
     });
-    if (matchRankings) setIsCriteriaDirty(true);
-  }, [matchRankings]);
+  }, []);
 
-  const removeSkill = useCallback((skill) => {
-    setRequiredSkills((prev) => prev.filter((s) => s !== skill));
-    if (matchRankings) setIsCriteriaDirty(true);
-  }, [matchRankings]);
-
-  const selectPreset = useCallback((skill) => {
-    setRequiredSkills((prev) => {
-      if (prev.includes(skill)) return prev;
-      return [...prev, skill];
-    });
-    if (matchRankings) setIsCriteriaDirty(true);
-  }, [matchRankings]);
+  const removeSkill = useCallback((skillOrId) => {
+    const targetId = typeof skillOrId === 'object' ? Number(skillOrId.id) : Number(skillOrId);
+    setRequiredSkills((prev) => prev.filter((s) => Number(s.id) !== targetId));
+  }, []);
 
   const resetSkills = useCallback(() => {
     setRequiredSkills([]);
-    if (matchRankings) setIsCriteriaDirty(true);
-  }, [matchRankings]);
-
-  const runMatch = useCallback(async () => {
-    if (requiredSkills.length === 0) {
-      setMatchError('Silakan masukkan minimal satu keahlian yang dibutuhkan.');
-      return;
-    }
-
-    setMatching(true);
-    setMatchError(null);
-    try {
-      const res = await recruiterApi.runSkillMatch({
-        job_title: jobTitle.trim() || 'Posisi Kualifikasi',
-        required_skills: requiredSkills,
-      });
-
-      if (res.success && res.data?.candidates) {
-        setMatchRankings(res.data.candidates);
-        setIsMatchingActive(true);
-        setIsCriteriaDirty(false);
-      } else {
-        setMatchError(res.message || 'Gagal menghitung kecocokan kandidat.');
-      }
-    } catch (err) {
-      setMatchError('Terjadi kesalahan saat menghubungi API Job Matching.');
-    } finally {
-      setMatching(false);
-    }
-  }, [jobTitle, requiredSkills]);
+  }, []);
 
   const resetMatch = useCallback(() => {
+    setRequiredSkills([]);
     setMatchRankings(null);
     setIsMatchingActive(false);
-    setIsCriteriaDirty(false);
     setMatchError(null);
   }, []);
 
   return {
+    availableSkills,
+    loadingSkills,
+    skillsError,
     isMatchingActive,
     setIsMatchingActive,
     jobTitle,
-    setJobTitle: (val) => {
-      setJobTitle(val);
-      if (matchRankings) setIsCriteriaDirty(true);
-    },
+    setJobTitle,
     requiredSkills,
-    addSkill,
+    toggleSkill,
     removeSkill,
-    selectPreset,
     resetSkills,
     matching,
     matchRankings,
     matchError,
-    isCriteriaDirty,
-    runMatch,
     resetMatch,
     setMatchRankings,
     setRequiredSkills,

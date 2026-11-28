@@ -1,7 +1,6 @@
 import React from 'react';
 import { Badge, Button } from 'react-bootstrap';
-import { Sparkles, SlidersHorizontal, Users } from 'lucide-react';
-import JobMatchingPanel from '../components/JobMatchingPanel';
+import { Sparkles } from 'lucide-react';
 import CandidateList from '../components/CandidateList';
 
 /**
@@ -17,19 +16,6 @@ const TalentDirectoryView = ({
   activeSkills = [],
   // Matching Props
   isMatchingActive = false,
-  showMatchingPanel = false,
-  onToggleMatchingPanel,
-  jobTitle = '',
-  onJobTitleChange,
-  requiredSkills = [],
-  onAddSkill,
-  onRemoveSkill,
-  onSelectPreset,
-  onResetSkills,
-  onRunMatch,
-  matching = false,
-  matchError = null,
-  isCriteriaDirty = false,
   onResetMatch,
   // Navigation
   onViewProfile,
@@ -39,17 +25,6 @@ const TalentDirectoryView = ({
       {/* Top Action Bar */}
       <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
         <div className="d-flex align-items-center gap-2">
-          <Button
-            variant={showMatchingPanel ? 'primary' : 'outline-primary'}
-            size="sm"
-            className="rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm"
-            style={{ fontSize: '12.5px' }}
-            onClick={onToggleMatchingPanel}
-          >
-            <Sparkles size={14} />
-            <span>{showMatchingPanel ? 'Sembunyikan Panel Kriteria' : 'Buka Kriteria Job Matching'}</span>
-          </Button>
-
           {isMatchingActive && (
             <Badge bg="success" className="px-2.5 py-1.5 rounded-pill d-inline-flex align-items-center gap-1">
               <Sparkles size={12} /> Hasil Job Matching Terperingkat ({candidates.length})
@@ -75,25 +50,6 @@ const TalentDirectoryView = ({
           )}
         </div>
       </div>
-
-      {/* Collapsible Job Matching Panel */}
-      {showMatchingPanel && (
-        <JobMatchingPanel
-          jobTitle={jobTitle}
-          onJobTitleChange={onJobTitleChange}
-          requiredSkills={requiredSkills}
-          onAddSkill={onAddSkill}
-          onRemoveSkill={onRemoveSkill}
-          onSelectPreset={onSelectPreset}
-          onResetSkills={onResetSkills}
-          onRunMatch={onRunMatch}
-          matching={matching}
-          matchError={matchError}
-          isCriteriaDirty={isCriteriaDirty}
-          isMatchingActive={isMatchingActive}
-          onClose={onToggleMatchingPanel}
-        />
-      )}
 
       {/* Candidate Grid */}
       <CandidateList

@@ -1,16 +1,14 @@
 import React from 'react';
-import { Users, Sparkles, ShieldCheck } from 'lucide-react';
 import LogoIcon from '@/assets/images/logo/icon.svg';
 import CandidateFilters from './CandidateFilters';
+import JobMatchingPanel from './JobMatchingPanel';
 
 /**
  * Komponen RecruiterLeftSidebar
- * Sidebar 2-kolom yang ringkas: navigasi mode (Direktori vs Job Matching) dan filter pencarian
+ * Sidebar 2-kolom yang menampilkan filter kandidat dan panel Job Matching secara langsung
  */
 const RecruiterLeftSidebar = ({
   user,
-  activeMode = 'directory', // 'directory' | 'matching'
-  onModeChange,
   stats = {},
   // Filter Props
   search = '',
@@ -20,6 +18,20 @@ const RecruiterLeftSidebar = ({
   sbtOnly = false,
   onSbtOnlyChange,
   onResetFilters,
+  // Job Matching Props
+  jobTitle = '',
+  onJobTitleChange,
+  availableSkills = [],
+  loadingSkills = false,
+  skillsError = null,
+  requiredSkills = [],
+  onToggleSkill,
+  onRemoveSkill,
+  onResetSkills,
+  matching = false,
+  matchError = null,
+  isMatchingActive = false,
+  matchCount = 0,
 }) => {
   const userName = user?.name || 'Tim Rekruter';
   const initials = userName
@@ -64,32 +76,7 @@ const RecruiterLeftSidebar = ({
         </div>
       </div>
 
-      {/* Mode Navigation Tabs */}
-      <div className="clean-card p-2 mb-3">
-        <div className="fw-bold text-dark px-3 py-1.5 small text-uppercase" style={{ fontSize: '11px', letterSpacing: '0.04em' }}>
-          Navigasi Talenta
-        </div>
-
-        <button
-          type="button"
-          className={`nav-tab-btn ${activeMode === 'directory' ? 'active' : ''}`}
-          onClick={() => onModeChange && onModeChange('directory')}
-        >
-          <Users size={15} />
-          <span>Direktori Talenta</span>
-        </button>
-
-        <button
-          type="button"
-          className={`nav-tab-btn ${activeMode === 'matching' ? 'active' : ''}`}
-          onClick={() => onModeChange && onModeChange('matching')}
-        >
-          <Sparkles size={15} />
-          <span>Job Matching Engine</span>
-        </button>
-      </div>
-
-      {/* Filter Kandidat (Active when in directory view) */}
+      {/* Filter Kandidat & Job Matching Panel */}
       <CandidateFilters
         search={search}
         onSearchChange={onSearchChange}
@@ -98,6 +85,22 @@ const RecruiterLeftSidebar = ({
         sbtOnly={sbtOnly}
         onSbtOnlyChange={onSbtOnlyChange}
         onReset={onResetFilters}
+      />
+
+      <JobMatchingPanel
+        jobTitle={jobTitle}
+        onJobTitleChange={onJobTitleChange}
+        availableSkills={availableSkills}
+        loadingSkills={loadingSkills}
+        skillsError={skillsError}
+        requiredSkills={requiredSkills}
+        onToggleSkill={onToggleSkill}
+        onRemoveSkill={onRemoveSkill}
+        onResetSkills={onResetSkills}
+        matching={matching}
+        matchError={matchError}
+        isMatchingActive={isMatchingActive}
+        matchCount={matchCount}
       />
     </div>
   );

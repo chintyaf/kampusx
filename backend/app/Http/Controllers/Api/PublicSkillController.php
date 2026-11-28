@@ -9,7 +9,11 @@ class PublicSkillController extends Controller
 {
     public function index()
     {
-        $skills = Skill::select('id', 'name')
+        $skills = Skill::select('id', 'name', 'category')
+            ->withCount([
+                'userSkillScores as matched_candidates_count' => fn ($q) => $q->where('score', '>', 0),
+            ])
+            ->orderByDesc('matched_candidates_count')
             ->orderBy('name')
             ->get();
 

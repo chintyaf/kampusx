@@ -14,6 +14,30 @@ import RecruiterLeftSidebar from './components/RecruiterLeftSidebar';
 import TalentZeroTrustModal from './components/TalentZeroTrustModal';
 import TalentDirectoryView from './views/TalentDirectoryView';
 
+const mergeRankedCandidate = (ranked, directoryCandidates) => {
+  const found = directoryCandidates.find((c) => c.id === ranked.candidate_id);
+  const extractNames = (list) => (list || []).map((item) => item.name || item.skill).filter(Boolean);
+  const combinedSkills = [...extractNames(ranked.matched_skills), ...extractNames(ranked.other_skills)];
+
+  return {
+    id: ranked.candidate_id,
+    name: ranked.name,
+    email: ranked.email,
+    campus: found?.campus || 'Universitas Indonesia',
+    major: found?.major || 'Teknik Informatika',
+    tier: ranked.tier || found?.tier || 'Silver',
+    points: found?.points || 0,
+    skills: combinedSkills.length > 0 ? combinedSkills : (found?.skills || []),
+    verified_sbt_count: ranked.verified_sbt_count || (found?.verified_sbt_count || 0),
+    match_score_pct: ranked.match_score_pct,
+    matched_skills: ranked.matched_skills,
+    other_skills: ranked.other_skills,
+    unmet_skills: ranked.unmet_skills,
+    competency_verdict: ranked.competency_verdict,
+    bio: found?.bio,
+  };
+};
+
 /**
  * RecruiterDashboardPage
  * Halaman utama Direktori Talenta untuk Recruiter KampusX
@@ -25,10 +49,6 @@ const RecruiterDashboardPage = () => {
   const { id: paramCandidateId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Mode: 'directory' (Semua Kandidat) | 'matching' (Job Matching Engine)
-  const [activeMode, setActiveMode] = useState('directory');
-  const [showMatchingPanel, setShowMatchingPanel] = useState(false);
 
   // Zero-Trust Modal State
   const [showZeroTrustModal, setShowZeroTrustModal] = useState(false);
@@ -57,22 +77,22 @@ const RecruiterDashboardPage = () => {
   } = useRecruiterCandidates();
 
   const {
+    availableSkills,
+    loadingSkills,
+    skillsError,
     isMatchingActive,
     setIsMatchingActive,
     jobTitle,
     setJobTitle,
     requiredSkills,
     setRequiredSkills,
-    addSkill,
+    toggleSkill,
     removeSkill,
-    selectPreset,
     resetSkills,
     matching,
     matchRankings,
     setMatchRankings,
     matchError,
-    isCriteriaDirty,
-    runMatch,
     resetMatch,
   } = useJobMatching();
 
@@ -97,7 +117,6 @@ const RecruiterDashboardPage = () => {
       if (fs.requiredSkills !== undefined) setRequiredSkills(fs.requiredSkills);
       if (fs.isMatchingActive !== undefined) {
         setIsMatchingActive(fs.isMatchingActive);
-        if (fs.isMatchingActive) setShowMatchingPanel(true);
       }
       if (fs.matchRankings !== undefined) setMatchRankings(fs.matchRankings);
     }
@@ -118,31 +137,18 @@ const RecruiterDashboardPage = () => {
   // Compute displayed candidates:
   // If matching has been executed, show ONLY ranked candidates with their actual API match scores
   const displayedCandidates = useMemo(() => {
-    if (isMatchingActive && matchRankings && matchRankings.length > 0) {
-      return matchRankings.map((ranked) => {
-        const found = candidates.find((c) => c.id === ranked.candidate_id);
-        return {
-          id: ranked.candidate_id,
-          name: ranked.name,
-          email: ranked.email,
-          campus: found?.campus || 'Universitas Indonesia',
-          major: found?.major || 'Teknik Informatika',
-          tier: ranked.tier || found?.tier || 'Silver',
-          points: found?.points || 0,
-          skills: ranked.matched_skills ? ranked.matched_skills.map((m) => m.skill) : (found?.skills || []),
-          verified_sbt_count: ranked.verified_sbt_count || (found?.verified_sbt_count || 0),
-          match_score_pct: ranked.match_score_pct,
-          matched_skills: ranked.matched_skills,
-          unmet_skills: ranked.unmet_skills,
-          competency_verdict: ranked.competency_verdict,
-          bio: found?.bio,
-        };
-      });
+    if (isMatchingActive && Array.isArray(matchRankings)) {
+      return matchRankings.map((ranked) => mergeRankedCandidate(ranked, candidates));
     }
 
     // Default: Return normal search/filter candidates (without fake match scores)
     return candidates;
   }, [isMatchingActive, matchRankings, candidates]);
+
+  const activeSkillNames = useMemo(
+    () => requiredSkills.map((s) => (typeof s === 'string' ? s : s.name)),
+    [requiredSkills]
+  );
 
   // Handler: Arahkan ke halaman profil kandidat tersendiri (/profile/:id) dengan membawa context filter & matching
   const handleViewProfile = (candidate) => {
@@ -168,13 +174,6 @@ const RecruiterDashboardPage = () => {
         } : null,
       }
     });
-  };
-
-  const handleModeChange = (mode) => {
-    setActiveMode(mode);
-    if (mode === 'matching') {
-      setShowMatchingPanel(true);
-    }
   };
 
   return (
@@ -222,11 +221,9 @@ const RecruiterDashboardPage = () => {
       {/* ==================== 2-COLUMN MAIN LAYOUT ==================== */}
       <Container>
         <div className="recruiter-layout-2col">
-          {/* Left Column: Sidebar & Filters */}
+          {/* Left Column: Sidebar & Filters / Job Matching */}
           <RecruiterLeftSidebar
             user={user}
-            activeMode={activeMode}
-            onModeChange={handleModeChange}
             stats={stats}
             search={search}
             onSearchChange={setSearch}
@@ -235,6 +232,20 @@ const RecruiterDashboardPage = () => {
             sbtOnly={sbtOnly}
             onSbtOnlyChange={setSbtOnly}
             onResetFilters={resetFilters}
+            // Job Matching Props
+            jobTitle={jobTitle}
+            onJobTitleChange={setJobTitle}
+            availableSkills={availableSkills}
+            loadingSkills={loadingSkills}
+            skillsError={skillsError}
+            requiredSkills={requiredSkills}
+            onToggleSkill={toggleSkill}
+            onRemoveSkill={removeSkill}
+            onResetSkills={resetSkills}
+            matching={matching}
+            matchError={matchError}
+            isMatchingActive={isMatchingActive}
+            matchCount={Array.isArray(matchRankings) ? matchRankings.length : 0}
           />
 
           {/* Main Column: Pure Talent Discovery Grid (No inline profile clutter) */}
@@ -245,22 +256,9 @@ const RecruiterDashboardPage = () => {
               error={candidatesError}
               onRetry={loadCandidates}
               totalResults={totalResults}
-              activeSkills={requiredSkills}
+              activeSkills={activeSkillNames}
               // Matching Props
               isMatchingActive={isMatchingActive}
-              showMatchingPanel={showMatchingPanel}
-              onToggleMatchingPanel={() => setShowMatchingPanel(!showMatchingPanel)}
-              jobTitle={jobTitle}
-              onJobTitleChange={setJobTitle}
-              requiredSkills={requiredSkills}
-              onAddSkill={addSkill}
-              onRemoveSkill={removeSkill}
-              onSelectPreset={selectPreset}
-              onResetSkills={resetSkills}
-              onRunMatch={runMatch}
-              matching={matching}
-              matchError={matchError}
-              isCriteriaDirty={isCriteriaDirty}
               onResetMatch={resetMatch}
               // Navigation to dedicated profile
               onViewProfile={handleViewProfile}
