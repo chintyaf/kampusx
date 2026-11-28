@@ -1,6 +1,8 @@
 import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { CheckCircle2, ExternalLink, ShieldCheck, FileText } from 'lucide-react';
+import LogoKampusX from '@/assets/images/logo/Logo_KampusX.svg';
+import LogoKampusXNoText from '@/assets/images/logo/Logo_KampusX_NoText.svg';
 
 const ZeroTrustModal = ({ show, onHide, sbtData, studentName, onOpenFileModal }) => {
   if (!sbtData) return null;
@@ -14,6 +16,18 @@ const ZeroTrustModal = ({ show, onHide, sbtData, studentName, onOpenFileModal })
       style={{ borderRadius: '24px' }}
     >
       <Modal.Body className="p-4 text-center">
+        {/* Official KampusX Branding Header */}
+        {/* <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
+          <img
+            src={LogoKampusX}
+            alt="KampusX"
+            style={{ height: '24px', width: 'auto', objectFit: 'contain' }}
+          />
+          <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill" style={{ fontSize: '10.5px' }}>
+            Zero-Trust On-Chain
+          </span>
+        </div> */}
+
         <div className="modal-trust-badge">
           <CheckCircle2 size={36} />
         </div>
@@ -31,6 +45,15 @@ const ZeroTrustModal = ({ show, onHide, sbtData, studentName, onOpenFileModal })
           <div className="chain-info-row">
             <span className="chain-info-label">Kredensial:</span>
             <span className="fw-bold text-primary">{sbtData.title || 'Soulbound Credentials'}</span>
+          </div>
+          <div className="chain-info-row">
+            <span className="chain-info-label">Penerbit Resmi:</span>
+            <span className="chain-info-val d-inline-flex align-items-center gap-1.5">
+              {(!sbtData.issuer || sbtData.issuer.toLowerCase().includes('kampusx')) && (
+                <img src={LogoKampusXNoText} alt="" style={{ width: '14px', height: '14px' }} />
+              )}
+              {sbtData.issuer || 'KampusX Verified Authority'}
+            </span>
           </div>
           <div className="chain-info-row">
             <span className="chain-info-label">Standar Token:</span>

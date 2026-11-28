@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Container, Spinner, Modal, Button, Badge } from 'react-bootstrap';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Container, Spinner, Modal, Button, Badge, Row, Col } from 'react-bootstrap';
 import {
   Lock,
   Sparkles,
   ShieldCheck,
   ArrowRight,
+  ArrowLeft,
+  AlertCircle,
   UserCheck,
   CheckCircle2,
   FileText,
@@ -24,6 +26,7 @@ import ActivityFeedView from './ActivityFeedView';
 import EventHistoryView from './EventHistoryView';
 import ZeroTrustModal from './ZeroTrustModal';
 import CertificateFileModal from './CertificateFileModal';
+import LogoKampusX from '@/assets/images/logo/Logo_KampusX.svg';
 import './PublicProfile.css';
 
 // === DUMMY CANDIDATE PROFILES DATABASE (Mencakup Top Leaderboard & Talenta) ===
@@ -503,6 +506,14 @@ const getDynamicMockProfile = (id) => {
 const UserProfile = () => {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
+  const routerLocation = useLocation();
+  const navigate = useNavigate();
+
+  // Navigation state dari Recruiter View (jika datang dari pencarian kandidat / job matching)
+  const fromRecruiter = routerLocation.state?.fromRecruiter || false;
+  const filterState = routerLocation.state?.filterState || null;
+  const matchData = routerLocation.state?.matchData || null;
+
   const [profileData, setProfileData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('sbt');
@@ -527,32 +538,73 @@ const UserProfile = () => {
     (async () => {
       setIsLoading(true);
       try {
-        // Cek data mock bawaan
         const mockFallback = getDynamicMockProfile(id);
 
-        // Coba fetch dari backend jika tersedia
-        const res = await api.get(`/profile/${id}`).catch(() => null);
+        // Fetch dari recruiter API (punya real skills, real SBTs, bio) dan public profile API secara paralel
+        const [candidateRes, profileRes] = await Promise.all([
+          api.get(`/recruiter/candidates/${id}`).catch(() => null),
+          api.get(`/profile/${id}`).catch(() => null),
+        ]);
 
-        if (res && res.data && res.data.success && res.data.data) {
-          const apiData = res.data.data;
-          const merged = {
-            ...mockFallback,
+        let merged = { ...mockFallback };
+
+        if (profileRes && profileRes.data?.success && profileRes.data?.data) {
+          const apiData = profileRes.data.data;
+          merged = {
+            ...merged,
             ...apiData.profile,
             id: apiData.profile?.id || id,
-            name: apiData.profile?.name || mockFallback.name,
-            institution: apiData.profile?.institution || mockFallback.campus,
-            interests: apiData.interests || mockFallback.interests,
+            name: apiData.profile?.name || merged.name,
+            institution: apiData.profile?.institution || merged.campus,
+            interests: apiData.interests || merged.interests,
             is_own_profile: apiData.is_own_profile || false,
-            sbtCertificates: mockFallback.sbtCertificates,
-            skills: mockFallback.skills,
-            srlModules: mockFallback.srlModules,
-            activities: mockFallback.activities,
-            events: apiData.history?.past || mockFallback.events
+            events: apiData.history?.past || merged.events,
           };
-          setProfileData(merged);
-        } else {
-          setProfileData(mockFallback);
         }
+
+        if (candidateRes && candidateRes.data?.success && candidateRes.data?.data) {
+          const cand = candidateRes.data.data;
+
+          // Format skills dictionary { "Laravel": 4.8 } menjadi array [{ name, level }]
+          let formattedSkills = merged.skills;
+          if (cand.skills && typeof cand.skills === 'object' && !Array.isArray(cand.skills)) {
+            formattedSkills = Object.entries(cand.skills).map(([sName, sScore]) => ({
+              name: sName,
+              level: Math.min(100, Math.round(((parseFloat(sScore) || 3) / 5) * 100))
+            }));
+          }
+
+          // Format real SBT certificates
+          let formattedSbt = merged.sbtCertificates;
+          if (Array.isArray(cand.sbt_certificates) && cand.sbt_certificates.length > 0) {
+            formattedSbt = cand.sbt_certificates.map((cert, cIdx) => ({
+              id: cert.id || `sbt-${cIdx}`,
+              tokenId: cert.token_id || `#SBT-${cert.id}`,
+              ticketCode: cert.ticket_code || `CERT-${cert.id}`,
+              title: cert.title || 'Soulbound Academic Credential',
+              issuer: cert.issuer || 'KampusX Verified Academy',
+              contractAddress: cert.contract_address || '0x71C849Aa68364d9E4105B853e5e4E9Fa65749A32',
+              txHash: cert.transaction_hash || '0x94f1c8a73b22e185c899d214c718b90a61849f2b87e91402ba815349e5d4cb3c',
+              date: cert.minted_at_formatted || 'Baru saja'
+            }));
+          }
+
+          merged = {
+            ...merged,
+            id: cand.id || id,
+            name: cand.name || merged.name,
+            campus: cand.campus || merged.campus,
+            major: cand.major || merged.major,
+            headline: `${cand.major || 'Mahasiswa'} | ${cand.campus || 'Universitas Indonesia'}`,
+            tier: cand.tier || merged.tier,
+            points: cand.points || merged.points,
+            bio: cand.bio || merged.bio,
+            skills: formattedSkills,
+            sbtCertificates: formattedSbt,
+          };
+        }
+
+        setProfileData(merged);
       } catch (err) {
         console.warn('Menggunakan fallback mock profile data:', err);
         setProfileData(getDynamicMockProfile(id));
@@ -635,19 +687,45 @@ const UserProfile = () => {
     <div className={`public-profile-wrapper ${isGuest ? 'guest-view-active' : ''}`}>
       <Container className="pt-4 pt-md-5">
 
+        {/* ==================== BACK BUTTON KE RECRUITER VIEW ==================== */}
+        {(fromRecruiter || user?.role === 'recruiter') && (
+          <div className="mb-3">
+            <Button
+              variant="outline-secondary"
+              size="sm"
+              className="rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs"
+              style={{ fontSize: '12.5px' }}
+              onClick={() => {
+                navigate('/recruiter/candidates', {
+                  state: {
+                    preserveState: true,
+                    filterState
+                  }
+                });
+              }}
+            >
+              <ArrowLeft size={14} /> Kembali ke Direktori Talenta
+            </Button>
+          </div>
+        )}
+
         {/* ==================== 0. LINKEDIN-STYLE GUEST CALLOUT BANNER ==================== */}
         {isGuest && (
           <div className="profile-guest-callout mb-4">
             <div className="d-flex align-items-center gap-3">
-              <div className="guest-callout-icon">
-                <Lock size={20} />
-              </div>
+              {/* <div className="guest-callout-icon d-flex align-items-center justify-content-center p-2 bg-white rounded-3 shadow-2xs">
+                <img
+                  src={LogoKampusX}
+                  alt="KampusX"
+                  style={{ height: '22px', width: 'auto', objectFit: 'contain' }}
+                />
+              </div> */}
               <div className="flex-grow-1">
                 <div className="d-flex align-items-center gap-2 mb-1">
                   <h6 className="guest-callout-title mb-0">Mode Publik Terbatas (Guest Preview)</h6>
-                  <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style={{ fontSize: '10px' }}>
+                  {/* <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style={{ fontSize: '10px' }}>
                     LinkedIn-Style Gating
-                  </span>
+                  </span> */}
                 </div>
                 <p className="guest-callout-desc mb-0">
                   Anda sedang melihat versi publik mahasiswa ini. Masuk atau buat akun KampusX gratis untuk melihat rekaman evaluasi kognitif SRL lengkap, mengunduh On-Chain CV ber-QR code, dan mengirim penawaran kolaborasi/rekrutmen.
@@ -682,6 +760,90 @@ const UserProfile = () => {
           promptLoginRequired={promptLoginRequired}
           onOpenVerifyModal={() => handleOpenVerifyModal()}
         />
+
+        {/* ==================== 1.5 JOB MATCHING CONTEXT SECTION ==================== */}
+        {matchData && (
+          <div className="bg-white border rounded-4 p-4 mb-4 shadow-sm">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-3 border-bottom">
+              <div>
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <Badge bg="primary-subtle" className="text-primary border border-primary-subtle px-2.5 py-1">
+                    <Sparkles size={13} className="me-1" /> EVALUASI JOB MATCHING
+                  </Badge>
+                  <span className="text-muted small">•</span>
+                  <span className="fw-bold text-dark small">{matchData.jobTitle || 'Kriteria Lowongan'}</span>
+                </div>
+                <h5 className="fw-bold text-dark mb-0">Hasil Analisis Kecocokan Portofolio</h5>
+              </div>
+
+              <div className="text-end">
+                <Badge
+                  bg={matchData.matchScore >= 75 ? 'success' : matchData.matchScore >= 50 ? 'warning' : 'secondary'}
+                  className="fs-6 px-3 py-1.5 rounded-pill shadow-xs"
+                >
+                  <Sparkles size={14} className="me-1" /> {matchData.matchScore}% Match
+                </Badge>
+                {matchData.competencyVerdict && (
+                  <div className="text-muted mt-1" style={{ fontSize: '11px', fontWeight: 600 }}>
+                    {matchData.competencyVerdict}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Row className="g-3">
+              <Col md={6}>
+                <div className="d-flex align-items-center gap-1.5 text-success small fw-bold mb-2">
+                  <CheckCircle2 size={16} /> Keahlian Terpenuhi ({matchData.matchedSkills?.length || 0}):
+                </div>
+                {matchData.matchedSkills && matchData.matchedSkills.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-1.5">
+                    {matchData.matchedSkills.map((m, idx) => (
+                      <Badge
+                        key={idx}
+                        bg="success-subtle"
+                        className="text-success border border-success-subtle px-2.5 py-1.5 rounded-pill d-inline-flex align-items-center gap-1"
+                        style={{ fontSize: '12px' }}
+                      >
+                        <CheckCircle2 size={12} />
+                        <span>{m.skill || m}</span>
+                        {m.proficiency && (
+                          <span className="opacity-75">({m.proficiency}/5.0)</span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted small">Belum ada keahlian yang cocok.</span>
+                )}
+              </Col>
+
+              <Col md={6}>
+                <div className="d-flex align-items-center gap-1.5 text-danger small fw-bold mb-2">
+                  <AlertCircle size={16} /> Kebutuhan Belum Terpenuhi / Gap ({matchData.unmetSkills?.length || 0}):
+                </div>
+                {matchData.unmetSkills && matchData.unmetSkills.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-1.5">
+                    {matchData.unmetSkills.map((u, idx) => (
+                      <Badge
+                        key={idx}
+                        bg="danger-subtle"
+                        className="text-danger border border-danger-subtle px-2.5 py-1.5 rounded-pill"
+                        style={{ fontSize: '12px' }}
+                      >
+                        {u}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-success small fw-medium">
+                    <CheckCircle2 size={13} className="me-1 inline" /> Seluruh kualifikasi keahlian terpenuhi!
+                  </span>
+                )}
+              </Col>
+            </Row>
+          </div>
+        )}
 
         {/* ==================== 2. PROFILE STATS ==================== */}
         <ProfileStats stats={profileData} />
@@ -756,20 +918,13 @@ const UserProfile = () => {
         >
           <Modal.Header closeButton className="border-0 pb-0">
             <div className="d-flex align-items-center gap-2">
-              <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '12px',
-                  backgroundColor: '#eff6ff',
-                  color: '#00699e',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Lock size={18} />
-              </div>
+              <img
+                src={LogoKampusX}
+                alt="KampusX"
+                style={{ height: '26px', width: 'auto', objectFit: 'contain' }}
+                className="me-1"
+              />
+              <span className="text-muted small">•</span>
               <span className="fw-bold text-dark fs-6">Akses Khusus Member</span>
             </div>
           </Modal.Header>
